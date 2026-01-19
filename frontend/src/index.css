@@ -1,0 +1,10 @@
+@import "tailwindcss";
+/* 🔥 Remove browser password eye (Chrome / Edge) */
+input[type="password"]::-ms-reveal,
+input[type="password"]::-ms-clear {
+  display: none;
+}
+
+input[type="password"]::-webkit-textfield-decoration-container {
+  display: none;
+}
