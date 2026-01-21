@@ -7,7 +7,10 @@ import Home from './pages/Home'   // ✅ IMPORT YOUR HOME PAGE
 import useGetCurrentUser from './hooks/useGetCurrentUser'
 import { Toaster } from "react-hot-toast";
 import useGetCity from './hooks/useGetCity'
-
+import BlogList from './components/admin/BlogList'
+import BlogDetails from './pages/BlogDetails'
+import UserBlogDetails from "./pages/UserBlogDetails";
+import CartPage from './pages/CartPage'
 export const serverUrl = "http://localhost:8000"
 
 const App = () => {
@@ -30,6 +33,10 @@ const App = () => {
         <Route path="/signup" element={<SignUp />} />
         <Route path="/signin" element={<Signin />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/blogs" element={<BlogList />} />
+        <Route path="/blogs/:id" element={<BlogDetails />} />
+        <Route path="/blog/:id" element={<UserBlogDetails />} />
+        <Route path="/cart" element={<CartPage />} />
       </Routes>
     </>
   )

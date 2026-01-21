@@ -6,7 +6,8 @@ import cookieParser from "cookie-parser"
 import authRouter from "./routes/authrouter.js"
 import cors from "cors"
 import userRouter from "./routes/userroutes.js"
-
+import productRoutes from "./routes/productRoutes.js";
+import blogRoutes from "./routes/blogRoutes.js";
 const app=express()
 const port=process.env.port || 5000
 app.use(cors({
@@ -17,6 +18,8 @@ app.use(express.json())
 app.use(cookieParser())
 app.use("/api/auth",authRouter)
 app.use("/api/user",userRouter)
+app.use("/api/product", productRoutes);
+app.use("/api/blog", blogRoutes);
 app.listen(port,()=>{
     connectDB()
     console.log(`🚀 Server running on port ${port}`);
