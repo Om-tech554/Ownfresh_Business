@@ -1,46 +1,89 @@
 import { createSlice } from "@reduxjs/toolkit";
+
+// SAFE LOCALSTORAGE PARSE
+let storedUser = null;
+try {
+  const raw = localStorage.getItem("oil_user");
+  if (raw && raw !== "undefined") {
+    storedUser = JSON.parse(raw);
+  }
+} catch (err) {
+  storedUser = null;
+}
+
 const userSlice = createSlice({
   name: "user",
   initialState: {
-  userData: null,
-  city: null,
-  loading: true,
-  cartCount: 0,
-  cart: [],
+    userData: storedUser,
+    city: null,
+    loading: false,
+    cartItems: JSON.parse(localStorage.getItem("oil_cart") || "[]"),
   },
+  
+
   reducers: {
     setUserData: (state, action) => {
-    state.userData = action.payload;
-    state.loading = false;
+      state.userData = action.payload;
+      state.loading = false;
+
+      if (action.payload) {
+        localStorage.setItem("oil_user", JSON.stringify(action.payload));
+      }
     },
+
     clearUser: (state) => {
-    state.userData = null;
-    state.loading = false;
-  },
-    setCity:(state, action) => {
+      state.userData = null;
+      localStorage.removeItem("oil_user");
+    },
+
+    setCity: (state, action) => {
       state.city = action.payload;
     },
+
     addToCart: (state, action) => {
-      // Check if item already exists to increment quantity instead of duplicating
-      const existingItem = state.cart.find(item => item._id === action.payload._id);
+      const cartItem = action.payload;
+      const existingItem = state.cartItems.find(i => i._id === cartItem._id);
+
       if (existingItem) {
         existingItem.quantity += 1;
       } else {
-        state.cart.push({ ...action.payload, quantity: 1 });
+        state.cartItems.push({ ...cartItem, quantity: 1 });
       }
+
+      localStorage.setItem("oil_cart", JSON.stringify(state.cartItems));
     },
-    removeFromCart: (state, action) => {
-      state.cart = state.cart.filter(item => item._id !== action.payload);
-    },
+
     updateQuantity: (state, action) => {
-      const { id, amount } = action.payload;
-      const item = state.cart.find(item => item._id === id);
-      if (item) {
-        item.quantity = Math.max(1, item.quantity + amount);
+      const { id, quantity } = action.payload;
+      const item = state.cartItems.find(i => i._id === id);
+
+      if (item && quantity > 0) {
+        item.quantity = quantity;
       }
+
+      localStorage.setItem("oil_cart", JSON.stringify(state.cartItems));
+    },
+
+    removeFromCart: (state, action) => {
+      state.cartItems = state.cartItems.filter(item => item._id !== action.payload);
+      localStorage.setItem("oil_cart", JSON.stringify(state.cartItems));
+    },
+
+    clearCart: (state) => {
+      state.cartItems = [];
+      localStorage.removeItem("oil_cart");
     }
   },
 });
 
-export const { setUserData,setCity, addToCart, removeFromCart, updateQuantity } = userSlice.actions;
+export const {
+  setUserData,
+  clearUser,
+  setCity,
+  addToCart,
+  updateQuantity,
+  removeFromCart,
+  clearCart,
+} = userSlice.actions;
+
 export default userSlice.reducer;

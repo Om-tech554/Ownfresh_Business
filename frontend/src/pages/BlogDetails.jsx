@@ -1,141 +1,171 @@
-
 import React, { useEffect, useState } from "react";
-import axios from "axios";
 import { useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft, Clock, Tag, Share2, AlertCircle, Loader2 } from "lucide-react";
-// Note: Install react-hot-toast for the toast logic below
-import { toast, Toaster } from "react-hot-toast"; 
+import axios from "axios";
+import { useSelector } from "react-redux";
+import { ArrowLeft, Loader2, Calendar, Clock, ChevronUp, Edit3, Trash2 } from "lucide-react";
 
-const BlogDetails = () => {
+const AdminBlogDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [blog, setBlog] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [showTopBtn, setShowTopBtn] = useState(false);
+
+  const userData = useSelector((state) => state.user.userData);
+  const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
+
+  // SECURITY: If not admin → redirect
+  useEffect(() => {
+    if (userData?.role !== "admin") navigate("/"); 
+  }, [userData]);
+
+  useEffect(() => {
+    const handleScroll = () => setShowTopBtn(window.scrollY > 400);
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  const goToTop = () => window.scrollTo({ top: 0, behavior: "smooth" });
 
   const fetchBlog = async () => {
     try {
-      setLoading(true);
-      const res = await axios.get(`http://localhost:8000/api/blog/${id}`);
+      const res = await axios.get(`${API_BASE_URL}/api/blog/${id}`);
       setBlog(res.data.blog);
-    } catch (err) {
-      toast.error("Article not found or server error", {
-        style: { borderRadius: '10px', background: '#333', color: '#fff' }
-      });
+    } catch (error) {
+      console.error("Error loading blog:", error);
     } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => {
-    fetchBlog();
-  }, [id]);
+  const deleteBlog = async () => {
+    if (!window.confirm("Delete this blog permanently?")) return;
+    try {
+      await axios.delete(`${API_BASE_URL}/api/blog/delete/${id}`);
+      navigate("/blogs");
+    } catch (err) {
+      alert("Failed to delete blog");
+    }
+  };
 
-  if (loading) return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50">
-      <Loader2 className="w-10 h-10 text-[#ff4d2d] animate-spin mb-4" />
-      <p className="text-slate-500 font-medium animate-pulse">Loading technical data...</p>
-    </div>
-  );
+  const editBlog = () => {
+    navigate(`/blogs/edit/${id}`);
+  };
 
-  if (!blog) return (
-    <div className="min-h-screen flex flex-col items-center justify-center">
-      <AlertCircle className="w-12 h-12 text-red-500 mb-4" />
-      <h2 className="text-2xl font-bold text-slate-800">Post Not Found</h2>
-      <button onClick={() => navigate(-1)} className="mt-4 text-[#ff4d2d] font-semibold flex items-center gap-2">
-        <ArrowLeft className="w-4 h-4" /> Back to List
-      </button>
-    </div>
-  );
+  useEffect(() => fetchBlog(), [id]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50">
+        <Loader2 className="w-12 h-12 animate-spin text-[#ff4d2d]" />
+        <p className="mt-4 text-gray-500 font-medium">Loading blog...</p>
+      </div>
+    );
+  }
+
+  if (!blog) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center p-6 text-center">
+        <h2 className="text-2xl font-bold text-gray-800">Blog not found</h2>
+        <button onClick={() => navigate(-1)} className="mt-4 text-[#ff4d2d] hover:underline flex items-center gap-2">
+          <ArrowLeft size={18} /> Back
+        </button>
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen bg-white">
-      <Toaster position="top-center" reverseOrder={false} />
-      
-      {/* Navigation Header */}
-      <div className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-slate-100">
-        <div className="max-w-4xl mx-auto px-6 py-4 flex items-center justify-between">
-          <button 
-            onClick={() => navigate(-1)}
-            className="flex items-center gap-2 text-slate-600 hover:text-[#ff4d2d] transition-colors font-medium text-sm"
-          >
-            <ArrowLeft className="w-4 h-4" /> Back to Insights
-          </button>
-          <button 
-            onClick={() => {
-              navigator.clipboard.writeText(window.location.href);
-              toast.success("Link copied to clipboard!");
-            }}
-            className="p-2 hover:bg-slate-100 rounded-full transition-all"
-          >
-            <Share2 className="w-5 h-5 text-slate-500" />
-          </button>
-        </div>
-      </div>
+    <div className="bg-white min-h-screen relative selection:bg-orange-100">
+      <div className="max-w-4xl mx-auto px-6 py-12">
 
-      <article className="max-w-4xl mx-auto px-6 py-12">
-        
-        {/* Meta Info */}
-        <div className="flex flex-wrap items-center gap-4 mb-6">
-          <span className="flex items-center gap-1.5 px-3 py-1 bg-[#ff4d2d]/10 text-[#ff4d2d] text-xs font-bold uppercase tracking-widest rounded-full">
-            <Tag className="w-3 h-3" /> {blog.category || "Industry News"}
-          </span>
-          <span className="flex items-center gap-1.5 text-slate-400 text-sm">
-            <Clock className="w-4 h-4" /> 5 min read
-          </span>
-        </div>
+        {/* BACK BUTTON */}
+        <button
+          onClick={() => navigate(-1)}
+          className="group flex items-center gap-2 text-gray-500 hover:text-[#ff4d2d] transition-colors mb-10 font-medium"
+        >
+          <ArrowLeft size={20} className="group-hover:-translate-x-1 transition-transform" />
+          Back to Insights
+        </button>
 
-        {/* Title */}
-        <h1 className="text-4xl md:text-5xl font-extrabold text-slate-900 leading-[1.15] mb-8 tracking-tight">
-          {blog.title}
-        </h1>
+        {/* ADMIN ACTION BUTTONS */}
+        {userData?.role === "admin" && (
+          <div className="flex justify-end gap-3 mb-6">
+            <button
+              onClick={editBlog}
+              className="flex items-center gap-2 bg-blue-50 text-blue-600 px-4 py-2 rounded-xl hover:bg-blue-100 transition"
+            >
+              <Edit3 size={18} /> Edit
+            </button>
 
-        {/* Featured Image - DESIGNED NOT TO CUT */}
-        <div className="relative group w-full mb-12 rounded-3xl overflow-hidden bg-slate-100 border border-slate-200">
-          <div className="absolute inset-0 bg-slate-200 opacity-20" />
-          <img
-            src={blog.image}
-            alt={blog.title}
-            className="w-full h-auto max-h-[600px] object-contain mx-auto transition-transform duration-700 group-hover:scale-[1.02]"
-          />
-        </div>
-
-        {/* Article Body */}
-        <div className="max-w-2xl mx-auto">
-          <div className="flex items-center gap-4 mb-10 p-4 bg-slate-50 rounded-2xl border border-slate-100">
-            <div className="w-12 h-12 bg-slate-200 rounded-full flex items-center justify-center font-bold text-slate-500">
-              OB
-            </div>
-            <div>
-              <p className="text-sm font-bold text-slate-900">Oil Business Editorial</p>
-              <p className="text-xs text-slate-500">Technical Analysis Division</p>
-            </div>
+            <button
+              onClick={deleteBlog}
+              className="flex items-center gap-2 bg-red-50 text-red-600 px-4 py-2 rounded-xl hover:bg-red-100 transition"
+            >
+              <Trash2 size={18} /> Delete
+            </button>
           </div>
+        )}
 
-          <div className="prose prose-slate lg:prose-xl max-w-none">
-            <p className="text-slate-700 text-lg md:text-xl leading-relaxed first-letter:text-5xl first-letter:font-bold first-letter:text-[#ff4d2d] first-letter:mr-3 first-letter:float-left">
+        {/* BLOG CONTENT */}
+        <article>
+          {blog.image && (
+            <div className="rounded-2xl mb-12 overflow-hidden shadow-sm border bg-gray-50">
+              <img
+                src={blog.image}
+                alt={blog.title}
+                className="w-full max-h-[550px] object-contain mx-auto"
+              />
+            </div>
+          )}
+
+          <header className="mb-12 border-b border-gray-100 pb-10">
+            <h1 className="text-4xl md:text-5xl font-extrabold text-gray-900 mb-6">
+              {blog.title}
+            </h1>
+
+            <div className="flex items-center gap-6 text-gray-500">
+              <span className="flex items-center gap-2 bg-gray-100 px-3 py-1 rounded-full text-xs font-bold uppercase">
+                <Calendar size={14} className="text-[#ff4d2d]" />
+                {new Date(blog.createdAt).toLocaleDateString(undefined, { dateStyle: "medium" })}
+              </span>
+
+              <span className="flex items-center gap-2 text-sm font-medium">
+                <Clock size={16} /> Published
+              </span>
+            </div>
+          </header>
+
+          <div className="prose prose-lg max-w-none mb-20">
+            <p className="text-gray-700 text-lg md:text-xl leading-[1.9] whitespace-pre-line">
               {blog.description}
             </p>
           </div>
+        </article>
 
-          {/* Footer Tags */}
-          <div className="mt-16 pt-8 border-t border-slate-100 flex flex-wrap gap-2">
-            {['Energy', 'Oil & Gas', 'Industry Update'].map(tag => (
-              <span key={tag} className="px-4 py-2 bg-slate-50 text-slate-500 text-sm rounded-lg border border-slate-100 italic">
-                #{tag}
-              </span>
-            ))}
-          </div>
-        </div>
-      </article>
-
-      {/* Industrial Accent Bottom Bar */}
-      <div className="h-2 w-full flex">
-        <div className="h-full flex-1 bg-[#ff4d2d]"></div>
-        <div className="h-full flex-1 bg-slate-900"></div>
-        <div className="h-full flex-1 bg-[#ff4d2d]"></div>
+        <footer className="mt-20 pt-10 border-t border-gray-100 flex flex-col items-center">
+          <button
+            onClick={goToTop}
+            className="flex flex-col items-center gap-3 text-gray-400 hover:text-[#ff4d2d] transition-colors group"
+          >
+            <div className="p-3 rounded-full border border-gray-200 group-hover:border-[#ff4d2d] transition-all">
+              <ChevronUp size={24} />
+            </div>
+            <span className="text-xs uppercase tracking-[0.2em] font-bold">Scroll to Top</span>
+          </button>
+        </footer>
       </div>
+
+      {/* FLOATING BUTTON */}
+      <button
+        onClick={goToTop}
+        className={`fixed bottom-8 right-8 p-3 bg-[#ff4d2d] text-white rounded-full shadow-xl hover:bg-[#e64527] transition-all z-50 ${
+          showTopBtn ? "opacity-100" : "opacity-0 pointer-events-none"
+        }`}
+      >
+        <ChevronUp size={24} />
+      </button>
     </div>
   );
 };
 
-export default BlogDetails;
+export default AdminBlogDetails;

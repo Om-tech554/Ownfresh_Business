@@ -28,11 +28,12 @@ router.post(
         });
       }
 
-      const { name, price } = req.body;
+      const { name, price, shortDesc } = req.body;
 
       const product = await Product.create({
         name,
         price,
+        shortDesc,     // ⭐ REQUIRED FIX
         image: req.file.path,
       });
 
@@ -42,6 +43,7 @@ router.post(
       });
 
     } catch (error) {
+      console.log("ADD PRODUCT ERROR:", error);  // 🔥 Add this for real logs
       res.status(500).json({ success: false, message: error.message });
     }
   }
@@ -66,7 +68,6 @@ router.delete("/delete/:id", async (req, res) => {
     res.status(500).json({ success: false, message: error.message });
   }
 });
-
 // -------------------- UPDATE PRODUCT --------------------
 router.put(
   "/update/:id",
@@ -84,9 +85,13 @@ router.put(
   },
   async (req, res) => {
     try {
-      const { name, price } = req.body;
+      const { name, price, shortDesc } = req.body;
 
-      const data = { name, price };
+      const data = {
+        name,
+        price,
+        shortDesc,   // ⭐ REQUIRED FIX
+      };
 
       if (req.file) {
         data.image = req.file.path;
@@ -95,7 +100,7 @@ router.put(
       const updated = await Product.findByIdAndUpdate(
         req.params.id,
         data,
-        { new: true }
+        { new: true, runValidators: true }  // ⭐ to validate required fields
       );
 
       res.json({ success: true, product: updated });
@@ -103,6 +108,7 @@ router.put(
     } catch (error) {
       res.status(500).json({ success: false, message: error.message });
     }
-  });
+  }
+);
 
 export default router;

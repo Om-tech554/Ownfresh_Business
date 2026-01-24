@@ -232,14 +232,16 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import { 
-  Search, 
-  Filter, 
-  Edit3, 
-  Trash2, 
-  ChevronLeft, 
-  ChevronRight, 
-  Tag, 
+import { useSelector } from "react-redux";
+
+import {
+  Search,
+  Filter,
+  Edit3,
+  Trash2,
+  ChevronLeft,
+  ChevronRight,
+  Tag,
   ExternalLink,
   X,
   Upload
@@ -252,7 +254,6 @@ const BlogList = () => {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
 
-  // Edit modal states
   const [editData, setEditData] = useState(null);
   const [editTitle, setEditTitle] = useState("");
   const [editDescription, setEditDescription] = useState("");
@@ -260,6 +261,7 @@ const BlogList = () => {
   const [editPreview, setEditPreview] = useState(null);
 
   const navigate = useNavigate();
+  const userData = useSelector((state) => state.user.userData);
 
   const fetchBlogs = async () => {
     try {
@@ -278,7 +280,7 @@ const BlogList = () => {
   }, [page, search, category]);
 
   const deleteBlog = async (id) => {
-    if (!window.confirm("Are you sure you want to delete this industry insight?")) return;
+    if (!window.confirm("Are you sure you want to delete this post?")) return;
     try {
       await axios.delete(`http://localhost:8000/api/blog/delete/${id}`);
       fetchBlogs();
@@ -320,7 +322,8 @@ const BlogList = () => {
 
   return (
     <div className="min-h-screen bg-slate-50 px-4 md:px-8 lg:px-16 py-12">
-      {/* Header Section */}
+      
+      {/* Header */}
       <div className="max-w-7xl mx-auto mb-12">
         <h2 className="text-4xl font-extrabold text-slate-900 tracking-tight mb-2">
           Industry <span className="text-[#ff4d2d]">Insights</span>
@@ -330,12 +333,12 @@ const BlogList = () => {
         </p>
       </div>
 
-      {/* Filter Bar */}
+      {/* FILTER BAR */}
       <div className="max-w-7xl mx-auto mb-10 p-4 bg-white rounded-2xl shadow-sm border border-slate-200 flex flex-col md:flex-row gap-4 items-center">
         <div className="relative w-full">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
           <input
-            className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border-none rounded-xl focus:ring-2 focus:ring-[#ff4d2d]/20 transition-all outline-none text-slate-700"
+            className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border-none rounded-xl focus:ring-2 focus:ring-[#ff4d2d]/20 outline-none"
             placeholder="Search reports or news..."
             value={search}
             onChange={(e) => { setSearch(e.target.value); setPage(1); }}
@@ -345,25 +348,26 @@ const BlogList = () => {
         <div className="relative w-full md:w-72">
           <Filter className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
           <select
-            className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border-none rounded-xl appearance-none focus:ring-2 focus:ring-[#ff4d2d]/20 transition-all outline-none text-slate-700 font-medium"
+            className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border-none rounded-xl"
             value={category}
             onChange={(e) => { setCategory(e.target.value); setPage(1); }}
           >
             <option value="">All Sectors</option>
-            <option value="Tech">Technology</option>
-            <option value="CNC">CNC Operations</option>
-            <option value="Mechanical">Mechanical Engineering</option>
+            <option value="Tech">Tech</option>
+            <option value="CNC">CNC</option>
+            <option value="Mechanical">Mechanical</option>
             <option value="Industry">Industry News</option>
-            <option value="AI">AI Solutions</option>
+            <option value="AI">AI</option>
           </select>
         </div>
       </div>
 
-      {/* Blog Cards Grid */}
+      {/* BLOG GRID */}
       <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         {blogs.map((b) => (
-          <div key={b._id} className="group bg-white rounded-2xl overflow-hidden border border-slate-200 hover:shadow-xl hover:shadow-slate-200 transition-all duration-300 flex flex-col">
-            {/* Image Container: NEVER CUTS OFF */}
+          <div key={b._id} className="group bg-white rounded-2xl overflow-hidden border border-slate-200 hover:shadow-xl transition-all duration-300 flex flex-col">
+            
+            {/* IMAGE */}
             <div 
               className="relative w-full h-56 bg-slate-100 overflow-hidden cursor-pointer"
               onClick={() => navigate(`/blogs/${b._id}`)}
@@ -371,16 +375,11 @@ const BlogList = () => {
               <img
                 src={b.image}
                 alt={b.title}
-                className="w-full h-full object-contain p-2 transition-transform duration-500 group-hover:scale-105"
+                className="w-full h-full object-contain p-2 group-hover:scale-105 transition-transform"
               />
-              <div className="absolute top-4 left-4">
-                <span className="flex items-center gap-1.5 px-3 py-1 bg-white/90 backdrop-blur shadow-sm text-[10px] font-bold uppercase tracking-wider text-[#ff4d2d] rounded-full">
-                  <Tag className="w-3 h-3" /> {b.category || "Other"}
-                </span>
-              </div>
             </div>
 
-            {/* Content */}
+            {/* CONTENT */}
             <div className="p-6 flex flex-col flex-grow">
               <h3 className="text-xl font-bold text-slate-800 mb-3 line-clamp-2 min-h-[3.5rem]">
                 {b.title}
@@ -389,106 +388,119 @@ const BlogList = () => {
                 {b.description.slice(0, 100)}...
               </p>
 
-              {/* Actions */}
+              {/* ACTIONS */}
               <div className="mt-auto pt-4 border-t border-slate-100 flex items-center justify-between">
                 <button 
                   onClick={() => navigate(`/blogs/${b._id}`)}
-                  className="text-slate-400 hover:text-[#ff4d2d] transition-colors"
+                  className="text-slate-400 hover:text-[#ff4d2d]"
                 >
                   <ExternalLink className="w-5 h-5" />
                 </button>
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => openEditModal(b)}
-                    className="p-2 bg-slate-50 hover:bg-blue-50 text-blue-600 rounded-lg transition-colors"
-                  >
-                    <Edit3 className="w-4 h-4" />
-                  </button>
-                  <button
-                    onClick={() => deleteBlog(b._id)}
-                    className="p-2 bg-slate-50 hover:bg-red-50 text-red-600 rounded-lg transition-colors"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-                </div>
+
+                {/* ADMIN ONLY */}
+                {userData?.role === "admin" && (
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => openEditModal(b)}
+                      className="p-2 bg-slate-50 hover:bg-blue-50 text-blue-600 rounded-lg"
+                    >
+                      <Edit3 className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={() => deleteBlog(b._id)}
+                      className="p-2 bg-slate-50 hover:bg-red-50 text-red-600 rounded-lg"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                )}
               </div>
+
             </div>
           </div>
         ))}
       </div>
 
-      {/* Pagination */}
+      {/* PAGINATION (RESTORED) */}
       <div className="max-w-7xl mx-auto mt-16 flex items-center justify-center gap-8">
         <button
           disabled={page <= 1}
           onClick={() => setPage(page - 1)}
-          className="p-3 rounded-full bg-white border border-slate-200 text-slate-600 disabled:opacity-30 hover:bg-[#ff4d2d] hover:text-white transition-all shadow-sm"
+          className="p-3 rounded-full bg-white border text-slate-600 disabled:opacity-30 hover:bg-[#ff4d2d] hover:text-white transition-all"
         >
           <ChevronLeft className="w-5 h-5" />
         </button>
+
         <span className="text-slate-500 font-medium">
           Page <span className="text-slate-900 font-bold">{page}</span> of {totalPages}
         </span>
+
         <button
           disabled={page >= totalPages}
           onClick={() => setPage(page + 1)}
-          className="p-3 rounded-full bg-white border border-slate-200 text-slate-600 disabled:opacity-30 hover:bg-[#ff4d2d] hover:text-white transition-all shadow-sm"
+          className="p-3 rounded-full bg-white border text-slate-600 disabled:opacity-30 hover:bg-[#ff4d2d] hover:text-white transition-all"
         >
           <ChevronRight className="w-5 h-5" />
         </button>
       </div>
 
-      {/* EDIT MODAL */}
-      {editData && (
+      {/* EDIT MODAL (Admin Only) */}
+      {editData && userData?.role === "admin" && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-[9999] p-4">
-          <div className="bg-white rounded-3xl w-full max-w-xl shadow-2xl overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-300">
+          <div className="bg-white rounded-3xl w-full max-w-xl shadow-2xl overflow-hidden">
+            
+            {/* HEADER */}
             <div className="flex justify-between items-center p-6 border-b">
-              <h2 className="text-xl font-bold text-slate-800">Edit Insight Post</h2>
+              <h2 className="text-xl font-bold text-slate-800">Edit Post</h2>
               <button onClick={() => setEditData(null)}><X className="w-6 h-6 text-slate-400" /></button>
             </div>
-            
+
+            {/* BODY */}
             <div className="p-6 space-y-4">
+
               <input
-                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-[#ff4d2d]"
+                className="w-full px-4 py-3 bg-slate-50 border rounded-xl"
                 placeholder="Title"
                 value={editTitle}
                 onChange={(e) => setEditTitle(e.target.value)}
               />
 
               <textarea
-                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-[#ff4d2d] h-32 resize-none"
+                className="w-full px-4 py-3 bg-slate-50 border rounded-xl h-32 resize-none"
                 placeholder="Description"
                 value={editDescription}
                 onChange={(e) => setEditDescription(e.target.value)}
               />
 
-              <div className="flex items-center gap-4 p-4 bg-slate-50 rounded-xl border-2 border-dashed border-slate-200">
+              <div className="flex items-center gap-4 p-4 bg-slate-50 rounded-xl border-2 border-dashed">
                 <div className="w-20 h-20 rounded-lg bg-white overflow-hidden border">
                   <img src={editPreview} className="w-full h-full object-contain" alt="Preview" />
                 </div>
-                <div className="flex-grow">
-                  <label className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-lg text-sm font-semibold text-slate-600 cursor-pointer hover:bg-slate-50 transition-colors">
-                    <Upload className="w-4 h-4" /> Change Image
-                    <input type="file" className="hidden" onChange={handleEditImageChange} />
-                  </label>
-                </div>
+
+                <label className="flex items-center gap-2 px-4 py-2 bg-white border rounded-lg cursor-pointer">
+                  <Upload className="w-4 h-4" /> Change Image
+                  <input type="file" className="hidden" onChange={handleEditImageChange} />
+                </label>
               </div>
 
               <div className="flex gap-3 pt-4">
                 <button
                   onClick={updateBlog}
-                  className="flex-grow py-3 bg-[#ff4d2d] text-white rounded-xl font-bold shadow-lg shadow-[#ff4d2d]/20 hover:bg-[#e63b2a] transition-all"
+                  className="flex-grow py-3 bg-[#ff4d2d] text-white rounded-xl font-bold"
                 >
                   Save Changes
                 </button>
+
                 <button
                   onClick={() => setEditData(null)}
-                  className="px-6 py-3 bg-slate-100 text-slate-600 rounded-xl font-bold hover:bg-slate-200 transition-all"
+                  className="px-6 py-3 bg-slate-100 text-slate-600 rounded-xl"
                 >
                   Cancel
                 </button>
               </div>
+
             </div>
+
           </div>
         </div>
       )}
@@ -497,3 +509,4 @@ const BlogList = () => {
 };
 
 export default BlogList;
+

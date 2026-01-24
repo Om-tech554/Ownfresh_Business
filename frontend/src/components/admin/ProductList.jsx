@@ -120,14 +120,14 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import EditProduct from "./EditProduct";
-import { 
-  Package, 
-  Trash2, 
-  Edit3, 
-  ChevronLeft, 
-  ChevronRight, 
-  TrendingUp, 
-  Layers 
+import {
+  Package,
+  Trash2,
+  Edit3,
+  ChevronLeft,
+  ChevronRight,
+  TrendingUp,
+  Layers
 } from "lucide-react";
 import toast, { Toaster } from "react-hot-toast";
 
@@ -176,7 +176,7 @@ const ProductList = () => {
   return (
     <div className="min-h-screen bg-slate-50 px-6 pt-28 pb-12 md:px-12 lg:px-20">
       <Toaster position="bottom-right" />
-      
+
       {/* Header Section */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-10">
         <div>
@@ -197,8 +197,8 @@ const ProductList = () => {
       {/* Products Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
         {currentProducts.map((p) => (
-          <div 
-            key={p._id} 
+          <div
+            key={p._id}
             className="group bg-white rounded-2xl overflow-hidden border border-slate-200 hover:border-[#ff4d2d]/50 hover:shadow-2xl hover:shadow-slate-200 transition-all duration-300"
           >
             {/* Image Container: NEVER CUT OFF */}
@@ -221,7 +221,10 @@ const ProductList = () => {
                 </h3>
                 <Package className="w-5 h-5 text-slate-300 shrink-0" />
               </div>
-
+              {/* Short Description */}
+              <p className="text-slate-500 text-sm mt-1 line-clamp-2">
+                {p.shortDesc}
+              </p>
               <div className="flex items-center gap-3 mt-6">
                 <button
                   onClick={() => setEditItem(p)}

@@ -100,6 +100,11 @@ const EditProduct = ({ product, onClose, onUpdated }) => {
   const [image, setImage] = useState(null);
   const [preview, setPreview] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [shortDesc, setShortDesc] = useState("");
+
+  useEffect(() => {
+    setShortDesc(product.shortDesc || "");
+  }, [product]);
 
   // Handle local preview for new image selection
   useEffect(() => {
@@ -119,6 +124,7 @@ const EditProduct = ({ product, onClose, onUpdated }) => {
       const formData = new FormData();
       formData.append("name", name);
       formData.append("price", price);
+      formData.append("shortDesc", shortDesc);
       if (image) formData.append("image", image);
 
       await axios.put(
@@ -145,7 +151,7 @@ const EditProduct = ({ product, onClose, onUpdated }) => {
   return (
     <div className="fixed inset-0 bg-slate-900/80 backdrop-blur-sm flex items-center justify-center z-[9999] p-4">
       <Toaster position="top-right" />
-      
+
       <div className="bg-white w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
         {/* Modal Header */}
         <div className="flex items-center justify-between p-6 bg-slate-50 border-b">
@@ -185,6 +191,22 @@ const EditProduct = ({ product, onClose, onUpdated }) => {
               />
             </div>
           </div>
+          {/* Short Description */}
+          <div className="space-y-1.5">
+            <label className="text-xs font-bold uppercase tracking-widest text-slate-500">
+              Short Description
+            </label>
+
+            <textarea
+              className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl 
+               focus:ring-2 focus:ring-[#ff4d2d] focus:border-transparent outline-none 
+               transition-all resize-none h-24"
+              placeholder="Enter short description..."
+              value={shortDesc}
+              onChange={(e) => setShortDesc(e.target.value)}
+            />
+          </div>
+
 
           {/* Image Comparison Area */}
           <div className="space-y-3">
