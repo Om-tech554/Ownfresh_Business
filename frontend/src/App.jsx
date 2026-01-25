@@ -17,6 +17,7 @@ import Shop from './components/Shop'
 import OilInsights from './pages/OilInsights'
 import 'aos/dist/aos.css';
 import StaticBlogDetails from './pages/StaticBlogDetails'
+import CheckOut from './pages/CheckOut'
 
 const App = () => {
   useGetCurrentUser()
@@ -40,7 +41,7 @@ const App = () => {
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/Oilinsights" element={<OilInsights />} />
         <Route path="/oil-insights/static/:id" element={<StaticBlogDetails />} />
-
+        <Route path="/checkout" element={<CheckOut />} />
         <Route
           path="/blogs"
           element={

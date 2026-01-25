@@ -3,7 +3,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, ShoppingBag, CreditCard, Plus, Minus, Trash2 } from 'lucide-react';
 import { addToCart, updateQuantity, removeFromCart } from '../redux/userslice';
-
+import SLink from "../components/SLink";
 const CartPage = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -31,9 +31,9 @@ const CartPage = () => {
             <div className="lg:col-span-2 space-y-4">
               {cartItems.map((item) => (
                 <div key={item._id} className="bg-white p-5 rounded-2xl flex items-center gap-6 shadow-sm border border-gray-100 relative group">
-                  
+
                   {/* Trash Button - Positioned top-right of the card */}
-                  <button 
+                  <button
                     onClick={() => dispatch(removeFromCart(item._id))}
                     className="absolute top-4 right-4 p-2 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-full transition-all"
                     title="Remove item"
@@ -44,20 +44,20 @@ const CartPage = () => {
                   <div className="w-24 h-24 bg-gray-50 rounded-xl p-2 flex-shrink-0">
                     <img src={item.image} alt={item.name} className="w-full h-full object-contain" />
                   </div>
-                  
+
                   <div className="flex-grow">
                     <h3 className="font-bold text-gray-800 text-lg pr-8">{item.name}</h3>
                     <p className="text-yellow-600 font-black mt-1">₹{item.price}</p>
-                    
+
                     <div className="flex items-center gap-4 mt-4 bg-gray-100 w-fit rounded-lg p-1">
-                      <button 
+                      <button
                         onClick={() => item.quantity > 1 && dispatch(updateQuantity({ id: item._id, quantity: item.quantity - 1 }))}
                         className="w-8 h-8 flex items-center justify-center bg-white rounded-md hover:bg-yellow-400 transition-colors"
                       >
                         <Minus size={14} />
                       </button>
                       <span className="font-bold text-gray-800 min-w-[20px] text-center">{item.quantity}</span>
-                      <button 
+                      <button
                         onClick={() => dispatch(addToCart({ ...item, quantity: 1 }))}
                         className="w-8 h-8 flex items-center justify-center bg-white rounded-md hover:bg-yellow-400 transition-colors"
                       >
@@ -92,9 +92,14 @@ const CartPage = () => {
                     <span className="text-3xl font-black text-yellow-500">₹{totalPrice}</span>
                   </div>
                 </div>
-                <button className="w-full bg-gray-900 text-white py-5 rounded-2xl font-black text-lg hover:bg-yellow-500 hover:text-gray-900 transition-all shadow-lg active:scale-95 uppercase tracking-widest">
+                <SLink
+                  to="/checkout"
+                  className="w-full bg-gray-900 text-white py-5 rounded-2xl font-black text-lg hover:bg-yellow-500 hover:text-gray-900 transition-all shadow-lg active:scale-95 uppercase tracking-widest block text-center"
+                >
                   Checkout
-                </button>
+                </SLink>
+
+
               </div>
             </div>
           </div>
