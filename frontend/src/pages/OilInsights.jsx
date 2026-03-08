@@ -19,7 +19,7 @@ const OilInsights = () => {
       description:
         "Cold-pressed oils retain natural nutrients, antioxidants, and flavor without chemicals.",
       image:
-        "https://images.unsplash.com/photo-1510627498534-cf7e9002facc",
+        " https://res.cloudinary.com/dkhq2wlwg/image/upload/v1771435691/ownfresh_media/gongrcsc7mqmazvxxcmi.png",
     },
     {
       id: 2,
@@ -64,7 +64,7 @@ const OilInsights = () => {
     <>
       <Navbar />
 
-      <div className="w-full py-10 bg-[#fffdf8] mt-[100px]">
+      <div className="w-full py-10 bg-[#fffdf8] mt-[70px]">
 
         {/* HERO */}
         <div className="max-w-5xl mx-auto text-center px-4" data-aos="fade-down">

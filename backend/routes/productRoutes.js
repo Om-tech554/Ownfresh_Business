@@ -4,7 +4,9 @@ import Product from "../models/productModel.js";
 
 const router = express.Router();
 
-// -------------------- ADD PRODUCT --------------------
+/* -------------------------------------------
+   ADD PRODUCT
+------------------------------------------- */
 router.post(
   "/add",
   (req, res, next) => {
@@ -33,7 +35,7 @@ router.post(
       const product = await Product.create({
         name,
         price,
-        shortDesc,     // ⭐ REQUIRED FIX
+        shortDesc,
         image: req.file.path,
       });
 
@@ -41,15 +43,16 @@ router.post(
         success: true,
         product,
       });
-
     } catch (error) {
-      console.log("ADD PRODUCT ERROR:", error);  // 🔥 Add this for real logs
+      console.log("ADD PRODUCT ERROR:", error);
       res.status(500).json({ success: false, message: error.message });
     }
   }
 );
 
-// -------------------- GET ALL PRODUCTS --------------------
+/* -------------------------------------------
+   GET ALL PRODUCTS
+------------------------------------------- */
 router.get("/all", async (req, res) => {
   try {
     const products = await Product.find().sort({ createdAt: -1 });
@@ -59,16 +62,29 @@ router.get("/all", async (req, res) => {
   }
 });
 
-// -------------------- DELETE PRODUCT --------------------
-router.delete("/delete/:id", async (req, res) => {
+/* -------------------------------------------
+   ⭐ GET SINGLE PRODUCT (IMPORTANT)
+------------------------------------------- */
+router.get("/:id", async (req, res) => {
   try {
-    await Product.findByIdAndDelete(req.params.id);
-    res.json({ success: true, message: "Product deleted successfully" });
+    const product = await Product.findById(req.params.id);
+
+    if (!product) {
+      return res.status(404).json({
+        success: false,
+        message: "Product not found",
+      });
+    }
+
+    res.json({ success: true, product });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
 });
-// -------------------- UPDATE PRODUCT --------------------
+
+/* -------------------------------------------
+   UPDATE PRODUCT
+------------------------------------------- */
 router.put(
   "/update/:id",
   (req, res, next) => {
@@ -87,28 +103,39 @@ router.put(
     try {
       const { name, price, shortDesc } = req.body;
 
-      const data = {
+      const updateData = {
         name,
         price,
-        shortDesc,   // ⭐ REQUIRED FIX
+        shortDesc,
       };
 
       if (req.file) {
-        data.image = req.file.path;
+        updateData.image = req.file.path;
       }
 
-      const updated = await Product.findByIdAndUpdate(
+      const updatedProduct = await Product.findByIdAndUpdate(
         req.params.id,
-        data,
-        { new: true, runValidators: true }  // ⭐ to validate required fields
+        updateData,
+        { new: true, runValidators: true }
       );
 
-      res.json({ success: true, product: updated });
-
+      res.json({ success: true, product: updatedProduct });
     } catch (error) {
       res.status(500).json({ success: false, message: error.message });
     }
   }
 );
+
+/* -------------------------------------------
+   DELETE PRODUCT
+------------------------------------------- */
+router.delete("/delete/:id", async (req, res) => {
+  try {
+    await Product.findByIdAndDelete(req.params.id);
+    res.json({ success: true, message: "Product deleted successfully" });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
 
 export default router;

@@ -1,130 +1,31 @@
-// import Blog from "../models/blogModel.js";
-
-// // ========================= ADD BLOG =========================
-// export const addBlog = async (req, res) => {
-//   try {
-//     const { title, description, category } = req.body;
-
-//     if (!title || !description) {
-//       return res.status(400).json({
-//         success: false,
-//         message: "Title and Description are required",
-//       });
-//     }
-
-//     if (!req.file) {
-//       return res.status(400).json({
-//         success: false,
-//         message: "Image upload failed",
-//       });
-//     }
-
-//     const imageUrl = req.file.path || req.file.url;
-
-//     const blog = await Blog.create({
-//       title,
-//       description,
-//       category: category || "Other",
-//       image: imageUrl,
-//     });
-
-//     res.status(201).json({
-//       success: true,
-//       message: "Blog created successfully",
-//       blog,
-//     });
-
-//   } catch (error) {
-//     console.error("BLOG CREATE ERROR:", error);
-//     res.status(500).json({
-//       success: false,
-//       message: error.message,
-//     });
-//   }
-// };
-
-// // ========================= GET ALL BLOGS (SEARCH + CATEGORY + PAGINATION) =========================
-// export const getAllBlogs = async (req, res) => {
-//   try {
-//     const { page = 1, limit = 6, search = "", category = "" } = req.query;
-
-//     const query = {};
-
-//     if (search) {
-//       query.$or = [
-//         { title: { $regex: search, $options: "i" } },
-//         { description: { $regex: search, $options: "i" } },
-//       ];
-//     }
-
-//     if (category) {
-//       query.category = category;
-//     }
-
-//     const blogs = await Blog.find(query)
-//       .sort({ createdAt: -1 })
-//       .skip((page - 1) * limit)
-//       .limit(Number(limit));
-
-//     const total = await Blog.countDocuments(query);
-
-//     res.json({
-//       success: true,
-//       blogs,
-//       total,
-//       totalPages: Math.ceil(total / limit),
-//       currentPage: Number(page),
-//     });
-
-//   } catch (error) {
-//     res.status(500).json({ success: false, message: error.message });
-//   }
-// };
-// // ========================= getBlogById  =========================
-// export const getBlogById = async (req, res) => {
-//   try {
-//     const blog = await Blog.findById(req.params.id);
-//     res.json({ success: true, blog });
-//   } catch (error) {
-//     res.status(404).json({ success: false, message: "Blog not found" });
-//   }
-// };
-
 import Blog from "../models/blogModel.js";
 
-// ===================== ADD BLOG =====================
+// ===================== ADD BLOG (NEW) =====================
 export const addBlog = async (req, res) => {
   try {
-    const { title, description, category } = req.body;
+    const { title, sections, category } = req.body;
 
-    if (!title || !description) {
+    if (!title || !sections) {
       return res.status(400).json({
         success: false,
-        message: "Title and Description are required",
+        message: "Title and SEO sections are required",
       });
     }
 
-    if (!req.file) {
-      return res.status(400).json({
-        success: false,
-        message: "Image upload failed",
-      });
-    }
-
-    const imageUrl = req.file.path || req.file.url;
+    const parsedSections = JSON.parse(sections);
 
     const blog = await Blog.create({
       title,
-      description,
+      sections: parsedSections,
       category: category || "Other",
-      image: imageUrl,
+
+      image1: req.files?.image1?.[0]?.path || null,
+      image2: req.files?.image2?.[0]?.path || null,
+      image3: req.files?.image3?.[0]?.path || null,
+      image4: req.files?.image4?.[0]?.path || null,
     });
 
-    return res.status(201).json({
-      success: true,
-      blog,
-    });
-
+    return res.status(201).json({ success: true, blog });
   } catch (error) {
     console.log("ADD BLOG ERROR:", error);
     return res.status(500).json({ success: false, message: error.message });
@@ -154,7 +55,6 @@ export const getBlogById = async (req, res) => {
     }
 
     res.json({ success: true, blog });
-
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
@@ -170,28 +70,31 @@ export const deleteBlog = async (req, res) => {
   }
 };
 
-// ===================== UPDATE BLOG =====================
+// ===================== UPDATE BLOG (NEW) =====================
 export const updateBlog = async (req, res) => {
   try {
-    const { title, description, category } = req.body;
+    const { title, sections, category } = req.body;
 
     const updateData = {
       title,
-      description,
       category: category || "Other",
     };
 
-    if (req.file) {
-      updateData.image = req.file.path || req.file.url;
+    if (sections) {
+      updateData.sections = JSON.parse(sections);
     }
 
-    const blog = await Blog.findByIdAndUpdate(req.params.id, updateData, {
-      new: true,
-    });
+    // Update only the uploaded images
+    if (req.files?.image1) updateData.image1 = req.files.image1[0].path;
+    if (req.files?.image2) updateData.image2 = req.files.image2[0].path;
+    if (req.files?.image3) updateData.image3 = req.files.image3[0].path;
+    if (req.files?.image4) updateData.image4 = req.files.image4[0].path;
+
+    const blog = await Blog.findByIdAndUpdate(req.params.id, updateData, { new: true });
 
     res.json({ success: true, blog });
-
   } catch (error) {
+    console.log("UPDATE BLOG ERROR:", error);
     res.status(500).json({ success: false, message: error.message });
   }
 };

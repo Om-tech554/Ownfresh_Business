@@ -1,20 +1,21 @@
-import { Link } from "react-router-dom";
-import { motion } from "framer-motion";
+import React from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 
-const MotionLink = motion(Link);
+export const SLink = ({ to, children, scroll = true, ...rest }) => {
+  const navigate = useNavigate();
 
-const SLink = ({ to, children, className = "" }) => {
+  const handleClick = (e) => {
+    e.preventDefault(); // prevent default navigation
+    if (scroll) {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+    navigate(to);
+  };
+
   return (
-    <MotionLink
-      to={to}
-      className={className}
-      whileTap={{ scale: 0.98 }}
-      whileHover={{ y: -2 }}  // smooth professional hover
-      transition={{ duration: 0.2, ease: "easeOut" }}
-    >
+    <Link to={to} onClick={handleClick} {...rest}>
       {children}
-    </MotionLink>
+    </Link>
   );
 };
-
 export default SLink;

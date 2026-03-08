@@ -6,41 +6,42 @@ import {
   getAllBlogs,
   deleteBlog,
   updateBlog,
-  getBlogById
+  getBlogById,
 } from "../controllers/blog.controller.js";
 
 const router = express.Router();
 
-// ADD BLOG
-router.post("/add", upload.single("image"), addBlog);
+// ADD BLOG (supports 4 images)
+router.post(
+  "/add",
+  upload.fields([
+    { name: "image1", maxCount: 1 },
+    { name: "image2", maxCount: 1 },
+    { name: "image3", maxCount: 1 },
+    { name: "image4", maxCount: 1 },
+  ]),
+  addBlog
+);
 
 // GET ALL BLOGS
 router.get("/all", getAllBlogs);
 
-// GET BLOG BY ID
+// GET SINGLE BLOG
 router.get("/:id", getBlogById);
 
-// DELETE BLOG
-router.delete("/delete/:id", deleteBlog);
-
 // UPDATE BLOG
-router.put("/update/:id", upload.single("image"), updateBlog);
+router.put(
+  "/update/:id",
+  upload.fields([
+    { name: "image1", maxCount: 1 },
+    { name: "image2", maxCount: 1 },
+    { name: "image3", maxCount: 1 },
+    { name: "image4", maxCount: 1 },
+  ]),
+  updateBlog
+);
 
-// ---------------- GET SINGLE BLOG ----------------
-router.get("/:id", async (req, res) => {
-  try {
-    const blog = await Blog.findById(req.params.id);
-
-    if (!blog) {
-      return res.status(404).json({ success: false, message: "Blog not found" });
-    }
-
-    res.json({ success: true, blog });
-
-  } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
-  }
-});
-
+// DELETE
+router.delete("/delete/:id", deleteBlog);
 
 export default router;

@@ -11,7 +11,7 @@ import {
   Plus,
 } from "lucide-react";
 import toast, { Toaster } from "react-hot-toast";
-import { useDispatch, useSelector } from "react-redux"; 
+import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { addToCart } from "../redux/userslice";
 
@@ -25,7 +25,8 @@ const ProductSection = ({ limit = null }) => {
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
-const user = useSelector((state) => state.user.userData);
+  const user = useSelector((state) => state.user.userData);
+
   const API_BASE_URL =
     import.meta.env.VITE_API_URL || "http://localhost:8000";
 
@@ -60,27 +61,27 @@ const user = useSelector((state) => state.user.userData);
       : result.slice(0, visibleCount);
   }, [products, category, priceRange, limit, visibleCount]);
 
-  const handleBuyNow = (p) => {
-  if (!user) {
-    toast.error("Please sign in first", { duration: 1500 });
+  const handleAddToCart = (product) => {
+    if (!user) {
+      toast.error("Please sign in first", { duration: 1500 });
 
-    setTimeout(() => {
-      navigate("/signin");
-    }, 500); // 0.5 sec delay so toast can display properly
+      setTimeout(() => {
+        navigate("/signin");
+      }, 500);
 
-    return;
-  }
-    const itemToAdd = { ...p, quantity: 1 };
+      return;
+    }
+
+    const itemToAdd = { ...product, quantity: 1 };
     dispatch(addToCart(itemToAdd));
 
-    setAddedItems((prev) => ({ ...prev, [p._id]: true }));
-    setTimeout(
-      () =>
-        setAddedItems((prev) => ({ ...prev, [p._id]: false })),
-      2000
-    );
+    setAddedItems((prev) => ({ ...prev, [product._id]: true }));
 
-    toast.success(`${p.name} added to cart`, {
+    setTimeout(() => {
+      setAddedItems((prev) => ({ ...prev, [product._id]: false }));
+    }, 2000);
+
+    toast.success(`${product.name} added to cart`, {
       icon: "🛒",
     });
   };
@@ -189,8 +190,10 @@ const user = useSelector((state) => state.user.userData);
             {filteredProducts.map((p) => (
               <div
                 key={p._id}
-                className="group relative bg-white border border-white shadow-sm rounded-[2.5rem] p-6 transition-all duration-500 hover:shadow-xl hover:-translate-y-2 flex flex-col"
+                onClick={() => navigate(`/product/${p._id}`)}
+                className="group relative bg-white border border-white shadow-sm rounded-[2.5rem] p-6 transition-all duration-500 hover:shadow-xl hover:-translate-y-2 flex flex-col cursor-pointer"
               >
+                {/* PRODUCT IMAGE */}
                 <div className="relative h-60 w-full bg-gray-50 rounded-[2rem] overflow-hidden p-8 mb-4">
                   <img
                     src={p.image}
@@ -220,8 +223,13 @@ const user = useSelector((state) => state.user.userData);
                       </span>
                     </div>
 
+                    {/* FIXED ADD TO CART BUTTON */}
                     <button
-                      onClick={() => handleBuyNow(p)}
+                      onClick={(e) => {
+                        e.stopPropagation();   // prevent navigation
+                        e.preventDefault();    // prevent navigation
+                        handleAddToCart(p);    // add to cart only
+                      }}
                       disabled={addedItems[p._id]}
                       className={`h-14 w-14 rounded-2xl flex items-center justify-center transition-all duration-500 cursor-pointer shadow-lg active:scale-95 ${
                         addedItems[p._id]
@@ -241,6 +249,7 @@ const user = useSelector((state) => state.user.userData);
             ))}
           </div>
 
+          {/* VIEW MORE */}
           <div className="mt-16 flex justify-center">
             {limit && products.length > limit ? (
               <button
