@@ -62,7 +62,7 @@ const ProductDetails = () => {
     <>
       <Navbar />
 
-      <div className="min-h-screen py-16 px-6 md:px-20 bg-[#fafafa] mt-15">
+      <div className="min-h-screen py-12 px-6 md:px-20 bg-[#fafafa]">
         <div className="grid md:grid-cols-2 gap-12">
 
           {/* LEFT — Product Image */}

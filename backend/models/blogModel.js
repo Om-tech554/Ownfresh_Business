@@ -3,11 +3,13 @@ import mongoose from "mongoose";
 const blogSchema = new mongoose.Schema(
   {
     title: { type: String, required: true },
+    description: { type: String, required: true },
+    image: { type: String },
 
     // Multiple SEO content blocks
     sections: [
       {
-        content: { type: String, required: true }, // HTML from Tiptap
+        content: { type: String }, // HTML body
       },
     ],
 
@@ -20,11 +22,10 @@ const blogSchema = new mongoose.Schema(
     // Category
     category: {
       type: String,
-      enum: ["Tech", "CNC", "Mechanical", "Industry", "AI", "Other"],
-      default: "Other",
+      default: "OTHER",
     },
   },
   { timestamps: true }
 );
 
-export default mongoose.model("Blog", blogSchema);
+export default mongoose.models.Blog || mongoose.model("Blog", blogSchema);

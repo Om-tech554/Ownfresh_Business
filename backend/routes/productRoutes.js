@@ -51,12 +51,37 @@ router.post(
 );
 
 /* -------------------------------------------
-   GET ALL PRODUCTS
+   GET ALL PRODUCTS (PAGINATED & SEARCH)
 ------------------------------------------- */
 router.get("/all", async (req, res) => {
   try {
-    const products = await Product.find().sort({ createdAt: -1 });
-    res.json({ success: true, products });
+    const { page = 1, limit = 6, search = "" } = req.query;
+
+    const query = {};
+    if (search) {
+      query.$or = [
+        { name: { $regex: search, $options: "i" } },
+        { shortDesc: { $regex: search, $options: "i" } }
+      ];
+    }
+
+    const pageNum = Number(page) || 1;
+    const limitNum = Number(limit) || 6;
+    const skip = (pageNum - 1) * limitNum;
+
+    const count = await Product.countDocuments(query);
+    const products = await Product.find(query)
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limitNum);
+
+    res.json({ 
+      success: true, 
+      products,
+      totalPages: Math.ceil(count / limitNum) || 1,
+      currentPage: pageNum,
+      totalProducts: count
+    });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }

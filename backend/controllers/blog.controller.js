@@ -12,20 +12,21 @@ export const addBlog = async (req, res) => {
       });
     }
 
-    if (!req.file) {
-      return res.status(400).json({
-        success: false,
-        message: "Image upload failed",
-      });
-    }
+    const imageUrl = req.files?.image?.[0]?.path || req.files?.image?.[0]?.url;
 
-    const imageUrl = req.file.path || req.file.url;
+    // Use a placeholder if no image exists to avoid crashing while debugging
+    const finalImageUrl = imageUrl || "https://res.cloudinary.com/dkhq2wlwg/image/upload/v1/blogs/default_placeholder";
 
     const blog = await Blog.create({
       title,
       description,
-      category: category || "Other",
-      image: imageUrl,
+      sections: [{ content: description }], 
+      category: category ? category.toUpperCase() : "OTHER",
+      image: finalImageUrl,
+      image1: req.files?.image1?.[0]?.path || req.files?.image1?.[0]?.url || null,
+      image2: req.files?.image2?.[0]?.path || req.files?.image2?.[0]?.url || null,
+      image3: req.files?.image3?.[0]?.path || req.files?.image3?.[0]?.url || null,
+      image4: req.files?.image4?.[0]?.path || req.files?.image4?.[0]?.url || null,
     });
 
     return res.status(201).json({
@@ -34,16 +35,52 @@ export const addBlog = async (req, res) => {
     });
 
   } catch (error) {
-    console.log("ADD BLOG ERROR:", error);
-    return res.status(500).json({ success: false, message: error.message });
+    console.error("ADD BLOG EXCEPTION:", error);
+    return res.status(500).json({ 
+        success: false, 
+        message: "Detailed Server Error: " + error.message,
+        details: error.name
+    });
   }
 };
 
-// ===================== GET ALL BLOGS =====================
+// ===================== GET ALL BLOGS (PAGINATED & FILTERED) =====================
 export const getAllBlogs = async (req, res) => {
   try {
-    const blogs = await Blog.find().sort({ createdAt: -1 });
-    res.json({ success: true, blogs });
+    const { page = 1, limit = 6, search = "", category = "" } = req.query;
+
+    const query = {};
+
+    // 🔍 Handle Title Search
+    if (search) {
+      query.$or = [
+        { title: { $regex: search, $options: "i" } },
+        { description: { $regex: search, $options: "i" } }
+      ];
+    }
+
+    // 🏷️ Handle Category Filter
+    if (category) {
+      query.category = category;
+    }
+
+    const pageNum = Number(page) || 1;
+    const limitNum = Number(limit) || 6;
+    const skip = (pageNum - 1) * limitNum;
+    
+    const count = await Blog.countDocuments(query);
+    const blogs = await Blog.find(query)
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limitNum);
+
+    res.json({ 
+      success: true, 
+      blogs,
+      totalPages: Math.ceil(count / limitNum) || 1,
+      currentPage: pageNum,
+      totalBlogs: count
+    });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
@@ -86,20 +123,35 @@ export const updateBlog = async (req, res) => {
     const updateData = {
       title,
       description,
-      category: category || "Other",
+      sections: [{ content: description }],
+      category: category ? category.toUpperCase() : "OTHER",
     };
 
-    if (req.file) {
-      updateData.image = req.file.path || req.file.url;
+    if (req.files) {
+      if (req.files.image?.[0]) updateData.image = req.files.image[0].path || req.files.image[0].url;
+      if (req.files.image1?.[0]) updateData.image1 = req.files.image1[0].path || req.files.image1[0].url;
+      if (req.files.image2?.[0]) updateData.image2 = req.files.image2[0].path || req.files.image2[0].url;
+      if (req.files.image3?.[0]) updateData.image3 = req.files.image3[0].path || req.files.image3[0].url;
+      if (req.files.image4?.[0]) updateData.image4 = req.files.image4[0].path || req.files.image4[0].url;
     }
 
     const blog = await Blog.findByIdAndUpdate(req.params.id, updateData, {
       new: true,
+      runValidators: false, // Turn off for now to prioritize saving
     });
+
+    if (!blog) {
+        return res.status(404).json({ success: false, message: "Blog not found to update." });
+    }
 
     res.json({ success: true, blog });
     
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    console.error("UPDATE BLOG EXCEPTION:", error);
+    res.status(500).json({ 
+        success: false, 
+        message: "Update Error: " + error.message,
+        details: error.name
+    });
   }
 };

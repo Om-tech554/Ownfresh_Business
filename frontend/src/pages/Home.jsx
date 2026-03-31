@@ -42,7 +42,7 @@ import React, { useEffect } from "react";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import UserDashboard from "../components/UserDashboard";
-import AdminDashboard from "../components/admindashboard";
+import AdminDashboard from "../components/AdminDashboard";
 
 function Home() {
   const navigate = useNavigate();
@@ -65,8 +65,8 @@ function Home() {
       {/* 🔥 Logged-in normal user */}
       {userData?.role === "user" && <UserDashboard />}
 
-      {/* 🔥 Logged-in admin (but NO redirect) */}
-      {userData?.role === "admin" && <AdminDashboard />}
+      {/* 🔥 Logged-in admin or blogger (but NO redirect) */}
+      {(userData?.role === "admin" || userData?.role === "blogger") && <AdminDashboard />}
     </>
   );
 }

@@ -11,10 +11,11 @@ import {
 
 const router = express.Router();
 
-// ADD BLOG (supports 4 images)
+// ADD BLOG (supports 5 images)
 router.post(
   "/add",
   upload.fields([
+    { name: "image", maxCount: 1 },
     { name: "image1", maxCount: 1 },
     { name: "image2", maxCount: 1 },
     { name: "image3", maxCount: 1 },
@@ -33,6 +34,7 @@ router.get("/:id", getBlogById);
 router.put(
   "/update/:id",
   upload.fields([
+    { name: "image", maxCount: 1 },
     { name: "image1", maxCount: 1 },
     { name: "image2", maxCount: 1 },
     { name: "image3", maxCount: 1 },

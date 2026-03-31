@@ -1,4 +1,4 @@
-dotenv.config({ quiet: true })
+dotenv.config({ quiet: true }) // Force Restart Trigger v2 (Updated Category Enum)
 import express from "express"
 import dotenv from "dotenv"
 import connectDB from "./config/db.js"
@@ -10,10 +10,11 @@ import productRoutes from "./routes/productRoutes.js";
 import blogRoutes from "./routes/blogRoutes.js";
 import orderRoutes from "./routes/orderRoutes.js";
 import newsletterRoutes from "./routes/newsletterRoutes.js";
+import contactRoutes from "./routes/contactRoutes.js";
 const app=express()
 const port=process.env.port || 5000
 app.use(cors({
-    origin:"http://localhost:5173",
+    origin: true,
     credentials:true
 }))
 app.use(express.json())
@@ -24,6 +25,7 @@ app.use("/api/product", productRoutes);
 app.use("/api/blog", blogRoutes);
 app.use("/api/order", orderRoutes);
 app.use("/api/newsletter", newsletterRoutes);
+app.use("/api/contact", contactRoutes);
 app.listen(port,()=>{
     connectDB()
     console.log(`🚀 Server running on port ${port}`);

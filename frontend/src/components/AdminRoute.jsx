@@ -10,7 +10,7 @@ function AdminRoute({ children }) {
     return <Navigate to="/signin" replace />;
   }
 
-  if (userData.role !== "admin") {
+  if (userData.role !== "admin" && userData.role !== "blogger") {
     return <Navigate to="/" replace />;
   }
 

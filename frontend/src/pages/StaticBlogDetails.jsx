@@ -121,7 +121,7 @@ const StaticBlogDetails = () => {
         {/* Back Button using SLink */}
         <SLink
           to="/Oilinsights"
-          className="flex items-center gap-2 text-gray-700 hover:text-[#ff4d2d] mb-6 transition cursor-pointer"
+          className="flex items-center gap-2 text-gray-700 hover:text-[#1E971D] mb-6 transition cursor-pointer"
           data-aos="fade-right"
         >
           <ArrowLeft size={20} />
@@ -141,7 +141,7 @@ const StaticBlogDetails = () => {
           className="mt-4 text-sm text-gray-600 flex gap-3"
           data-aos="fade-down"
         >
-          <span className="font-semibold text-[#ff4d2d]">{blog.category}</span>
+          <span className="font-semibold text-[#1E971D]">{blog.category}</span>
           <span>•</span>
           <span>{blog.date}</span>
         </div>

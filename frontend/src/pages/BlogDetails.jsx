@@ -57,7 +57,7 @@ const AdminBlogDetails = () => {
   if (loading) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50">
-        <Loader2 className="w-12 h-12 animate-spin text-[#ff4d2d]" />
+        <Loader2 className="w-12 h-12 animate-spin text-[#1E971D]" />
         <p className="mt-4 text-gray-500 font-medium">Loading blog...</p>
       </div>
     );
@@ -67,7 +67,7 @@ const AdminBlogDetails = () => {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center p-6 text-center">
         <h2 className="text-2xl font-bold text-gray-800">Blog not found</h2>
-        <button onClick={() => navigate(-1)} className="mt-4 text-[#ff4d2d] hover:underline flex items-center gap-2">
+        <button onClick={() => navigate(-1)} className="mt-4 text-[#1E971D] hover:underline flex items-center gap-2">
           <ArrowLeft size={18} /> Back
         </button>
       </div>
@@ -81,7 +81,7 @@ const AdminBlogDetails = () => {
         {/* BACK BUTTON */}
         <button
           onClick={() => navigate(-1)}
-          className="group flex items-center gap-2 text-gray-500 hover:text-[#ff4d2d] transition-colors mb-10 font-medium"
+          className="group flex items-center gap-2 text-gray-500 hover:text-[#1E971D] transition-colors mb-10 font-medium"
         >
           <ArrowLeft size={20} className="group-hover:-translate-x-1 transition-transform" />
           Back to Insights
@@ -125,7 +125,7 @@ const AdminBlogDetails = () => {
 
             <div className="flex items-center gap-6 text-gray-500">
               <span className="flex items-center gap-2 bg-gray-100 px-3 py-1 rounded-full text-xs font-bold uppercase">
-                <Calendar size={14} className="text-[#ff4d2d]" />
+                <Calendar size={14} className="text-[#1E971D]" />
                 {new Date(blog.createdAt).toLocaleDateString(undefined, { dateStyle: "medium" })}
               </span>
 
@@ -145,9 +145,9 @@ const AdminBlogDetails = () => {
         <footer className="mt-20 pt-10 border-t border-gray-100 flex flex-col items-center">
           <button
             onClick={goToTop}
-            className="flex flex-col items-center gap-3 text-gray-400 hover:text-[#ff4d2d] transition-colors group"
+            className="flex flex-col items-center gap-3 text-gray-400 hover:text-[#1E971D] transition-colors group"
           >
-            <div className="p-3 rounded-full border border-gray-200 group-hover:border-[#ff4d2d] transition-all">
+            <div className="p-3 rounded-full border border-gray-200 group-hover:border-[#1E971D] transition-all">
               <ChevronUp size={24} />
             </div>
             <span className="text-xs uppercase tracking-[0.2em] font-bold">Scroll to Top</span>
@@ -158,7 +158,7 @@ const AdminBlogDetails = () => {
       {/* FLOATING BUTTON */}
       <button
         onClick={goToTop}
-        className={`fixed bottom-8 right-8 p-3 bg-[#ff4d2d] text-white rounded-full shadow-xl hover:bg-[#e64527] transition-all z-50 ${
+        className={`fixed bottom-8 right-8 p-3 bg-[#1E971D] text-white rounded-full shadow-xl hover:bg-[#e64527] transition-all z-50 ${
           showTopBtn ? "opacity-100" : "opacity-0 pointer-events-none"
         }`}
       >

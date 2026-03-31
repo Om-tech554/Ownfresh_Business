@@ -44,7 +44,7 @@ const CheckOut = () => {
       setAddress(
         data.address_line2 || data.address_line1 || "Address not found"
       );
-    } catch {}
+    } catch { }
   };
 
   // Search Location (Forward Geocoding)
@@ -233,10 +233,9 @@ const CheckOut = () => {
             <button
               onClick={() => setPaymentMethod("cod")}
               className={`flex flex-col items-center p-4 rounded-xl border shadow transition 
-                ${
-                  paymentMethod === "cod"
-                    ? "bg-yellow-400 border-yellow-600"
-                    : "bg-white"
+                ${paymentMethod === "cod"
+                  ? "bg-yellow-400 border-yellow-600"
+                  : "bg-white"
                 }`}
             >
               <FaWallet className="text-3xl mb-2 text-gray-800" />
@@ -246,10 +245,9 @@ const CheckOut = () => {
             <button
               onClick={() => setPaymentMethod("online")}
               className={`flex flex-col items-center p-4 rounded-xl border shadow transition 
-                ${
-                  paymentMethod === "online"
-                    ? "bg-yellow-400 border-yellow-600"
-                    : "bg-white"
+                ${paymentMethod === "online"
+                  ? "bg-yellow-400 border-yellow-600"
+                  : "bg-white"
                 }`}
             >
               <BsCreditCard2FrontFill className="text-3xl mb-2 text-gray-800" />

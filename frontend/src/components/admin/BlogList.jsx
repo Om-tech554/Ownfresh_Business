@@ -233,6 +233,7 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
+import JoditEditor from "jodit-react";
 
 import {
   Search,
@@ -244,7 +245,9 @@ import {
   Tag,
   ExternalLink,
   X,
-  Upload
+  Upload,
+  Image as ImageIcon,
+  TrendingUp
 } from "lucide-react";
 
 const BlogList = () => {
@@ -253,12 +256,7 @@ const BlogList = () => {
   const [category, setCategory] = useState("");
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-
-  const [editData, setEditData] = useState(null);
-  const [editTitle, setEditTitle] = useState("");
-  const [editDescription, setEditDescription] = useState("");
-  const [editImage, setEditImage] = useState(null);
-  const [editPreview, setEditPreview] = useState(null);
+  const [totalBlogs, setTotalBlogs] = useState(0);
 
   const navigate = useNavigate();
   const userData = useSelector((state) => state.user.userData);
@@ -270,6 +268,7 @@ const BlogList = () => {
       });
       setBlogs(res.data.blogs || []);
       setTotalPages(res.data.totalPages || 1);
+      setTotalBlogs(res.data.totalBlogs || 0);
     } catch (error) {
       console.error("Failed to load blogs");
     }
@@ -289,48 +288,32 @@ const BlogList = () => {
     }
   };
 
-  const openEditModal = (blog) => {
-    setEditData(blog);
-    setEditTitle(blog.title);
-    setEditDescription(blog.description);
-    setEditPreview(blog.image);
-    setEditImage(null);
-  };
-
-  const handleEditImageChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setEditImage(file);
-      setEditPreview(URL.createObjectURL(file));
-    }
-  };
-
-  const updateBlog = async () => {
-    const formData = new FormData();
-    formData.append("title", editTitle);
-    formData.append("description", editDescription);
-    if (editImage) formData.append("image", editImage);
-
-    try {
-      await axios.put(`http://localhost:8000/api/blog/update/${editData._id}`, formData);
-      setEditData(null);
-      fetchBlogs();
-    } catch (err) {
-      alert("Failed to update");
-    }
-  };
-
   return (
     <div className="min-h-screen bg-slate-50 px-4 md:px-8 lg:px-16 py-12">
       
       {/* Header */}
-      <div className="max-w-7xl mx-auto mb-12">
-        <h2 className="text-4xl font-extrabold text-slate-900 tracking-tight mb-2">
-          Industry <span className="text-[#ff4d2d]">Insights</span>
-        </h2>
-        <p className="text-slate-500 max-w-2xl">
-          Manage and monitor your latest company updates and oil market analysis.
-        </p>
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-12 max-w-7xl mx-auto">
+        <div className="flex items-center gap-4">
+          <button 
+            onClick={() => navigate("/admin")}
+            className="p-2.5 bg-white border border-slate-200 rounded-xl text-slate-600 hover:text-[#1E971D] hover:border-[#1E971D] transition-all shadow-sm group"
+            title="Back to Admin Dashboard"
+          >
+            <ChevronLeft className="w-5 h-5 group-hover:-translate-x-0.5 transition-transform" />
+          </button>
+          <div>
+            <h2 className="text-4xl font-extrabold text-slate-900 tracking-tight mb-2">
+              Industry <span className="text-[#1E971D]">Insights</span>
+            </h2>
+            <p className="text-slate-500 max-w-2xl">
+              Manage and monitor your latest company updates and oil market analysis.
+            </p>
+          </div>
+        </div>
+        <div className="flex items-center gap-2 bg-white px-4 py-2 rounded-xl shadow-sm border border-slate-200 h-fit">
+          <TrendingUp className="w-4 h-4 text-[#1E971D]" />
+          <span className="text-sm font-bold text-slate-700">{totalBlogs} Total Posts</span>
+        </div>
       </div>
 
       {/* FILTER BAR */}
@@ -338,7 +321,7 @@ const BlogList = () => {
         <div className="relative w-full">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
           <input
-            className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border-none rounded-xl focus:ring-2 focus:ring-[#ff4d2d]/20 outline-none"
+            className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border-none rounded-xl focus:ring-2 focus:ring-[#1E971D]/20 outline-none"
             placeholder="Search reports or news..."
             value={search}
             onChange={(e) => { setSearch(e.target.value); setPage(1); }}
@@ -353,11 +336,10 @@ const BlogList = () => {
             onChange={(e) => { setCategory(e.target.value); setPage(1); }}
           >
             <option value="">All Sectors</option>
-            <option value="Tech">Tech</option>
-            <option value="CNC">CNC</option>
-            <option value="Mechanical">Mechanical</option>
-            <option value="Industry">Industry News</option>
-            <option value="AI">AI</option>
+            <option value="HEALTH">Health</option>
+            <option value="NEUTRIOUS">Nutritious</option>
+            <option value="WELLNESS">Wellness</option>
+            <option value="OTHER">Other</option>
           </select>
         </div>
       </div>
@@ -385,23 +367,23 @@ const BlogList = () => {
                 {b.title}
               </h3>
               <p className="text-slate-500 text-sm leading-relaxed mb-6">
-                {b.description.slice(0, 100)}...
+                {b.description?.replace(/<[^>]+>/g, '').slice(0, 100)}...
               </p>
 
               {/* ACTIONS */}
               <div className="mt-auto pt-4 border-t border-slate-100 flex items-center justify-between">
                 <button 
                   onClick={() => navigate(`/blogs/${b._id}`)}
-                  className="text-slate-400 hover:text-[#ff4d2d]"
+                  className="text-slate-400 hover:text-[#1E971D]"
                 >
                   <ExternalLink className="w-5 h-5" />
                 </button>
 
-                {/* ADMIN ONLY */}
-                {userData?.role === "admin" && (
+                {/* ADMIN OR BLOGGER */}
+                {(userData?.role === "admin" || userData?.role === "blogger") && (
                   <div className="flex gap-2">
                     <button
-                      onClick={() => openEditModal(b)}
+                      onClick={() => navigate(`/admin/blog/editor/${b._id}`)}
                       className="p-2 bg-slate-50 hover:bg-blue-50 text-blue-600 rounded-lg"
                     >
                       <Edit3 className="w-4 h-4" />
@@ -426,7 +408,7 @@ const BlogList = () => {
         <button
           disabled={page <= 1}
           onClick={() => setPage(page - 1)}
-          className="p-3 rounded-full bg-white border text-slate-600 disabled:opacity-30 hover:bg-[#ff4d2d] hover:text-white transition-all"
+          className="p-3 rounded-full bg-white border text-slate-600 disabled:opacity-30 hover:bg-[#1E971D] hover:text-white transition-all"
         >
           <ChevronLeft className="w-5 h-5" />
         </button>
@@ -438,72 +420,11 @@ const BlogList = () => {
         <button
           disabled={page >= totalPages}
           onClick={() => setPage(page + 1)}
-          className="p-3 rounded-full bg-white border text-slate-600 disabled:opacity-30 hover:bg-[#ff4d2d] hover:text-white transition-all"
+          className="p-3 rounded-full bg-white border text-slate-600 disabled:opacity-30 hover:bg-[#1E971D] hover:text-white transition-all"
         >
           <ChevronRight className="w-5 h-5" />
         </button>
       </div>
-
-      {/* EDIT MODAL (Admin Only) */}
-      {editData && userData?.role === "admin" && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-[9999] p-4">
-          <div className="bg-white rounded-3xl w-full max-w-xl shadow-2xl overflow-hidden">
-            
-            {/* HEADER */}
-            <div className="flex justify-between items-center p-6 border-b">
-              <h2 className="text-xl font-bold text-slate-800">Edit Post</h2>
-              <button onClick={() => setEditData(null)}><X className="w-6 h-6 text-slate-400" /></button>
-            </div>
-
-            {/* BODY */}
-            <div className="p-6 space-y-4">
-
-              <input
-                className="w-full px-4 py-3 bg-slate-50 border rounded-xl"
-                placeholder="Title"
-                value={editTitle}
-                onChange={(e) => setEditTitle(e.target.value)}
-              />
-
-              <textarea
-                className="w-full px-4 py-3 bg-slate-50 border rounded-xl h-32 resize-none"
-                placeholder="Description"
-                value={editDescription}
-                onChange={(e) => setEditDescription(e.target.value)}
-              />
-
-              <div className="flex items-center gap-4 p-4 bg-slate-50 rounded-xl border-2 border-dashed">
-                <div className="w-20 h-20 rounded-lg bg-white overflow-hidden border">
-                  <img src={editPreview} className="w-full h-full object-contain" alt="Preview" />
-                </div>
-
-                <label className="flex items-center gap-2 px-4 py-2 bg-white border rounded-lg cursor-pointer">
-                  <Upload className="w-4 h-4" /> Change Image
-                  <input type="file" className="hidden" onChange={handleEditImageChange} />
-                </label>
-              </div>
-
-              <div className="flex gap-3 pt-4">
-                <button
-                  onClick={updateBlog}
-                  className="flex-grow py-3 bg-[#ff4d2d] text-white rounded-xl font-bold"
-                >
-                  Save Changes
-                </button>
-
-                <button
-                  onClick={() => setEditData(null)}
-                  className="px-6 py-3 bg-slate-100 text-slate-600 rounded-xl"
-                >
-                  Cancel
-                </button>
-              </div>
-
-            </div>
-
-          </div>
-        </div>
-      )}
     </div>
   );
 };

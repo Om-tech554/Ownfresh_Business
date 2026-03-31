@@ -11,7 +11,7 @@ const CartPage = () => {
   const totalPrice = cartItems.reduce((acc, item) => acc + (item.price * item.quantity), 0);
 
   return (
-    <div className="min-h-screen bg-gray-50 pt-28 pb-12 px-6">
+    <div className="min-h-screen bg-gray-50 py-12 px-6">
       <div className="max-w-4xl mx-auto">
         <div className="flex items-center justify-between mb-8">
           <button onClick={() => navigate(-1)} className="flex items-center gap-2 text-gray-400 hover:text-yellow-600 transition-colors font-bold uppercase text-xs tracking-widest">

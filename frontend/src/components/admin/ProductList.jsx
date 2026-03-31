@@ -119,7 +119,7 @@
 
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import EditProduct from "./EditProduct";
+import { useNavigate } from "react-router-dom";
 import {
   Package,
   Trash2,
@@ -127,21 +127,34 @@ import {
   ChevronLeft,
   ChevronRight,
   TrendingUp,
-  Layers
+  Layers,
+  Search,
+  Filter
 } from "lucide-react";
 import toast, { Toaster } from "react-hot-toast";
 
 const ProductList = () => {
   const [products, setProducts] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
-  const [editItem, setEditItem] = useState(null);
+  const [totalPages, setTotalPages] = useState(1);
+  const [search, setSearch] = useState("");
+  const [totalProducts, setTotalProducts] = useState(0);
+  const navigate = useNavigate();
 
   const productsPerPage = 6;
 
   const fetchProducts = async () => {
     try {
-      const res = await axios.get("http://localhost:8000/api/product/all");
-      setProducts(res.data.products);
+      const res = await axios.get("http://localhost:8000/api/product/all", {
+        params: {
+          page: currentPage,
+          limit: productsPerPage,
+          search: search
+        }
+      });
+      setProducts(res.data.products || []);
+      setTotalPages(res.data.totalPages || 1);
+      setTotalProducts(res.data.totalProducts || 0);
     } catch (error) {
       toast.error("Systems offline: Failed to load inventory", {
         style: { background: "#1e293b", color: "#fff" }
@@ -165,24 +178,21 @@ const ProductList = () => {
 
   useEffect(() => {
     fetchProducts();
-  }, []);
+  }, [currentPage, search]);
 
-  // Pagination Logic
-  const indexOfLast = currentPage * productsPerPage;
-  const indexOfFirst = indexOfLast - productsPerPage;
-  const currentProducts = products.slice(indexOfFirst, indexOfLast);
-  const totalPages = Math.ceil(products.length / productsPerPage);
+  // server-side pagination handled by fetchProducts
+  const currentProducts = products;
 
   return (
-    <div className="min-h-screen bg-slate-50 px-6 pt-28 pb-12 md:px-12 lg:px-20">
+    <div className="min-h-screen bg-slate-50 px-6 py-12 md:px-12 lg:px-20">
       <Toaster position="bottom-right" />
 
       {/* Header Section */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-10">
         <div>
           <h2 className="text-3xl font-extrabold text-slate-900 tracking-tight flex items-center gap-3">
-            <Layers className="text-[#ff4d2d] w-8 h-8" />
-            Product <span className="text-[#ff4d2d]">Inventory</span>
+            <Layers className="text-[#1E971D] w-8 h-8" />
+            Product <span className="text-[#1E971D]">Inventory</span>
           </h2>
           <p className="text-slate-500 text-sm mt-1 uppercase tracking-widest font-bold">
             Asset Management & Logistics
@@ -190,7 +200,23 @@ const ProductList = () => {
         </div>
         <div className="flex items-center gap-2 bg-white px-4 py-2 rounded-xl shadow-sm border border-slate-200">
           <TrendingUp className="w-4 h-4 text-green-500" />
-          <span className="text-sm font-bold text-slate-700">{products.length} Total Units</span>
+          <span className="text-sm font-bold text-slate-700">{totalProducts} Total Units</span>
+        </div>
+      </div>
+
+      {/* FILTER/SEARCH BAR (NEW) */}
+      <div className="max-w-7xl mb-10 p-4 bg-white rounded-2xl shadow-sm border border-slate-200 flex flex-col md:flex-row gap-4 items-center">
+        <div className="relative w-full">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
+          <input
+            className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border-none rounded-xl focus:ring-2 focus:ring-[#1E971D]/20 outline-none"
+            placeholder="Search inventory (name or description)..."
+            value={search}
+            onChange={(e) => { 
+                setSearch(e.target.value); 
+                setCurrentPage(1); 
+            }}
+          />
         </div>
       </div>
 
@@ -199,7 +225,7 @@ const ProductList = () => {
         {currentProducts.map((p) => (
           <div
             key={p._id}
-            className="group bg-white rounded-2xl overflow-hidden border border-slate-200 hover:border-[#ff4d2d]/50 hover:shadow-2xl hover:shadow-slate-200 transition-all duration-300"
+            className="group bg-white rounded-2xl overflow-hidden border border-slate-200 hover:border-[#1E971D]/50 hover:shadow-2xl hover:shadow-slate-200 transition-all duration-300"
           >
             {/* Image Container: NEVER CUT OFF */}
             <div className="relative h-60 bg-slate-100 p-4 overflow-hidden">
@@ -209,7 +235,7 @@ const ProductList = () => {
                 className="w-full h-full object-contain mix-blend-multiply transition-transform duration-500 group-hover:scale-110"
               />
               <div className="absolute top-4 right-4 bg-white/90 backdrop-blur px-3 py-1 rounded-full shadow-sm">
-                <p className="text-[#ff4d2d] font-black text-sm">₹{p.price}</p>
+                <p className="text-[#1E971D] font-black text-sm">₹{p.price}</p>
               </div>
             </div>
 
@@ -227,7 +253,7 @@ const ProductList = () => {
               </p>
               <div className="flex items-center gap-3 mt-6">
                 <button
-                  onClick={() => setEditItem(p)}
+                  onClick={() => navigate(`/admin/product/editor/${p._id}`)}
                   className="flex-1 flex items-center justify-center gap-2 bg-slate-50 hover:bg-slate-900 hover:text-white text-slate-600 font-bold py-2.5 rounded-xl transition-all duration-200 border border-slate-100"
                 >
                   <Edit3 className="w-4 h-4" />
@@ -252,7 +278,7 @@ const ProductList = () => {
           <button
             disabled={currentPage === 1}
             onClick={() => setCurrentPage((p) => p - 1)}
-            className="p-3 bg-white border border-slate-200 rounded-full text-slate-600 hover:bg-[#ff4d2d] hover:text-white disabled:opacity-30 disabled:hover:bg-white disabled:hover:text-slate-600 transition-all shadow-sm"
+            className="p-3 bg-white border border-slate-200 rounded-full text-slate-600 hover:bg-[#1E971D] hover:text-white disabled:opacity-30 disabled:hover:bg-white disabled:hover:text-slate-600 transition-all shadow-sm"
           >
             <ChevronLeft className="w-6 h-6" />
           </button>
@@ -266,21 +292,13 @@ const ProductList = () => {
           <button
             disabled={currentPage === totalPages}
             onClick={() => setCurrentPage((p) => p + 1)}
-            className="p-3 bg-white border border-slate-200 rounded-full text-slate-600 hover:bg-[#ff4d2d] hover:text-white disabled:opacity-30 disabled:hover:bg-white disabled:hover:text-slate-600 transition-all shadow-sm"
+            className="p-3 bg-white border border-slate-200 rounded-full text-slate-600 hover:bg-[#1E971D] hover:text-white disabled:opacity-30 disabled:hover:bg-white disabled:hover:text-slate-600 transition-all shadow-sm"
           >
             <ChevronRight className="w-6 h-6" />
           </button>
         </div>
       )}
 
-      {/* Edit Modal Logic */}
-      {editItem && (
-        <EditProduct
-          product={editItem}
-          onClose={() => setEditItem(null)}
-          onUpdated={fetchProducts}
-        />
-      )}
     </div>
   );
 };

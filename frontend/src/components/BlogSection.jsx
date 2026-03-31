@@ -10,7 +10,7 @@ const BlogSection = ({ limit = null }) => {
 
   const fetchBlogs = async () => {
     try {
-      const res = await axios.get(`${API_BASE_URL}/api/blog/all`);
+      const res = await axios.get(`${API_BASE_URL}/api/blog/all?limit=1000`);
       setBlogs(res.data.blogs || []);
     } catch (error) {
       console.log("Error loading blogs:", error);
@@ -75,7 +75,7 @@ const BlogSection = ({ limit = null }) => {
                   </h3>
 
                   <p className="text-gray-500 mt-3 text-sm leading-relaxed flex-grow line-clamp-3">
-                    {blog.description}
+                    {blog.description?.replace(/<[^>]+>/g, '')}
                   </p>
 
                   <div className="mt-6 pt-5 border-t border-gray-50 flex items-center justify-between">
