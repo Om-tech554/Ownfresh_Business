@@ -125,12 +125,51 @@ const WhyOwnFresh = () => {
           <h3 className="text-2xl font-black text-black text-center mb-12 uppercase tracking-widest">
             Certifications & Quality Standards
           </h3>
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-8 items-center opacity-60 grayscale hover:grayscale-0 transition-all duration-500">
-            <img src="/certificates/fssai.png" alt="FSSAI" className="mx-auto h-16 object-contain" />
-            <img src="/certificates/nabl.png" alt="NABL" className="mx-auto h-16 object-contain" />
-            <img src="/certificates/iso.png" alt="ISO" className="mx-auto h-16 object-contain" />
-            <img src="/certificates/non-gmo.png" alt="Non GMO" className="mx-auto h-16 object-contain" />
-            <img src="/certificates/gmp.png" alt="GMP" className="mx-auto h-16 object-contain" />
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-10 items-start">
+            <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-xl hover:shadow-2xl transition-all duration-500 group">
+              <img 
+                src="https://res.cloudinary.com/dkhq2wlwg/image/upload/v1774961102/ownfresh_media/vwylvev18xuvlp7pdak8.jpg" 
+                alt="FSSAI Certification" 
+                className="w-full h-[400px] object-contain rounded-xl group-hover:scale-[1.02] transition-transform" 
+              />
+              <p className="mt-4 text-center text-sm font-bold text-[#1E971D] uppercase tracking-wider">FSSAI Certified</p>
+            </div>
+            
+            <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-xl hover:shadow-2xl transition-all duration-500 group">
+              <img 
+                src="https://res.cloudinary.com/dkhq2wlwg/image/upload/v1774961151/ownfresh_media/entjvm79dktv5e8ekvmx.jpg" 
+                alt="Quality Monitoring Certificate" 
+                className="w-full h-[400px] object-contain rounded-xl group-hover:scale-[1.02] transition-transform" 
+              />
+              <p className="mt-4 text-center text-sm font-bold text-[#1E971D] uppercase tracking-wider">Quality Verified</p>
+            </div>
+
+            <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-xl hover:shadow-2xl transition-all duration-500 group">
+              <img 
+                src="https://res.cloudinary.com/dkhq2wlwg/image/upload/v1774961219/ownfresh_media/cqfid9v0hfqenb0zezwx.png" 
+                alt="Global Process Excellence" 
+                className="w-full h-[400px] object-contain rounded-xl group-hover:scale-[1.02] transition-transform" 
+              />
+              <p className="mt-4 text-center text-sm font-bold text-[#1E971D] uppercase tracking-wider">Global Process Excellence</p>
+            </div>
+
+            <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-xl hover:shadow-2xl transition-all duration-500 group lg:col-start-1">
+              <img 
+                src="https://res.cloudinary.com/dkhq2wlwg/image/upload/v1774961250/ownfresh_media/y7denrhgp9vpmbxjk5om.png" 
+                alt="Botanic Purity Verified" 
+                className="w-full h-[400px] object-contain rounded-xl group-hover:scale-[1.02] transition-transform" 
+              />
+              <p className="mt-4 text-center text-sm font-bold text-[#1E971D] uppercase tracking-wider">Botanic Purity Verified</p>
+            </div>
+
+            <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-xl hover:shadow-2xl transition-all duration-500 group">
+              <img 
+                src="https://res.cloudinary.com/dkhq2wlwg/image/upload/v1774961287/ownfresh_media/mpvtpafstuox80colfej.png" 
+                alt="Safety Compliance" 
+                className="w-full h-[400px] object-contain rounded-xl group-hover:scale-[1.02] transition-transform" 
+              />
+              <p className="mt-4 text-center text-sm font-bold text-[#1E971D] uppercase tracking-wider">Safety & Compliance Certified</p>
+            </div>
           </div>
         </div>
 

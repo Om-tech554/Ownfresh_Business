@@ -175,8 +175,12 @@ const Navbar = () => {
                 </div>
 
                 <div className="w-full h-[80px] flex items-center justify-between px-[24px] lg:px-[60px] bg-white border-b border-gray-200">
-                    <SLink to="/" className='text-2xl font-black text-black tracking-tighter'>
-                        OWNFRESH
+                    <SLink to="/" className="flex items-center">
+                        <img 
+                            src="https://res.cloudinary.com/dkhq2wlwg/image/upload/v1774962822/ownfresh_media/ndxvmcpisomjzsghrfjs.png" 
+                            alt="OwnFresh Logo" 
+                            className="h-10 md:h-12 w-auto object-contain" 
+                        />
                     </SLink>
 
                     {userData?.role !== "admin" && (
@@ -306,7 +310,11 @@ const Navbar = () => {
                 <div className='fixed inset-0 bg-black/50 z-[1000] lg:hidden transition-all' onClick={() => setShowMobileNav(false)}>
                     <div className='w-[80%] max-w-[300px] h-full bg-white p-6 flex flex-col shadow-2xl' onClick={e => e.stopPropagation()}>
                         <div className='flex justify-between items-center border-b border-gray-200 pb-4 mb-6'>
-                            <span className='text-xl font-black text-black tracking-tighter'>OWNFRESH</span>
+                            <img 
+                                src="https://res.cloudinary.com/dkhq2wlwg/image/upload/v1774962822/ownfresh_media/ndxvmcpisomjzsghrfjs.png" 
+                                alt="OwnFresh Logo" 
+                                className="h-8 w-auto object-contain" 
+                            />
                             <RxCross2 size={28} onClick={() => setShowMobileNav(false)} className='cursor-pointer text-black hover:text-[#F9DD19]' />
                         </div>
                         {userData?.role !== "admin" && (

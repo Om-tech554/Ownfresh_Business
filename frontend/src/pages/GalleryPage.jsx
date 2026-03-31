@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Navbar from '../components/Navbar';
 import { RxCross2 } from 'react-icons/rx';
 import { FaInstagram, FaChevronLeft, FaChevronRight } from 'react-icons/fa6';
+import { useSearchParams } from 'react-router-dom';
 
 /* Gallery Data */
 const galleryImages = [
@@ -9,21 +10,21 @@ const galleryImages = [
     id: 1,
     src: 'https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?q=80&w=1200&auto=format&fit=crop',
     alt: 'Stone-pressed oil process',
-    category: 'Process',
+    category: 'Extraction',
     caption: 'From Soil to Oil - Traditional stone-pressing',
   },
   {
     id: 2,
     src: 'https://images.unsplash.com/photo-1620706857370-e1b9770e8bb1?q=80&w=1200&auto=format&fit=crop',
     alt: 'Pure sesame oil',
-    category: 'Products',
+    category: 'Our Oils',
     caption: '100% Pure Sesame Oil - No additives',
   },
   {
     id: 3,
     src: 'https://images.unsplash.com/photo-1598202493891-8f1c6fe5bc4e?q=80&w=1200&auto=format&fit=crop',
     alt: 'Groundnut oil in kitchen',
-    category: 'Kitchen',
+    category: 'Culinary',
     caption: 'Kitchen Inspirations - Cook with purity',
   },
   {
@@ -37,14 +38,14 @@ const galleryImages = [
     id: 5,
     src: 'https://images.unsplash.com/photo-1565958011703-44f9829ba187?q=80&w=1200&auto=format&fit=crop',
     alt: 'Healthy meal with OwnFresh oil',
-    category: 'Kitchen',
+    category: 'Culinary',
     caption: 'Healthy Cooking - Every meal made better',
   },
   {
     id: 6,
     src: 'https://images.unsplash.com/photo-1596728073577-fb5ac8680008?q=80&w=1200&auto=format&fit=crop',
     alt: 'Oil pouring shot',
-    category: 'Products',
+    category: 'Our Oils',
     caption: 'Purity in Every Drop',
   },
   {
@@ -58,7 +59,7 @@ const galleryImages = [
     id: 8,
     src: 'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?q=80&w=1200&auto=format&fit=crop',
     alt: 'Farm to bottle',
-    category: 'Process',
+    category: 'Extraction',
     caption: 'Farm to Bottle - 100% Traceable',
   },
   {
@@ -68,9 +69,45 @@ const galleryImages = [
     category: 'Community',
     caption: 'Happy Customers Across India',
   },
+  /* Certifications */
+  {
+    id: 10,
+    src: 'https://res.cloudinary.com/dkhq2wlwg/image/upload/v1774961102/ownfresh_media/vwylvev18xuvlp7pdak8.jpg',
+    alt: 'FSSAI Certification',
+    category: 'Certifications',
+    caption: 'Government Registered Quality (FSSAI)',
+  },
+  {
+    id: 11,
+    src: 'https://res.cloudinary.com/dkhq2wlwg/image/upload/v1774961151/ownfresh_media/entjvm79dktv5e8ekvmx.jpg',
+    alt: 'Quality Standard',
+    category: 'Certifications',
+    caption: 'Rigorous Quality Checks & Monitoring',
+  },
+  {
+    id: 12,
+    src: 'https://res.cloudinary.com/dkhq2wlwg/image/upload/v1774961219/ownfresh_media/cqfid9v0hfqenb0zezwx.png',
+    alt: 'Process Standard',
+    category: 'Certifications',
+    caption: 'Standardized Oil Extraction Practices',
+  },
+  {
+    id: 13,
+    src: 'https://res.cloudinary.com/dkhq2wlwg/image/upload/v1774961250/ownfresh_media/y7denrhgp9vpmbxjk5om.png',
+    alt: 'Trust Mark',
+    category: 'Certifications',
+    caption: 'Botanic Purity Verified Mark',
+  },
+  {
+    id: 14,
+    src: 'https://res.cloudinary.com/dkhq2wlwg/image/upload/v1774961287/ownfresh_media/mpvtpafstuox80colfej.png',
+    alt: 'Compliance Certification',
+    category: 'Certifications',
+    caption: 'Certified Production & Safety Compliance',
+  },
 ];
 
-const CATEGORIES = ['All', 'Products', 'Process', 'Kitchen', 'Ingredients', 'Community'];
+const CATEGORIES = ['All', 'Our Oils', 'Extraction', 'Ingredients', 'Culinary', 'Certifications', 'Community'];
 
 /* ─── Lightbox Component ────────────────────────────────────── */
 const Lightbox = ({ images, index, onClose }) => {
@@ -92,7 +129,7 @@ const Lightbox = ({ images, index, onClose }) => {
       >
         {/* Close */}
         <button
-          className="absolute -top-10 right-0 text-white hover:text-[#EFDB27] transition-colors"
+          className="absolute -top-10 right-0 text-white hover:text-[#F9DD19] transition-colors"
           onClick={onClose}
         >
           <RxCross2 size={28} />
@@ -109,13 +146,13 @@ const Lightbox = ({ images, index, onClose }) => {
           {/* Prev / Next */}
           <button
             onClick={prev}
-            className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-full pr-4 text-white hover:text-[#EFDB27] transition-colors hidden sm:block"
+            className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-full pr-4 text-white hover:text-[#F9DD19] transition-colors hidden sm:block"
           >
             <FaChevronLeft size={32} />
           </button>
           <button
             onClick={next}
-            className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-full pl-4 text-white hover:text-[#EFDB27] transition-colors hidden sm:block"
+            className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-full pl-4 text-white hover:text-[#F9DD19] transition-colors hidden sm:block"
           >
             <FaChevronRight size={32} />
           </button>
@@ -131,7 +168,7 @@ const Lightbox = ({ images, index, onClose }) => {
               key={i}
               onClick={() => setCurrent(i)}
               className={`w-2 h-2 rounded-full transition-all ${
-                i === current ? 'bg-[#EFDB27] w-5' : 'bg-white/40'
+                i === current ? 'bg-[#F9DD19] w-5' : 'bg-white/40'
               }`}
             />
           ))}
@@ -145,6 +182,14 @@ const Lightbox = ({ images, index, onClose }) => {
 const GalleryPage = () => {
   const [activeCategory, setActiveCategory] = useState('All');
   const [lightboxIndex, setLightboxIndex] = useState(null);
+  const [searchParams] = useSearchParams();
+
+  useEffect(() => {
+    const categoryParam = searchParams.get('category');
+    if (categoryParam && CATEGORIES.includes(categoryParam)) {
+      setActiveCategory(categoryParam);
+    }
+  }, [searchParams]);
 
   const filtered =
     activeCategory === 'All'
@@ -164,13 +209,13 @@ const GalleryPage = () => {
         />
         <div className="absolute inset-0 bg-black/60" />
         <div className="relative text-center px-4">
-          <p className="text-[#EFDB27] text-xs font-bold uppercase tracking-[0.3em] mb-3">
+          <p className="text-[#F9DD19] text-xs font-bold uppercase tracking-[0.3em] mb-3">
             Visual Journey
           </p>
           <h1 className="text-4xl md:text-6xl font-black text-white uppercase tracking-tight leading-none">
             Our Gallery
           </h1>
-          <div className="w-16 h-1 bg-[#EFDB27] mx-auto mt-5" />
+          <div className="w-16 h-1 bg-[#F9DD19] mx-auto mt-5" />
           <p className="text-white/70 mt-4 text-sm md:text-base font-medium max-w-lg mx-auto">
             At OwnFresh, every image tells a story of authenticity, tradition, and dedication.
             Witness the essence of purity come to life.
@@ -187,7 +232,7 @@ const GalleryPage = () => {
               onClick={() => setActiveCategory(cat)}
               className={`px-4 py-1.5 text-xs font-black uppercase tracking-widest border transition-all duration-200 ${
                 activeCategory === cat
-                  ? 'bg-black text-[#EFDB27] border-black'
+                  ? 'bg-black text-[#F9DD19] border-black'
                   : 'bg-white text-black border-gray-300 hover:border-black'
               }`}
             >
@@ -222,7 +267,7 @@ const GalleryPage = () => {
                 </span>
               </div>
               {/* Category badge */}
-              <span className="absolute top-3 left-3 bg-[#EFDB27] text-black text-[9px] font-black uppercase tracking-widest px-2 py-0.5 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+              <span className="absolute top-3 left-3 bg-[#F9DD19] text-black text-[9px] font-black uppercase tracking-widest px-2 py-0.5 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                 {img.category}
               </span>
             </div>
@@ -238,7 +283,7 @@ const GalleryPage = () => {
 
       {/* ── Instagram section ── */}
       <section className="w-full bg-black text-white py-16 px-6 text-center">
-        <FaInstagram size={36} className="mx-auto mb-4 text-[#EFDB27]" />
+        <FaInstagram size={36} className="mx-auto mb-4 text-[#F9DD19]" />
         <h2 className="text-2xl md:text-4xl font-black uppercase tracking-tight mb-3">
           Follow Us on Instagram
         </h2>
@@ -249,7 +294,7 @@ const GalleryPage = () => {
           href="https://www.instagram.com/ownfresh_official/"
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-flex items-center gap-2 bg-[#EFDB27] text-black font-black uppercase text-xs tracking-widest px-8 py-3 hover:bg-white transition-colors duration-200"
+          className="inline-flex items-center gap-2 bg-[#F9DD19] text-black font-black uppercase text-xs tracking-widest px-8 py-3 hover:bg-white transition-colors duration-200"
         >
           <FaInstagram size={16} /> @ownfresh_official
         </a>

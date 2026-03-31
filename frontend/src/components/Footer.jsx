@@ -46,9 +46,11 @@ const Footer = () => {
 
         {/* Column 1 */}
         <div>
-          <h2 className="text-2xl font-semibold text-black mb-6">
-            OWNFRESH
-          </h2>
+          <img 
+            src="https://res.cloudinary.com/dkhq2wlwg/image/upload/v1774962822/ownfresh_media/ndxvmcpisomjzsghrfjs.png" 
+            alt="OwnFresh Logo" 
+            className="h-10 w-auto object-contain mb-6" 
+          />
 
           <p className="mb-4 leading-relaxed">
             Founded in Dhayari Pune, OwnFresh is committed to producing
@@ -100,15 +102,19 @@ const Footer = () => {
         <div>
           <h3 className="text-lg font-semibold text-black mb-6">Support</h3>
           <ul className="space-y-4">
-            {["Certification", "Help Center"].map((item, index) => (
-              <li
-                key={index}
-                className="relative w-fit cursor-pointer transition-all duration-300 hover:text-black"
+            <li>
+              <SLink
+                to="/gallery?category=Certifications"
+                className="group relative inline-block transition-all duration-300 hover:text-black"
               >
-                {item}
-                <span className="absolute left-0 -bottom-1 h-[2px] w-0 bg-black transition-all duration-300 hover:w-full"></span>
-              </li>
-            ))}
+                Certification
+                <span className="absolute left-0 -bottom-1 h-[2px] w-0 bg-black transition-all duration-300 group-hover:w-full"></span>
+              </SLink>
+            </li>
+            <li className="relative w-fit cursor-pointer transition-all duration-300 hover:text-black group">
+              Help Center
+              <span className="absolute left-0 -bottom-1 h-[2px] w-0 bg-black transition-all duration-300 group-hover:w-full"></span>
+            </li>
           </ul>
         </div>
 
