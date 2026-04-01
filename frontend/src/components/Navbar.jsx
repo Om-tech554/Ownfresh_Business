@@ -7,7 +7,8 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import { serverUrl } from '../App';
 import { clearUser } from '../redux/userslice';
-import { Layers } from 'lucide-react';
+import { Layers, Package } from 'lucide-react';
+import toast from 'react-hot-toast';
 import SLink from './SLink';
 
 const Navbar = () => {
@@ -134,7 +135,8 @@ const Navbar = () => {
         { name: "About Us", path: "/whyownfresh" },
         { name: "Shop", path: "/shop" },
         { name: "Blog", path: "/Oilinsights" },
-        { name: "Contact", path: "/contact" }
+        { name: "Contact", path: "/contact" },
+        ...(userData ? [{ name: "Refer & Earn", path: "/referral", special: true }] : [])
     ];
 
     const SearchDropdownUI = () => (
@@ -186,7 +188,11 @@ const Navbar = () => {
                     {userData?.role !== "admin" && (
                         <div className='hidden lg:flex items-center gap-8 mx-auto absolute left-1/2 -translate-x-1/2'>
                             {navLinks.map((link) => (
-                                <SLink key={link.name} to={link.path} className='text-[13px] font-bold text-[#1E971D] uppercase tracking-widest hover:text-[#1E971D] hover:underline underline-offset-8 decoration-2 transition-all whitespace-nowrap'>
+                                <SLink 
+                                    key={link.name} 
+                                    to={link.path} 
+                                    className={`text-[13px] font-bold uppercase tracking-widest hover:underline underline-offset-8 decoration-2 transition-all whitespace-nowrap ${link.special ? 'text-[#F9DD19] bg-black px-4 py-2 rounded-full hover:no-underline hover:scale-105' : 'text-[#1E971D]'}`}
+                                >
                                     {link.name}
                                 </SLink>
                             ))}
@@ -227,13 +233,25 @@ const Navbar = () => {
                             </div>
                         )}
 
-                        {userData?.role === "user" && (
-                            <SLink to="/cart" className='relative transition-colors block'>
-                                <FaCartShopping size={22} className='text-black hover:text-[#F9DD19]' />
-                                <span className='absolute -right-2 -top-2 text-[10px] font-bold text-black bg-[#F9DD19] rounded-full h-5 w-5 flex items-center justify-center'>
+                        {userData?.role !== "admin" && (
+                            <div 
+                                onClick={() => {
+                                    if (!userData) {
+                                        toast.error("Please Sign In or Sign Up to view your cart", {
+                                            icon: "🛒",
+                                            style: { borderRadius: "10px", background: "#333", color: "#fff" }
+                                        });
+                                    } else {
+                                        navigate("/cart");
+                                    }
+                                }} 
+                                className='relative transition-colors block cursor-pointer group'
+                            >
+                                <FaCartShopping size={22} className='text-black group-hover:text-[#F9DD19] transition-colors' />
+                                <span className='absolute -right-2 -top-2 text-[10px] font-bold text-black bg-[#F9DD19] rounded-full h-5 w-5 flex items-center justify-center border-2 border-white'>
                                     {cartItems.reduce((acc, item) => acc + (item.quantity || 0), 0)}
                                 </span>
-                            </SLink>
+                            </div>
                         )}
 
                         {userData?.role === "admin" && (
@@ -319,14 +337,51 @@ const Navbar = () => {
                         </div>
                         {userData?.role !== "admin" && (
                             <div className="flex flex-col gap-4">
-                                {navLinks.map((link) => <SLink key={link.name} to={link.path} onClick={() => setShowMobileNav(false)} className='text-[15px] font-bold text-[#1E971D] uppercase tracking-widest hover:text-[#1E971D] hover:underline underline-offset-8 decoration-2 transition-all block'>{link.name}</SLink>)}
+                                {navLinks.map((link) => (
+                                    <SLink 
+                                        key={link.name} 
+                                        to={link.path} 
+                                        onClick={() => setShowMobileNav(false)} 
+                                        className={`text-[15px] font-bold uppercase tracking-widest underline-offset-8 decoration-2 transition-all block ${link.special ? 'text-[#F9DD19] bg-black p-3 rounded-xl text-center' : 'text-[#1E971D] hover:underline'}`}
+                                    >
+                                        {link.name}
+                                    </SLink>
+                                ))}
                             </div>
                         )}
-                        {!userData && (
-                            <div className="mt-8 border-t border-gray-100 pt-6">
+                        <div className="mt-8 border-t border-gray-100 pt-6 space-y-4">
+                             {userData?.role !== "admin" && (
+                                <div 
+                                    onClick={() => {
+                                        if (!userData) {
+                                            toast.error("Please Sign In to view your cart");
+                                            setShowMobileNav(false);
+                                        } else {
+                                            navigate("/cart");
+                                            setShowMobileNav(false);
+                                        }
+                                    }} 
+                                    className="flex items-center justify-between bg-gray-50 p-4 rounded-xl cursor-pointer"
+                                >
+                                    <div className="flex items-center gap-3">
+                                        <FaCartShopping size={20} className="text-black" />
+                                        <span className="font-bold uppercase tracking-widest text-xs">My Cart</span>
+                                    </div>
+                                    <span className="bg-[#F9DD19] text-black font-bold h-6 w-6 rounded-full flex items-center justify-center text-[10px]">
+                                        {cartItems.reduce((acc, item) => acc + (item.quantity || 0), 0)}
+                                    </span>
+                                </div>
+                            )}
+                            {userData && (
+                                <SLink to="/my-orders" onClick={() => setShowMobileNav(false)} className="flex items-center gap-3 bg-gray-50 p-4 rounded-xl cursor-pointer">
+                                    <Package size={20} className="text-black" />
+                                    <span className="font-bold uppercase tracking-widest text-xs">My Orders</span>
+                                </SLink>
+                            )}
+                            {!userData && (
                                 <SLink to="/signin" onClick={() => setShowMobileNav(false)} className="w-full btn-primary text-sm whitespace-nowrap block text-center">Login / Register</SLink>
-                            </div>
-                        )}
+                            )}
+                        </div>
                     </div>
                 </div>
             )}

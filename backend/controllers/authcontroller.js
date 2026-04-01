@@ -19,12 +19,28 @@ export const signUp = async (req, res) => {
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
+    // --- REFERRAL LOGIC ---
+    let referrer = null;
+    if (req.body.referredBy) {
+      referrer = await User.findOne({ referralCode: req.body.referredBy.toUpperCase() });
+    }
+
+    // Generate unique referral code
+    const generateCode = () => "OWN-" + Math.random().toString(36).substring(2, 7).toUpperCase();
+    let newReferralCode = generateCode();
+    while (await User.findOne({ referralCode: newReferralCode })) {
+      newReferralCode = generateCode();
+    }
+
     const user = await User.create({
       fullName,
       email,
       password: hashedPassword,
       mobile,
-      role: role || "user", // ✅ IMPORTANT
+      role: role || "user",
+      referralCode: newReferralCode,
+      referredBy: referrer ? referrer._id : null,
+      rewardPoints: referrer ? 50 : 0, // 50 points if referred
     });
 
     return res.status(201).json({
@@ -183,19 +199,21 @@ export const googleAuth = async (req, res) => {
         let user = await User.findOne({ email });
 
         if (!user) {
-            // If user doesn't exist and no mobile is provided, it's an incomplete registration
-            if (!mobile) {
-                return res.status(400).json({ 
-                    message: "User not found. Please Sign Up with your mobile number first." 
-                });
+            // Generate unique referral code
+            const generateCode = () => "OWN-" + Math.random().toString(36).substring(2, 7).toUpperCase();
+            let newReferralCode = generateCode();
+            while (await User.findOne({ referralCode: newReferralCode })) {
+                newReferralCode = generateCode();
             }
 
-            // Create new user if mobile IS provided (from Signup page)
+            // Create new user
             user = await User.create({
                 fullName,
                 email,
                 mobile,
-                role: role || "user"
+                role: role || "user",
+                referralCode: newReferralCode,
+                rewardPoints: req.body.referredBy ? 50 : 0
             });
         }
         // 5. Generate JWT Token
@@ -210,16 +228,7 @@ export const googleAuth = async (req, res) => {
         });
 
         // 7. Success Response
-        return res.status(200).json({
-            message: `Welcome back, ${user.fullName}`,
-            user: {
-                _id: user._id,
-                fullName: user.fullName,
-                email: user.email,
-                mobile: user.mobile,
-                role: user.role
-            }
-        });
+        return res.status(200).json(user);
 
     } catch (error) {
         console.error("GOOGLE_AUTH_ERROR:", error.message);

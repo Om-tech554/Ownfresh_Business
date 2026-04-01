@@ -1,17 +1,23 @@
 import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import toast from "react-hot-toast";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
+import { clearCart } from "../redux/userslice";
 
 import { FaSearchLocation, FaWallet } from "react-icons/fa";
 import { IoLocation } from "react-icons/io5";
 import { TbCurrentLocation } from "react-icons/tb";
 import { BsCreditCard2FrontFill } from "react-icons/bs";
+import { Ticket, Gift, Sparkles, CheckCircle2 } from "lucide-react";
+import { serverUrl } from "../App";
 
 import { MapContainer, Marker, TileLayer, useMap } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 
 const CheckOut = () => {
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
   const user = useSelector((state) => state.user.userData);
   const cartItems = useSelector((state) => state.user.cartItems);
 
@@ -27,6 +33,13 @@ const CheckOut = () => {
 
   const [lat, setLat] = useState(location?.lat || 19.076);
   const [lon, setLon] = useState(location?.lon || 72.8777);
+
+  // --- NEW: COUPON & REWARDS STATE ---
+  const [couponInput, setCouponInput] = useState("");
+  const [appliedCoupon, setAppliedCoupon] = useState(null);
+  const [discountAmount, setDiscountAmount] = useState(0);
+  const [useRewards, setUseRewards] = useState(false);
+  const [isValidating, setIsValidating] = useState(false);
 
   const cartTotal = cartItems.reduce(
     (acc, item) => acc + item.price * item.quantity,
@@ -128,14 +141,49 @@ const CheckOut = () => {
     );
   };
 
+  // --- NEW: ATTACH COUPON LOGIC ---
+  const handleApplyCoupon = async () => {
+    if (!couponInput.trim()) return toast.error("Enter a coupon code");
+    
+    setIsValidating(true);
+    try {
+      const res = await axios.post(`${serverUrl}/api/coupon/validate`, {
+        code: couponInput,
+        orderAmount: cartTotal
+      });
+      
+      setAppliedCoupon(res.data.couponCode);
+      setDiscountAmount(res.data.discount);
+      toast.success(`Coupon Applied! Extra ₹${res.data.discount} OFF`, {
+        icon: <Sparkles className="text-yellow-500" />
+      });
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Invalid Coupon");
+      setDiscountAmount(0);
+      setAppliedCoupon(null);
+    } finally {
+      setIsValidating(false);
+    }
+  };
+
+  const finalTotal = Math.max(0, cartTotal - discountAmount - (useRewards ? Math.min(user?.rewardPoints || 0, cartTotal - discountAmount) : 0));
+
+
   // Checkout Handler
   const checkout = async () => {
     if (!user) return toast.error("Login first");
     if (!address) return toast.error("Enter address");
 
     try {
-      await axios.post("http://localhost:8000/api/order/create", {
+      const { data } = await axios.post(`${serverUrl}/api/order/create`, {
         userId: user._id,
+        items: cartItems.map(item => ({
+          productId: item._id,
+          name: item.name,
+          price: item.price,
+          quantity: item.quantity,
+          image: item.image
+        })),
         paymentMethod,
         deliveryAddress: {
           roomNumber: room,
@@ -144,12 +192,18 @@ const CheckOut = () => {
           latitude: lat,
           longitude: lon,
         },
-        totalAmount: cartTotal,
+        totalAmount: finalTotal,
+        couponCode: appliedCoupon || "",
+        useRewards: useRewards
       });
 
-      toast.success("Order placed!");
-    } catch {
-      toast.error("Order failed");
+      if (data.success) {
+        toast.success("Order placed successfully!");
+        dispatch(clearCart());
+        navigate("/my-orders");
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.msg || "Order failed");
     }
   };
 
@@ -286,9 +340,77 @@ const CheckOut = () => {
             ))}
           </div>
 
-          <div className="border-t mt-4 pt-4 flex justify-between text-lg font-bold">
-            <span>Total:</span>
-            <span className="text-yellow-600">₹{cartTotal}</span>
+          <div className="border-t mt-4 pt-4 space-y-2">
+            <div className="flex justify-between text-slate-600">
+              <span>Subtotal:</span>
+              <span>₹{cartTotal}</span>
+            </div>
+
+            {/* COUPON SECTION */}
+            <div className="py-2">
+              <div className="flex gap-2">
+                <div className="relative flex-1">
+                  <Ticket className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
+                  <input 
+                    type="text"
+                    placeholder="Have a coupon?"
+                    className="w-full pl-9 pr-3 py-2 border rounded-xl text-sm outline-none focus:border-yellow-500 uppercase"
+                    value={couponInput}
+                    onChange={(e) => setCouponInput(e.target.value.toUpperCase())}
+                  />
+                </div>
+                <button 
+                  onClick={handleApplyCoupon}
+                  disabled={isValidating}
+                  className="px-4 py-2 bg-slate-900 text-white rounded-xl text-sm font-bold hover:bg-yellow-500 hover:text-black transition-colors disabled:opacity-50"
+                >
+                  {isValidating ? "..." : "Apply"}
+                </button>
+              </div>
+              {appliedCoupon && (
+                <p className="text-xs text-green-600 font-bold mt-1 flex items-center gap-1">
+                  <CheckCircle2 size={12} /> Coupon "{appliedCoupon}" active!
+                </p>
+              )}
+            </div>
+
+            {/* REWARDS SECTION */}
+            {user?.rewardPoints > 0 && (
+              <div className="flex items-center justify-between p-3 bg-yellow-50 rounded-xl border border-yellow-100">
+                <div className="flex items-center gap-2">
+                  <Gift className="text-yellow-600 w-4 h-4" />
+                  <div>
+                    <p className="text-xs font-bold text-yellow-800">Use Reward Points</p>
+                    <p className="text-[10px] text-yellow-600">Balance: ₹{user.rewardPoints}</p>
+                  </div>
+                </div>
+                <input 
+                  type="checkbox" 
+                  className="w-5 h-5 accent-yellow-600 cursor-pointer"
+                  checked={useRewards}
+                  onChange={(e) => setUseRewards(e.target.checked)}
+                />
+              </div>
+            )}
+
+            {discountAmount > 0 && (
+              <div className="flex justify-between text-green-600 font-bold">
+                <span>Coupon Discount:</span>
+                <span>- ₹{discountAmount}</span>
+              </div>
+            )}
+
+            {useRewards && user?.rewardPoints > 0 && (
+              <div className="flex justify-between text-yellow-600 font-bold">
+                <span>Rewards Used:</span>
+                <span>- ₹{Math.min(user.rewardPoints, cartTotal - discountAmount)}</span>
+              </div>
+            )}
+
+            <div className="flex justify-between text-xl font-black text-slate-900 border-t pt-2">
+              <span>Payable:</span>
+              <span className="text-yellow-600">₹{finalTotal}</span>
+            </div>
           </div>
         </div>
 

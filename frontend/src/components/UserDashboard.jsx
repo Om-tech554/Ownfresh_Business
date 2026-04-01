@@ -4,6 +4,9 @@ import BlogSection from "../components/BlogSection";
 import ProductSection from "../components/ProductSection";
 import HeroSection from './HeroSection';
 import { OurStorySnippet, Gallery, FAQSection } from './HomeExtras';
+import PartnersSection from './PartnersSection';
+import ContactSection from './ContactSection';
+
 
 const UserDashboard = () => {
   return (
@@ -23,6 +26,12 @@ const UserDashboard = () => {
       <div className="bg-white">
           <BlogSection limit={3} />
       </div>
+
+      {/* New Partners Section */}
+      <PartnersSection />
+
+      {/* New Contact Form Section */}
+      <ContactSection />
 
     </div>
   )

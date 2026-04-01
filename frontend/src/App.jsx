@@ -18,16 +18,29 @@ import Shop from './components/Shop'
 import OilInsights from './pages/OilInsights'
 import CheckOut from './pages/CheckOut'
 import Footer from './components/Footer'   // ✅ Import Footer
+import AOS from 'aos';
 import 'aos/dist/aos.css';
+
 import WhyOwnFresh from './pages/WhyOwnFresh'
 import ProductDetails from "./pages/ProductDetails";
 import Contact from "./pages/Contact";
 import GalleryPage from "./pages/GalleryPage";
 import AdminBlogEditor from "./pages/admin/AdminBlogEditor";
 import AdminProductEditor from "./pages/admin/AdminProductEditor";
+import ReferralDashboard from "./pages/ReferralDashboard";
+import MyOrders from "./pages/MyOrders"; // [NEW]
+
 export const serverUrl = "http://localhost:8000"
 
 const App = () => {
+  // ...
+
+  React.useEffect(() => {
+    AOS.init({
+      duration: 1000,
+      once: true,
+    });
+  }, []);
 
   useGetCurrentUser()
   useGetCity()
@@ -49,10 +62,10 @@ const App = () => {
         reverseOrder={false}
         toastOptions={{
           success: {
-            duration: 5000,
+            duration: 3000,
           },
           error: {
-            duration: 10000,
+            duration: 4000,
           },
         }}
       />
@@ -110,6 +123,8 @@ const App = () => {
         <Route path="/whyownfresh" element={<WhyOwnFresh />} />
         <Route path="/contact" element={<Contact />} />
         <Route path="/gallery" element={<GalleryPage />} />
+        <Route path="/referral" element={<ReferralDashboard />} />
+        <Route path="/my-orders" element={<MyOrders />} />
       </Routes>
 
       {/* ✅ Footer will show on all pages except auth pages and admin panels */}

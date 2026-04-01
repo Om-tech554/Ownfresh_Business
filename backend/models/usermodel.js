@@ -77,7 +77,28 @@ const userSchema = new mongoose.Schema({
     },
     otpExpires: {
         type: Date
-    }
+    },
+    referralCode: {
+        type: String,
+        unique: true,
+        sparse: true // Sparse allows users created without it safely
+    },
+    referredBy: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+        default: null
+    },
+    rewardPoints: {
+        type: Number,
+        default: 0
+    },
+    referralHistory: [
+        {
+            userName: String,
+            rewardAmount: Number,
+            date: { type: Date, default: Date.now }
+        }
+    ]
 }, { timestamps: true });
 
 const User = mongoose.model("User", userSchema);

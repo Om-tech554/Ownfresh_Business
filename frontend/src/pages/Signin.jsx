@@ -419,8 +419,8 @@ const SignIn = () => {
       );
 
       // ⭐ FIX: UPDATE REDUX & LOCAL STORAGE
-      dispatch(setUserData(result.data.user));
-      localStorage.setItem("oil_user", JSON.stringify(result.data.user));
+      dispatch(setUserData(result.data));
+      localStorage.setItem("oil_user", JSON.stringify(result.data));
 
       toast.success("Logged in successfully!");
       navigate("/"); // Redirect
@@ -450,8 +450,8 @@ const SignIn = () => {
       );
 
       // ⭐ FIX: UPDATE REDUX & LOCAL STORAGE
-      dispatch(setUserData(data.user));
-      localStorage.setItem("oil_user", JSON.stringify(data.user));
+      dispatch(setUserData(data));
+      localStorage.setItem("oil_user", JSON.stringify(data));
 
       toast.success("Logged in with Google!",{ duration: 1500 });
       navigate("/");

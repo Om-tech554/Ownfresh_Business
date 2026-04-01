@@ -125,7 +125,9 @@ const userSlice = createSlice({
 
     clearUser: (state) => {
       state.userData = null;
+      state.cartItems = [];
       localStorage.removeItem("oil_user");
+      localStorage.removeItem("oil_cart");
     },
 
     // CITY

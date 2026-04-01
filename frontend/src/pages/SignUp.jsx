@@ -184,7 +184,7 @@ import React, { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import {
-  Eye, EyeOff, User, Mail, Lock, Phone, Loader2, ArrowLeft
+  Eye, EyeOff, User, Mail, Lock, Phone, Loader2, ArrowLeft, Ticket
 } from "lucide-react";
 import { serverUrl } from "../App";
 import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
@@ -204,6 +204,8 @@ const SignUp = () => {
   const [mobile, setMobile] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [referredBy, setReferredBy] = useState(""); // Referral state
+
 
   const role = "user";
   const primaryColor = "#FFD700";
@@ -222,14 +224,14 @@ const SignUp = () => {
     try {
       const { data } = await axios.post(
         `${serverUrl}/api/auth/signup`,
-        { fullName, email, password, mobile, role },
+        { fullName, email, password, mobile, role, referredBy },
         { withCredentials: true }
       );
 
       // ⭐ NEW: Automatically log user in after signup
-      dispatch(setUserData(data.user));
+      dispatch(setUserData(data));
       dispatch(clearCart()); // ⭐ NEW: Cart resets to 0 for new user
-      localStorage.setItem("oil_user", JSON.stringify(data.user));
+      localStorage.setItem("oil_user", JSON.stringify(data));
 
       toast.success("Account created!", { duration: 1500 });
 
@@ -262,13 +264,14 @@ const SignUp = () => {
           email: google.user.email,
           mobile,
           role,
+          referredBy,
         },
         { withCredentials: true }
       );
 
-      dispatch(setUserData(data.user));
+      dispatch(setUserData(data));
       dispatch(clearCart()); // ⭐ for new google users
-      localStorage.setItem("oil_user", JSON.stringify(data.user));
+      localStorage.setItem("oil_user", JSON.stringify(data));
 
       toast.success("Google signup completed");
       navigate("/");
@@ -375,6 +378,21 @@ const SignUp = () => {
               </button>
             </div>
           </div>
+
+          {/* Referral Code (Optional) */}
+          <div className="pb-2">
+            <label className="text-slate-600 text-sm font-bold flex items-center gap-2">
+              <Ticket className="w-4 h-4 text-[#FFD700]" size={16} />
+              Referral Code (Optional)
+            </label>
+            <input
+              className="w-full px-4 py-3 border border-slate-200 rounded-xl mt-1 focus:border-[#FFD700] outline-none transition-all uppercase placeholder:text-slate-300"
+              placeholder="e.g. OWN-XXXXX"
+              value={referredBy}
+              onChange={(e) => setReferredBy(e.target.value.toUpperCase())}
+            />
+          </div>
+
 
           {/* SUBMIT */}
           <button

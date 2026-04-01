@@ -11,6 +11,7 @@ import blogRoutes from "./routes/blogRoutes.js";
 import orderRoutes from "./routes/orderRoutes.js";
 import newsletterRoutes from "./routes/newsletterRoutes.js";
 import contactRoutes from "./routes/contactRoutes.js";
+import couponRoutes from "./routes/couponRoutes.js";
 const app=express()
 const port=process.env.port || 5000
 app.use(cors({
@@ -26,6 +27,7 @@ app.use("/api/blog", blogRoutes);
 app.use("/api/order", orderRoutes);
 app.use("/api/newsletter", newsletterRoutes);
 app.use("/api/contact", contactRoutes);
+app.use("/api/coupon", couponRoutes);
 app.listen(port,()=>{
     connectDB()
     console.log(`🚀 Server running on port ${port}`);
