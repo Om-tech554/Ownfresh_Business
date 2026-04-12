@@ -12,6 +12,7 @@ import orderRoutes from "./routes/orderRoutes.js";
 import newsletterRoutes from "./routes/newsletterRoutes.js";
 import contactRoutes from "./routes/contactRoutes.js";
 import couponRoutes from "./routes/couponRoutes.js";
+import { initCronJobs } from "./utils/cronJobs.js";
 const app=express()
 const port=process.env.port || 5000
 app.use(cors({
@@ -30,5 +31,6 @@ app.use("/api/contact", contactRoutes);
 app.use("/api/coupon", couponRoutes);
 app.listen(port,()=>{
     connectDB()
+    initCronJobs() // 🚀 Initialize Background Sync
     console.log(`🚀 Server running on port ${port}`);
 })

@@ -8,11 +8,17 @@ import toast, { Toaster } from "react-hot-toast";
 const AdminBlogEditor = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const isEditing = id !== "create";
+  const isEditing = id !== "create" && id !== "new";
 
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState("OTHER");
+  const [labels, setLabels] = useState(""); // Blogger Labels (comma separated)
+  const [status, setStatus] = useState("LIVE"); // Blogger Status (LIVE/DRAFT)
+  const [searchDescription, setSearchDescription] = useState(""); // SEO
+  const [location, setLocation] = useState(""); // Simple location text
+  const [author, setAuthor] = useState(""); // Custom Author
+  const [publishedAt, setPublishedAt] = useState(""); // Custom Date
   
   // Images (supporting featured + 4 gallery)
   const [image, setImage] = useState(null);
@@ -80,6 +86,14 @@ const AdminBlogEditor = () => {
             setPreview2(blog.image2 || null);
             setPreview3(blog.image3 || null);
             setPreview4(blog.image4 || null);
+            setLabels(blog.labels ? blog.labels.join(", ") : "");
+            setStatus(blog.status || "LIVE");
+            setSearchDescription(blog.searchDescription || "");
+            setLocation(blog.location ? (typeof blog.location === 'object' ? blog.location.name : blog.location) : "");
+            setAuthor(blog.author || "");
+            if (blog.publishedAt) {
+              setPublishedAt(new Date(blog.publishedAt).toISOString().split('T')[0]);
+            }
           }
         } catch (error) {
           toast.error("Failed to load blog details.");
@@ -123,6 +137,14 @@ const AdminBlogEditor = () => {
     if (image2) formData.append("image2", image2);
     if (image3) formData.append("image3", image3);
     if (image4) formData.append("image4", image4);
+    
+    // Blogger features
+    formData.append("labels", labels);
+    formData.append("status", status);
+    formData.append("searchDescription", searchDescription);
+    formData.append("location", location);
+    formData.append("author", author);
+    if (publishedAt) formData.append("publishedAt", new Date(publishedAt).toISOString());
 
     try {
       if (isEditing) {
@@ -220,6 +242,78 @@ const AdminBlogEditor = () => {
                   className="w-full border-2 border-gray-100 rounded-lg p-3 text-sm font-bold uppercase tracking-wider focus:border-black transition-colors outline-none"
                   value={category}
                   onChange={(e) => setCategory(e.target.value)}
+                />
+            </div>
+
+            <div className="flex flex-col gap-2">
+                <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Labels (Tags)</label>
+                <input
+                  type="text"
+                  placeholder="e.g. Health, Cooking (comma separated)"
+                  className="w-full border-2 border-gray-100 rounded-lg p-3 text-sm font-bold uppercase tracking-wider focus:border-black transition-colors outline-none"
+                  value={labels}
+                  onChange={(e) => setLabels(e.target.value)}
+                />
+            </div>
+
+            <div className="flex flex-col gap-2">
+                <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Publishing Status</label>
+                <div className="flex items-center bg-gray-100 p-1 rounded-xl">
+                  <button
+                    onClick={() => setStatus("LIVE")}
+                    className={`flex-1 py-2 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all ${status === "LIVE" ? "bg-white text-black shadow-sm" : "text-gray-400"}`}
+                  >
+                    Live
+                  </button>
+                  <button
+                    onClick={() => setStatus("DRAFT")}
+                    className={`flex-1 py-2 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all ${status === "DRAFT" ? "bg-white text-black shadow-sm" : "text-gray-400"}`}
+                  >
+                    Draft
+                  </button>
+                </div>
+            </div>
+
+            <div className="flex flex-col gap-2">
+                <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Search Description (SEO)</label>
+                <textarea
+                  placeholder="Meta description for search engines..."
+                  rows={3}
+                  className="w-full border-2 border-gray-100 rounded-lg p-3 text-sm focus:border-black transition-colors outline-none resize-none"
+                  value={searchDescription}
+                  onChange={(e) => setSearchDescription(e.target.value)}
+                />
+            </div>
+
+            <div className="flex flex-col gap-2">
+                <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Location</label>
+                <input
+                  type="text"
+                  placeholder="e.g. Mumbai, India"
+                  className="w-full border-2 border-gray-100 rounded-lg p-3 text-sm font-bold uppercase tracking-wider focus:border-black transition-colors outline-none"
+                  value={location}
+                  onChange={(e) => setLocation(e.target.value)}
+                />
+            </div>
+
+            <div className="flex flex-col gap-2">
+                <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Author Name</label>
+                <input
+                  type="text"
+                  placeholder="Author name..."
+                  className="w-full border-2 border-gray-100 rounded-lg p-3 text-sm font-bold uppercase tracking-wider focus:border-black transition-colors outline-none"
+                  value={author}
+                  onChange={(e) => setAuthor(e.target.value)}
+                />
+            </div>
+
+            <div className="flex flex-col gap-2">
+                <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Publish Date</label>
+                <input
+                  type="date"
+                  className="w-full border-2 border-gray-100 rounded-lg p-3 text-sm font-bold uppercase tracking-wider focus:border-black transition-colors outline-none"
+                  value={publishedAt}
+                  onChange={(e) => setPublishedAt(e.target.value)}
                 />
             </div>
           </div>

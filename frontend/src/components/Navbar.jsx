@@ -17,6 +17,7 @@ const Navbar = () => {
     const [showInfo, setShowInfo] = useState(false);
     const [showSearch, setShowSearch] = useState(false);
     const [showMobileNav, setShowMobileNav] = useState(false);
+    const [showShopDropdown, setShowShopDropdown] = useState(false);
 
     const [searchableItems, setSearchableItems] = useState([]);
     const [searchQuery, setSearchQuery] = useState("");
@@ -133,7 +134,16 @@ const Navbar = () => {
     const navLinks = [
         { name: "Home", path: "/" },
         { name: "About Us", path: "/whyownfresh" },
-        { name: "Shop", path: "/shop" },
+        { 
+            name: "Shop", 
+            path: "/shop",
+            dropdown: [
+                { name: "Eating Oils", path: "/shop?category=Eating Oil" },
+                { name: "Hair Oils", path: "/shop?category=Hair Oil" },
+                { name: "Shampoos", path: "/shop?category=Shampoo" },
+                { name: "Bodywash", path: "/shop?category=Bodywash" },
+            ]
+        },
         { name: "Blog", path: "/Oilinsights" },
         { name: "Contact", path: "/contact" },
         ...(userData ? [{ name: "Refer & Earn", path: "/referral", special: true }] : [])
@@ -188,13 +198,35 @@ const Navbar = () => {
                     {userData?.role !== "admin" && (
                         <div className='hidden lg:flex items-center gap-8 mx-auto absolute left-1/2 -translate-x-1/2'>
                             {navLinks.map((link) => (
-                                <SLink 
+                                <div 
                                     key={link.name} 
-                                    to={link.path} 
-                                    className={`text-[13px] font-bold uppercase tracking-widest hover:underline underline-offset-8 decoration-2 transition-all whitespace-nowrap ${link.special ? 'text-[#F9DD19] bg-black px-4 py-2 rounded-full hover:no-underline hover:scale-105' : 'text-[#1E971D]'}`}
+                                    className="relative group"
+                                    onMouseEnter={() => link.dropdown && setShowShopDropdown(true)}
+                                    onMouseLeave={() => link.dropdown && setShowShopDropdown(false)}
                                 >
-                                    {link.name}
-                                </SLink>
+                                    <SLink 
+                                        to={link.path} 
+                                        className={`text-[13px] font-bold uppercase tracking-widest hover:underline underline-offset-8 decoration-2 transition-all whitespace-nowrap ${link.special ? 'text-[#F9DD19] bg-black px-4 py-2 rounded-full hover:no-underline hover:scale-105' : 'text-[#1E971D]'}`}
+                                    >
+                                        {link.name}
+                                    </SLink>
+                                    
+                                    {link.dropdown && showShopDropdown && (
+                                        <div className="absolute top-[100%] left-0 pt-4 w-[200px] animate-in fade-in slide-in-from-top-2 duration-200">
+                                            <div className="bg-white border border-gray-100 shadow-2xl p-2 rounded-2xl overflow-hidden">
+                                                {link.dropdown.map((sub) => (
+                                                    <SLink 
+                                                        key={sub.name} 
+                                                        to={sub.path}
+                                                        className="block px-4 py-3 text-[11px] font-black uppercase tracking-widest text-[#1E971D] hover:bg-[#F9DD19] hover:text-black rounded-xl transition-all"
+                                                    >
+                                                        {sub.name}
+                                                    </SLink>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
                             ))}
                         </div>
                     )}
@@ -338,14 +370,29 @@ const Navbar = () => {
                         {userData?.role !== "admin" && (
                             <div className="flex flex-col gap-4">
                                 {navLinks.map((link) => (
-                                    <SLink 
-                                        key={link.name} 
-                                        to={link.path} 
-                                        onClick={() => setShowMobileNav(false)} 
-                                        className={`text-[15px] font-bold uppercase tracking-widest underline-offset-8 decoration-2 transition-all block ${link.special ? 'text-[#F9DD19] bg-black p-3 rounded-xl text-center' : 'text-[#1E971D] hover:underline'}`}
-                                    >
-                                        {link.name}
-                                    </SLink>
+                                    <React.Fragment key={link.name}>
+                                        <SLink 
+                                            to={link.path} 
+                                            onClick={() => setShowMobileNav(false)} 
+                                            className={`text-[15px] font-bold uppercase tracking-widest underline-offset-8 decoration-2 transition-all block ${link.special ? 'text-[#F9DD19] bg-black p-3 rounded-xl text-center' : 'text-[#1E971D] hover:underline'}`}
+                                        >
+                                            {link.name}
+                                        </SLink>
+                                        {link.dropdown && (
+                                            <div className="flex flex-col gap-2 pl-4 -mt-2">
+                                                {link.dropdown.map((sub) => (
+                                                    <SLink 
+                                                        key={sub.name} 
+                                                        to={sub.path} 
+                                                        onClick={() => setShowMobileNav(false)} 
+                                                        className="text-[12px] font-bold uppercase tracking-widest text-gray-500 py-1 hover:text-[#1E971D]"
+                                                    >
+                                                        {sub.name}
+                                                    </SLink>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </React.Fragment>
                                 ))}
                             </div>
                         )}

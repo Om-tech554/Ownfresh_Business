@@ -4,7 +4,7 @@ import axios from 'axios';
 import { Loader2, ArrowRight } from "lucide-react";
 import toast, { Toaster } from "react-hot-toast";
 import { useDispatch, useSelector } from "react-redux";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { addToCart } from "../redux/userslice";
 import SLink from "./SLink";
 
@@ -20,6 +20,7 @@ const Shop = () => {
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const user = useSelector((state) => state.user.userData);
 
   const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
@@ -39,8 +40,15 @@ const Shop = () => {
     fetchProducts();
   }, []);
 
+  useEffect(() => {
+    const categoryParam = searchParams.get('category');
+    if (categoryParam) {
+      setActiveCategory(categoryParam);
+    }
+  }, [searchParams]);
+
   const categoriesMap = products.reduce((acc, curr) => {
-      const cat = curr.category || 'Premium Oil';
+      const cat = curr.category || 'Eating Oil';
       acc[cat] = (acc[cat] || 0) + 1;
       return acc;
   }, {});
@@ -50,7 +58,7 @@ const Shop = () => {
       
       // Category Filter
       if (activeCategory !== "All") {
-          result = result.filter(p => (p.category || 'Premium Oil') === activeCategory);
+          result = result.filter(p => (p.category || 'Eating Oil') === activeCategory);
       }
       
       // Search Box Filter
@@ -217,7 +225,7 @@ const Shop = () => {
                           </div>
 
                           <div className="flex flex-col flex-grow w-full items-center">
-                            <span className="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-1">{p.category || "Premium Oil"}</span>
+                            <span className="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-1">{p.category || "Eating Oil"}</span>
                             <h3 className="text-base text-black font-bold leading-tight mb-2 line-clamp-2 uppercase">{p.name}</h3>
                             
                             <div className="mt-auto pt-4 w-full flex flex-col items-center gap-3">

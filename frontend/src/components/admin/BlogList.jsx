@@ -310,9 +310,18 @@ const BlogList = () => {
             </p>
           </div>
         </div>
-        <div className="flex items-center gap-2 bg-white px-4 py-2 rounded-xl shadow-sm border border-slate-200 h-fit">
-          <TrendingUp className="w-4 h-4 text-[#1E971D]" />
-          <span className="text-sm font-bold text-slate-700">{totalBlogs} Total Posts</span>
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 bg-white px-4 py-2 rounded-xl shadow-sm border border-slate-200 h-fit">
+            <TrendingUp className="w-4 h-4 text-[#1E971D]" />
+            <span className="text-sm font-bold text-slate-700">{totalBlogs} Total Posts</span>
+          </div>
+          <button
+            onClick={() => navigate("/admin/blog/editor/create")}
+            className="flex items-center gap-2 bg-[#1E971D] text-white px-6 py-2 rounded-xl font-bold hover:bg-[#1E971D]/90 transition-all shadow-lg shadow-[#1E971D]/20 h-fit"
+          >
+            <Edit3 className="w-4 h-4" />
+            Create New Post
+          </button>
         </div>
       </div>
 
@@ -363,6 +372,19 @@ const BlogList = () => {
 
             {/* CONTENT */}
             <div className="p-6 flex flex-col flex-grow">
+              <div className="flex items-center gap-2 mb-3">
+                <span className={`text-[10px] font-black px-2 py-0.5 rounded uppercase tracking-widest ${
+                  b.status === "DRAFT" ? "bg-amber-100 text-amber-700" : "bg-emerald-100 text-emerald-700"
+                }`}>
+                  {b.status || "LIVE"}
+                </span>
+                {b.bloggerId && (
+                  <span className="text-[10px] font-black bg-blue-100 text-blue-700 px-2 py-0.5 rounded uppercase tracking-widest flex items-center gap-1">
+                    <ExternalLink className="w-2.5 h-2.5" /> Synced
+                  </span>
+                )}
+              </div>
+
               <h3 className="text-xl font-bold text-slate-800 mb-3 line-clamp-2 min-h-[3.5rem]">
                 {b.title}
               </h3>
@@ -373,10 +395,10 @@ const BlogList = () => {
               {/* ACTIONS */}
               <div className="mt-auto pt-4 border-t border-slate-100 flex items-center justify-between">
                 <button 
-                  onClick={() => navigate(`/blogs/${b._id}`)}
-                  className="text-slate-400 hover:text-[#1E971D]"
+                  onClick={() => navigate(`/blog/${b._id}`)}
+                  className="text-slate-400 hover:text-[#1E971D] flex items-center gap-1 text-xs font-bold uppercase tracking-wider"
                 >
-                  <ExternalLink className="w-5 h-5" />
+                  <ExternalLink className="w-4 h-4" /> View Site
                 </button>
 
                 {/* ADMIN OR BLOGGER */}
@@ -384,13 +406,15 @@ const BlogList = () => {
                   <div className="flex gap-2">
                     <button
                       onClick={() => navigate(`/admin/blog/editor/${b._id}`)}
-                      className="p-2 bg-slate-50 hover:bg-blue-50 text-blue-600 rounded-lg"
+                      className="p-2 bg-slate-50 hover:bg-blue-50 text-blue-600 rounded-lg flex items-center gap-1"
+                      title="Edit Post"
                     >
                       <Edit3 className="w-4 h-4" />
                     </button>
                     <button
                       onClick={() => deleteBlog(b._id)}
-                      className="p-2 bg-slate-50 hover:bg-red-50 text-red-600 rounded-lg"
+                      className="p-2 bg-slate-50 hover:bg-red-50 text-red-600 rounded-lg flex items-center gap-1"
+                      title="Delete Post"
                     >
                       <Trash2 className="w-4 h-4" />
                     </button>

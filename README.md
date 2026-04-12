@@ -109,5 +109,48 @@ cd backend && npm run start
 cd frontend && npm run dev
 ```
 
+## 📢 Blogger API Synchronization (V3)
+
+The platform now includes a specialized integration with Google Blogger to host your articles professionally.
+
+### ⚙️ Environment Variables
+Add these to your `backend/.env` for Blogger connectivity:
+```env
+GOOGLE_CLIENT_ID=your_id
+GOOGLE_CLIENT_SECRET=your_secret
+BLOGGER_REFRESH_TOKEN=your_refresh_token
+BLOGGER_BLOG_ID=your_blog_id
+```
+
+### 🛠️ Sync Commands
+Manage your external blog presence with these scripts:
+```bash
+# Verify connection to Google API
+node backend/scripts/verifyBlogger.js
+
+# Find your correct Blog ID
+node backend/scripts/findBlogId.js
+
+# Sync all new local blogs to Blogger (Push only)
+node backend/scripts/syncAllBlogs.js
+
+# List all posts currently live on Blogger
+node backend/scripts/listPosts.js
+```
+
+### 💡 Sync Behavior & Logic (Simple Guide)
+
+| Action | What happens? | Does it sync? |
+| :--- | :--- | :--- |
+| **Create New Blog** | Added to local CMS. | **Manual Sync Required** (Run `syncAllBlogs.js`). |
+| **Edit/Update Blog** | Updated in local CMS. | **No** (Must manually edit on Blogger for now). |
+| **Delete from CMS** | Removed from Admin Panel. | **No** (Stays live on Blogger). |
+| **Delete from Blogger** | Removed from Public Blog. | **No** (Stays in local Admin CMS). |
+
+> [!IMPORTANT]
+> **One-Way Sync:** The synchronization is currently "Push only" (CMS → Blogger). Any changes made directly on the Blogger dashboard will not be reflected back in your Admin CMS.
+>
+> **Daily Quota:** Google limits automated posts to about 100 per day (can be lower for new accounts). If you hit a "Resource Exhausted" error, simply wait 24 hours to sync the rest.
+
 ---
 *Architected for speed, documented for clarity, and optimized for high-conversion e-commerce.*

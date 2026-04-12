@@ -21,7 +21,8 @@ const productSchema = new mongoose.Schema(
     price: { type: Number, required: true },
     image: { type: String, required: true }, // path or cloudinary URL
     rating: { type: Number, default: 5 },
-    shortDesc: { type: String, required: true }
+    shortDesc: { type: String, required: true },
+    category: { type: String, required: true, default: "Eating Oil" }
   },
   { timestamps: true }
 );

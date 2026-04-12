@@ -10,7 +10,7 @@ export const OurStorySnippet = () => {
             <div className="max-w-7xl mx-auto flex flex-col lg:flex-row items-center gap-12 lg:gap-20">
                 <div className="w-full lg:w-1/2 flex justify-center">
                     <div className="relative w-full aspect-[4/3] bg-gray-100 shadow-[15px_15px_0_#F9DD19] border border-gray-200">
-                        <img className="w-full h-full object-cover" src="https://images.unsplash.com/photo-1596728073577-fb5ac8680008?q=80&w=1000&auto=format&fit=crop" alt="Botanic Purity" />
+                        <img className="w-full h-full object-cover" src="https://res.cloudinary.com/dkhq2wlwg/image/upload/v1775112913/ownfresh_media/lo3psirlwzaqc5bsyfbx.png" alt="Botanic Purity" />
                     </div>
                 </div>
                 <div className="w-full lg:w-1/2 flex flex-col items-start text-left">
@@ -35,14 +35,14 @@ export const Gallery = () => {
 
     // ✏️ Replace these 3 URLs with your own product image URLs
     const featuredImage = "https://images.unsplash.com/photo-1620706857370-e1b9770e8bb1?q=80&w=900&auto=format&fit=crop";
-    const sideImage1    = "https://images.unsplash.com/photo-1598202493891-8f1c6fe5bc4e?q=80&w=700&auto=format&fit=crop";
-    const sideImage2    = "https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?q=80&w=700&auto=format&fit=crop";
+    const sideImage1 = "https://images.unsplash.com/photo-1598202493891-8f1c6fe5bc4e?q=80&w=700&auto=format&fit=crop";
+    const sideImage2 = "https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?q=80&w=700&auto=format&fit=crop";
 
     const highlights = [
         { label: "Our Manufacturing Process", desc: "From raw seeds to the final golden drop." },
-        { label: "Our Products",               desc: "A showcase of our premium stone-pressed oils." },
-        { label: "Customer Moments",           desc: "Real people, real stories, real flavors." },
-        { label: "Events & Milestones",        desc: "Celebrating our journey with our community." },
+        { label: "Our Products", desc: "A showcase of our premium stone-pressed oils." },
+        { label: "Customer Moments", desc: "Real people, real stories, real flavors." },
+        { label: "Events & Milestones", desc: "Celebrating our journey with our community." },
     ];
 
     return (
@@ -151,10 +151,10 @@ export const FAQSection = () => {
 
     return (
         <section className="w-full bg-[#fcfcfc] py-20 px-6 md:px-12 lg:px-24 border-t border-gray-100">
-             <div className="max-w-4xl mx-auto">
+            <div className="max-w-4xl mx-auto">
                 <div className="text-center mb-16">
-                     <h2 className="text-3xl md:text-5xl font-black text-black tracking-tight uppercase">Got <span className="text-[#F9DD19]">Questions?</span></h2>
-                     <p className="uppercase text-gray-500 font-bold tracking-widest text-xs mt-4">Frequently Asked Questions</p>
+                    <h2 className="text-3xl md:text-5xl font-black text-black tracking-tight uppercase">Got <span className="text-[#F9DD19]">Questions?</span></h2>
+                    <p className="uppercase text-gray-500 font-bold tracking-widest text-xs mt-4">Frequently Asked Questions</p>
                 </div>
                 <div className="flex flex-col gap-4">
                     {faqs.map((faq, i) => (
@@ -172,7 +172,7 @@ export const FAQSection = () => {
                         </div>
                     ))}
                 </div>
-             </div>
+            </div>
         </section>
     );
 };

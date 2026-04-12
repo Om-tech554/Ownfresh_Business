@@ -198,9 +198,18 @@ const ProductList = () => {
             Asset Management & Logistics
           </p>
         </div>
-        <div className="flex items-center gap-2 bg-white px-4 py-2 rounded-xl shadow-sm border border-slate-200">
-          <TrendingUp className="w-4 h-4 text-green-500" />
-          <span className="text-sm font-bold text-slate-700">{totalProducts} Total Units</span>
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 bg-white px-4 py-2 rounded-xl shadow-sm border border-slate-200 h-fit">
+            <TrendingUp className="w-4 h-4 text-green-500" />
+            <span className="text-sm font-bold text-slate-700">{totalProducts} Total Units</span>
+          </div>
+          <button
+            onClick={() => navigate("/admin/product/editor/create")}
+            className="flex items-center gap-2 bg-[#1E971D] text-white px-6 py-2 rounded-xl font-bold hover:bg-[#1E971D]/90 transition-all shadow-lg shadow-[#1E971D]/20 h-fit"
+          >
+            <Edit3 className="w-4 h-4" />
+            Create New Product
+          </button>
         </div>
       </div>
 

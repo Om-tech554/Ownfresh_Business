@@ -109,7 +109,7 @@ const UserBlogDetails = () => {
     );
 
   /* ── Meta helpers ── */
-  const cleanDescription = stripHtml(blog.description).substring(0, 160);
+  const cleanDescription = blog.searchDescription || stripHtml(blog.description).substring(0, 160);
   const cleanTitle = blog.title;
 
   const mins = readingTime(blog.description);
@@ -183,7 +183,7 @@ const UserBlogDetails = () => {
             <div className="flex flex-wrap items-center gap-3 mb-4">
               <span className="inline-flex items-center gap-1.5 bg-[#F9DD19] text-black text-xs font-black uppercase tracking-widest px-3 py-1 rounded-full">
                 <Calendar size={12} />
-                {new Date(blog.createdAt).toLocaleDateString(undefined, { dateStyle: "long" })}
+                {new Date(blog.publishedAt || blog.createdAt).toLocaleDateString(undefined, { dateStyle: "long" })}
               </span>
               <span className="inline-flex items-center gap-1.5 bg-white/15 text-white text-xs font-bold uppercase tracking-widest px-3 py-1 rounded-full">
                 <Clock size={12} />
@@ -266,10 +266,28 @@ const UserBlogDetails = () => {
                   <div>
                     <p className="text-xs text-gray-400 font-semibold uppercase tracking-widest">Published</p>
                     <p className="text-sm font-bold text-gray-800">
-                      {new Date(blog.createdAt).toLocaleDateString(undefined, { dateStyle: "long" })}
+                      {new Date(blog.publishedAt || blog.createdAt).toLocaleDateString(undefined, { dateStyle: "long" })}
                     </p>
                   </div>
                 </li>
+                <li className="flex items-start gap-3">
+                  <Leaf size={18} className="text-[#F9DD19] mt-0.5 shrink-0" />
+                  <div>
+                    <p className="text-xs text-gray-400 font-semibold uppercase tracking-widest">Author</p>
+                    <p className="text-sm font-bold text-gray-800">{blog.author || "Own Fresh Team"}</p>
+                  </div>
+                </li>
+                {blog.location && (
+                  <li className="flex items-start gap-3">
+                    <Leaf size={18} className="text-[#F9DD19] mt-0.5 shrink-0" />
+                    <div>
+                      <p className="text-xs text-gray-400 font-semibold uppercase tracking-widest">Location</p>
+                      <p className="text-sm font-bold text-gray-800">
+                        {typeof blog.location === 'object' ? blog.location.name : blog.location}
+                      </p>
+                    </div>
+                  </li>
+                )}
                 <li className="flex items-start gap-3">
                   <BookOpen size={18} className="text-[#F9DD19] mt-0.5 shrink-0" />
                   <div>

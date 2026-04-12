@@ -21,16 +21,16 @@ const WhyOwnFresh = () => {
         </div>
 
         <div className="max-w-7xl mx-auto flex flex-col gap-24">
-          
+
           {/* ZIG ZAG 1: IMAGE LEFT / TEXT RIGHT */}
           <div className="flex flex-col md:flex-row items-center gap-12 lg:gap-20">
             <div className="w-full md:w-1/2 flex justify-center">
               <div className="relative w-[90%] md:w-[80%] aspect-[4/5] bg-gray-100 shadow-[20px_20px_0_#F9DD19] border border-gray-200">
-                 <img
-                    className="w-full h-full object-cover"
-                    src="https://images.unsplash.com/photo-1596728073577-fb5ac8680008?q=80&w=1000&auto=format&fit=crop"
-                    alt="Botanic Purity"
-                  />
+                <img
+                  className="w-full h-full object-contain"
+                  src="https://res.cloudinary.com/dkhq2wlwg/image/upload/v1775059081/ownfresh_media/w3evsx01oayzdykqk4oz.png"
+                  alt="Botanic Purity"
+                />
               </div>
             </div>
             <div className="w-full md:w-1/2 flex flex-col items-start text-left">
@@ -38,7 +38,7 @@ const WhyOwnFresh = () => {
                 Botanic <span className="bg-[#F9DD19] px-2 py-1">Purity</span>
               </h2>
               <p className="text-gray-700 leading-relaxed mb-6 font-medium">
-                OwnFresh Cooking Oil Series is a premium, researched produce of the OwnFresh Group. 
+                OwnFresh Cooking Oil Series is a premium, researched produce of the OwnFresh Group.
                 Premium quality with Botanic Purity, Global Gold Standards, Industry Certified, and NABL accredited lab tested.
               </p>
               <p className="text-gray-700 leading-relaxed font-medium">
@@ -52,10 +52,10 @@ const WhyOwnFresh = () => {
             <div className="w-full md:w-1/2 flex justify-center">
               <div className="relative w-[90%] md:w-[80%] aspect-[4/5] bg-gray-100 shadow-[-20px_20px_0_#F9DD19] border border-gray-200">
                 <img
-                    className="w-full h-full object-cover"
-                    src="https://images.unsplash.com/photo-1620706857370-e1b9770e8bb1?q=80&w=1000&auto=format&fit=crop"
-                    alt="Extraction Process"
-                  />
+                  className="w-full h-full object-cover"
+                  src="https://images.unsplash.com/photo-1620706857370-e1b9770e8bb1?q=80&w=1000&auto=format&fit=crop"
+                  alt="Extraction Process"
+                />
               </div>
             </div>
             <div className="w-full md:w-1/2 flex flex-col items-start text-left">
@@ -97,25 +97,25 @@ const WhyOwnFresh = () => {
 
           {/* MISSION & VISION SECTION */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-12 lg:gap-20 mt-12 border-t border-gray-200 pt-20">
-             <div className="bg-gray-50 border border-gray-200 p-10 shadow-[10px_10px_0_#F9DD19] hover:-translate-y-2 transition-transform duration-300">
-                <h2 className="text-3xl font-black text-black uppercase mb-6 flex items-center gap-4">
-                  <span className="bg-black text-white w-12 h-12 flex items-center justify-center rounded-full text-xl shadow-lg">🎯</span> 
-                  Our Mission
-                </h2>
-                <p className="text-gray-700 leading-relaxed font-medium">
-                  From soil-grown nuts to Botanic Purity grade cooking oils, everything we do revolves around you and your culinary passion. Whether it’s the home cook crafting flavorful recipes or professional chefs creating exquisite dishes, we take pride in producing oils that are natural, real, and 100% pure—extracted from the first stone pressing of whole nuts and seeds. We remain dedicated to your taste, health, and well-being.
-                </p>
-             </div>
+            <div className="bg-gray-50 border border-gray-200 p-10 shadow-[10px_10px_0_#F9DD19] hover:-translate-y-2 transition-transform duration-300">
+              <h2 className="text-3xl font-black text-black uppercase mb-6 flex items-center gap-4">
+                <span className="bg-black text-white w-12 h-12 flex items-center justify-center rounded-full text-xl shadow-lg">🎯</span>
+                Our Mission
+              </h2>
+              <p className="text-gray-700 leading-relaxed font-medium">
+                From soil-grown nuts to Botanic Purity grade cooking oils, everything we do revolves around you and your culinary passion. Whether it’s the home cook crafting flavorful recipes or professional chefs creating exquisite dishes, we take pride in producing oils that are natural, real, and 100% pure—extracted from the first stone pressing of whole nuts and seeds. We remain dedicated to your taste, health, and well-being.
+              </p>
+            </div>
 
-             <div className="bg-black text-white p-10 shadow-[10px_10px_0_#F9DD19] hover:-translate-y-2 transition-transform duration-300 border border-black">
-                <h2 className="text-3xl font-black uppercase mb-6 flex items-center gap-4 text-white">
-                  <span className="bg-[#F9DD19] text-black w-12 h-12 flex items-center justify-center rounded-full text-xl shadow-lg">👁️</span> 
-                  Our Vision
-                </h2>
-                <p className="text-gray-300 leading-relaxed font-medium">
-                  We envision a world where every Indian kitchen experiences the true, unadulterated essence of nature through our botanic purity. We believe food is culture, and we strive to preserve the ancient wisdom of Kacchi Ghani extraction to bring the golden elixir of health back to your dietary lifestyle.
-                </p>
-             </div>
+            <div className="bg-black text-white p-10 shadow-[10px_10px_0_#F9DD19] hover:-translate-y-2 transition-transform duration-300 border border-black">
+              <h2 className="text-3xl font-black uppercase mb-6 flex items-center gap-4 text-white">
+                <span className="bg-[#F9DD19] text-black w-12 h-12 flex items-center justify-center rounded-full text-xl shadow-lg">👁️</span>
+                Our Vision
+              </h2>
+              <p className="text-gray-300 leading-relaxed font-medium">
+                We envision a world where every Indian kitchen experiences the true, unadulterated essence of nature through our botanic purity. We believe food is culture, and we strive to preserve the ancient wisdom of Kacchi Ghani extraction to bring the golden elixir of health back to your dietary lifestyle.
+              </p>
+            </div>
           </div>
 
         </div>
@@ -127,46 +127,46 @@ const WhyOwnFresh = () => {
           </h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-10 items-start">
             <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-xl hover:shadow-2xl transition-all duration-500 group">
-              <img 
-                src="https://res.cloudinary.com/dkhq2wlwg/image/upload/v1774961102/ownfresh_media/vwylvev18xuvlp7pdak8.jpg" 
-                alt="FSSAI Certification" 
-                className="w-full h-[400px] object-contain rounded-xl group-hover:scale-[1.02] transition-transform" 
+              <img
+                src="https://res.cloudinary.com/dkhq2wlwg/image/upload/v1774961102/ownfresh_media/vwylvev18xuvlp7pdak8.jpg"
+                alt="FSSAI Certification"
+                className="w-full h-[400px] object-contain rounded-xl group-hover:scale-[1.02] transition-transform"
               />
               <p className="mt-4 text-center text-sm font-bold text-[#1E971D] uppercase tracking-wider">FSSAI Certified</p>
             </div>
-            
+
             <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-xl hover:shadow-2xl transition-all duration-500 group">
-              <img 
-                src="https://res.cloudinary.com/dkhq2wlwg/image/upload/v1774961151/ownfresh_media/entjvm79dktv5e8ekvmx.jpg" 
-                alt="Quality Monitoring Certificate" 
-                className="w-full h-[400px] object-contain rounded-xl group-hover:scale-[1.02] transition-transform" 
+              <img
+                src="https://res.cloudinary.com/dkhq2wlwg/image/upload/v1774961151/ownfresh_media/entjvm79dktv5e8ekvmx.jpg"
+                alt="Quality Monitoring Certificate"
+                className="w-full h-[400px] object-contain rounded-xl group-hover:scale-[1.02] transition-transform"
               />
               <p className="mt-4 text-center text-sm font-bold text-[#1E971D] uppercase tracking-wider">Quality Verified</p>
             </div>
 
             <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-xl hover:shadow-2xl transition-all duration-500 group">
-              <img 
-                src="https://res.cloudinary.com/dkhq2wlwg/image/upload/v1774961219/ownfresh_media/cqfid9v0hfqenb0zezwx.png" 
-                alt="Global Process Excellence" 
-                className="w-full h-[400px] object-contain rounded-xl group-hover:scale-[1.02] transition-transform" 
+              <img
+                src="https://res.cloudinary.com/dkhq2wlwg/image/upload/v1774961219/ownfresh_media/cqfid9v0hfqenb0zezwx.png"
+                alt="Global Process Excellence"
+                className="w-full h-[400px] object-contain rounded-xl group-hover:scale-[1.02] transition-transform"
               />
               <p className="mt-4 text-center text-sm font-bold text-[#1E971D] uppercase tracking-wider">Global Process Excellence</p>
             </div>
 
             <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-xl hover:shadow-2xl transition-all duration-500 group lg:col-start-1">
-              <img 
-                src="https://res.cloudinary.com/dkhq2wlwg/image/upload/v1774961250/ownfresh_media/y7denrhgp9vpmbxjk5om.png" 
-                alt="Botanic Purity Verified" 
-                className="w-full h-[400px] object-contain rounded-xl group-hover:scale-[1.02] transition-transform" 
+              <img
+                src="https://res.cloudinary.com/dkhq2wlwg/image/upload/v1774961250/ownfresh_media/y7denrhgp9vpmbxjk5om.png"
+                alt="Botanic Purity Verified"
+                className="w-full h-[400px] object-contain rounded-xl group-hover:scale-[1.02] transition-transform"
               />
               <p className="mt-4 text-center text-sm font-bold text-[#1E971D] uppercase tracking-wider">Botanic Purity Verified</p>
             </div>
 
             <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-xl hover:shadow-2xl transition-all duration-500 group">
-              <img 
-                src="https://res.cloudinary.com/dkhq2wlwg/image/upload/v1774961287/ownfresh_media/mpvtpafstuox80colfej.png" 
-                alt="Safety Compliance" 
-                className="w-full h-[400px] object-contain rounded-xl group-hover:scale-[1.02] transition-transform" 
+              <img
+                src="https://res.cloudinary.com/dkhq2wlwg/image/upload/v1774961287/ownfresh_media/mpvtpafstuox80colfej.png"
+                alt="Safety Compliance"
+                className="w-full h-[400px] object-contain rounded-xl group-hover:scale-[1.02] transition-transform"
               />
               <p className="mt-4 text-center text-sm font-bold text-[#1E971D] uppercase tracking-wider">Safety & Compliance Certified</p>
             </div>

@@ -12,10 +12,13 @@ const AdminProductEditor = () => {
   const [name, setName] = useState("");
   const [price, setPrice] = useState("");
   const [shortDesc, setShortDesc] = useState("");
+  const [category, setCategory] = useState("Eating Oil");
   const [rating, setRating] = useState(5);
   
   const [image, setImage] = useState(null);
   const [preview, setPreview] = useState(null);
+
+  const CATEGORIES = ["Eating Oil", "Hair Oil", "Shampoo", "Bodywash"];
 
   const [loading, setLoading] = useState(isEditing);
   const [saving, setSaving] = useState(false);
@@ -32,6 +35,7 @@ const AdminProductEditor = () => {
             setName(product.name || "");
             setPrice(product.price || "");
             setShortDesc(product.shortDesc || "");
+            setCategory(product.category || "Eating Oil");
             setRating(product.rating || 5);
             setPreview(product.image || null);
           }
@@ -69,6 +73,7 @@ const AdminProductEditor = () => {
     formData.append("name", name);
     formData.append("price", price);
     formData.append("shortDesc", shortDesc);
+    formData.append("category", category);
     formData.append("rating", rating);
 
     if (image) formData.append("image", image);
@@ -149,6 +154,20 @@ const AdminProductEditor = () => {
                 value={shortDesc}
                 onChange={(e) => setShortDesc(e.target.value)}
               />
+            </div>
+
+            {/* Category Selection */}
+            <div className="space-y-2">
+              <label className="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">Product Category</label>
+              <select
+                className="w-full text-lg font-bold text-slate-900 border-none bg-slate-50 rounded-2xl p-4 focus:ring-2 focus:ring-[#1E971D]/20 focus:bg-white outline-none transition-all appearance-none cursor-pointer"
+                value={category}
+                onChange={(e) => setCategory(e.target.value)}
+              >
+                {CATEGORIES.map(cat => (
+                  <option key={cat} value={cat}>{cat}</option>
+                ))}
+              </select>
             </div>
 
             {/* Pricing Grid */}

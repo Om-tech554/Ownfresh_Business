@@ -1,22 +1,39 @@
 import Blog from "../models/blogModel.js";
+import { bloggerService } from "../utils/bloggerService.js";
 
 // ===================== ADD BLOG =====================
 export const addBlog = async (req, res) => {
   try {
-    const { title, description, category } = req.body;
+    const { title, description, category, labels, status, searchDescription, location, author, publishedAt } = req.body;
+    
+    // Parse labels if sent as a string
+    let labelsArray = [];
+    if (labels) {
+      labelsArray = typeof labels === "string" ? labels.split(",").map(l => l.trim()) : labels;
+    }
 
     if (!title || !description) {
       return res.status(400).json({
         success: false,
-        message: "Title and Description are required",
+        message: "Title and Description (HTML content) are required",
       });
     }
 
     const imageUrl = req.files?.image?.[0]?.path || req.files?.image?.[0]?.url;
-
-    // Use a placeholder if no image exists to avoid crashing while debugging
     const finalImageUrl = imageUrl || "https://res.cloudinary.com/dkhq2wlwg/image/upload/v1/blogs/default_placeholder";
 
+    // 1. Sync with Blogger
+    const isDraft = status === "DRAFT";
+    const bloggerSync = await bloggerService.createPost({
+      title,
+      content: description,
+      labels: labelsArray,
+      isDraft,
+      location,
+      publishedAt
+    });
+
+    // 2. Create in MongoDB
     const blog = await Blog.create({
       title,
       description,
@@ -27,19 +44,26 @@ export const addBlog = async (req, res) => {
       image2: req.files?.image2?.[0]?.path || req.files?.image2?.[0]?.url || null,
       image3: req.files?.image3?.[0]?.path || req.files?.image3?.[0]?.url || null,
       image4: req.files?.image4?.[0]?.path || req.files?.image4?.[0]?.url || null,
+      bloggerId: bloggerSync?.data?.id || null,
+      labels: labelsArray,
+      status: status || "LIVE",
+      searchDescription,
+      location,
+      author: author || "Own Fresh Blogs"
     });
 
     return res.status(201).json({
       success: true,
       blog,
+      bloggerSynced: bloggerSync.success,
+      bloggerError: bloggerSync.success ? null : bloggerSync.error
     });
 
   } catch (error) {
     console.error("ADD BLOG EXCEPTION:", error);
     return res.status(500).json({ 
         success: false, 
-        message: "Detailed Server Error: " + error.message,
-        details: error.name
+        message: "Server Error: " + error.message
     });
   }
 };
@@ -50,16 +74,12 @@ export const getAllBlogs = async (req, res) => {
     const { page = 1, limit = 6, search = "", category = "" } = req.query;
 
     const query = {};
-
-    // 🔍 Handle Title Search
     if (search) {
       query.$or = [
         { title: { $regex: search, $options: "i" } },
         { description: { $regex: search, $options: "i" } }
       ];
     }
-
-    // 🏷️ Handle Category Filter
     if (category) {
       query.category = category;
     }
@@ -99,7 +119,6 @@ export const getBlogById = async (req, res) => {
     }
 
     res.json({ success: true, blog });
-
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
@@ -108,8 +127,21 @@ export const getBlogById = async (req, res) => {
 // ===================== DELETE BLOG =====================
 export const deleteBlog = async (req, res) => {
   try {
+    const blog = await Blog.findById(req.params.id);
+    if (!blog) return res.status(404).json({ success: false, message: "Blog not found" });
+
+    let bloggerDeleted = false;
+    if (blog.bloggerId) {
+      const sync = await bloggerService.deletePost(blog.bloggerId);
+      bloggerDeleted = sync.success;
+    }
+
     await Blog.findByIdAndDelete(req.params.id);
-    res.json({ success: true, message: "Blog deleted successfully" });
+    res.json({ 
+      success: true, 
+      message: "Blog deleted successfully from CMS",
+      bloggerSynced: bloggerDeleted 
+    });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
@@ -118,13 +150,28 @@ export const deleteBlog = async (req, res) => {
 // ===================== UPDATE BLOG =====================
 export const updateBlog = async (req, res) => {
   try {
-    const { title, description, category } = req.body;
+    const { title, description, category, labels, status, searchDescription, location, author, publishedAt } = req.body;
+    
+    let labelsArray = [];
+    if (labels) {
+      labelsArray = typeof labels === "string" ? labels.split(",").map(l => l.trim()) : labels;
+    }
+
+    const currentBlog = await Blog.findById(req.params.id);
+    if (!currentBlog) {
+      return res.status(404).json({ success: false, message: "Blog not found." });
+    }
 
     const updateData = {
       title,
       description,
       sections: [{ content: description }],
       category: category ? category.toUpperCase() : "OTHER",
+      labels: labelsArray,
+      status: status || "LIVE",
+      searchDescription,
+      location,
+      author: author || "Own Fresh Blogs"
     };
 
     if (req.files) {
@@ -135,23 +182,49 @@ export const updateBlog = async (req, res) => {
       if (req.files.image4?.[0]) updateData.image4 = req.files.image4[0].path || req.files.image4[0].url;
     }
 
-    const blog = await Blog.findByIdAndUpdate(req.params.id, updateData, {
-      new: true,
-      runValidators: false, // Turn off for now to prioritize saving
-    });
+    // 1. Sync with Blogger
+    let bloggerSynced = false;
+    let bloggerError = null;
 
-    if (!blog) {
-        return res.status(404).json({ success: false, message: "Blog not found to update." });
+    if (currentBlog.bloggerId) {
+      const bloggerSync = await bloggerService.updatePost(currentBlog.bloggerId, {
+        title,
+        content: description,
+        labels: labelsArray,
+        isDraft: status === "DRAFT",
+        location,
+        publishedAt
+      });
+      bloggerSynced = bloggerSync.success;
+      bloggerError = bloggerSync.error;
+    } else {
+      const bloggerSync = await bloggerService.createPost({
+        title,
+        content: description,
+        labels: labelsArray,
+        isDraft: status === "DRAFT",
+        location,
+        publishedAt
+      });
+      if (bloggerSync.success) {
+        updateData.bloggerId = bloggerSync.data.id;
+        bloggerSynced = true;
+      } else {
+        bloggerError = bloggerSync.error;
+      }
     }
 
-    res.json({ success: true, blog });
+    const blog = await Blog.findByIdAndUpdate(req.params.id, updateData, { new: true });
+
+    res.json({ 
+      success: true, 
+      blog, 
+      bloggerSynced,
+      bloggerError
+    });
     
   } catch (error) {
     console.error("UPDATE BLOG EXCEPTION:", error);
-    res.status(500).json({ 
-        success: false, 
-        message: "Update Error: " + error.message,
-        details: error.name
-    });
+    res.status(500).json({ success: false, message: error.message });
   }
 };

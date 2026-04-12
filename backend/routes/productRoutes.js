@@ -30,12 +30,13 @@ router.post(
         });
       }
 
-      const { name, price, shortDesc } = req.body;
+      const { name, price, shortDesc, category } = req.body;
 
       const product = await Product.create({
         name,
         price,
         shortDesc,
+        category: category || "Eating Oil",
         image: req.file.path,
       });
 
@@ -61,7 +62,8 @@ router.get("/all", async (req, res) => {
     if (search) {
       query.$or = [
         { name: { $regex: search, $options: "i" } },
-        { shortDesc: { $regex: search, $options: "i" } }
+        { shortDesc: { $regex: search, $options: "i" } },
+        { category: { $regex: search, $options: "i" } }
       ];
     }
 
@@ -126,12 +128,13 @@ router.put(
   },
   async (req, res) => {
     try {
-      const { name, price, shortDesc } = req.body;
+      const { name, price, shortDesc, category } = req.body;
 
       const updateData = {
         name,
         price,
         shortDesc,
+        category
       };
 
       if (req.file) {

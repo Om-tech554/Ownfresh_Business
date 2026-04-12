@@ -8,7 +8,7 @@ import { useSearchParams } from 'react-router-dom';
 const galleryImages = [
   {
     id: 1,
-    src: 'https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?q=80&w=1200&auto=format&fit=crop',
+    src: 'https://images.unsplash.com/photo-1543353071-087092ec393a?q=80&w=1200&auto=format&fit=crop',
     alt: 'Stone-pressed oil process',
     category: 'Extraction',
     caption: 'From Soil to Oil - Traditional stone-pressing',
@@ -22,49 +22,49 @@ const galleryImages = [
   },
   {
     id: 3,
-    src: 'https://images.unsplash.com/photo-1598202493891-8f1c6fe5bc4e?q=80&w=1200&auto=format&fit=crop',
+    src: 'https://images.unsplash.com/photo-1505932794465-147d1f1b2c97?q=80&w=1200&auto=format&fit=crop',
     alt: 'Groundnut oil in kitchen',
     category: 'Culinary',
     caption: 'Kitchen Inspirations - Cook with purity',
   },
   {
     id: 4,
-    src: 'https://images.unsplash.com/photo-1519699047748-de8e44a9f0aa?q=80&w=1200&auto=format&fit=crop',
+    src: 'https://images.unsplash.com/photo-1519996529931-28324d5a1f6a?q=80&w=1200&auto=format&fit=crop',
     alt: 'Handpicked seeds',
     category: 'Ingredients',
     caption: "Nature's Best - Handpicked nuts & seeds",
   },
   {
     id: 5,
-    src: 'https://images.unsplash.com/photo-1565958011703-44f9829ba187?q=80&w=1200&auto=format&fit=crop',
+    src: 'https://images.unsplash.com/photo-1606914469725-e398d2f1d7ee?q=80&w=1200&auto=format&fit=crop',
     alt: 'Healthy meal with OwnFresh oil',
     category: 'Culinary',
     caption: 'Healthy Cooking - Every meal made better',
   },
   {
     id: 6,
-    src: 'https://images.unsplash.com/photo-1596728073577-fb5ac8680008?q=80&w=1200&auto=format&fit=crop',
+    src: 'https://images.unsplash.com/photo-1600271881734-60ef0e5cb15b?q=80&w=1200&auto=format&fit=crop',
     alt: 'Oil pouring shot',
     category: 'Our Oils',
     caption: 'Purity in Every Drop',
   },
   {
     id: 7,
-    src: 'https://images.unsplash.com/photo-1490645935967-10de6ba17061?q=80&w=1200&auto=format&fit=crop',
+    src: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?q=80&w=1200&auto=format&fit=crop',
     alt: 'Community celebration',
     category: 'Community',
     caption: 'Community & Celebrations',
   },
   {
     id: 8,
-    src: 'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?q=80&w=1200&auto=format&fit=crop',
+    src: 'https://images.unsplash.com/photo-1444858291040-58f756a3bdd6?q=80&w=1200&auto=format&fit=crop',
     alt: 'Farm to bottle',
     category: 'Extraction',
     caption: 'Farm to Bottle - 100% Traceable',
   },
   {
     id: 9,
-    src: 'https://images.unsplash.com/photo-1543353071-087092ec393a?q=80&w=1200&auto=format&fit=crop',
+    src: 'https://images.unsplash.com/photo-1606787366850-de6330128bfc?q=80&w=1200&auto=format&fit=crop',
     alt: 'Customer experience',
     category: 'Community',
     caption: 'Happy Customers Across India',
@@ -129,10 +129,10 @@ const Lightbox = ({ images, index, onClose }) => {
       >
         {/* Close */}
         <button
-          className="absolute -top-10 right-0 text-white hover:text-[#F9DD19] transition-colors"
+          className="absolute top-4 right-4 text-white hover:text-[#F9DD19] transition-all bg-black/40 hover:bg-black/60 p-2 rounded-full z-10"
           onClick={onClose}
         >
-          <RxCross2 size={28} />
+          <RxCross2 size={24} />
         </button>
 
         {/* Image */}
@@ -162,14 +162,13 @@ const Lightbox = ({ images, index, onClose }) => {
         <p className="text-white/80 text-sm font-medium mt-4 text-center">{img.caption}</p>
 
         {/* Dots */}
-        <div className="flex gap-2 mt-4">
+        <div className="flex flex-wrap justify-center gap-1.5 mt-6 max-w-[80vw]">
           {images.map((_, i) => (
             <button
               key={i}
               onClick={() => setCurrent(i)}
-              className={`w-2 h-2 rounded-full transition-all ${
-                i === current ? 'bg-[#F9DD19] w-5' : 'bg-white/40'
-              }`}
+              className={`w-1.5 h-1.5 rounded-full transition-all ${i === current ? 'bg-[#F9DD19] w-4' : 'bg-white/30'
+                }`}
             />
           ))}
         </div>
@@ -200,26 +199,29 @@ const GalleryPage = () => {
     <div className="w-full min-h-screen bg-white">
       <Navbar />
 
-      {/* ── Hero Banner ── */}
-      <section className="relative w-full h-[260px] md:h-[360px] overflow-hidden flex items-center justify-center">
-        <img
-          src="https://images.unsplash.com/photo-1596728073577-fb5ac8680008?q=80&w=1600&auto=format&fit=crop"
-          alt="Gallery Banner"
-          className="absolute inset-0 w-full h-full object-cover"
-        />
-        <div className="absolute inset-0 bg-black/60" />
-        <div className="relative text-center px-4">
-          <p className="text-[#F9DD19] text-xs font-bold uppercase tracking-[0.3em] mb-3">
-            Visual Journey
-          </p>
-          <h1 className="text-4xl md:text-6xl font-black text-white uppercase tracking-tight leading-none">
-            Our Gallery
-          </h1>
-          <div className="w-16 h-1 bg-[#F9DD19] mx-auto mt-5" />
-          <p className="text-white/70 mt-4 text-sm md:text-base font-medium max-w-lg mx-auto">
-            At OwnFresh, every image tells a story of authenticity, tradition, and dedication.
-            Witness the essence of purity come to life.
-          </p>
+      {/* ── Page Header ── */}
+      <section className="pt-28 md:pt-12 pb-12 px-6 bg-white text-center">
+        <p className="text-[#F9DD19] text-[10px] md:text-sm font-black uppercase tracking-[0.4em] mb-4">
+          Visual Journey
+        </p>
+        <h1 className="text-4xl md:text-7xl font-black text-black uppercase tracking-tighter leading-none">
+          Our Gallery
+        </h1>
+        <div className="w-16 h-1 mt-6 mx-auto bg-black" />
+        <p className="max-w-2xl mx-auto mt-8 text-gray-500 text-sm md:text-lg font-medium leading-relaxed px-4">
+          At OwnFresh, every image tells a story of authenticity, tradition, and dedication.
+          Experience the essence of purity through our lens.
+        </p>
+      </section>
+
+      {/* ── Featured Banner (Clean & Visible) ── */}
+      <section className="w-full px-4 md:px-10 max-w-7xl mx-auto mb-16">
+        <div className="rounded-2xl md:rounded-[40px] overflow-hidden shadow-2xl border border-gray-100 bg-gray-50">
+          <img
+            src="//res.cloudinary.com/dkhq2wlwg/image/upload/v1775113294/ownfresh_media/ci9yurjbwfpag9kth97u.png"
+            alt="OwnFresh Series Banner"
+            className="w-full h-auto object-cover min-h-[180px] md:min-h-[300px]"
+          />
         </div>
       </section>
 
@@ -230,11 +232,10 @@ const GalleryPage = () => {
             <button
               key={cat}
               onClick={() => setActiveCategory(cat)}
-              className={`px-4 py-1.5 text-xs font-black uppercase tracking-widest border transition-all duration-200 ${
-                activeCategory === cat
-                  ? 'bg-black text-[#F9DD19] border-black'
-                  : 'bg-white text-black border-gray-300 hover:border-black'
-              }`}
+              className={`px-4 py-1.5 text-xs font-black uppercase tracking-widest border transition-all duration-200 ${activeCategory === cat
+                ? 'bg-black text-[#F9DD19] border-black'
+                : 'bg-white text-black border-gray-300 hover:border-black'
+                }`}
             >
               {cat}
             </button>
@@ -243,8 +244,8 @@ const GalleryPage = () => {
       </section>
 
       {/* ── Masonry Grid ── */}
-      <section className="w-full py-16 px-4 md:px-10 lg:px-20">
-        <div className="max-w-7xl mx-auto columns-1 sm:columns-2 lg:columns-3 gap-5 space-y-5">
+      <section className="w-full py-12 md:py-20 px-4 md:px-10 lg:px-20">
+        <div className="max-w-7xl mx-auto columns-1 sm:columns-2 md:columns-2 lg:columns-3 gap-4 space-y-4">
           {filtered.map((img, i) => (
             <div
               key={img.id}

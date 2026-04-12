@@ -19,6 +19,18 @@ const blogSchema = new mongoose.Schema(
     image3: { type: String },
     image4: { type: String },
 
+    // Blogger Sync & Metadata
+    bloggerId: { type: String },
+    labels: [{ type: String }],
+    status: { 
+      type: String, 
+      enum: ["LIVE", "DRAFT"], 
+      default: "LIVE" 
+    },
+    searchDescription: { type: String }, // For SEO meta tags
+    location: { type: String }, // Geographic context
+    author: { type: String, default: "Own Fresh Blogs" },
+
     // Category
     category: {
       type: String,
