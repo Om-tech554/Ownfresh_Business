@@ -138,10 +138,24 @@ const ProductList = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [search, setSearch] = useState("");
+  const [category, setCategory] = useState("");
   const [totalProducts, setTotalProducts] = useState(0);
   const navigate = useNavigate();
 
   const productsPerPage = 6;
+
+  const [categories, setCategories] = useState([]);
+
+  const fetchCategories = async () => {
+    try {
+      const res = await axios.get("http://localhost:8000/api/category/all");
+      if (res.data.success) {
+        setCategories(res.data.categories);
+      }
+    } catch (error) {
+      console.error("Failed to load categories", error);
+    }
+  };
 
   const fetchProducts = async () => {
     try {
@@ -149,7 +163,8 @@ const ProductList = () => {
         params: {
           page: currentPage,
           limit: productsPerPage,
-          search: search
+          search: search,
+          category: category
         }
       });
       setProducts(res.data.products || []);
@@ -177,8 +192,12 @@ const ProductList = () => {
   };
 
   useEffect(() => {
+    fetchCategories();
+  }, []);
+
+  useEffect(() => {
     fetchProducts();
-  }, [currentPage, search]);
+  }, [currentPage, search, category]);
 
   // server-side pagination handled by fetchProducts
   const currentProducts = products;
@@ -213,7 +232,7 @@ const ProductList = () => {
         </div>
       </div>
 
-      {/* FILTER/SEARCH BAR (NEW) */}
+      {/* FILTER/SEARCH BAR (UPDATED) */}
       <div className="max-w-7xl mb-10 p-4 bg-white rounded-2xl shadow-sm border border-slate-200 flex flex-col md:flex-row gap-4 items-center">
         <div className="relative w-full">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
@@ -221,11 +240,28 @@ const ProductList = () => {
             className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border-none rounded-xl focus:ring-2 focus:ring-[#1E971D]/20 outline-none"
             placeholder="Search inventory (name or description)..."
             value={search}
-            onChange={(e) => { 
-                setSearch(e.target.value); 
-                setCurrentPage(1); 
+            onChange={(e) => {
+              setSearch(e.target.value);
+              setCurrentPage(1);
             }}
           />
+        </div>
+
+        <div className="relative w-full md:w-72">
+          <Filter className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
+          <select
+            className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border-none rounded-xl"
+            value={category}
+            onChange={(e) => {
+              setCategory(e.target.value);
+              setCurrentPage(1);
+            }}
+          >
+            <option value="">All Categories</option>
+            {categories.map(cat => (
+              <option key={cat._id} value={cat.name}>{cat.name}</option>
+            ))}
+          </select>
         </div>
       </div>
 
@@ -250,11 +286,16 @@ const ProductList = () => {
 
             {/* Content Section */}
             <div className="p-6">
-              <div className="flex items-start justify-between gap-2 mb-4">
+              <div className="flex items-start justify-between gap-2 mb-2">
                 <h3 className="text-lg font-bold text-slate-800 line-clamp-1">
                   {p.name}
                 </h3>
                 <Package className="w-5 h-5 text-slate-300 shrink-0" />
+              </div>
+              <div className="flex gap-2 mb-4">
+                <span className="text-[10px] font-black px-2 py-0.5 rounded bg-blue-100 text-blue-700 uppercase tracking-widest">
+                  {p.category?.name || "General"}
+                </span>
               </div>
               {/* Short Description */}
               <p className="text-slate-500 text-sm mt-1 line-clamp-2">

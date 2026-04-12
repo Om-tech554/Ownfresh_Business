@@ -25,8 +25,21 @@ const orderSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ['pending', 'processing', 'shipped', 'delivered', 'cancelled'],
+    enum: ['pending', 'processing', 'shipped', 'delivered', 'cancelled', 'cancellation_requested'],
     default: 'pending'
+  },
+  cancellationReason: {
+    type: String,
+    default: ""
+  },
+  trackingId: {
+    type: String
+  },
+  courierPartner: {
+    type: String
+  },
+  adminNotes: {
+    type: String
   },
   deliveryAddress: {
     roomNumber: String,
@@ -47,6 +60,10 @@ const orderSchema = new mongoose.Schema({
     type: String,
     default: ""
   },
+  deletedByUser: {
+    type: Boolean,
+    default: false
+  }
 }, { timestamps: true });
 
 // FIX OverwriteModelError

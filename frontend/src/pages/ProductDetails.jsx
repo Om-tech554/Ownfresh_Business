@@ -77,6 +77,11 @@ const ProductDetails = () => {
           {/* RIGHT — Product Details */}
           <div className="flex flex-col justify-center">
             <h1 className="text-4xl font-bold text-slate-900">{product.name}</h1>
+            <div className="flex gap-2 mt-2">
+              <span className="text-[10px] font-black px-2 py-0.5 rounded bg-blue-100 text-blue-700 uppercase tracking-widest">
+                {product.category?.name || product.category || "General"}
+              </span>
+            </div>
 
             <div className="mt-4">
               <span className="text-5xl font-extrabold text-yellow-600">
@@ -101,11 +106,10 @@ const ProductDetails = () => {
                 {/* 1 Litre */}
                 <button
                   onClick={() => setSelectedQty("1")}
-                  className={`px-6 py-3 rounded-xl border font-semibold transition ${
-                    selectedQty === "1"
+                  className={`px-6 py-3 rounded-xl border font-semibold transition ${selectedQty === "1"
                       ? "bg-yellow-500 text-white"
                       : "bg-white text-slate-900"
-                  }`}
+                    }`}
                 >
                   1L
                 </button>
@@ -113,11 +117,10 @@ const ProductDetails = () => {
                 {/* 2 Litre */}
                 <button
                   onClick={() => setSelectedQty("2")}
-                  className={`px-6 py-3 rounded-xl border font-semibold transition ${
-                    selectedQty === "2"
+                  className={`px-6 py-3 rounded-xl border font-semibold transition ${selectedQty === "2"
                       ? "bg-yellow-500 text-white"
                       : "bg-white text-slate-900"
-                  }`}
+                    }`}
                 >
                   2L
                 </button>
@@ -125,11 +128,10 @@ const ProductDetails = () => {
                 {/* 5 Litre */}
                 <button
                   onClick={() => setSelectedQty("5")}
-                  className={`px-6 py-3 rounded-xl border font-semibold transition ${
-                    selectedQty === "5"
+                  className={`px-6 py-3 rounded-xl border font-semibold transition ${selectedQty === "5"
                       ? "bg-yellow-500 text-white"
                       : "bg-white text-slate-900"
-                  }`}
+                    }`}
                 >
                   5L
                 </button>
@@ -137,11 +139,10 @@ const ProductDetails = () => {
                 {/* Custom */}
                 <button
                   onClick={() => setSelectedQty("custom")}
-                  className={`px-6 py-3 rounded-xl border font-semibold transition ${
-                    selectedQty === "custom"
+                  className={`px-6 py-3 rounded-xl border font-semibold transition ${selectedQty === "custom"
                       ? "bg-yellow-500 text-white"
                       : "bg-white text-slate-900"
-                  }`}
+                    }`}
                 >
                   Custom
                 </button>

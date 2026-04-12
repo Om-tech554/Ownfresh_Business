@@ -290,11 +290,11 @@ const BlogList = () => {
 
   return (
     <div className="min-h-screen bg-slate-50 px-4 md:px-8 lg:px-16 py-12">
-      
+
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-12 max-w-7xl mx-auto">
         <div className="flex items-center gap-4">
-          <button 
+          <button
             onClick={() => navigate("/admin")}
             className="p-2.5 bg-white border border-slate-200 rounded-xl text-slate-600 hover:text-[#1E971D] hover:border-[#1E971D] transition-all shadow-sm group"
             title="Back to Admin Dashboard"
@@ -357,9 +357,9 @@ const BlogList = () => {
       <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         {blogs.map((b) => (
           <div key={b._id} className="group bg-white rounded-2xl overflow-hidden border border-slate-200 hover:shadow-xl transition-all duration-300 flex flex-col">
-            
+
             {/* IMAGE */}
-            <div 
+            <div
               className="relative w-full h-56 bg-slate-100 overflow-hidden cursor-pointer"
               onClick={() => navigate(`/blogs/${b._id}`)}
             >
@@ -373,10 +373,12 @@ const BlogList = () => {
             {/* CONTENT */}
             <div className="p-6 flex flex-col flex-grow">
               <div className="flex items-center gap-2 mb-3">
-                <span className={`text-[10px] font-black px-2 py-0.5 rounded uppercase tracking-widest ${
-                  b.status === "DRAFT" ? "bg-amber-100 text-amber-700" : "bg-emerald-100 text-emerald-700"
-                }`}>
+                <span className={`text-[10px] font-black px-2 py-0.5 rounded uppercase tracking-widest ${b.status === "DRAFT" ? "bg-amber-100 text-amber-700" : "bg-emerald-100 text-emerald-700"
+                  }`}>
                   {b.status || "LIVE"}
+                </span>
+                <span className="text-[10px] font-black bg-blue-100 text-blue-700 px-2 py-0.5 rounded uppercase tracking-widest">
+                  {b.category || "OTHER"}
                 </span>
                 {b.bloggerId && (
                   <span className="text-[10px] font-black bg-blue-100 text-blue-700 px-2 py-0.5 rounded uppercase tracking-widest flex items-center gap-1">
@@ -394,7 +396,7 @@ const BlogList = () => {
 
               {/* ACTIONS */}
               <div className="mt-auto pt-4 border-t border-slate-100 flex items-center justify-between">
-                <button 
+                <button
                   onClick={() => navigate(`/blog/${b._id}`)}
                   className="text-slate-400 hover:text-[#1E971D] flex items-center gap-1 text-xs font-bold uppercase tracking-wider"
                 >

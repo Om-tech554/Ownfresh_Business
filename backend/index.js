@@ -12,24 +12,26 @@ import orderRoutes from "./routes/orderRoutes.js";
 import newsletterRoutes from "./routes/newsletterRoutes.js";
 import contactRoutes from "./routes/contactRoutes.js";
 import couponRoutes from "./routes/couponRoutes.js";
+import categoryRoutes from "./routes/categoryRoutes.js";
 import { initCronJobs } from "./utils/cronJobs.js";
-const app=express()
-const port=process.env.port || 5000
+const app = express()
+const port = process.env.port || 5000
 app.use(cors({
     origin: true,
-    credentials:true
+    credentials: true
 }))
 app.use(express.json())
 app.use(cookieParser())
-app.use("/api/auth",authRouter)
-app.use("/api/user",userRouter)
+app.use("/api/auth", authRouter)
+app.use("/api/user", userRouter)
 app.use("/api/product", productRoutes);
 app.use("/api/blog", blogRoutes);
 app.use("/api/order", orderRoutes);
 app.use("/api/newsletter", newsletterRoutes);
 app.use("/api/contact", contactRoutes);
 app.use("/api/coupon", couponRoutes);
-app.listen(port,()=>{
+app.use("/api/category", categoryRoutes);
+app.listen(port, () => {
     connectDB()
     initCronJobs() // 🚀 Initialize Background Sync
     console.log(`🚀 Server running on port ${port}`);

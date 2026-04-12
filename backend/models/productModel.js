@@ -22,7 +22,7 @@ const productSchema = new mongoose.Schema(
     image: { type: String, required: true }, // path or cloudinary URL
     rating: { type: Number, default: 5 },
     shortDesc: { type: String, required: true },
-    category: { type: String, required: true, default: "Eating Oil" }
+    category: { type: mongoose.Schema.Types.ObjectId, ref: "Category", required: true }
   },
   { timestamps: true }
 );

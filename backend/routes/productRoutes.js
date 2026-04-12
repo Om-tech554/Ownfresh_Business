@@ -1,6 +1,7 @@
 import express from "express";
 import upload from "../middleware/multer.js";
 import Product from "../models/productModel.js";
+import Category from "../models/categoryModel.js";
 
 const router = express.Router();
 
@@ -36,7 +37,7 @@ router.post(
         name,
         price,
         shortDesc,
-        category: category || "Eating Oil",
+        category, // Should be an ObjectId from frontend
         image: req.file.path,
       });
 
@@ -56,15 +57,23 @@ router.post(
 ------------------------------------------- */
 router.get("/all", async (req, res) => {
   try {
-    const { page = 1, limit = 6, search = "" } = req.query;
+    const { page = 1, limit = 6, search = "", category = "" } = req.query;
 
     const query = {};
     if (search) {
       query.$or = [
         { name: { $regex: search, $options: "i" } },
         { shortDesc: { $regex: search, $options: "i" } },
-        { category: { $regex: search, $options: "i" } }
       ];
+    }
+
+    if (category) {
+      const foundCategory = await Category.findOne({ name: { $regex: category, $options: "i" } });
+      if (foundCategory) {
+        query.category = foundCategory._id;
+      } else {
+        query.category = null;
+      }
     }
 
     const pageNum = Number(page) || 1;
@@ -73,12 +82,13 @@ router.get("/all", async (req, res) => {
 
     const count = await Product.countDocuments(query);
     const products = await Product.find(query)
+      .populate("category") // Populate category data
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limitNum);
 
-    res.json({ 
-      success: true, 
+    res.json({
+      success: true,
       products,
       totalPages: Math.ceil(count / limitNum) || 1,
       currentPage: pageNum,
@@ -94,7 +104,7 @@ router.get("/all", async (req, res) => {
 ------------------------------------------- */
 router.get("/:id", async (req, res) => {
   try {
-    const product = await Product.findById(req.params.id);
+    const product = await Product.findById(req.params.id).populate("category");
 
     if (!product) {
       return res.status(404).json({

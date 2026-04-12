@@ -20,6 +20,7 @@ const Navbar = () => {
     const [showShopDropdown, setShowShopDropdown] = useState(false);
 
     const [searchableItems, setSearchableItems] = useState([]);
+    const [categories, setCategories] = useState([]);
     const [searchQuery, setSearchQuery] = useState("");
     const [searchResults, setSearchResults] = useState([]);
     const [showDropdown, setShowDropdown] = useState(false);
@@ -36,7 +37,7 @@ const Navbar = () => {
     useEffect(() => {
         const fetchAllSearchable = async () => {
             let combinedResults = [];
-            
+
             // Fetch Products
             try {
                 const productRes = await axios.get(`${serverUrl}/api/product/all`);
@@ -52,7 +53,7 @@ const Navbar = () => {
             } catch (error) {
                 console.error("Failed to prefetch products", error);
             }
-            
+
             // Fetch Backend Blogs
             try {
                 const backendBlogRes = await axios.get(`${serverUrl}/api/blog/all`);
@@ -68,9 +69,19 @@ const Navbar = () => {
             } catch (error) {
                 console.error("Failed to prefetch backend blogs", error);
             }
-            
 
-            
+
+
+            // Fetch Categories
+            try {
+                const catRes = await axios.get(`${serverUrl}/api/category/all`);
+                if (catRes.data.success) {
+                    setCategories(catRes.data.categories);
+                }
+            } catch (error) {
+                console.error("Failed to prefetch categories", error);
+            }
+
             setSearchableItems(combinedResults);
         };
         fetchAllSearchable();
@@ -84,9 +95,10 @@ const Navbar = () => {
         }
         const timer = setTimeout(() => {
             const query = searchQuery.toLowerCase().trim();
-            const filtered = searchableItems.filter(item => 
+            const filtered = searchableItems.filter(item =>
                 (item.searchTitle && item.searchTitle.toLowerCase().includes(query)) ||
-                (item.category && item.category.toLowerCase().includes(query)) ||
+                (item.category?.name && item.category.name.toLowerCase().includes(query)) ||
+                (item.category && typeof item.category === 'string' && item.category.toLowerCase().includes(query)) ||
                 (item.searchDescription && item.searchDescription.toLowerCase().includes(query))
             );
             setSearchResults(filtered);
@@ -134,10 +146,13 @@ const Navbar = () => {
     const navLinks = [
         { name: "Home", path: "/" },
         { name: "About Us", path: "/whyownfresh" },
-        { 
-            name: "Shop", 
+        {
+            name: "Shop",
             path: "/shop",
-            dropdown: [
+            dropdown: categories.length > 0 ? categories.map(cat => ({
+                name: cat.name,
+                path: `/shop?category=${cat.name}`
+            })) : [
                 { name: "Eating Oils", path: "/shop?category=Eating Oil" },
                 { name: "Hair Oils", path: "/shop?category=Hair Oil" },
                 { name: "Shampoos", path: "/shop?category=Shampoo" },
@@ -164,7 +179,7 @@ const Navbar = () => {
                                     <span className={`text-[9px] font-black px-1.5 py-0.5 rounded text-white uppercase tracking-widest ${p.searchType === 'Product' ? 'bg-[#F9DD19] !text-black' : 'bg-black'}`}>
                                         {p.searchType}
                                     </span>
-                                    <span className="text-[10px] text-gray-500 uppercase truncate">{p.category || "General"}</span>
+                                    <span className="text-[10px] text-gray-500 uppercase truncate">{p.category?.name || p.category || "General"}</span>
                                 </div>
                             </div>
                             {p.searchType === 'Product' && <div className="text-sm font-bold text-black">₹{p.price}</div>}
@@ -188,35 +203,35 @@ const Navbar = () => {
 
                 <div className="w-full h-[80px] flex items-center justify-between px-[24px] lg:px-[60px] bg-white border-b border-gray-200">
                     <SLink to="/" className="flex items-center">
-                        <img 
-                            src="https://res.cloudinary.com/dkhq2wlwg/image/upload/v1774962822/ownfresh_media/ndxvmcpisomjzsghrfjs.png" 
-                            alt="OwnFresh Logo" 
-                            className="h-10 md:h-12 w-auto object-contain" 
+                        <img
+                            src="https://res.cloudinary.com/dkhq2wlwg/image/upload/v1774962822/ownfresh_media/ndxvmcpisomjzsghrfjs.png"
+                            alt="OwnFresh Logo"
+                            className="h-10 md:h-12 w-auto object-contain"
                         />
                     </SLink>
 
                     {userData?.role !== "admin" && (
                         <div className='hidden lg:flex items-center gap-8 mx-auto absolute left-1/2 -translate-x-1/2'>
                             {navLinks.map((link) => (
-                                <div 
-                                    key={link.name} 
+                                <div
+                                    key={link.name}
                                     className="relative group"
                                     onMouseEnter={() => link.dropdown && setShowShopDropdown(true)}
                                     onMouseLeave={() => link.dropdown && setShowShopDropdown(false)}
                                 >
-                                    <SLink 
-                                        to={link.path} 
+                                    <SLink
+                                        to={link.path}
                                         className={`text-[13px] font-bold uppercase tracking-widest hover:underline underline-offset-8 decoration-2 transition-all whitespace-nowrap ${link.special ? 'text-[#F9DD19] bg-black px-4 py-2 rounded-full hover:no-underline hover:scale-105' : 'text-[#1E971D]'}`}
                                     >
                                         {link.name}
                                     </SLink>
-                                    
+
                                     {link.dropdown && showShopDropdown && (
                                         <div className="absolute top-[100%] left-0 pt-4 w-[200px] animate-in fade-in slide-in-from-top-2 duration-200">
                                             <div className="bg-white border border-gray-100 shadow-2xl p-2 rounded-2xl overflow-hidden">
                                                 {link.dropdown.map((sub) => (
-                                                    <SLink 
-                                                        key={sub.name} 
+                                                    <SLink
+                                                        key={sub.name}
                                                         to={sub.path}
                                                         className="block px-4 py-3 text-[11px] font-black uppercase tracking-widest text-[#1E971D] hover:bg-[#F9DD19] hover:text-black rounded-xl transition-all"
                                                     >
@@ -246,16 +261,16 @@ const Navbar = () => {
                                             </div>
                                         </div>
                                         <div className="flex items-center pl-3">
-                                            <input 
-                                                type="text" 
-                                                placeholder='Search...' 
+                                            <input
+                                                type="text"
+                                                placeholder='Search...'
                                                 value={searchQuery}
                                                 onChange={(e) => setSearchQuery(e.target.value)}
                                                 onClick={handleSearchClick}
                                                 className='bg-transparent outline-none text-sm w-[150px] text-black'
                                                 autoFocus
                                             />
-                                            <RxCross2 size={18} className='text-gray-500 cursor-pointer hover:text-black ml-2' onClick={() => {setShowSearch(false); setShowDropdown(false);}} />
+                                            <RxCross2 size={18} className='text-gray-500 cursor-pointer hover:text-black ml-2' onClick={() => { setShowSearch(false); setShowDropdown(false); }} />
                                         </div>
                                         <SearchDropdownUI />
                                     </div>
@@ -266,7 +281,7 @@ const Navbar = () => {
                         )}
 
                         {userData?.role !== "admin" && (
-                            <div 
+                            <div
                                 onClick={() => {
                                     if (!userData) {
                                         toast.error("Please Sign In or Sign Up to view your cart", {
@@ -276,7 +291,7 @@ const Navbar = () => {
                                     } else {
                                         navigate("/cart");
                                     }
-                                }} 
+                                }}
                                 className='relative transition-colors block cursor-pointer group'
                             >
                                 <FaCartShopping size={22} className='text-black group-hover:text-[#F9DD19] transition-colors' />
@@ -338,7 +353,7 @@ const Navbar = () => {
                     {/* MOBILE SEARCH W/ GEOLOCATION */}
                     {showSearch && userData?.role !== "admin" && (
                         <div className='md:hidden absolute top-[80px] left-0 w-full bg-white border-b border-gray-200 p-4 shadow-md' ref={searchRefMobile}>
-                             <div className='flex items-center bg-gray-100 px-4 py-3 rounded-md w-full relative divide-x divide-gray-300'>
+                            <div className='flex items-center bg-gray-100 px-4 py-3 rounded-md w-full relative divide-x divide-gray-300'>
                                 <div className='flex items-center gap-2 pr-3 mr-3 max-w-[40%]'>
                                     <FaLocationDot size={14} className='text-[#F9DD19] flex-shrink-0' />
                                     <div className='text-[10px] font-bold text-black uppercase tracking-wider truncate'>
@@ -347,7 +362,7 @@ const Navbar = () => {
                                 </div>
                                 <div className='flex items-center flex-1'>
                                     <input type="text" placeholder='Search...' value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} onClick={handleSearchClick} className='bg-transparent outline-none text-sm w-full text-black pl-3' autoFocus />
-                                    <RxCross2 size={20} className='text-gray-500 ml-2 cursor-pointer flex-shrink-0' onClick={() => {setShowSearch(false); setShowDropdown(false);}} />
+                                    <RxCross2 size={20} className='text-gray-500 ml-2 cursor-pointer flex-shrink-0' onClick={() => { setShowSearch(false); setShowDropdown(false); }} />
                                 </div>
                                 <SearchDropdownUI />
                             </div>
@@ -355,15 +370,15 @@ const Navbar = () => {
                     )}
                 </div>
             </div>
-            
+
             {showMobileNav && (
                 <div className='fixed inset-0 bg-black/50 z-[1000] lg:hidden transition-all' onClick={() => setShowMobileNav(false)}>
                     <div className='w-[80%] max-w-[300px] h-full bg-white p-6 flex flex-col shadow-2xl' onClick={e => e.stopPropagation()}>
                         <div className='flex justify-between items-center border-b border-gray-200 pb-4 mb-6'>
-                            <img 
-                                src="https://res.cloudinary.com/dkhq2wlwg/image/upload/v1774962822/ownfresh_media/ndxvmcpisomjzsghrfjs.png" 
-                                alt="OwnFresh Logo" 
-                                className="h-8 w-auto object-contain" 
+                            <img
+                                src="https://res.cloudinary.com/dkhq2wlwg/image/upload/v1774962822/ownfresh_media/ndxvmcpisomjzsghrfjs.png"
+                                alt="OwnFresh Logo"
+                                className="h-8 w-auto object-contain"
                             />
                             <RxCross2 size={28} onClick={() => setShowMobileNav(false)} className='cursor-pointer text-black hover:text-[#F9DD19]' />
                         </div>
@@ -371,9 +386,9 @@ const Navbar = () => {
                             <div className="flex flex-col gap-4">
                                 {navLinks.map((link) => (
                                     <React.Fragment key={link.name}>
-                                        <SLink 
-                                            to={link.path} 
-                                            onClick={() => setShowMobileNav(false)} 
+                                        <SLink
+                                            to={link.path}
+                                            onClick={() => setShowMobileNav(false)}
                                             className={`text-[15px] font-bold uppercase tracking-widest underline-offset-8 decoration-2 transition-all block ${link.special ? 'text-[#F9DD19] bg-black p-3 rounded-xl text-center' : 'text-[#1E971D] hover:underline'}`}
                                         >
                                             {link.name}
@@ -381,10 +396,10 @@ const Navbar = () => {
                                         {link.dropdown && (
                                             <div className="flex flex-col gap-2 pl-4 -mt-2">
                                                 {link.dropdown.map((sub) => (
-                                                    <SLink 
-                                                        key={sub.name} 
-                                                        to={sub.path} 
-                                                        onClick={() => setShowMobileNav(false)} 
+                                                    <SLink
+                                                        key={sub.name}
+                                                        to={sub.path}
+                                                        onClick={() => setShowMobileNav(false)}
                                                         className="text-[12px] font-bold uppercase tracking-widest text-gray-500 py-1 hover:text-[#1E971D]"
                                                     >
                                                         {sub.name}
@@ -397,8 +412,8 @@ const Navbar = () => {
                             </div>
                         )}
                         <div className="mt-8 border-t border-gray-100 pt-6 space-y-4">
-                             {userData?.role !== "admin" && (
-                                <div 
+                            {userData?.role !== "admin" && (
+                                <div
                                     onClick={() => {
                                         if (!userData) {
                                             toast.error("Please Sign In to view your cart");
@@ -407,7 +422,7 @@ const Navbar = () => {
                                             navigate("/cart");
                                             setShowMobileNav(false);
                                         }
-                                    }} 
+                                    }}
                                     className="flex items-center justify-between bg-gray-50 p-4 rounded-xl cursor-pointer"
                                 >
                                     <div className="flex items-center gap-3">

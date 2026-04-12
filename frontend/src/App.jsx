@@ -28,7 +28,8 @@ import GalleryPage from "./pages/GalleryPage";
 import AdminBlogEditor from "./pages/admin/AdminBlogEditor";
 import AdminProductEditor from "./pages/admin/AdminProductEditor";
 import ReferralDashboard from "./pages/ReferralDashboard";
-import MyOrders from "./pages/MyOrders"; // [NEW]
+import MyOrders from "./pages/MyOrders";
+import OrderDetails from "./pages/OrderDetails";
 
 export const serverUrl = "http://localhost:8000"
 
@@ -125,14 +126,15 @@ const App = () => {
         <Route path="/gallery" element={<GalleryPage />} />
         <Route path="/referral" element={<ReferralDashboard />} />
         <Route path="/my-orders" element={<MyOrders />} />
+        <Route path="/order-details/:id" element={<OrderDetails />} />
       </Routes>
 
       {/* ✅ Footer will show on all pages except auth pages and admin panels */}
-      {!hideFooterRoutes.includes(location.pathname) && 
-       !location.pathname.startsWith("/admin") && 
-       !location.pathname.startsWith("/blogs") && 
-       !(location.pathname === "/" && (userData?.role === "admin" || userData?.role === "blogger")) &&
-       <Footer />}
+      {!hideFooterRoutes.includes(location.pathname) &&
+        !location.pathname.startsWith("/admin") &&
+        !location.pathname.startsWith("/blogs") &&
+        !(location.pathname === "/" && (userData?.role === "admin" || userData?.role === "blogger")) &&
+        <Footer />}
     </>
   )
 }
