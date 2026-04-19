@@ -80,7 +80,12 @@ export const signIn = async (req, res) => {
 //--------------signOut----------------//
 export const signOut = async (req, res) => {
     try {
-        res.clearCookie("token")
+        res.clearCookie("token", {
+            secure: process.env.NODE_ENV === "production",
+            sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
+            httpOnly: true,
+            path: "/"
+        })
         return res.status(200).json({ message: "signout successfully" })
     } catch (error) {
         return res.status(500).json(`signout error ${error}`)

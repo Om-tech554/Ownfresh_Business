@@ -354,7 +354,7 @@ const Navbar = () => {
                     {showSearch && userData?.role !== "admin" && (
                         <div className='md:hidden absolute top-[80px] left-0 w-full bg-white border-b border-gray-200 p-4 shadow-md' ref={searchRefMobile}>
                             <div className='flex items-center bg-gray-100 px-4 py-3 rounded-md w-full relative divide-x divide-gray-300'>
-                                <div className='flex items-center gap-2 pr-3 mr-3 max-w-[40%]'>
+                                <div className='flex items-center gap-2 pr-3 mr-3 max-w-[50%]'>
                                     <FaLocationDot size={14} className='text-[#F9DD19] flex-shrink-0' />
                                     <div className='text-[10px] font-bold text-black uppercase tracking-wider truncate'>
                                         {city || "Select City"}
