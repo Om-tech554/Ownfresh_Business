@@ -94,7 +94,7 @@ const HeroSection = () => {
 
               {/* === SPLIT LAYOUT (Modern E-Commerce Mode for PNGs) === */}
               {slide.layout === "split" && (
-                <div className={`relative z-10 max-w-7xl mx-auto px-6 lg:px-16 w-full h-full flex flex-col-reverse md:flex-row items-center justify-center md:justify-between py-12 md:py-0`}>
+                <div className={`relative z-10 max-w-7xl mx-auto px-6 lg:px-16 w-full h-full flex flex-col-reverse md:flex-row items-center justify-center md:justify-between pt-12 pb-24 md:py-0`}>
 
                   {/* Left Content */}
                   <div className={`w-full md:w-1/2 flex flex-col justify-center items-start gap-4 mt-8 md:mt-0 transition-all duration-1000 delay-300 ${isActive ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}>
@@ -148,7 +148,7 @@ const HeroSection = () => {
         </button>
 
         {/* Pagination Dots */}
-        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-30 flex gap-2">
+        <div className="absolute bottom-6 md:bottom-8 left-1/2 -translate-x-1/2 z-30 flex gap-2">
           {slides.map((_, idx) => (
             <button
               key={idx}
