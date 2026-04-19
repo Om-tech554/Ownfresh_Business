@@ -4,11 +4,19 @@ import cloudinary from "../utils/cloudinary.js";
 
 const storage = new CloudinaryStorage({
   cloudinary,
-  params: async () => ({
-    folder: "blogs",
-    resource_type: "image",
-    allowed_formats: ["jpg", "jpeg", "png"],
-  }),
+  params: async (req, file) => {
+    let folderName = "blogs";
+    if (req.baseUrl.includes("category")) {
+      folderName = "categories";
+    } else if (req.baseUrl.includes("product")) {
+      folderName = "products";
+    }
+    return {
+      folder: folderName,
+      resource_type: "image",
+      allowed_formats: ["jpg", "jpeg", "png"],
+    };
+  },
 });
 
 const upload = multer({

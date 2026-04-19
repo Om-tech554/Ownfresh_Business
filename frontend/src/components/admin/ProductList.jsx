@@ -120,6 +120,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
 import {
   Package,
   Trash2,
@@ -148,7 +149,7 @@ const ProductList = () => {
 
   const fetchCategories = async () => {
     try {
-      const res = await axios.get("http://localhost:8000/api/category/all");
+      const res = await axios.get(`${API_BASE_URL}/api/category/all`);
       if (res.data.success) {
         setCategories(res.data.categories);
       }
@@ -159,7 +160,7 @@ const ProductList = () => {
 
   const fetchProducts = async () => {
     try {
-      const res = await axios.get("http://localhost:8000/api/product/all", {
+      const res = await axios.get(`${API_BASE_URL}/api/product/all`, {
         params: {
           page: currentPage,
           limit: productsPerPage,
@@ -181,7 +182,7 @@ const ProductList = () => {
     if (!window.confirm("Confirm deletion of this industrial asset?")) return;
 
     try {
-      await axios.delete(`http://localhost:8000/api/product/delete/${id}`, {
+      await axios.delete(`${API_BASE_URL}/api/product/delete/${id}`, {
         withCredentials: true,
       });
       fetchProducts();

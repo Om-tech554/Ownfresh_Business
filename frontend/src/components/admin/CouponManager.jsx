@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
+const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
 import { 
   Ticket, 
   Trash2, 
@@ -29,7 +30,7 @@ const CouponManager = () => {
 
   const fetchCoupons = async () => {
     try {
-      const res = await axios.get("http://localhost:8000/api/coupon/all");
+      const res = await axios.get(`${API_BASE_URL}/api/coupon/all`);
       setCoupons(res.data);
     } catch (error) {
       toast.error("Failed to load coupons");
@@ -44,7 +45,7 @@ const CouponManager = () => {
     e.preventDefault();
     setLoading(true);
     try {
-      await axios.post("http://localhost:8000/api/coupon/create", formData);
+      await axios.post(`${API_BASE_URL}/api/coupon/create`, formData);
       toast.success("Coupon created successfully");
       setShowAddModal(false);
       setFormData({
@@ -66,7 +67,7 @@ const CouponManager = () => {
   const handleDelete = async (id) => {
     if (!window.confirm("Are you sure you want to delete this coupon?")) return;
     try {
-      await axios.delete(`http://localhost:8000/api/coupon/${id}`);
+      await axios.delete(`${API_BASE_URL}/api/coupon/${id}`);
       toast.success("Coupon deleted");
       fetchCoupons();
     } catch (error) {

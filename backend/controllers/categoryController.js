@@ -12,8 +12,13 @@ const slugify = (text) => {
 
 export const createCategory = async (req, res) => {
     try {
-        const { name, image, description } = req.body;
+        const { name, description } = req.body;
         const slug = slugify(name);
+
+        let image = "";
+        if (req.file) {
+            image = req.file.path;
+        }
 
         const categoryExists = await Category.findOne({ slug });
         if (categoryExists) {
@@ -38,8 +43,12 @@ export const getAllCategories = async (req, res) => {
 
 export const updateCategory = async (req, res) => {
     try {
-        const { name, image, description } = req.body;
-        const updateData = { name, image, description };
+        const { name, description } = req.body;
+        const updateData = { name, description };
+
+        if (req.file) {
+            updateData.image = req.file.path;
+        }
 
         if (name) {
             updateData.slug = slugify(name);

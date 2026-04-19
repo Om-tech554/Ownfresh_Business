@@ -31,7 +31,7 @@ import ReferralDashboard from "./pages/ReferralDashboard";
 import MyOrders from "./pages/MyOrders";
 import OrderDetails from "./pages/OrderDetails";
 
-export const serverUrl = "http://localhost:8000"
+export const serverUrl = import.meta.env.VITE_API_URL || "http://localhost:8000"
 
 const App = () => {
   // ...

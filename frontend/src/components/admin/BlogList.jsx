@@ -234,6 +234,7 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import JoditEditor from "jodit-react";
+const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
 import {
   Search,
@@ -263,7 +264,7 @@ const BlogList = () => {
 
   const fetchBlogs = async () => {
     try {
-      const res = await axios.get("http://localhost:8000/api/blog/all", {
+      const res = await axios.get(`${API_BASE_URL}/api/blog/all`, {
         params: { page, limit: 6, search, category },
       });
       setBlogs(res.data.blogs || []);
@@ -281,7 +282,7 @@ const BlogList = () => {
   const deleteBlog = async (id) => {
     if (!window.confirm("Are you sure you want to delete this post?")) return;
     try {
-      await axios.delete(`http://localhost:8000/api/blog/delete/${id}`);
+      await axios.delete(`${API_BASE_URL}/api/blog/delete/${id}`);
       fetchBlogs();
     } catch (err) {
       alert("Failed to delete blog");

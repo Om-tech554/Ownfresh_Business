@@ -7,13 +7,12 @@ import { OurStorySnippet, Gallery, FAQSection } from './HomeExtras';
 import PartnersSection from './PartnersSection';
 import ContactSection from './ContactSection';
 
-
 const UserDashboard = () => {
   return (
     <div className="w-full">
       <Navbar />
       <HeroSection />
-      
+
       {/* Featured Products with Mobile Swiper & Filters */}
       <ProductSection limit={8} />
 
@@ -24,7 +23,7 @@ const UserDashboard = () => {
 
       {/* Original Blog Section Integration */}
       <div className="bg-white">
-          <BlogSection limit={3} />
+        <BlogSection limit={3} />
       </div>
 
       {/* New Partners Section */}

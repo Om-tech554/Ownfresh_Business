@@ -1,4 +1,4 @@
-import Order from "../models/orderModel.js";
+import Order from "../models/ordermodel.js";
 import User from "../models/usermodel.js";
 
 // CREATE ORDER (CHECKOUT)

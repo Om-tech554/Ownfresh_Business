@@ -20,9 +20,10 @@ const CategoryManager = () => {
 
     const [formData, setFormData] = useState({
         name: "",
-        image: "",
         description: ""
     });
+    const [imageFile, setImageFile] = useState(null);
+    const [imagePreview, setImagePreview] = useState("");
 
     const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
@@ -42,7 +43,9 @@ const CategoryManager = () => {
     }, []);
 
     const resetForm = () => {
-        setFormData({ name: "", image: "", description: "" });
+        setFormData({ name: "", description: "" });
+        setImageFile(null);
+        setImagePreview("");
         setEditMode(false);
         setSelectedId(null);
     };
@@ -50,12 +53,26 @@ const CategoryManager = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         setLoading(true);
+
+        const data = new FormData();
+        data.append("name", formData.name);
+        data.append("description", formData.description);
+        if (imageFile) {
+            data.append("image", imageFile);
+        }
+
         try {
             if (editMode) {
-                await axios.put(`${API_BASE_URL}/api/category/update/${selectedId}`, formData, { withCredentials: true });
+                await axios.put(`${API_BASE_URL}/api/category/update/${selectedId}`, data, {
+                    withCredentials: true,
+                    headers: { "Content-Type": "multipart/form-data" }
+                });
                 toast.success("Category updated");
             } else {
-                await axios.post(`${API_BASE_URL}/api/category/add`, formData, { withCredentials: true });
+                await axios.post(`${API_BASE_URL}/api/category/add`, data, {
+                    withCredentials: true,
+                    headers: { "Content-Type": "multipart/form-data" }
+                });
                 toast.success("Category created");
             }
             setShowModal(false);
@@ -82,12 +99,25 @@ const CategoryManager = () => {
     const openEditModal = (cat) => {
         setFormData({
             name: cat.name,
-            image: cat.image || "",
             description: cat.description || ""
         });
+        setImageFile(null);
+        setImagePreview(cat.image || "");
         setSelectedId(cat._id);
         setEditMode(true);
         setShowModal(true);
+    };
+
+    const handleFileChange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            setImageFile(file);
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setImagePreview(reader.result);
+            };
+            reader.readAsDataURL(file);
+        }
     };
 
     return (
@@ -115,28 +145,48 @@ const CategoryManager = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {categories.map((cat) => (
                     <div key={cat._id} className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm hover:shadow-md transition-all group">
-                        <div className="flex items-center justify-between mb-4">
-                            <div className="bg-slate-100 p-3 rounded-xl">
-                                <Layers className="text-[#1E971D]" size={24} />
+                        <div className="relative h-48 overflow-hidden rounded-t-2xl bg-slate-100">
+                            {cat.image ? (
+                                <img
+                                    src={cat.image}
+                                    alt={cat.name}
+                                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                                />
+                            ) : (
+                                <div className="w-full h-full flex flex-col items-center justify-center text-slate-400">
+                                    <ImageIcon size={48} className="mb-2 opacity-20" />
+                                    <span className="text-xs font-bold uppercase tracking-widest">No Image</span>
+                                </div>
+                            )}
+                            <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-sm p-2 rounded-xl shadow-sm">
+                                <Layers className="text-[#1E971D]" size={20} />
                             </div>
-                            <div className="flex gap-2">
-                                <button onClick={() => openEditModal(cat)} className="text-slate-400 hover:text-blue-500 transition-colors">
-                                    <Edit size={18} />
+                            <div className="absolute top-4 right-4 flex gap-2 translate-x-12 opacity-0 group-hover:translate-x-0 group-hover:opacity-100 transition-all duration-300">
+                                <button
+                                    onClick={() => openEditModal(cat)}
+                                    className="bg-white p-2 rounded-lg text-blue-500 hover:bg-blue-50 shadow-lg active:scale-95 transition-all"
+                                >
+                                    <Edit size={16} />
                                 </button>
-                                <button onClick={() => handleDelete(cat._id)} className="text-slate-400 hover:text-red-500 transition-colors">
-                                    <Trash2 size={18} />
+                                <button
+                                    onClick={() => handleDelete(cat._id)}
+                                    className="bg-white p-2 rounded-lg text-red-500 hover:bg-red-50 shadow-lg active:scale-95 transition-all"
+                                >
+                                    <Trash2 size={16} />
                                 </button>
                             </div>
                         </div>
 
-                        <h3 className="text-2xl font-black text-slate-900 mb-2 uppercase">{cat.name}</h3>
-                        <p className="text-sm text-slate-500 line-clamp-2 mb-4 h-10">
-                            {cat.description || "No description provided."}
-                        </p>
+                        <div className="p-6">
+                            <h3 className="text-2xl font-black text-slate-900 mb-2 uppercase tracking-tight">{cat.name}</h3>
+                            <p className="text-sm text-slate-500 line-clamp-2 mb-4 h-10 leading-relaxed">
+                                {cat.description || "No description provided."}
+                            </p>
 
-                        <div className="flex items-center gap-2 text-xs font-bold text-slate-400 uppercase tracking-widest bg-slate-50 p-2 rounded-lg">
-                            <Type size={12} />
-                            <span>Slug: {cat.slug}</span>
+                            <div className="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] bg-slate-50 p-2.5 rounded-xl border border-slate-100">
+                                <Type size={12} className="text-[#1E971D]" />
+                                <span>Slug: <span className="text-slate-600">{cat.slug}</span></span>
+                            </div>
                         </div>
                     </div>
                 ))}
@@ -177,15 +227,29 @@ const CategoryManager = () => {
                             </div>
 
                             <div>
-                                <label className="block text-sm font-bold text-slate-700 mb-1">Image URL (Optional)</label>
-                                <div className="relative">
-                                    <ImageIcon className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
-                                    <input
-                                        className="w-full pl-12 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-[#1E971D] transition-all"
-                                        placeholder="https://..."
-                                        value={formData.image}
-                                        onChange={(e) => setFormData({ ...formData, image: e.target.value })}
-                                    />
+                                <label className="block text-sm font-bold text-slate-700 mb-2">Category Image</label>
+                                <div className="space-y-4">
+                                    {imagePreview && (
+                                        <div className="relative w-full h-40 rounded-2xl overflow-hidden border border-slate-200">
+                                            <img src={imagePreview} alt="Preview" className="w-full h-full object-cover" />
+                                            <button
+                                                type="button"
+                                                onClick={() => { setImageFile(null); setImagePreview(""); }}
+                                                className="absolute top-2 right-2 bg-white/90 backdrop-blur-sm p-1.5 rounded-lg text-red-500 hover:bg-red-50 shadow-sm"
+                                            >
+                                                <X size={16} />
+                                            </button>
+                                        </div>
+                                    )}
+                                    <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-slate-200 rounded-2xl cursor-pointer hover:bg-slate-50 hover:border-[#1E971D] transition-all group">
+                                        <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                                            <ImageIcon className="w-8 h-8 text-slate-400 group-hover:text-[#1E971D] mb-2" />
+                                            <p className="text-xs text-slate-500 font-bold uppercase tracking-widest">
+                                                {imageFile ? "Change Photo" : "Upload Photo"}
+                                            </p>
+                                        </div>
+                                        <input type="file" className="hidden" accept="image/*" onChange={handleFileChange} />
+                                    </label>
                                 </div>
                             </div>
 
