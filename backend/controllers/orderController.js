@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import Order from "../models/ordermodel.js";
 
 // GET USER ORDERS
@@ -40,6 +41,9 @@ export const updateOrderStatus = async (req, res) => {
   try {
     const { status, paymentStatus, trackingId, courierPartner, adminNotes } = req.body;
     const { id } = req.params;
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ msg: "Invalid Order ID" });
+    }
 
     const updateFields = {};
     if (status) {
@@ -83,6 +87,9 @@ export const updateOrderStatus = async (req, res) => {
 export const requestOrderCancellation = async (req, res) => {
   try {
     const { id } = req.params;
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ msg: "Invalid Order ID" });
+    }
     const { reason } = req.body;
 
     const order = await Order.findOne({ _id: id, user: req.user._id });
@@ -110,6 +117,9 @@ export const requestOrderCancellation = async (req, res) => {
 export const handleCancellationReview = async (req, res) => {
   try {
     const { id } = req.params;
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ msg: "Invalid Order ID" });
+    }
     const { approved } = req.body;
 
     const order = await Order.findById(id);
@@ -143,6 +153,9 @@ export const handleCancellationReview = async (req, res) => {
 export const deleteUserOrder = async (req, res) => {
   try {
     const { id } = req.params;
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ msg: "Invalid Order ID" });
+    }
     const order = await Order.findOne({ _id: id, user: req.user._id });
 
     if (!order) return res.status(404).json({ msg: "Order not found" });
@@ -168,6 +181,9 @@ export const deleteUserOrder = async (req, res) => {
 export const adminDeleteOrder = async (req, res) => {
   try {
     const { id } = req.params;
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ msg: "Invalid Order ID" });
+    }
     const order = await Order.findByIdAndDelete(id);
 
     if (!order) return res.status(404).json({ msg: "Order not found" });

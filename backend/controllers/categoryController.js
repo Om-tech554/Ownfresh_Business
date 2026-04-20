@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import Category from "../models/categoryModel.js";
 
 const slugify = (text) => {
@@ -54,6 +55,9 @@ export const updateCategory = async (req, res) => {
             updateData.slug = slugify(name);
         }
 
+        if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+            return res.status(400).json({ success: false, message: "Invalid Category ID" });
+        }
         const category = await Category.findByIdAndUpdate(req.params.id, updateData, { new: true });
         if (!category) {
             return res.status(404).json({ success: false, message: "Category not found" });
@@ -67,6 +71,9 @@ export const updateCategory = async (req, res) => {
 
 export const deleteCategory = async (req, res) => {
     try {
+        if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+            return res.status(400).json({ success: false, message: "Invalid Category ID" });
+        }
         const category = await Category.findByIdAndDelete(req.params.id);
         if (!category) {
             return res.status(404).json({ success: false, message: "Category not found" });

@@ -12,7 +12,7 @@ const AdminProductEditor = () => {
   const [name, setName] = useState("");
   const [price, setPrice] = useState("");
   const [shortDesc, setShortDesc] = useState("");
-  const [category, setCategory] = useState("Eating Oil");
+  const [category, setCategory] = useState("");
   const [rating, setRating] = useState(5);
 
   const [image, setImage] = useState(null);
@@ -74,8 +74,8 @@ const AdminProductEditor = () => {
   };
 
   const handleSave = async () => {
-    if (!name.trim() || !price || !shortDesc.trim()) {
-      toast.error("All textual fields are required!");
+    if (!name.trim() || !price || !shortDesc.trim() || !category) {
+      toast.error("All textual fields, including category, are required!");
       return;
     }
     if (!isEditing && !image) {
@@ -179,6 +179,7 @@ const AdminProductEditor = () => {
                 value={category}
                 onChange={(e) => setCategory(e.target.value)}
               >
+                <option value="" disabled>Select Category</option>
                 {categories.map(cat => (
                   <option key={cat._id} value={cat._id}>{cat.name}</option>
                 ))}

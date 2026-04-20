@@ -1,4 +1,5 @@
 import express from "express";
+import mongoose from "mongoose";
 import upload from "../middleware/multer.js";
 import Product from "../models/productModel.js";
 import Category from "../models/categoryModel.js";
@@ -33,11 +34,18 @@ router.post(
 
       const { name, price, shortDesc, category } = req.body;
 
+      if (!category || category === "") {
+        return res.status(400).json({
+          success: false,
+          message: "Category is required",
+        });
+      }
+
       const product = await Product.create({
         name,
         price,
         shortDesc,
-        category, // Should be an ObjectId from frontend
+        category, // Should be an ObjectId string
         image: req.file.path,
       });
 
@@ -104,6 +112,9 @@ router.get("/all", async (req, res) => {
 ------------------------------------------- */
 router.get("/:id", async (req, res) => {
   try {
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+      return res.status(400).json({ success: false, message: "Invalid Product ID" });
+    }
     const product = await Product.findById(req.params.id).populate("category");
 
     if (!product) {
@@ -144,8 +155,16 @@ router.put(
         name,
         price,
         shortDesc,
-        category
       };
+
+      if (category && category !== "") {
+        updateData.category = category;
+      } else if (category === "") {
+        return res.status(400).json({
+          success: false,
+          message: "Category cannot be empty",
+        });
+      }
 
       if (req.file) {
         updateData.image = req.file.path;
@@ -169,6 +188,9 @@ router.put(
 ------------------------------------------- */
 router.delete("/delete/:id", async (req, res) => {
   try {
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+      return res.status(400).json({ success: false, message: "Invalid Product ID" });
+    }
     await Product.findByIdAndDelete(req.params.id);
     res.json({ success: true, message: "Product deleted successfully" });
   } catch (error) {
