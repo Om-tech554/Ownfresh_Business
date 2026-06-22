@@ -14,17 +14,6 @@ export const getCurrentUser = async (req, res) => {
       return res.status(400).json({ message: "user is not found" });
     }
 
-    // Auto-generate referral code for existing users if missing
-    if (!user.referralCode) {
-      const gCode = () => "OWN-" + Math.random().toString(36).substring(2, 7).toUpperCase();
-      let newCode = gCode();
-      while (await User.findOne({ referralCode: newCode })) {
-        newCode = gCode();
-      }
-      user.referralCode = newCode;
-      await user.save();
-    }
-
     return res.status(200).json(user);
   } catch (error) {
     return res

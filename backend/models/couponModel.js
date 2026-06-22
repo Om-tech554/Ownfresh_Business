@@ -36,7 +36,12 @@ const couponSchema = new mongoose.Schema(
     },
     usedCount: {
       type: Number,
-      default: 0,
+      default: 0
+    },
+    affiliateId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      default: null,
     },
   },
   { timestamps: true }

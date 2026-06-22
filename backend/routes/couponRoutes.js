@@ -3,7 +3,8 @@ import {
   createCoupon, 
   getAllCoupons, 
   deleteCoupon, 
-  validateCoupon 
+  validateCoupon,
+  getPublicCoupons
 } from "../controllers/couponController.js";
 
 const router = express.Router();
@@ -15,5 +16,6 @@ router.delete("/:id", deleteCoupon);
 
 // User routes
 router.post("/validate", validateCoupon);
+router.get("/public", getPublicCoupons);
 
 export default router;

@@ -65,8 +65,43 @@ const userSchema = new mongoose.Schema({
     },
     role: {
         type: String,
-        enum: ["user", "admin"],
-        required: true
+        enum: ["user", "admin", "blogger"],
+        default: "user",
+    },
+    // Referral and Affiliate fields
+    referralCode: {
+        type: String,
+        unique: true,
+        sparse: true
+    },
+    referredBy: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+        default: null
+    },
+    referralCount: {
+        type: Number,
+        default: 0
+    },
+    isAffiliate: {
+        type: Boolean,
+        default: false
+    },
+    commissionBalance: {
+        type: Number,
+        default: 0
+    },
+    totalEarnings: {
+        type: Number,
+        default: 0
+    },
+    wallet: {
+        type: Number,
+        default: 0
+    },
+    subscriptionActive: {
+        type: Boolean,
+        default: false
     },
     resetOtp: {
         type: String,
@@ -77,29 +112,17 @@ const userSchema = new mongoose.Schema({
     },
     otpExpires: {
         type: Date
-    },
-    referralCode: {
-        type: String,
-        unique: true,
-        sparse: true // Sparse allows users created without it safely
-    },
-    referredBy: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "User",
-        default: null
-    },
-    rewardPoints: {
-        type: Number,
-        default: 0
-    },
-    referralHistory: [
-        {
-            userName: String,
-            rewardAmount: Number,
-            date: { type: Date, default: Date.now }
-        }
-    ]
+    }
 }, { timestamps: true });
+
+// Pre-save hook to generate referral code
+userSchema.pre('save', async function (next) {
+    if (!this.referralCode) {
+        // Generate a random 8-character code
+        this.referralCode = Math.random().toString(36).substring(2, 10).toUpperCase();
+    }
+    next();
+});
 
 const User = mongoose.model("User", userSchema);
 export default User;

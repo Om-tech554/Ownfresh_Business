@@ -60,6 +60,19 @@ const orderSchema = new mongoose.Schema({
     type: String,
     default: ""
   },
+  referrer: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+    default: null
+  },
+  referralCommission: {
+    type: Number,
+    default: 0
+  },
+  isReferralCounted: {
+    type: Boolean,
+    default: false
+  },
   deletedByUser: {
     type: Boolean,
     default: false

@@ -1,4 +1,5 @@
 import User from "../models/usermodel.js"
+import Referral from "../models/referralModel.js"
 import bcrypt from "bcryptjs"
 import genToken from "../utils/token.js"
 import { sendOtpMail } from "../utils/mail.js"
@@ -6,7 +7,7 @@ import { sendOtpMail } from "../utils/mail.js"
 //--------------signUp----------//
 export const signUp = async (req, res) => {
   try {
-    const { fullName, email, password, mobile, role } = req.body;
+    const { fullName, email, password, mobile, role, referralCode } = req.body;
 
     if (!fullName || !email || !password || !mobile) {
       return res.status(400).json({ message: "All fields are required" });
@@ -17,20 +18,13 @@ export const signUp = async (req, res) => {
       return res.status(409).json({ message: "Email already exists" });
     }
 
-    const hashedPassword = await bcrypt.hash(password, 10);
-
-    // --- REFERRAL LOGIC ---
+    // Check for referrer
     let referrer = null;
-    if (req.body.referredBy) {
-      referrer = await User.findOne({ referralCode: req.body.referredBy.toUpperCase() });
+    if (referralCode) {
+        referrer = await User.findOne({ referralCode: referralCode.toUpperCase() });
     }
 
-    // Generate unique referral code
-    const generateCode = () => "OWN-" + Math.random().toString(36).substring(2, 7).toUpperCase();
-    let newReferralCode = generateCode();
-    while (await User.findOne({ referralCode: newReferralCode })) {
-      newReferralCode = generateCode();
-    }
+    const hashedPassword = await bcrypt.hash(password, 10);
 
     const user = await User.create({
       fullName,
@@ -38,10 +32,16 @@ export const signUp = async (req, res) => {
       password: hashedPassword,
       mobile,
       role: role || "user",
-      referralCode: newReferralCode,
-      referredBy: referrer ? referrer._id : null,
-      rewardPoints: referrer ? 50 : 0, // 50 points if referred
+      referredBy: referrer ? referrer._id : null
     });
+
+    if (referrer) {
+        await Referral.create({
+            referrer: referrer._id,
+            referredUser: user._id,
+            status: "pending"
+        });
+    }
 
     return res.status(201).json({
       message: "Account created successfully",
@@ -67,8 +67,8 @@ export const signIn = async (req, res) => {
         }
         const token = await genToken(user._id)
         res.cookie("token", token, {
-            secure: process.env.NODE_ENV === "production",
-            sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
+            secure: true, // Always true for HTTPS/Render
+            sameSite: "none", // Required for cross-domain auth
             maxAge: 7 * 24 * 60 * 60 * 1000,
             httpOnly: true
         })
@@ -81,8 +81,8 @@ export const signIn = async (req, res) => {
 export const signOut = async (req, res) => {
     try {
         res.clearCookie("token", {
-            secure: process.env.NODE_ENV === "production",
-            sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
+            secure: true,
+            sameSite: "none",
             httpOnly: true,
             path: "/"
         })
@@ -145,94 +145,43 @@ export const resetPassword=async (req,res) => {
         return res.status(500).json(`Reset password error ${error}`)
     }
 }
-//----------GoogleAuthenticationSignUP----//
-// export const googleAuth=async(req,res) => {
-//     try {
-//         const{fullName,email,mobile,role}=req.body
-//         let user=await User.findOne({email})
-//         if(!user){
-//             user=await User.create({
-//                 fullName,email,mobile,role: role || "user"
-//             })
-//         }
-//          const token = await genToken(user._id)
-//         res.cookie("token", token, {
-//             secure: false,
-//             sameSite: "strict",
-//             maxAge: 7 * 24 * 60 * 60 * 1000,
-//             httpOnly: true
-//         })
-//         return res.status(200).json(user)
-//     } catch (error) {
-//         return res.status(500).json(`Google Auth Error ${error}`)
-//     }
-// }
-// export const googleAuth = async (req, res) => {
-//     try {
-//         const { fullName, email,mobile } = req.body;
-//         let user = await User.findOne({ email });
-
-//         if (!user) {
-//             // Create the user without mobile or password
-//             user = await User.create({
-//                 fullName,
-//                 email,
-//                 mobile,
-//                 role: "user" 
-//             });
-//         }
-
-//         const token = await genToken(user._id);
-//         res.cookie("token", token, {
-//             secure: false, // Set to true if using HTTPS
-//             sameSite: "strict",
-//             maxAge: 7 * 24 * 60 * 60 * 1000,
-//             httpOnly: true
-//         });
-
-//         return res.status(200).json(user);
-//     } catch (error) {
-//         // IMPORTANT: Check your BACKEND terminal for this log
-//         console.error("GOOGLE_AUTH_DETAILED_ERROR:", error.message);
-//         return res.status(400).json({ message: error.message });
-//     }
-// };
 
 export const googleAuth = async (req, res) => {
     try {
-        const { fullName, email, mobile, role } = req.body;
+        const { fullName, email, mobile, role, referralCode } = req.body;
         let user = await User.findOne({ email });
 
         if (!user) {
-            // Generate unique referral code
-            const generateCode = () => "OWN-" + Math.random().toString(36).substring(2, 7).toUpperCase();
-            let newReferralCode = generateCode();
-            while (await User.findOne({ referralCode: newReferralCode })) {
-                newReferralCode = generateCode();
+            let referrer = null;
+            if (referralCode) {
+                referrer = await User.findOne({ referralCode: referralCode.toUpperCase() });
             }
 
-            // Create new user
             user = await User.create({
                 fullName,
                 email,
                 mobile,
                 role: role || "user",
-                referralCode: newReferralCode,
-                rewardPoints: req.body.referredBy ? 50 : 0
+                referredBy: referrer ? referrer._id : null
             });
+
+            if (referrer) {
+                await Referral.create({
+                    referrer: referrer._id,
+                    referredUser: user._id,
+                    status: "pending"
+                });
+            }
         }
-        // 5. Generate JWT Token
         const token = await genToken(user._id);
 
-        // 6. Set Cookie
         res.cookie("token", token, {
-            secure: process.env.NODE_ENV === "production",
-            sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
+            secure: true,
+            sameSite: "none",
             maxAge: 7 * 24 * 60 * 60 * 1000,
             httpOnly: true
         });
 
-        // 7. Success Response
         return res.status(200).json(user);
 
     } catch (error) {

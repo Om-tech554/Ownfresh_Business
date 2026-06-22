@@ -182,7 +182,7 @@
 
 import React, { useState } from "react";
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import {
   Eye, EyeOff, User, Mail, Lock, Phone, Loader2, ArrowLeft, Ticket
 } from "lucide-react";
@@ -195,7 +195,8 @@ import { setUserData, clearCart } from "../redux/userslice";  // ⭐ ADDED
 
 const SignUp = () => {
   const navigate = useNavigate();
-  const dispatch = useDispatch(); // ⭐ IMPORTANT
+  const [searchParams] = useSearchParams();
+  const dispatch = useDispatch();
 
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -204,8 +205,7 @@ const SignUp = () => {
   const [mobile, setMobile] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [referredBy, setReferredBy] = useState(""); // Referral state
-
+  const [referralCode, setReferralCode] = useState(searchParams.get("ref") || "");
 
   const role = "user";
   const primaryColor = "#FFD700";
@@ -224,7 +224,7 @@ const SignUp = () => {
     try {
       const { data } = await axios.post(
         `${serverUrl}/api/auth/signup`,
-        { fullName, email, password, mobile, role, referredBy },
+        { fullName, email, password, mobile, role, referralCode },
         { withCredentials: true }
       );
 
@@ -264,7 +264,7 @@ const SignUp = () => {
           email: google.user.email,
           mobile,
           role,
-          referredBy,
+          referralCode,
         },
         { withCredentials: true }
       );
@@ -379,7 +379,6 @@ const SignUp = () => {
             </div>
           </div>
 
-          {/* Referral Code (Optional) */}
           <div className="pb-2">
             <label className="text-slate-600 text-sm font-bold flex items-center gap-2">
               <Ticket className="w-4 h-4 text-[#FFD700]" size={16} />
@@ -388,8 +387,8 @@ const SignUp = () => {
             <input
               className="w-full px-4 py-3 border border-slate-200 rounded-xl mt-1 focus:border-[#FFD700] outline-none transition-all uppercase placeholder:text-slate-300"
               placeholder="e.g. OWN-XXXXX"
-              value={referredBy}
-              onChange={(e) => setReferredBy(e.target.value.toUpperCase())}
+              value={referralCode}
+              onChange={(e) => setReferralCode(e.target.value.toUpperCase())}
             />
           </div>
 

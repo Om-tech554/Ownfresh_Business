@@ -4,9 +4,10 @@ import ProductList from "./admin/ProductList";
 import BlogList from './admin/BlogList';
 import AdminOrders from './admin/AdminOrders'; // [NEW]
 import { useSelector } from 'react-redux';
-import { Package, BookOpen, Ticket, ShoppingCart, Layers } from "lucide-react"; // Added Layers
+import { Package, BookOpen, Ticket, ShoppingCart, Layers, Users } from "lucide-react"; // Added Layers
 import CouponManager from './admin/CouponManager';
 import CategoryManager from './admin/CategoryManager';
+import ReferralManager from './admin/ReferralManager';
 
 function AdminDashboard() {
   const userData = useSelector((state) => state.user.userData);
@@ -83,6 +84,19 @@ function AdminDashboard() {
               Promotions
             </button>
           )}
+
+          {userData?.role === "admin" && (
+            <button
+              onClick={() => setActiveTab("partners")}
+              className={`flex items-center gap-2 px-6 py-2.5 rounded-xl font-bold transition-all whitespace-nowrap ${activeTab === "partners"
+                  ? "bg-[#1E971D] text-white shadow-lg shadow-[#1E971D]/20"
+                  : "text-slate-500 hover:bg-slate-50"
+                }`}
+            >
+              <Users className="w-4 h-4" />
+              Partners
+            </button>
+          )}
         </div>
       </div>
 
@@ -92,6 +106,7 @@ function AdminDashboard() {
         {activeTab === "coupons" && userData?.role === "admin" && <CouponManager />}
         {activeTab === "categories" && userData?.role === "admin" && <CategoryManager />}
         {activeTab === "orders" && userData?.role === "admin" && <AdminOrders />}
+        {activeTab === "partners" && userData?.role === "admin" && <ReferralManager />}
       </div>
     </div>
   );

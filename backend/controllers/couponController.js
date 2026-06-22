@@ -87,3 +87,16 @@ export const validateCoupon = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+// GET PUBLIC COUPONS (User)
+export const getPublicCoupons = async (req, res) => {
+  try {
+    // BRUTE FORCE: Return every coupon in the system to see what's going on
+    const coupons = await Coupon.find({}).sort({ createdAt: -1 });
+    console.log(`Found ${coupons.length} total coupons in DB`); // Server log
+    res.status(200).json(coupons);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
