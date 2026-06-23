@@ -14,7 +14,9 @@ import contactRoutes from "./routes/contactRoutes.js";
 import categoryRoutes from "./routes/categoryRoutes.js";
 import referralRoutes from "./routes/referralRoutes.js";
 import couponRoutes from "./routes/couponRoutes.js";
+import paymentRoutes from "./routes/paymentRoutes.js";
 import path from "path";
+import helmet from "helmet";
 import { fileURLToPath } from "url";
 import { initCronJobs } from "./utils/cronJobs.js";
 
@@ -22,6 +24,18 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const app = express()
 app.set("trust proxy", 1); // Required for secure cookies on Render
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'", "https://checkout.razorpay.com"],
+      frameSrc: ["'self'", "https://api.razorpay.com", "https://checkout.razorpay.com"],
+      connectSrc: ["'self'", "https://api.geoapify.com", "https://api.razorpay.com", "https://*.onrender.com"],
+      imgSrc: ["'self'", "data:", "https://res.cloudinary.com", "https://*.tile.openstreetmap.org"],
+    },
+  },
+  crossOriginEmbedderPolicy: false,
+})); // Set standard security headers
 const port = process.env.PORT || 10000
 
 const allowedOrigins = [
@@ -55,6 +69,7 @@ app.use("/api/contact", contactRoutes);
 app.use("/api/category", categoryRoutes);
 app.use("/api/referral", referralRoutes);
 app.use("/api/coupon", couponRoutes);
+app.use("/api/payment", paymentRoutes);
 
 // --- STATIC FILES & SPA ROUTING FIX ---
 const __frontendDir = path.join(__dirname, "../frontend/dist");

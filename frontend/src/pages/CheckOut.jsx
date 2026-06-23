@@ -168,11 +168,78 @@ const CheckOut = () => {
     toast.success("Coupon removed");
   };
 
+  const loadRazorpayScript = () => {
+    return new Promise((resolve) => {
+      const script = document.createElement("script");
+      script.src = "https://checkout.razorpay.com/v1/checkout.js";
+      script.onload = () => resolve(true);
+      script.onerror = () => resolve(false);
+      document.body.appendChild(script);
+    });
+  };
+
   // Checkout Handler
   const checkout = async () => {
     if (!user) return toast.error("Login first");
     if (!address) return toast.error("Enter address");
 
+    const finalAmount = cartTotal - discount;
+
+    if (paymentMethod === "online") {
+      const res = await loadRazorpayScript();
+      if (!res) return toast.error("Razorpay SDK failed to load. Are you online?");
+
+      try {
+        const { data } = await axios.post(`${serverUrl}/api/payment/create-order`, {
+          amount: finalAmount
+        }, { withCredentials: true });
+
+        if (!data.success) return toast.error("Failed to create order");
+
+        const options = {
+          key: import.meta.env.VITE_RAZORPAY_KEY_ID,
+          amount: data.order.amount,
+          currency: "INR",
+          name: "Own Fresh",
+          description: "Online Payment",
+          order_id: data.order.id,
+          handler: async function (response) {
+            try {
+              const verifyRes = await axios.post(`${serverUrl}/api/payment/verify`, {
+                razorpayOrderId: response.razorpay_order_id,
+                razorpayPaymentId: response.razorpay_payment_id,
+                razorpaySignature: response.razorpay_signature
+              }, { withCredentials: true });
+
+              if (verifyRes.data.success) {
+                await placeOrderToDB(response.razorpay_order_id, response.razorpay_payment_id, response.razorpay_signature);
+              }
+            } catch (error) {
+              toast.error("Payment Verification Failed");
+            }
+          },
+          prefill: {
+            name: user.fullName,
+            email: user.email,
+            contact: "9999999999"
+          },
+          theme: {
+            color: "#eab308"
+          }
+        };
+
+        const paymentObject = new window.Razorpay(options);
+        paymentObject.open();
+
+      } catch (error) {
+        toast.error("Failed to initiate payment");
+      }
+    } else {
+      await placeOrderToDB();
+    }
+  };
+
+  const placeOrderToDB = async (razorpayOrderId, razorpayPaymentId, razorpaySignature) => {
     try {
       const { data } = await axios.post(`${serverUrl}/api/order/create`, {
         userId: user._id,
@@ -188,6 +255,9 @@ const CheckOut = () => {
         totalAmount: cartTotal - discount,
         discountAmount: discount,
         couponCode: isCouponApplied ? couponCode : "",
+        razorpayOrderId,
+        razorpayPaymentId,
+        razorpaySignature
       }, { withCredentials: true });
 
       if (data.success) {

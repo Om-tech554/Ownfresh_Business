@@ -116,12 +116,11 @@ const userSchema = new mongoose.Schema({
 }, { timestamps: true });
 
 // Pre-save hook to generate referral code
-userSchema.pre('save', async function (next) {
+userSchema.pre('save', async function () {
     if (!this.referralCode) {
         // Generate a random 8-character code
         this.referralCode = Math.random().toString(36).substring(2, 10).toUpperCase();
     }
-    next();
 });
 
 const User = mongoose.model("User", userSchema);

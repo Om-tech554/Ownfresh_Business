@@ -26,6 +26,9 @@ export const createOrder = async (req, res) => {
       totalAmount: totalAmount,
       discountAmount: discountAmount || 0,
       couponCode: couponCode || "",
+      razorpayOrderId: req.body.razorpayOrderId || undefined,
+      razorpayPaymentId: req.body.razorpayPaymentId || undefined,
+      razorpaySignature: req.body.razorpaySignature || undefined,
     });
 
     res.status(201).json({
