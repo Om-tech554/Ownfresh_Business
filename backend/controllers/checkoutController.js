@@ -78,7 +78,7 @@ export const createOrder = async (req, res) => {
 
       const body = razorpayOrderId + "|" + razorpayPaymentId;
       const expectedSignature = crypto
-        .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET)
+        .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET || "qwtSRoeKd9p6pjHC7dXRjrjs")
         .update(body.toString())
         .digest("hex");
 

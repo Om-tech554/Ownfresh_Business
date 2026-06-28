@@ -216,7 +216,7 @@ const CheckOut = () => {
         if (!data.success) return toast.error("Failed to create order");
 
         const options = {
-          key: import.meta.env.VITE_RAZORPAY_KEY_ID,
+          key: import.meta.env.VITE_RAZORPAY_KEY_ID || "rzp_test_SdpJSZtNnLHmjO",
           amount: data.order.amount,
           currency: "INR",
           name: "Own Fresh",
