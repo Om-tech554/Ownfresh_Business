@@ -37,6 +37,25 @@ const CheckOut = () => {
   const [discount, setDiscount] = useState(0);
   const [isCouponApplied, setIsCouponApplied] = useState(false);
   const [validatingCoupon, setValidatingCoupon] = useState(false);
+  
+  const [walletBalance, setWalletBalance] = useState(0);
+  const [useWalletCheckbox, setUseWalletCheckbox] = useState(false);
+
+  useEffect(() => {
+    fetchWalletBalance();
+  }, [user]);
+
+  const fetchWalletBalance = async () => {
+    if (!user) return;
+    try {
+      const { data } = await axios.get(`${serverUrl}/api/wallet/my-wallet`, { withCredentials: true });
+      if (data.success) {
+        setWalletBalance(data.balance || 0);
+      }
+    } catch (err) {
+      console.error("Wallet balance fetch error", err);
+    }
+  };
 
   const cartTotal = cartItems.reduce(
     (acc, item) => acc + item.price * item.quantity,
@@ -144,13 +163,13 @@ const CheckOut = () => {
     try {
       const { data } = await axios.post(`${serverUrl}/api/coupon/validate`, {
         code: couponCode,
-        orderAmount: cartTotal
+        amount: cartTotal
       }, { withCredentials: true });
 
       if (data.success) {
-        setDiscount(data.discount);
+        setDiscount(data.discountAmount);
         setIsCouponApplied(true);
-        toast.success(`Coupon applied! ₹${data.discount} saved.`);
+        toast.success(`Coupon applied! ₹${data.discountAmount} saved.`);
       }
     } catch (error) {
       toast.error(error.response?.data?.message || "Invalid coupon");
@@ -257,7 +276,8 @@ const CheckOut = () => {
         couponCode: isCouponApplied ? couponCode : "",
         razorpayOrderId,
         razorpayPaymentId,
-        razorpaySignature
+        razorpaySignature,
+        useWallet: useWalletCheckbox
       }, { withCredentials: true });
 
       if (data.success) {
@@ -434,6 +454,24 @@ const CheckOut = () => {
             </div>
           </div>
 
+          {walletBalance > 0 && (
+            <div className="mt-4 pt-4 border-t flex items-center justify-between bg-purple-50 p-4 rounded-xl border border-purple-200">
+              <div className="flex items-center gap-2">
+                <input 
+                  type="checkbox" 
+                  id="use-wallet"
+                  className="w-5 h-5 accent-purple-600 cursor-pointer"
+                  checked={useWalletCheckbox}
+                  onChange={(e) => setUseWalletCheckbox(e.target.checked)}
+                />
+                <label htmlFor="use-wallet" className="text-sm font-bold text-purple-950 cursor-pointer select-none">
+                  Use Wallet Balance (Available: ₹{walletBalance})
+                </label>
+              </div>
+              <span className="font-black text-purple-700">- ₹{Math.min(walletBalance, cartTotal - discount)}</span>
+            </div>
+          )}
+
           <div className="border-t mt-4 pt-4 space-y-2">
             <div className="flex justify-between items-center text-gray-600">
               <span>Subtotal:</span>
@@ -445,9 +483,15 @@ const CheckOut = () => {
                 <span className="font-bold">- ₹{discount}</span>
               </div>
             )}
+            {useWalletCheckbox && walletBalance > 0 && (
+              <div className="flex justify-between items-center text-purple-600">
+                <span>Wallet Deduction:</span>
+                <span className="font-bold">- ₹{Math.min(walletBalance, cartTotal - discount)}</span>
+              </div>
+            )}
             <div className="flex justify-between items-center border-t pt-2">
               <span className="text-xl font-black text-slate-900">Total payable:</span>
-              <span className="text-2xl font-black text-yellow-600">₹{cartTotal - discount}</span>
+              <span className="text-2xl font-black text-yellow-600">₹{Math.max(0, cartTotal - discount - (useWalletCheckbox ? walletBalance : 0))}</span>
             </div>
           </div>
         </div>

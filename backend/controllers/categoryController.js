@@ -19,6 +19,8 @@ export const createCategory = async (req, res) => {
         let image = "";
         if (req.file) {
             image = req.file.path;
+        } else if (req.body.image) {
+            image = req.body.image;
         }
 
         const categoryExists = await Category.findOne({ slug });
@@ -49,6 +51,8 @@ export const updateCategory = async (req, res) => {
 
         if (req.file) {
             updateData.image = req.file.path;
+        } else if (req.body.image) {
+            updateData.image = req.body.image;
         }
 
         if (name) {

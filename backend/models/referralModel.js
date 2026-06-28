@@ -1,21 +1,39 @@
 import mongoose from "mongoose";
 
 const referralSchema = new mongoose.Schema({
-    referrer: {
+    referrerUserId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "User",
-        required: true
+        required: true,
+        index: true
     },
-    referredUser: {
+    referredUserId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "User",
         required: true,
         unique: true
     },
+    referralCode: {
+        type: String,
+        required: true
+    },
     status: {
         type: String,
-        enum: ["pending", "completed"],
-        default: "pending"
+        enum: ["PENDING", "SUCCESS", "FAILED", "EXPIRED"],
+        default: "PENDING"
+    },
+    rewardAmount: {
+        type: Number,
+        default: 0
+    },
+    deviceFingerprint: {
+        type: String
+    },
+    ipAddress: {
+        type: String
+    },
+    completedAt: {
+        type: Date
     },
     orderId: {
         type: mongoose.Schema.Types.ObjectId,

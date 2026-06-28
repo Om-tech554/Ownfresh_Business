@@ -3,11 +3,13 @@ import Referral from "../models/referralModel.js"
 import bcrypt from "bcryptjs"
 import genToken from "../utils/token.js"
 import { sendOtpMail } from "../utils/mail.js"
+import Wallet from "../models/walletModel.js"
+import ReferralSettings from "../models/referralSettingsModel.js"
 
 //--------------signUp----------//
 export const signUp = async (req, res) => {
   try {
-    const { fullName, email, password, mobile, role, referralCode } = req.body;
+    const { fullName, email, password, mobile, role, referralCode, deviceFingerprint } = req.body;
 
     if (!fullName || !email || !password || !mobile) {
       return res.status(400).json({ message: "All fields are required" });
@@ -32,14 +34,31 @@ export const signUp = async (req, res) => {
       password: hashedPassword,
       mobile,
       role: role || "user",
-      referredBy: referrer ? referrer._id : null
+      referredBy: referrer ? referrer._id : null,
+      lastIpAddress: req.headers['x-forwarded-for'] || req.ip || req.socket.remoteAddress,
+      lastDeviceFingerprint: deviceFingerprint || req.headers['user-agent']
     });
 
+    // Create wallet for the new user
+    await Wallet.create({ userId: user._id, balance: 0, totalEarned: 0, totalRedeemed: 0 });
+
     if (referrer) {
+        let rewardAmount = 50;
+        const settings = await ReferralSettings.findOne();
+        if (settings) {
+            rewardAmount = settings.referralRewardReferred || 50;
+        }
+
+        const ipAddress = req.headers['x-forwarded-for'] || req.ip || req.socket.remoteAddress;
+
         await Referral.create({
-            referrer: referrer._id,
-            referredUser: user._id,
-            status: "pending"
+            referrerUserId: referrer._id,
+            referredUserId: user._id,
+            referralCode: referralCode.toUpperCase(),
+            status: "PENDING",
+            rewardAmount,
+            deviceFingerprint: deviceFingerprint || req.headers['user-agent'],
+            ipAddress
         });
     }
 
@@ -66,6 +85,12 @@ export const signIn = async (req, res) => {
             return res.status(400).json({ message: "⚠️ incorrect password." })
         }
         const token = await genToken(user._id)
+        
+        // Update tracking info
+        user.lastIpAddress = req.headers['x-forwarded-for'] || req.ip || req.socket.remoteAddress;
+        user.lastDeviceFingerprint = req.body.deviceFingerprint || req.headers['user-agent'];
+        await user.save();
+
         res.cookie("token", token, {
             secure: true, // Always true for HTTPS/Render
             sameSite: "none", // Required for cross-domain auth
@@ -148,7 +173,7 @@ export const resetPassword=async (req,res) => {
 
 export const googleAuth = async (req, res) => {
     try {
-        const { fullName, email, mobile, role, referralCode } = req.body;
+        const { fullName, email, mobile, role, referralCode, deviceFingerprint } = req.body;
         let user = await User.findOne({ email });
 
         if (!user) {
@@ -162,14 +187,31 @@ export const googleAuth = async (req, res) => {
                 email,
                 mobile,
                 role: role || "user",
-                referredBy: referrer ? referrer._id : null
+                referredBy: referrer ? referrer._id : null,
+                lastIpAddress: req.headers['x-forwarded-for'] || req.ip || req.socket.remoteAddress,
+                lastDeviceFingerprint: deviceFingerprint || req.headers['user-agent']
             });
 
+            // Create wallet for the new user
+            await Wallet.create({ userId: user._id, balance: 0, totalEarned: 0, totalRedeemed: 0 });
+
             if (referrer) {
+                let rewardAmount = 50;
+                const settings = await ReferralSettings.findOne();
+                if (settings) {
+                    rewardAmount = settings.referralRewardReferred || 50;
+                }
+
+                const ipAddress = req.headers['x-forwarded-for'] || req.ip || req.socket.remoteAddress;
+
                 await Referral.create({
-                    referrer: referrer._id,
-                    referredUser: user._id,
-                    status: "pending"
+                    referrerUserId: referrer._id,
+                    referredUserId: user._id,
+                    referralCode: referralCode.toUpperCase(),
+                    status: "PENDING",
+                    rewardAmount,
+                    deviceFingerprint: deviceFingerprint || req.headers['user-agent'],
+                    ipAddress
                 });
             }
         }

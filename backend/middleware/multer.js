@@ -10,6 +10,8 @@ const storage = new CloudinaryStorage({
       folderName = "categories";
     } else if (req.baseUrl.includes("product")) {
       folderName = "products";
+    } else if (req.baseUrl.includes("gallery")) {
+      folderName = "gallery";
     }
     return {
       folder: folderName,

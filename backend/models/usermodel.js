@@ -1,47 +1,3 @@
-// import mongoose from "mongoose";
-
-// const userSchema = new mongoose.Schema({
-//     fullName: {
-//         type: String,
-//         required: true
-//     },
-//     email: {
-//         type: String,
-//         required: true,
-//         unique: true
-//     },
-//     password: {
-//         type: String,
-//         // Password is not required for Google Auth users
-//     },
-//     mobile: {
-//         type: String,
-//         // Unique index remains, but we remove the complex required function 
-//         // to prevent 400 errors during initial Google sign-in.
-//         unique: true,
-//         sparse: true, 
-//     },
-//     role: {
-//         type: String,
-//         enum: ["user", "admin"],
-//         default: "user",
-//     },
-//     resetOtp: {
-//         type: String,
-//     },
-//     isOtpVerified: {
-//         type: Boolean,
-//         default: false,
-//     },
-//     otpExpires: {
-//         type: Date
-//     }
-// }, { timestamps: true });
-
-// const User = mongoose.model("User", userSchema);
-
-// export default User;
-
 import mongoose from "mongoose";
 
 const userSchema = new mongoose.Schema({
@@ -63,6 +19,12 @@ const userSchema = new mongoose.Schema({
         sparse: true, // This allows multiple users to have NO mobile number
         default: undefined // Ensures it doesn't default to a shared null value
     },
+    lastIpAddress: {
+        type: String
+    },
+    lastDeviceFingerprint: {
+        type: String
+    },
     role: {
         type: String,
         enum: ["user", "admin", "blogger"],
@@ -73,6 +35,10 @@ const userSchema = new mongoose.Schema({
         type: String,
         unique: true,
         sparse: true
+    },
+    hasChangedReferralCode: {
+        type: Boolean,
+        default: false
     },
     referredBy: {
         type: mongoose.Schema.Types.ObjectId,
@@ -118,8 +84,33 @@ const userSchema = new mongoose.Schema({
 // Pre-save hook to generate referral code
 userSchema.pre('save', async function () {
     if (!this.referralCode) {
-        // Generate a random 8-character code
-        this.referralCode = Math.random().toString(36).substring(2, 10).toUpperCase();
+        let prefix = "OWN";
+        if (this.fullName) {
+            // Keep only alphanumeric characters
+            const cleanName = this.fullName.replace(/[^a-zA-Z0-9]/g, "").toUpperCase();
+            if (cleanName.length > 0) {
+                prefix = cleanName.substring(0, 5); // Take first 5 characters
+            }
+        }
+        
+        let code = "";
+        let isUnique = false;
+        let attempts = 0;
+        
+        // Loop until unique code generated
+        while (!isUnique && attempts < 10) {
+            attempts++;
+            const suffix = Math.random().toString(36).substring(2, 6).toUpperCase();
+            code = `${prefix}${suffix}`;
+            
+            // Check if user model exists in mongoose.models
+            const User = mongoose.models.User || mongoose.model("User", userSchema);
+            const existing = await User.findOne({ referralCode: code });
+            if (!existing) {
+                isUnique = true;
+            }
+        }
+        this.referralCode = code;
     }
 });
 

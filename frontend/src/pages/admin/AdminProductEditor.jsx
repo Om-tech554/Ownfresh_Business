@@ -1,8 +1,9 @@
 import React, { useEffect, useState, useRef } from "react";
 import axios from "axios";
 import { useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft, Upload, Loader2, Save, Package, DollarSign, Star } from "lucide-react";
+import { ArrowLeft, Upload, Loader2, Save, Package, DollarSign, Star, Image as ImageIcon } from "lucide-react";
 import toast, { Toaster } from "react-hot-toast";
+import ImagePickerModal from "../../components/admin/ImagePickerModal";
 
 const AdminProductEditor = () => {
   const { id } = useParams();
@@ -17,6 +18,7 @@ const AdminProductEditor = () => {
 
   const [image, setImage] = useState(null);
   const [preview, setPreview] = useState(null);
+  const [showImagePicker, setShowImagePicker] = useState(false);
 
   const [categories, setCategories] = useState([]);
 
@@ -254,11 +256,29 @@ const AdminProductEditor = () => {
                 </div>
               )}
             </label>
+
+            <button
+              type="button"
+              onClick={() => setShowImagePicker(true)}
+              className="mt-4 w-full bg-slate-900 text-white hover:bg-[#1E971D] py-3 rounded-xl text-xs font-bold uppercase tracking-widest transition-colors flex items-center justify-center gap-2"
+            >
+              <ImageIcon size={14} />
+              Choose from Gallery
+            </button>
           </div>
 
         </div>
       </div>
 
+      <ImagePickerModal
+        isOpen={showImagePicker}
+        onClose={() => setShowImagePicker(false)}
+        onSelect={(url) => {
+          setImage(url);
+          setPreview(url);
+          toast.success("Image selected from gallery!");
+        }}
+      />
     </div>
   );
 };

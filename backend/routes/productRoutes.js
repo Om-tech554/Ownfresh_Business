@@ -25,14 +25,21 @@ router.post(
   },
   async (req, res) => {
     try {
-      if (!req.file) {
+      const { name, price, shortDesc, category, image } = req.body;
+
+      let imageUrl = "";
+      if (req.file) {
+        imageUrl = req.file.path;
+      } else if (image) {
+        imageUrl = image;
+      }
+
+      if (!imageUrl) {
         return res.status(400).json({
           success: false,
           message: "Image is required",
         });
       }
-
-      const { name, price, shortDesc, category } = req.body;
 
       if (!category || category === "") {
         return res.status(400).json({
@@ -46,7 +53,7 @@ router.post(
         price,
         shortDesc,
         category, // Should be an ObjectId string
-        image: req.file.path,
+        image: imageUrl,
       });
 
       res.status(201).json({
@@ -168,6 +175,8 @@ router.put(
 
       if (req.file) {
         updateData.image = req.file.path;
+      } else if (req.body.image) {
+        updateData.image = req.body.image;
       }
 
       const updatedProduct = await Product.findByIdAndUpdate(

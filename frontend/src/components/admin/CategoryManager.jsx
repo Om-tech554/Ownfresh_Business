@@ -10,6 +10,7 @@ import {
     Type
 } from "lucide-react";
 import toast from "react-hot-toast";
+import ImagePickerModal from "./ImagePickerModal";
 
 const CategoryManager = () => {
     const [categories, setCategories] = useState([]);
@@ -22,8 +23,9 @@ const CategoryManager = () => {
         name: "",
         description: ""
     });
-    const [imageFile, setImageFile] = useState(null);
-    const [imagePreview, setImagePreview] = useState("");
+     const [imageFile, setImageFile] = useState(null);
+     const [imagePreview, setImagePreview] = useState("");
+     const [showImagePicker, setShowImagePicker] = useState(false);
 
     const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
@@ -250,6 +252,15 @@ const CategoryManager = () => {
                                         </div>
                                         <input type="file" className="hidden" accept="image/*" onChange={handleFileChange} />
                                     </label>
+
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowImagePicker(true)}
+                                        className="w-full bg-slate-900 text-white hover:bg-[#1E971D] py-3 rounded-xl text-xs font-bold uppercase tracking-widest transition-colors flex items-center justify-center gap-2"
+                                    >
+                                        <ImageIcon size={14} />
+                                        Choose from Gallery
+                                    </button>
                                 </div>
                             </div>
 
@@ -274,6 +285,16 @@ const CategoryManager = () => {
                     </div>
                 </div>
             )}
+
+            <ImagePickerModal
+                isOpen={showImagePicker}
+                onClose={() => setShowImagePicker(false)}
+                onSelect={(url) => {
+                    setImageFile(url);
+                    setImagePreview(url);
+                    toast.success("Image selected from gallery!");
+                }}
+            />
         </div>
     );
 };

@@ -4,10 +4,11 @@ import ProductList from "./admin/ProductList";
 import BlogList from './admin/BlogList';
 import AdminOrders from './admin/AdminOrders'; // [NEW]
 import { useSelector } from 'react-redux';
-import { Package, BookOpen, Ticket, ShoppingCart, Layers, Users } from "lucide-react"; // Added Layers
+import { Package, BookOpen, Ticket, ShoppingCart, Layers, Users, Image as ImageIcon } from "lucide-react"; // Added Layers
 import CouponManager from './admin/CouponManager';
 import CategoryManager from './admin/CategoryManager';
 import ReferralManager from './admin/ReferralManager';
+import GalleryManager from './admin/GalleryManager';
 
 function AdminDashboard() {
   const userData = useSelector((state) => state.user.userData);
@@ -72,6 +73,19 @@ function AdminDashboard() {
             Articles
           </button>
 
+          {(userData?.role === "admin" || userData?.role === "blogger") && (
+            <button
+              onClick={() => setActiveTab("gallery")}
+              className={`flex items-center gap-2 px-6 py-2.5 rounded-xl font-bold transition-all whitespace-nowrap ${activeTab === "gallery"
+                  ? "bg-[#1E971D] text-white shadow-lg shadow-[#1E971D]/20"
+                  : "text-slate-500 hover:bg-slate-50"
+                }`}
+            >
+              <ImageIcon className="w-4 h-4" />
+              Gallery
+            </button>
+          )}
+
           {userData?.role === "admin" && (
             <button
               onClick={() => setActiveTab("coupons")}
@@ -103,6 +117,7 @@ function AdminDashboard() {
       <div className="mt-6">
         {activeTab === "products" && userData?.role === "admin" && <ProductList />}
         {activeTab === "blogs" && (userData?.role === "admin" || userData?.role === "blogger") && <BlogList />}
+        {activeTab === "gallery" && (userData?.role === "admin" || userData?.role === "blogger") && <GalleryManager />}
         {activeTab === "coupons" && userData?.role === "admin" && <CouponManager />}
         {activeTab === "categories" && userData?.role === "admin" && <CategoryManager />}
         {activeTab === "orders" && userData?.role === "admin" && <AdminOrders />}

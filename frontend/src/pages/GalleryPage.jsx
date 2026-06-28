@@ -3,73 +3,13 @@ import Navbar from '../components/Navbar';
 import { RxCross2 } from 'react-icons/rx';
 import { FaInstagram, FaChevronLeft, FaChevronRight } from 'react-icons/fa6';
 import { useSearchParams } from 'react-router-dom';
+import axios from 'axios';
+
+const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
 /* Gallery Data */
-const galleryImages = [
-  {
-    id: 1,
-    src: 'https://images.unsplash.com/photo-1543353071-087092ec393a?q=80&w=1200&auto=format&fit=crop',
-    alt: 'Stone-pressed oil process',
-    category: 'Extraction',
-    caption: 'From Soil to Oil - Traditional stone-pressing',
-  },
-  {
-    id: 2,
-    src: 'https://images.unsplash.com/photo-1620706857370-e1b9770e8bb1?q=80&w=1200&auto=format&fit=crop',
-    alt: 'Pure sesame oil',
-    category: 'Our Oils',
-    caption: '100% Pure Sesame Oil - No additives',
-  },
-  {
-    id: 3,
-    src: 'https://images.unsplash.com/photo-1505932794465-147d1f1b2c97?q=80&w=1200&auto=format&fit=crop',
-    alt: 'Groundnut oil in kitchen',
-    category: 'Culinary',
-    caption: 'Kitchen Inspirations - Cook with purity',
-  },
-  {
-    id: 4,
-    src: 'https://images.unsplash.com/photo-1519996529931-28324d5a1f6a?q=80&w=1200&auto=format&fit=crop',
-    alt: 'Handpicked seeds',
-    category: 'Ingredients',
-    caption: "Nature's Best - Handpicked nuts & seeds",
-  },
-  {
-    id: 5,
-    src: 'https://images.unsplash.com/photo-1606914469725-e398d2f1d7ee?q=80&w=1200&auto=format&fit=crop',
-    alt: 'Healthy meal with OwnFresh oil',
-    category: 'Culinary',
-    caption: 'Healthy Cooking - Every meal made better',
-  },
-  {
-    id: 6,
-    src: 'https://images.unsplash.com/photo-1600271881734-60ef0e5cb15b?q=80&w=1200&auto=format&fit=crop',
-    alt: 'Oil pouring shot',
-    category: 'Our Oils',
-    caption: 'Purity in Every Drop',
-  },
-  {
-    id: 7,
-    src: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?q=80&w=1200&auto=format&fit=crop',
-    alt: 'Community celebration',
-    category: 'Community',
-    caption: 'Community & Celebrations',
-  },
-  {
-    id: 8,
-    src: 'https://images.unsplash.com/photo-1444858291040-58f756a3bdd6?q=80&w=1200&auto=format&fit=crop',
-    alt: 'Farm to bottle',
-    category: 'Extraction',
-    caption: 'Farm to Bottle - 100% Traceable',
-  },
-  {
-    id: 9,
-    src: 'https://images.unsplash.com/photo-1606787366850-de6330128bfc?q=80&w=1200&auto=format&fit=crop',
-    alt: 'Customer experience',
-    category: 'Community',
-    caption: 'Happy Customers Across India',
-  },
-  /* Certifications */
+/* Certifications (Kept separate and static per requirements) */
+const staticCertifications = [
   {
     id: 10,
     src: 'https://res.cloudinary.com/dkhq2wlwg/image/upload/v1774961102/ownfresh_media/vwylvev18xuvlp7pdak8.jpg',
@@ -182,6 +122,21 @@ const GalleryPage = () => {
   const [activeCategory, setActiveCategory] = useState('All');
   const [lightboxIndex, setLightboxIndex] = useState(null);
   const [searchParams] = useSearchParams();
+  const [dynamicImages, setDynamicImages] = useState([]);
+
+  useEffect(() => {
+    const fetchGallery = async () => {
+      try {
+        const res = await axios.get(`${API_BASE_URL}/api/gallery`);
+        if (res.data.success) {
+          setDynamicImages(res.data.images || []);
+        }
+      } catch (error) {
+        console.error("Failed to load gallery from backend", error);
+      }
+    };
+    fetchGallery();
+  }, []);
 
   useEffect(() => {
     const categoryParam = searchParams.get('category');
@@ -190,10 +145,24 @@ const GalleryPage = () => {
     }
   }, [searchParams]);
 
+  // Combine dynamic backend images (normalized) with static certifications
+  const allImages = [
+    ...dynamicImages.map((img) => ({
+      id: img._id,
+      src: img.imageUrl,
+      alt: img.title,
+      category: img.category,
+      caption: img.description || img.title,
+    })),
+    ...staticCertifications,
+  ];
+
   const filtered =
     activeCategory === 'All'
-      ? galleryImages
-      : galleryImages.filter((img) => img.category === activeCategory);
+      ? allImages
+      : activeCategory === 'Certifications'
+      ? staticCertifications
+      : allImages.filter((img) => img.category === activeCategory);
 
   return (
     <div className="w-full min-h-screen bg-white">

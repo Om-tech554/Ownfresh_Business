@@ -69,6 +69,10 @@ const orderSchema = new mongoose.Schema({
     type: String,
     default: ""
   },
+  walletDeductedAmount: {
+    type: Number,
+    default: 0
+  },
   referrer: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "User",
