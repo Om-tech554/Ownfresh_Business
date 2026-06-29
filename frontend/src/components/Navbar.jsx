@@ -176,7 +176,7 @@ const Navbar = () => {
                             <div className="flex flex-col flex-1 overflow-hidden">
                                 <span className="text-sm font-bold text-black truncate" dangerouslySetInnerHTML={{ __html: p.searchTitle }}></span>
                                 <div className="flex items-center gap-2 mt-1">
-                                    <span className={`text-[9px] font-black px-1.5 py-0.5 rounded text-white uppercase tracking-widest ${p.searchType === 'Product' ? 'bg-[#F9DD19] !text-black' : 'bg-black'}`}>
+                                    <span className={`text-[9px] font-black px-1.5 py-0.5 rounded text-white uppercase tracking-widest ${p.searchType === 'Product' ? 'bg-[#FFDD00] !text-black' : 'bg-black'}`}>
                                         {p.searchType}
                                     </span>
                                     <span className="text-[10px] text-gray-500 uppercase truncate">{p.category?.name || p.category || "General"}</span>
@@ -197,7 +197,7 @@ const Navbar = () => {
     return (
         <React.Fragment>
             <div className="sticky top-0 z-[1000] w-full flex flex-col shadow-sm bg-white">
-                <div className="w-full bg-[#F9DD19] text-black py-2.5 text-center text-xs font-bold tracking-[0.1em] uppercase relative px-4">
+                <div className="w-full bg-[#FFDD00] text-black py-2.5 text-center text-xs font-bold tracking-[0.1em] uppercase relative px-4">
                     🎉 FREE SHIPPING ON ORDERS ABOVE ₹999 | 100% PURE BOTANIC OILS
                 </div>
 
@@ -221,7 +221,7 @@ const Navbar = () => {
                                 >
                                     <SLink
                                         to={link.path}
-                                        className={`text-[13px] font-bold uppercase tracking-widest hover:underline underline-offset-8 decoration-2 transition-all whitespace-nowrap ${link.special ? 'text-[#F9DD19] bg-black px-4 py-2 rounded-full hover:no-underline hover:scale-105' : 'text-[#1E971D]'}`}
+                                        className={`text-[13px] font-bold uppercase tracking-widest hover:underline underline-offset-8 decoration-2 transition-all whitespace-nowrap ${link.special ? 'text-[#FFDD00] bg-black px-4 py-2 rounded-full hover:no-underline hover:scale-105' : 'text-[#24672E]'}`}
                                     >
                                         {link.name}
                                     </SLink>
@@ -233,7 +233,7 @@ const Navbar = () => {
                                                     <SLink
                                                         key={sub.name}
                                                         to={sub.path}
-                                                        className="block px-4 py-3 text-[11px] font-black uppercase tracking-widest text-[#1E971D] hover:bg-[#F9DD19] hover:text-black rounded-xl transition-all"
+                                                        className="block px-4 py-3 text-[11px] font-black uppercase tracking-widest text-[#24672E] hover:bg-[#FFDD00] hover:text-black rounded-xl transition-all"
                                                     >
                                                         {sub.name}
                                                     </SLink>
@@ -247,7 +247,7 @@ const Navbar = () => {
                     )}
 
                     <div className='flex items-center gap-5 ml-auto'>
-                        <RxHamburgerMenu size={28} className='text-black lg:hidden cursor-pointer hover:text-[#F9DD19] transition-colors' onClick={() => setShowMobileNav(true)} />
+                        <RxHamburgerMenu size={28} className='text-black lg:hidden cursor-pointer hover:text-[#FFDD00] transition-colors' onClick={() => setShowMobileNav(true)} />
 
                         {userData?.role !== "admin" && (
                             <div className="relative" ref={searchRefDesktop}>
@@ -255,7 +255,7 @@ const Navbar = () => {
                                     <div className='hidden md:flex items-center bg-gray-100 px-3 py-1.5 rounded-full outline outline-1 outline-gray-200 divide-x divide-gray-300'>
                                         {/* GEOLOCATION INJECTED HERE */}
                                         <div className='flex items-center gap-2 pr-3'>
-                                            <FaLocationDot size={14} className='text-[#F9DD19]' />
+                                            <FaLocationDot size={14} className='text-[#FFDD00]' />
                                             <div className='text-[11px] font-bold text-black uppercase tracking-wider truncate max-w-[80px]'>
                                                 {city || "Select City"}
                                             </div>
@@ -275,7 +275,7 @@ const Navbar = () => {
                                         <SearchDropdownUI />
                                     </div>
                                 ) : (
-                                    <FaSearchengin size={22} className='text-black cursor-pointer hover:text-[#F9DD19] transition-colors' onClick={() => setShowSearch(true)} />
+                                    <FaSearchengin size={22} className='text-black cursor-pointer hover:text-[#FFDD00] transition-colors' onClick={() => setShowSearch(true)} />
                                 )}
                             </div>
                         )}
@@ -294,8 +294,8 @@ const Navbar = () => {
                                 }}
                                 className='relative transition-colors block cursor-pointer group'
                             >
-                                <FaCartShopping size={22} className='text-black group-hover:text-[#F9DD19] transition-colors' />
-                                <span className='absolute -right-2 -top-2 text-[10px] font-bold text-black bg-[#F9DD19] rounded-full h-5 w-5 flex items-center justify-center border-2 border-white'>
+                                <FaCartShopping size={22} className='text-black group-hover:text-[#FFDD00] transition-colors' />
+                                <span className='absolute -right-2 -top-2 text-[10px] font-bold text-black bg-[#FFDD00] rounded-full h-5 w-5 flex items-center justify-center border-2 border-white'>
                                     {cartItems.reduce((acc, item) => acc + (item.quantity || 0), 0)}
                                 </span>
                             </div>
@@ -304,7 +304,7 @@ const Navbar = () => {
                         {userData?.role === "admin" && (
                             <div className='flex items-center gap-4 mr-2 bg-gray-50 px-4 py-2 rounded-full border border-gray-200'>
                                 <div className='flex items-center gap-2 cursor-pointer group' onClick={() => navigate('/admin/product/editor/create')} title="Add Product">
-                                    <FaPlus size={16} className='text-black group-hover:text-[#F9DD19] transition-colors' />
+                                    <FaPlus size={16} className='text-black group-hover:text-[#FFDD00] transition-colors' />
                                     <span className='text-[10px] font-bold uppercase tracking-widest hidden sm:block'>Product</span>
                                 </div>
                             </div>
@@ -313,7 +313,7 @@ const Navbar = () => {
                         {(userData?.role === "admin" || userData?.role === "blogger") && (
                             <div className='flex items-center gap-4 mr-2 bg-gray-50 px-4 py-2 rounded-full border border-gray-200'>
                                 <div className='flex items-center gap-2 cursor-pointer group' onClick={() => navigate('/admin')} title="Admin Dashboard">
-                                    <Layers size={18} className='text-black group-hover:text-[#F9DD19] transition-colors' />
+                                    <Layers size={18} className='text-black group-hover:text-[#FFDD00] transition-colors' />
                                     <span className='text-[10px] font-bold uppercase tracking-widest hidden sm:block'>Dashboard</span>
                                 </div>
                             </div>
@@ -322,19 +322,19 @@ const Navbar = () => {
                         {(userData?.role === "admin" || userData?.role === "blogger") && (
                             <div className='flex items-center gap-4 mr-2 bg-gray-50 px-4 py-2 rounded-full border border-gray-200'>
                                 <div className='flex items-center gap-2 cursor-pointer group' onClick={() => navigate('/admin/blog/editor/create')} title="Add Blog">
-                                    <FaMicroblog size={18} className='text-black group-hover:text-[#F9DD19] transition-colors' />
+                                    <FaMicroblog size={18} className='text-black group-hover:text-[#FFDD00] transition-colors' />
                                     <span className='text-[10px] font-bold uppercase tracking-widest hidden sm:block'>Blog</span>
                                 </div>
                             </div>
                         )}
 
                         {!userData ? (
-                            <SLink to="/signin" className="hidden lg:flex text-[13px] font-bold text-[#1E971D] uppercase tracking-widest hover:text-[#1E971D] hover:underline underline-offset-8 decoration-2 transition-all">
+                            <SLink to="/signin" className="hidden lg:flex text-[13px] font-bold text-[#24672E] uppercase tracking-widest hover:text-[#24672E] hover:underline underline-offset-8 decoration-2 transition-all">
                                 Login
                             </SLink>
                         ) : (
                             <div className='relative'>
-                                <div className='w-[35px] h-[35px] rounded-full bg-black text-[#F9DD19] font-bold flex items-center justify-center cursor-pointer text-sm' onClick={() => setShowInfo(prev => !prev)}>
+                                <div className='w-[35px] h-[35px] rounded-full bg-black text-[#FFDD00] font-bold flex items-center justify-center cursor-pointer text-sm' onClick={() => setShowInfo(prev => !prev)}>
                                     {userData.fullName?.slice(0, 2).toUpperCase()}
                                 </div>
                                 {showInfo && (
@@ -342,7 +342,7 @@ const Navbar = () => {
                                         <div className='text-xs font-bold text-gray-500 pb-2 border-b border-gray-100 truncate mb-2 uppercase tracking-wide'>
                                             {userData.fullName}
                                         </div>
-                                        {userData.role === "user" && <SLink to="/my-orders" onClick={() => setShowInfo(false)} className='text-sm text-black font-bold block py-1.5 hover:text-[#F9DD19] transition-colors'>My Orders</SLink>}
+                                        {userData.role === "user" && <SLink to="/my-orders" onClick={() => setShowInfo(false)} className='text-sm text-black font-bold block py-1.5 hover:text-[#FFDD00] transition-colors'>My Orders</SLink>}
                                         <div className='text-sm text-red-600 font-bold cursor-pointer block py-1.5 hover:text-black transition-colors' onClick={handleLogOut}>Log Out</div>
                                     </div>
                                 )}
@@ -355,7 +355,7 @@ const Navbar = () => {
                         <div className='md:hidden absolute top-[80px] left-0 w-full bg-white border-b border-gray-200 p-4 shadow-md' ref={searchRefMobile}>
                             <div className='flex items-center bg-gray-100 px-4 py-3 rounded-md w-full relative divide-x divide-gray-300'>
                                 <div className='flex items-center gap-2 pr-3 mr-3 max-w-[50%]'>
-                                    <FaLocationDot size={14} className='text-[#F9DD19] flex-shrink-0' />
+                                    <FaLocationDot size={14} className='text-[#FFDD00] flex-shrink-0' />
                                     <div className='text-[10px] font-bold text-black uppercase tracking-wider truncate'>
                                         {city || "Select City"}
                                     </div>
@@ -380,7 +380,7 @@ const Navbar = () => {
                                 alt="OwnFresh Logo"
                                 className="h-8 w-auto object-contain"
                             />
-                            <RxCross2 size={28} onClick={() => setShowMobileNav(false)} className='cursor-pointer text-black hover:text-[#F9DD19]' />
+                            <RxCross2 size={28} onClick={() => setShowMobileNav(false)} className='cursor-pointer text-black hover:text-[#FFDD00]' />
                         </div>
                         {userData?.role !== "admin" && (
                             <div className="flex flex-col gap-4">
@@ -389,7 +389,7 @@ const Navbar = () => {
                                         <SLink
                                             to={link.path}
                                             onClick={() => setShowMobileNav(false)}
-                                            className={`text-[15px] font-bold uppercase tracking-widest underline-offset-8 decoration-2 transition-all block ${link.special ? 'text-[#F9DD19] bg-black p-3 rounded-xl text-center' : 'text-[#1E971D] hover:underline'}`}
+                                            className={`text-[15px] font-bold uppercase tracking-widest underline-offset-8 decoration-2 transition-all block ${link.special ? 'text-[#FFDD00] bg-black p-3 rounded-xl text-center' : 'text-[#24672E] hover:underline'}`}
                                         >
                                             {link.name}
                                         </SLink>
@@ -400,7 +400,7 @@ const Navbar = () => {
                                                         key={sub.name}
                                                         to={sub.path}
                                                         onClick={() => setShowMobileNav(false)}
-                                                        className="text-[12px] font-bold uppercase tracking-widest text-gray-500 py-1 hover:text-[#1E971D]"
+                                                        className="text-[12px] font-bold uppercase tracking-widest text-gray-500 py-1 hover:text-[#24672E]"
                                                     >
                                                         {sub.name}
                                                     </SLink>
@@ -429,7 +429,7 @@ const Navbar = () => {
                                         <FaCartShopping size={20} className="text-black" />
                                         <span className="font-bold uppercase tracking-widest text-xs">My Cart</span>
                                     </div>
-                                    <span className="bg-[#F9DD19] text-black font-bold h-6 w-6 rounded-full flex items-center justify-center text-[10px]">
+                                    <span className="bg-[#FFDD00] text-black font-bold h-6 w-6 rounded-full flex items-center justify-center text-[10px]">
                                         {cartItems.reduce((acc, item) => acc + (item.quantity || 0), 0)}
                                     </span>
                                 </div>

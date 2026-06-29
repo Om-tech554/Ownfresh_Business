@@ -107,7 +107,7 @@ const EditBlog = ({ blog, onClose, onUpdated }) => {
       );
 
       toast.success("Blog updated!", {
-        style: { background: "#1e293b", color: "#fff", border: "1px solid #1E971D" },
+        style: { background: "#1e293b", color: "#fff", border: "1px solid #24672E" },
       });
 
       setTimeout(() => {
@@ -224,7 +224,7 @@ const EditBlog = ({ blog, onClose, onUpdated }) => {
             <button
               type="button"
               onClick={addSection}
-              className="mt-4 flex gap-2 text-[#1E971D] text-sm font-semibold"
+              className="mt-4 flex gap-2 text-[#24672E] text-sm font-semibold"
             >
               <PlusCircle className="w-5" /> Add New Content Block
             </button>
@@ -294,7 +294,7 @@ const EditBlog = ({ blog, onClose, onUpdated }) => {
                 </>
               ) : (
                 <>
-                  <CheckCircle2 className="w-5 h-5 text-[#1E971D]" />
+                  <CheckCircle2 className="w-5 h-5 text-[#24672E]" />
                   Save Changes
                 </>
               )}

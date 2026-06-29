@@ -1,18 +1,26 @@
 @import "tailwindcss";
 
 @theme {
-  --color-brand-yellow: #F9DD19;
+  --color-brand-yellow: #FFDD00;
   --color-brand-dark: #181818;
   --color-brand-bg: #ffffff;
+  --font-sans: "Poppins", sans-serif;
+  --font-playfair: "Playfair Display", serif;
+  --font-montserrat: "Montserrat", sans-serif;
+  --font-poppins: "Poppins", sans-serif;
+}
+
+html, body {
+  font-family: var(--font-sans);
 }
 
 /* Base custom utility for the new UI */
 @utility btn-primary {
-  @apply bg-[#F9DD19] text-black font-bold uppercase tracking-widest px-8 py-3 rounded-full transition-all duration-300 hover:bg-[#181818] hover:text-white cursor-pointer;
+  @apply bg-[#FFDD00] text-black font-bold uppercase tracking-widest px-8 py-3 rounded-full transition-all duration-300 hover:bg-[#181818] hover:text-white cursor-pointer;
 }
 
 @utility btn-secondary {
-  @apply bg-[#181818] text-white font-bold uppercase tracking-widest px-8 py-3 rounded-full transition-all duration-300 hover:bg-[#F9DD19] hover:text-black cursor-pointer;
+  @apply bg-[#181818] text-white font-bold uppercase tracking-widest px-8 py-3 rounded-full transition-all duration-300 hover:bg-[#FFDD00] hover:text-black cursor-pointer;
 }
 
 /* Typography refinements */

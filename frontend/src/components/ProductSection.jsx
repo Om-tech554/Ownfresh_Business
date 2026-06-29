@@ -70,7 +70,7 @@ const ProductSection = ({ limit = null }) => {
   };
 
   return (
-    <div className={`w-full bg-white px-0 md:px-12 lg:px-24 mx-auto ${limit ? "pt-12" : "pt-24"}`}>
+    <div id="products" className={`w-full bg-white px-0 md:px-12 lg:px-24 mx-auto ${limit ? "pt-12" : "pt-24"}`}>
       <Toaster position="top-center" />
 
       {/* HEADER */}
@@ -78,11 +78,11 @@ const ProductSection = ({ limit = null }) => {
         <h2 className="text-3xl md:text-5xl font-black text-black tracking-tight uppercase">
           {limit ? "Featured Products" : "All Products"}
         </h2>
-        <div className="w-16 h-1 bg-[#F9DD19] mt-6"></div>
+        <div className="w-16 h-1 bg-[#FFDD00] mt-6"></div>
       </div>
 
       {loading ? (
-        <div className="flex justify-center py-32"><Loader2 className="w-12 h-12 text-[#F9DD19] animate-spin" /></div>
+        <div className="flex justify-center py-32"><Loader2 className="w-12 h-12 text-[#FFDD00] animate-spin" /></div>
       ) : (
         <>
           {/* CATEGORY FILTER BAR */}
@@ -92,7 +92,7 @@ const ProductSection = ({ limit = null }) => {
                 key={i}
                 onClick={() => { setActiveCategory(cat); setVisibleCount(8); }}
                 className={`whitespace-nowrap px-6 py-2 rounded-full font-bold uppercase tracking-wider text-xs transition-colors border snap-start ${activeCategory === cat
-                  ? "bg-[#F9DD19] text-black border-[#F9DD19]"
+                  ? "bg-[#FFDD00] text-black border-[#FFDD00]"
                   : "bg-white text-gray-500 border-gray-200 hover:border-black hover:text-black"
                   }`}
               >
@@ -115,7 +115,7 @@ const ProductSection = ({ limit = null }) => {
                   >
                     <div className="relative h-48 w-full rounded-md overflow-hidden bg-transparent mb-4 flex items-center justify-center">
                       <img src={p.image} alt={p.name} className="h-full w-auto object-contain transition-transform duration-500 group-hover:scale-105 mix-blend-multiply" />
-                      {Number(p.price) < 500 && <span className="absolute top-2 left-2 bg-[#F9DD19] text-black text-[10px] font-bold px-2 py-1 uppercase tracking-widest">Sale</span>}
+                      {Number(p.price) < 500 && <span className="absolute top-2 left-2 bg-[#FFDD00] text-black text-[10px] font-bold px-2 py-1 uppercase tracking-widest">Sale</span>}
                     </div>
 
                     <div className="flex flex-col flex-grow w-full items-center">
@@ -127,7 +127,7 @@ const ProductSection = ({ limit = null }) => {
                         <button
                           onClick={(e) => { e.stopPropagation(); e.preventDefault(); handleAddToCart(p); }}
                           disabled={addedItems[p._id]}
-                          className={`w-full py-3 rounded-full text-xs font-bold uppercase tracking-widest transition-all duration-300 ${addedItems[p._id] ? "bg-green-500 text-white" : "bg-black text-white hover:bg-[#F9DD19] hover:text-black"}`}
+                          className={`w-full py-3 rounded-full text-xs font-bold uppercase tracking-widest transition-all duration-300 ${addedItems[p._id] ? "bg-green-500 text-white" : "bg-black text-white hover:bg-[#FFDD00] hover:text-black"}`}
                         >
                           {addedItems[p._id] ? "Added to Cart" : "Add to Cart"}
                         </button>
@@ -143,13 +143,13 @@ const ProductSection = ({ limit = null }) => {
           {filteredProducts.length > 0 && (
             <div className="mt-8 mb-20 flex justify-center w-full px-6">
               {limit ? (
-                <SLink to="/shop" className="flex items-center justify-center px-10 py-4 rounded-2xl font-black uppercase tracking-[0.2em] text-[11px] bg-[#F9DD19] text-slate-900 shadow-xl shadow-yellow-200 transition-all duration-300 hover:bg-slate-900 hover:text-white active:scale-95 border-2 border-transparent hover:border-slate-800 cursor-pointer w-full md:w-auto group">
+                <SLink to="/shop" className="flex items-center justify-center px-10 py-4 rounded-2xl font-black uppercase tracking-[0.2em] text-[11px] bg-[#FFDD00] text-slate-900 shadow-xl shadow-yellow-200 transition-all duration-300 hover:bg-slate-900 hover:text-white active:scale-95 border-2 border-transparent hover:border-slate-800 cursor-pointer w-full md:w-auto group">
                   View All Products
                   <ArrowRight size={16} className="ml-2 transition-transform group-hover:translate-x-1" />
                 </SLink>
               ) : (
                 products.filter(p => activeCategory === "All" || p.category === activeCategory).length > visibleCount && (
-                  <button onClick={() => setVisibleCount(v => v + 4)} className="flex items-center justify-center px-10 py-4 rounded-2xl font-black uppercase tracking-[0.2em] text-[11px] bg-[#F9DD19] text-slate-900 shadow-xl shadow-yellow-200 transition-all duration-300 hover:bg-slate-900 hover:text-white active:scale-95 border-2 border-transparent hover:border-slate-800 cursor-pointer w-full md:w-auto group">
+                  <button onClick={() => setVisibleCount(v => v + 4)} className="flex items-center justify-center px-10 py-4 rounded-2xl font-black uppercase tracking-[0.2em] text-[11px] bg-[#FFDD00] text-slate-900 shadow-xl shadow-yellow-200 transition-all duration-300 hover:bg-slate-900 hover:text-white active:scale-95 border-2 border-transparent hover:border-slate-800 cursor-pointer w-full md:w-auto group">
                     Load More
                     <ArrowRight size={16} className="ml-2 transition-transform group-hover:translate-x-1" />
                   </button>

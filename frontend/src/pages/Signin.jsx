@@ -243,7 +243,7 @@
 //       </button>
 
 //       <div className="bg-white rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.06)] w-full max-w-md p-10 border border-gray-100">
-        
+
 //         {/* Header */}
 //         <div className="text-center mb-8">
 //           <h1
@@ -453,7 +453,7 @@ const SignIn = () => {
       dispatch(setUserData(data));
       localStorage.setItem("oil_user", JSON.stringify(data));
 
-      toast.success("Logged in with Google!",{ duration: 1500 });
+      toast.success("Logged in with Google!", { duration: 1500 });
       navigate("/");
     } catch (error) {
       if (error.response?.status === 400) {
@@ -461,7 +461,7 @@ const SignIn = () => {
         return navigate("/signup");
       }
 
-      toast.error("Google Authentication failed",{ duration: 1500 });
+      toast.error("Google Authentication failed", { duration: 1500 });
     }
   };
 
@@ -485,10 +485,10 @@ const SignIn = () => {
         {/* Header */}
         <div className="text-center mb-8">
           <h1
-            className="text-4xl font-black tracking-tight mb-2"
-            style={{ color: primaryColor }}
+            className="text-4xl font-bold tracking-tight mb-2 font-playfair"
+            style={{ color: "#2F5D50" }}
           >
-            OwnFresh
+            Botanic Stone
           </h1>
           <p className="text-gray-500 font-medium">
             Welcome back! Please enter your details.
@@ -602,7 +602,7 @@ const SignIn = () => {
 
         {/* Footer */}
         <p className="text-sm text-center text-gray-500 mt-8 font-medium">
-          New to OwnFresh?{" "}
+          New to Botanic Stone?{" "}
           <span
             className="font-bold cursor-pointer transition-colors"
             style={{ color: primaryColor }}

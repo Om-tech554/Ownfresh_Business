@@ -9,20 +9,22 @@ export const OurStorySnippet = () => {
         <section className="w-full bg-[#fcfcfc] py-20 px-6 md:px-12 lg:px-24">
             <div className="max-w-7xl mx-auto flex flex-col lg:flex-row items-center gap-12 lg:gap-20">
                 <div className="w-full lg:w-1/2 flex justify-center">
-                    <div className="relative w-full aspect-[4/3] bg-gray-100 shadow-[15px_15px_0_#F9DD19] border border-gray-200">
+                    <div className="relative w-full aspect-[4/3] bg-gray-100 shadow-[15px_15px_0_#FFDD00] border border-gray-200">
                         <img className="w-full h-full object-cover" src="https://res.cloudinary.com/dkhq2wlwg/image/upload/v1775112913/ownfresh_media/lo3psirlwzaqc5bsyfbx.png" alt="Botanic Purity" />
                     </div>
                 </div>
                 <div className="w-full lg:w-1/2 flex flex-col items-start text-left">
-                    <p className="text-sm font-bold text-gray-500 uppercase tracking-[0.2em] mb-2 border-l-4 border-[#F9DD19] pl-3">Discover</p>
+                    <p className="text-sm font-bold text-gray-500 uppercase tracking-[0.2em] mb-2 border-l-4 border-[#FFDD00] pl-3">Discover</p>
                     <h2 className="text-3xl md:text-5xl font-black text-black uppercase mb-6 leading-tight">
-                        Our <span className="bg-[#F9DD19] px-2 py-0 inline-block">Story</span>
+                        Our <span className="bg-[#FFDD00] px-2 py-0 inline-block">Story</span>
                     </h2>
+                    <h3 className="text-2xl md:text-3xl font-semibold text-black uppercase mb-6 leading-tight">Pure...Natural...Truly Fresh 😍</h3>
                     <p className="text-gray-700 leading-relaxed mb-6 font-medium text-lg">
-                        OwnFresh Cooking Oil Series is a premium, researched produce. Extremely pure, without chemicals, preservatives or additives.
-                        Premium quality with Botanic Purity and Global Gold Standards.
+                        Discover the essence of health and taste with our 100% pure, stone-pressed oils. Crafted from the finest soil-grown nuts and seeds, our oils are natural, nutrient-rich, and made to elevate every recipe.
+
+                        At OwnFresh, we bring you the perfect blend of tradition, purity, and care straight from our heritage to your kitchen.
                     </p>
-                    <SLink to="/whyownfresh" className="btn-secondary inline-flex items-center justify-center">Explore More</SLink>
+                    <SLink to="/whyownfresh" className="btn-secondary inline-flex items-center justify-center">Read More</SLink>
                 </div>
             </div>
         </section>
@@ -84,7 +86,7 @@ export const Gallery = () => {
 
                         <button
                             onClick={() => navigate("/gallery")}
-                            className="group inline-flex items-center gap-3 self-start bg-black hover:bg-[#F9DD19] text-white hover:text-black font-black uppercase tracking-widest text-xs px-7 py-3.5 transition-all duration-300 shadow-md mt-2"
+                            className="group inline-flex items-center gap-3 self-start bg-black hover:bg-[#FFDD00] text-white hover:text-black font-black uppercase tracking-widest text-xs px-7 py-3.5 transition-all duration-300 shadow-md mt-2"
                         >
                             View Full Gallery
                             <span className="transition-transform duration-300 group-hover:translate-x-1">→</span>
@@ -143,9 +145,9 @@ export const Gallery = () => {
 export const FAQSection = () => {
     const [openIndex, setOpenIndex] = useState(0);
     const faqs = [
-        { q: "Is the oil 100% natural and cold-pressed?", a: "Yes, all our oils are extracted using traditional stone-pressing techniques avoiding heat and chemicals." },
-        { q: "What is the shelf life of the products?", a: "Typically 6 to 9 months in a cool, dry place since we use zero preservatives." },
-        { q: "Do you ship across India?", a: "Yes, we ship nationwide! Orders above ₹999 qualify for completely free delivery." },
+        { q: "What makes OwnFresh oils different from regular cooking oils?", a: "OwnFresh oils are 100% pure, stone-pressed from whole nuts and seeds. We use traditional cold-pressing techniques to retain the natural nutrients, making our oils healthier and more flavorful. No chemicals or additives are used, ensuring the highest quality." },
+        { q: "Are OwnFresh oils certified organic?", a: "Yes, all OwnFresh oils are certified organic. We source premium-quality nuts and seeds that are grown without harmful pesticides or chemicals, ensuring that you and your family enjoy healthy, chemical-free cooking." },
+        { q: "How does OwnFresh ensure the freshness and purity of its oils?", a: "We carefully monitor every step, from sourcing raw materials to the cold-pressing process. Each batch of oil is produced in small quantities to maintain freshness, and our packaging is designed to preserve the oil’s natural flavor and nutrients." },
         { q: "Can this oil be used for deep frying?", a: "Absolutely. Our oils have a high smoke point and maintain molecular integrity perfectly during frying." }
     ];
 
@@ -153,7 +155,7 @@ export const FAQSection = () => {
         <section className="w-full bg-[#fcfcfc] py-20 px-6 md:px-12 lg:px-24 border-t border-gray-100">
             <div className="max-w-4xl mx-auto">
                 <div className="text-center mb-16">
-                    <h2 className="text-3xl md:text-5xl font-black text-black tracking-tight uppercase">Got <span className="text-[#F9DD19]">Questions?</span></h2>
+                    <h2 className="text-3xl md:text-5xl font-black text-black tracking-tight uppercase">Got <span className="text-[#FFDD00]">Questions?</span></h2>
                     <p className="uppercase text-gray-500 font-bold tracking-widest text-xs mt-4">Frequently Asked Questions</p>
                 </div>
                 <div className="flex flex-col gap-4">
@@ -164,7 +166,7 @@ export const FAQSection = () => {
                                 className="w-full flex items-center justify-between p-6 text-left hover:bg-gray-50 transition-colors"
                             >
                                 <span className="font-bold text-black uppercase">{faq.q}</span>
-                                <span className={`transform transition-transform duration-300 font-black text-xl text-[#F9DD19] ${i === openIndex ? 'rotate-180' : ''}`}>↓</span>
+                                <span className={`transform transition-transform duration-300 font-black text-xl text-[#FFDD00] ${i === openIndex ? 'rotate-180' : ''}`}>↓</span>
                             </button>
                             <div className={`overflow-hidden transition-all duration-300 ${i === openIndex ? 'max-h-40 border-t border-gray-100' : 'max-h-0'}`}>
                                 <p className="p-6 text-gray-600 font-medium">{faq.a}</p>

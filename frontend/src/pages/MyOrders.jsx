@@ -95,7 +95,7 @@ const MyOrders = () => {
         <div className="min-h-screen bg-slate-50">
             <Navbar />
             <div className="flex flex-col items-center justify-center pt-40">
-                <div className="w-12 h-12 border-4 border-[#F9DD19] border-t-transparent rounded-full animate-spin"></div>
+                <div className="w-12 h-12 border-4 border-[#FFDD00] border-t-transparent rounded-full animate-spin"></div>
                 <p className="mt-4 font-black uppercase tracking-widest text-slate-400 text-xs">Loading Orders...</p>
             </div>
         </div>
@@ -109,11 +109,11 @@ const MyOrders = () => {
                 <div className="flex items-center justify-between mb-8">
                     <div>
                         <h1 className="text-3xl font-black text-slate-900 uppercase tracking-tight">
-                            My <span className="text-[#F9DD19]">Orders</span>
+                            My <span className="text-[#FFDD00]">Orders</span>
                         </h1>
                         <p className="text-slate-500 text-xs font-bold uppercase tracking-widest mt-1">Track your wellness journey</p>
                     </div>
-                    <Link to="/shop" className="text-[10px] font-black uppercase tracking-widest bg-slate-900 text-white px-4 py-2.5 rounded-xl hover:bg-[#F9DD19] hover:text-black transition-all">
+                    <Link to="/shop" className="text-[10px] font-black uppercase tracking-widest bg-slate-900 text-white px-4 py-2.5 rounded-xl hover:bg-[#FFDD00] hover:text-black transition-all">
                         New Order
                     </Link>
                 </div>
@@ -125,7 +125,7 @@ const MyOrders = () => {
                         </div>
                         <h3 className="text-lg font-black text-slate-900 uppercase">No orders yet</h3>
                         <p className="text-slate-500 text-sm mt-2 max-w-xs mx-auto">Start your journey to botanic purity by exploring our premium range of oils.</p>
-                        <Link to="/shop" className="mt-6 inline-block bg-[#F9DD19] text-black font-black uppercase tracking-widest text-[11px] px-8 py-4 rounded-2xl hover:shadow-xl hover:shadow-yellow-200 transition-all">
+                        <Link to="/shop" className="mt-6 inline-block bg-[#FFDD00] text-black font-black uppercase tracking-widest text-[11px] px-8 py-4 rounded-2xl hover:shadow-xl hover:shadow-yellow-200 transition-all">
                             Go to Shop
                         </Link>
                     </div>
@@ -149,7 +149,7 @@ const MyOrders = () => {
                                         <div className="space-y-1 hidden sm:block">
                                             <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Ship To</p>
                                             <div className="flex items-center gap-1">
-                                                <p className="text-[11px] font-bold text-[#1E971D] uppercase">
+                                                <p className="text-[11px] font-bold text-[#24672E] uppercase">
                                                     {order.deliveryAddress?.areaName || "Location"}
                                                 </p>
                                                 <div className="relative group/addr">
@@ -178,7 +178,7 @@ const MyOrders = () => {
 
                                         {/* Dynamic Progress Bar */}
                                         <div
-                                            className="absolute top-1/2 left-0 h-1 bg-[#1E971D] -translate-y-1/2 transition-all duration-1000 ease-out z-0"
+                                            className="absolute top-1/2 left-0 h-1 bg-[#24672E] -translate-y-1/2 transition-all duration-1000 ease-out z-0"
                                             style={{
                                                 width: order.status === 'pending' ? '5%' :
                                                     order.status === 'processing' ? '33%' :
@@ -215,13 +215,13 @@ const MyOrders = () => {
                                                 <div key={idx} className="relative z-10 flex flex-col items-center">
                                                     <div className={`
                                                         p-2.5 rounded-full ring-4 ring-white shadow-sm transition-all duration-500
-                                                        ${isDone ? 'bg-[#1E971D] text-white' : 'bg-white text-slate-300 border-2 border-slate-100'}
+                                                        ${isDone ? 'bg-[#24672E] text-white' : 'bg-white text-slate-300 border-2 border-slate-100'}
                                                     `}>
                                                         <step.icon size={16} />
                                                     </div>
                                                     <p className={`
                                                         absolute top-full mt-2 text-[10px] font-black uppercase whitespace-nowrap
-                                                        ${isDone ? 'text-[#1E971D]' : 'text-slate-400'}
+                                                        ${isDone ? 'text-[#24672E]' : 'text-slate-400'}
                                                     `}>
                                                         {step.label}
                                                     </p>
@@ -233,7 +233,7 @@ const MyOrders = () => {
                                     {/* Tracking Status Text */}
                                     <div className="mt-8">
                                         <p className="text-xs font-bold text-slate-600">
-                                            Status: <span className={`uppercase font-black ${order.status === 'cancelled' ? 'text-red-500' : order.status === 'cancellation_requested' ? 'text-orange-500' : 'text-[#1E971D]'}`}>{order.status}</span>
+                                            Status: <span className={`uppercase font-black ${order.status === 'cancelled' ? 'text-red-500' : order.status === 'cancellation_requested' ? 'text-orange-500' : 'text-[#24672E]'}`}>{order.status}</span>
                                         </p>
                                     </div>
                                 </div>

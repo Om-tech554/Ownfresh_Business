@@ -21,10 +21,10 @@ const PartnersSection = () => {
   return (
     <section className="py-16 bg-white overflow-hidden" data-aos="fade-up">
       <div className="container mx-auto px-4 mb-10 text-center">
-        <h2 className="text-3xl md:text-4xl font-bold text-[#F9DD19] uppercase tracking-wider mb-2">
+        <h2 className="text-3xl md:text-4xl font-bold text-[#FFDD00] uppercase tracking-wider mb-2">
           Our Valued Partners
         </h2>
-        <div className="w-24 h-1 bg-[#F9DD19] mx-auto rounded-full"></div>
+        <div className="w-24 h-1 bg-[#FFDD00] mx-auto rounded-full"></div>
       </div>
 
       <div className="relative flex overflow-x-hidden">

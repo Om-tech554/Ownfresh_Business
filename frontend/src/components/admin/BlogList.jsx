@@ -297,14 +297,14 @@ const BlogList = () => {
         <div className="flex items-center gap-4">
           <button
             onClick={() => navigate("/admin")}
-            className="p-2.5 bg-white border border-slate-200 rounded-xl text-slate-600 hover:text-[#1E971D] hover:border-[#1E971D] transition-all shadow-sm group"
+            className="p-2.5 bg-white border border-slate-200 rounded-xl text-slate-600 hover:text-[#24672E] hover:border-[#24672E] transition-all shadow-sm group"
             title="Back to Admin Dashboard"
           >
             <ChevronLeft className="w-5 h-5 group-hover:-translate-x-0.5 transition-transform" />
           </button>
           <div>
             <h2 className="text-4xl font-extrabold text-slate-900 tracking-tight mb-2">
-              Industry <span className="text-[#1E971D]">Insights</span>
+              Industry <span className="text-[#24672E]">Insights</span>
             </h2>
             <p className="text-slate-500 max-w-2xl">
               Manage and monitor your latest company updates and oil market analysis.
@@ -313,12 +313,12 @@ const BlogList = () => {
         </div>
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-2 bg-white px-4 py-2 rounded-xl shadow-sm border border-slate-200 h-fit">
-            <TrendingUp className="w-4 h-4 text-[#1E971D]" />
+            <TrendingUp className="w-4 h-4 text-[#24672E]" />
             <span className="text-sm font-bold text-slate-700">{totalBlogs} Total Posts</span>
           </div>
           <button
             onClick={() => navigate("/admin/blog/editor/create")}
-            className="flex items-center gap-2 bg-[#1E971D] text-white px-6 py-2 rounded-xl font-bold hover:bg-[#1E971D]/90 transition-all shadow-lg shadow-[#1E971D]/20 h-fit"
+            className="flex items-center gap-2 bg-[#24672E] text-white px-6 py-2 rounded-xl font-bold hover:bg-[#24672E]/90 transition-all shadow-lg shadow-[#24672E]/20 h-fit"
           >
             <Edit3 className="w-4 h-4" />
             Create New Post
@@ -331,7 +331,7 @@ const BlogList = () => {
         <div className="relative w-full">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
           <input
-            className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border-none rounded-xl focus:ring-2 focus:ring-[#1E971D]/20 outline-none"
+            className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border-none rounded-xl focus:ring-2 focus:ring-[#24672E]/20 outline-none"
             placeholder="Search reports or news..."
             value={search}
             onChange={(e) => { setSearch(e.target.value); setPage(1); }}
@@ -399,7 +399,7 @@ const BlogList = () => {
               <div className="mt-auto pt-4 border-t border-slate-100 flex items-center justify-between">
                 <button
                   onClick={() => navigate(`/blog/${b._id}`)}
-                  className="text-slate-400 hover:text-[#1E971D] flex items-center gap-1 text-xs font-bold uppercase tracking-wider"
+                  className="text-slate-400 hover:text-[#24672E] flex items-center gap-1 text-xs font-bold uppercase tracking-wider"
                 >
                   <ExternalLink className="w-4 h-4" /> View Site
                 </button>
@@ -435,7 +435,7 @@ const BlogList = () => {
         <button
           disabled={page <= 1}
           onClick={() => setPage(page - 1)}
-          className="p-3 rounded-full bg-white border text-slate-600 disabled:opacity-30 hover:bg-[#1E971D] hover:text-white transition-all"
+          className="p-3 rounded-full bg-white border text-slate-600 disabled:opacity-30 hover:bg-[#24672E] hover:text-white transition-all"
         >
           <ChevronLeft className="w-5 h-5" />
         </button>
@@ -447,7 +447,7 @@ const BlogList = () => {
         <button
           disabled={page >= totalPages}
           onClick={() => setPage(page + 1)}
-          className="p-3 rounded-full bg-white border text-slate-600 disabled:opacity-30 hover:bg-[#1E971D] hover:text-white transition-all"
+          className="p-3 rounded-full bg-white border text-slate-600 disabled:opacity-30 hover:bg-[#24672E] hover:text-white transition-all"
         >
           <ChevronRight className="w-5 h-5" />
         </button>

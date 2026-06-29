@@ -113,7 +113,7 @@ const AdminProductEditor = () => {
   };
 
   if (loading) {
-    return <div className="min-h-screen flex justify-center pt-32 bg-[#fafafa]"><Loader2 className="w-12 h-12 animate-spin text-[#1E971D]" /></div>;
+    return <div className="min-h-screen flex justify-center pt-32 bg-[#fafafa]"><Loader2 className="w-12 h-12 animate-spin text-[#24672E]" /></div>;
   }
 
   return (
@@ -127,7 +127,7 @@ const AdminProductEditor = () => {
             <ArrowLeft className="w-5 h-5 text-gray-700" />
           </button>
           <div className="flex items-center gap-2 border-l-2 border-gray-200 pl-4 text-slate-900">
-            <Package className="w-5 h-5 text-[#1E971D]" />
+            <Package className="w-5 h-5 text-[#24672E]" />
             <h1 className="text-xl font-black uppercase tracking-widest">
               {isEditing ? "Edit Product Details" : "Draft New Product"}
             </h1>
@@ -136,7 +136,7 @@ const AdminProductEditor = () => {
         <button
           onClick={handleSave}
           disabled={saving}
-          className="flex items-center gap-2 bg-[#1E971D] text-white px-6 py-2.5 rounded-xl font-bold uppercase tracking-widest text-xs hover:bg-[#e63b2a] hover:shadow-lg transition-all disabled:opacity-50"
+          className="flex items-center gap-2 bg-[#24672E] text-white px-6 py-2.5 rounded-xl font-bold uppercase tracking-widest text-xs hover:bg-[#e63b2a] hover:shadow-lg transition-all disabled:opacity-50"
         >
           {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
           {isEditing ? "Save Configuration" : "Publish to Catalog"}
@@ -156,7 +156,7 @@ const AdminProductEditor = () => {
               <input
                 type="text"
                 placeholder="e.g. Premium Cold Pressed Mustard Oil"
-                className="w-full text-3xl font-black text-slate-900 border-none bg-slate-50 rounded-2xl p-4 focus:ring-2 focus:ring-[#1E971D]/20 focus:bg-white outline-none transition-all placeholder:text-slate-300"
+                className="w-full text-3xl font-black text-slate-900 border-none bg-slate-50 rounded-2xl p-4 focus:ring-2 focus:ring-[#24672E]/20 focus:bg-white outline-none transition-all placeholder:text-slate-300"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
               />
@@ -167,7 +167,7 @@ const AdminProductEditor = () => {
               <label className="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">Short Description</label>
               <textarea
                 placeholder="Briefly describe the key benefits and features of this product..."
-                className="w-full text-lg font-medium text-slate-700 border-none bg-slate-50 rounded-2xl p-4 h-32 resize-none focus:ring-2 focus:ring-[#1E971D]/20 focus:bg-white outline-none transition-all placeholder:text-slate-300"
+                className="w-full text-lg font-medium text-slate-700 border-none bg-slate-50 rounded-2xl p-4 h-32 resize-none focus:ring-2 focus:ring-[#24672E]/20 focus:bg-white outline-none transition-all placeholder:text-slate-300"
                 value={shortDesc}
                 onChange={(e) => setShortDesc(e.target.value)}
               />
@@ -177,7 +177,7 @@ const AdminProductEditor = () => {
             <div className="space-y-2">
               <label className="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">Product Category</label>
               <select
-                className="w-full text-lg font-bold text-slate-900 border-none bg-slate-50 rounded-2xl p-4 focus:ring-2 focus:ring-[#1E971D]/20 focus:bg-white outline-none transition-all appearance-none cursor-pointer"
+                className="w-full text-lg font-bold text-slate-900 border-none bg-slate-50 rounded-2xl p-4 focus:ring-2 focus:ring-[#24672E]/20 focus:bg-white outline-none transition-all appearance-none cursor-pointer"
                 value={category}
                 onChange={(e) => setCategory(e.target.value)}
               >
@@ -198,7 +198,7 @@ const AdminProductEditor = () => {
                   <input
                     type="number"
                     placeholder="0.00"
-                    className="w-full pl-12 pr-4 py-4 text-xl font-bold text-slate-900 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#1E971D]/20 focus:border-[#1E971D] outline-none transition-all"
+                    className="w-full pl-12 pr-4 py-4 text-xl font-bold text-slate-900 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#24672E]/20 focus:border-[#24672E] outline-none transition-all"
                     value={price}
                     onChange={(e) => setPrice(e.target.value)}
                   />
@@ -234,7 +234,7 @@ const AdminProductEditor = () => {
           <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm flex flex-col h-[500px]">
             <h3 className="text-xs font-black text-slate-900 uppercase tracking-widest border-b border-gray-100 pb-4 mb-4">Product Visuals</h3>
 
-            <label className="flex-1 cursor-pointer group flex flex-col items-center justify-center p-4 border-2 border-dashed border-gray-200 bg-slate-50 rounded-2xl hover:border-[#1E971D] hover:bg-orange-50/30 transition-all overflow-hidden relative">
+            <label className="flex-1 cursor-pointer group flex flex-col items-center justify-center p-4 border-2 border-dashed border-gray-200 bg-slate-50 rounded-2xl hover:border-[#24672E] hover:bg-orange-50/30 transition-all overflow-hidden relative">
               <input type="file" className="hidden" onChange={handleImageChange} accept="image/*" />
 
               {preview ? (
@@ -247,7 +247,7 @@ const AdminProductEditor = () => {
                   </div>
                 </>
               ) : (
-                <div className="flex flex-col items-center gap-3 text-slate-400 group-hover:text-[#1E971D]">
+                <div className="flex flex-col items-center gap-3 text-slate-400 group-hover:text-[#24672E]">
                   <div className="p-4 bg-white rounded-full shadow-sm border border-slate-100">
                     <Upload size={24} />
                   </div>
@@ -260,7 +260,7 @@ const AdminProductEditor = () => {
             <button
               type="button"
               onClick={() => setShowImagePicker(true)}
-              className="mt-4 w-full bg-slate-900 text-white hover:bg-[#1E971D] py-3 rounded-xl text-xs font-bold uppercase tracking-widest transition-colors flex items-center justify-center gap-2"
+              className="mt-4 w-full bg-slate-900 text-white hover:bg-[#24672E] py-3 rounded-xl text-xs font-bold uppercase tracking-widest transition-colors flex items-center justify-center gap-2"
             >
               <ImageIcon size={14} />
               Choose from Gallery

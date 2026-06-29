@@ -129,8 +129,8 @@ const CouponManager = () => {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-10">
         <div>
           <h2 className="text-3xl font-extrabold text-slate-900 tracking-tight flex items-center gap-3">
-            <Ticket className="text-[#1E971D] w-8 h-8" />
-            Promo <span className="text-[#1E971D]">Coupons</span>
+            <Ticket className="text-[#24672E] w-8 h-8" />
+            Promo <span className="text-[#24672E]">Coupons</span>
           </h2>
           <p className="text-slate-500 text-sm mt-1 uppercase tracking-widest font-bold">
             Promo Campaigns & Discounts
@@ -139,7 +139,7 @@ const CouponManager = () => {
         
         <button 
           onClick={() => setShowAddModal(true)}
-          className="flex items-center gap-2 bg-[#1E971D] text-white px-6 py-3 rounded-xl font-bold hover:bg-[#167a17] transition-all shadow-lg shadow-[#1E971D]/20 cursor-pointer"
+          className="flex items-center gap-2 bg-[#24672E] text-white px-6 py-3 rounded-xl font-bold hover:bg-[#167a17] transition-all shadow-lg shadow-[#24672E]/20 cursor-pointer"
         >
           <Plus size={20} />
           Create Promo
@@ -165,11 +165,11 @@ const CouponManager = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {coupons.map((coupon) => (
           <div key={coupon._id} className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm hover:shadow-md transition-all relative overflow-hidden group">
-            <div className={`absolute top-0 right-0 w-2 h-full ${coupon.isActive ? 'bg-[#1E971D]' : 'bg-red-400'}`} />
+            <div className={`absolute top-0 right-0 w-2 h-full ${coupon.isActive ? 'bg-[#24672E]' : 'bg-red-400'}`} />
             
             <div className="flex items-center justify-between mb-4">
               <div className="bg-slate-100 p-2 rounded-lg">
-                <Tag className="text-[#1E971D]" size={20} />
+                <Tag className="text-[#24672E]" size={20} />
               </div>
               <button 
                 onClick={() => handleDelete(coupon._id)}
@@ -186,7 +186,7 @@ const CouponManager = () => {
               )}
             </div>
             
-            <p className="text-sm font-bold text-[#1E971D] mb-4">
+            <p className="text-sm font-bold text-[#24672E] mb-4">
               {coupon.discountType === 'PERCENTAGE' || coupon.discountType === 'percentage' 
                 ? `${coupon.discountValue}% OFF` 
                 : `₹${coupon.discountValue} OFF`}
@@ -239,7 +239,7 @@ const CouponManager = () => {
       {showAddModal && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[2000] flex items-center justify-center p-4">
           <div className="bg-white w-full max-w-lg rounded-3xl overflow-hidden shadow-2xl animate-in fade-in zoom-in duration-200">
-            <div className="bg-[#1E971D] p-6 text-white flex justify-between items-center">
+            <div className="bg-[#24672E] p-6 text-white flex justify-between items-center">
               <h3 className="text-xl font-bold flex items-center gap-2">
                 <Plus size={20} /> Create New Promo Code
               </h3>
@@ -254,7 +254,7 @@ const CouponManager = () => {
                   <label className="block text-xs font-black text-slate-600 uppercase mb-1">Coupon Code</label>
                   <input 
                     autoFocus
-                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-[#1E971D] transition-all uppercase font-bold"
+                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-[#24672E] transition-all uppercase font-bold"
                     placeholder="e.g. FESTIVE20"
                     required
                     value={formData.code}
@@ -265,7 +265,7 @@ const CouponManager = () => {
                 <div>
                   <label className="block text-xs font-black text-slate-600 uppercase mb-1">Eligibility Group</label>
                   <select 
-                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-[#1E971D] font-bold"
+                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-[#24672E] font-bold"
                     value={formData.applicableUsers}
                     onChange={(e) => setFormData({...formData, applicableUsers: e.target.value})}
                   >
@@ -280,7 +280,7 @@ const CouponManager = () => {
                 <div>
                   <label className="block text-xs font-black text-slate-600 uppercase mb-1">Selected User IDs (comma separated)</label>
                   <textarea 
-                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-[#1E971D] text-xs font-mono"
+                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-[#24672E] text-xs font-mono"
                     placeholder="e.g. 60d5ec4b8f1d2e1438bf2248, 60d5ec4b8f1d2e1438bf2249"
                     value={formData.selectedUsersListText}
                     onChange={(e) => setFormData({...formData, selectedUsersListText: e.target.value})}
@@ -292,7 +292,7 @@ const CouponManager = () => {
                 <div>
                   <label className="block text-xs font-black text-slate-600 uppercase mb-1">Discount Type</label>
                   <select 
-                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-[#1E971D] font-bold"
+                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-[#24672E] font-bold"
                     value={formData.discountType}
                     onChange={(e) => setFormData({...formData, discountType: e.target.value})}
                   >
@@ -304,7 +304,7 @@ const CouponManager = () => {
                   <label className="block text-xs font-black text-slate-600 uppercase mb-1">Discount Value</label>
                   <input 
                     type="number"
-                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-[#1E971D] font-bold"
+                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-[#24672E] font-bold"
                     placeholder="20"
                     required
                     value={formData.discountValue}
@@ -318,7 +318,7 @@ const CouponManager = () => {
                   <label className="block text-xs font-black text-slate-600 uppercase mb-1">Min Order Value (₹)</label>
                   <input 
                     type="number"
-                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-[#1E971D] font-bold"
+                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-[#24672E] font-bold"
                     placeholder="500"
                     value={formData.minimumOrderAmount}
                     onChange={(e) => setFormData({...formData, minimumOrderAmount: e.target.value})}
@@ -328,7 +328,7 @@ const CouponManager = () => {
                   <label className="block text-xs font-black text-slate-600 uppercase mb-1">Max Cap (₹, Optional)</label>
                   <input 
                     type="number"
-                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-[#1E971D] font-bold"
+                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-[#24672E] font-bold"
                     placeholder="No Limit"
                     value={formData.maximumDiscountAmount}
                     onChange={(e) => setFormData({...formData, maximumDiscountAmount: e.target.value})}
@@ -341,7 +341,7 @@ const CouponManager = () => {
                   <label className="block text-xs font-black text-slate-600 uppercase mb-1">Total Usage Limit</label>
                   <input 
                     type="number"
-                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-[#1E971D] font-bold"
+                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-[#24672E] font-bold"
                     placeholder="e.g. 500 (No Limit)"
                     value={formData.usageLimit}
                     onChange={(e) => setFormData({...formData, usageLimit: e.target.value})}
@@ -351,7 +351,7 @@ const CouponManager = () => {
                   <label className="block text-xs font-black text-slate-600 uppercase mb-1">Uses Per User Limit</label>
                   <input 
                     type="number"
-                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-[#1E971D] font-bold"
+                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-[#24672E] font-bold"
                     placeholder="1"
                     value={formData.perUserLimit}
                     onChange={(e) => setFormData({...formData, perUserLimit: e.target.value})}
@@ -364,7 +364,7 @@ const CouponManager = () => {
                   <label className="block text-xs font-black text-slate-600 uppercase mb-1">Start Date</label>
                   <input 
                     type="date"
-                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-[#1E971D] font-bold"
+                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-[#24672E] font-bold"
                     value={formData.startDate}
                     onChange={(e) => setFormData({...formData, startDate: e.target.value})}
                   />
@@ -373,7 +373,7 @@ const CouponManager = () => {
                   <label className="block text-xs font-black text-slate-600 uppercase mb-1">Expiry Date</label>
                   <input 
                     type="date"
-                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-[#1E971D] font-bold"
+                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-[#24672E] font-bold"
                     required
                     value={formData.expiryDate}
                     onChange={(e) => setFormData({...formData, expiryDate: e.target.value})}
@@ -384,7 +384,7 @@ const CouponManager = () => {
               <button 
                 type="submit"
                 disabled={loading}
-                className="w-full bg-slate-900 text-white py-4 rounded-2xl font-bold hover:bg-[#1E971D] transition-all transform active:scale-95 disabled:opacity-50 mt-4 shadow-xl cursor-pointer"
+                className="w-full bg-slate-900 text-white py-4 rounded-2xl font-bold hover:bg-[#24672E] transition-all transform active:scale-95 disabled:opacity-50 mt-4 shadow-xl cursor-pointer"
               >
                 {loading ? "Creating..." : "Launch Promo Coupon"}
               </button>

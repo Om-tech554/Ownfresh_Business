@@ -56,7 +56,7 @@ const ImagePickerModal = ({ isOpen, onClose, onSelect }) => {
       <div className="bg-white w-full max-w-4xl rounded-3xl overflow-hidden shadow-2xl flex flex-col max-h-[85vh] animate-in fade-in zoom-in duration-200">
         
         {/* HEADER */}
-        <div className="bg-[#1E971D] p-5 text-white flex justify-between items-center">
+        <div className="bg-[#24672E] p-5 text-white flex justify-between items-center">
           <h3 className="text-lg font-bold flex items-center gap-2">
             Select Photo from Gallery
           </h3>
@@ -70,7 +70,7 @@ const ImagePickerModal = ({ isOpen, onClose, onSelect }) => {
           <div className="relative flex-grow">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
             <input
-              className="w-full pl-9 pr-4 py-2 text-sm bg-white border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-[#1E971D]/10"
+              className="w-full pl-9 pr-4 py-2 text-sm bg-white border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-[#24672E]/10"
               placeholder="Search by title..."
               value={search}
               onChange={(e) => {
@@ -104,7 +104,7 @@ const ImagePickerModal = ({ isOpen, onClose, onSelect }) => {
         <div className="flex-grow overflow-y-auto p-6 bg-slate-50/50">
           {loading && images.length === 0 ? (
             <div className="flex justify-center items-center h-48">
-              <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#1E971D]"></div>
+              <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#24672E]"></div>
             </div>
           ) : (
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
@@ -118,7 +118,7 @@ const ImagePickerModal = ({ isOpen, onClose, onSelect }) => {
                   }}
                   className={`group relative rounded-xl overflow-hidden border bg-white cursor-pointer transition-all ${
                     selectedUrl === img.imageUrl
-                      ? "border-[#1E971D] ring-2 ring-[#1E971D]/20 shadow-md"
+                      ? "border-[#24672E] ring-2 ring-[#24672E]/20 shadow-md"
                       : "border-slate-200 hover:border-slate-400 shadow-sm"
                   }`}
                 >
@@ -130,8 +130,8 @@ const ImagePickerModal = ({ isOpen, onClose, onSelect }) => {
                     />
 
                     {selectedUrl === img.imageUrl && (
-                      <div className="absolute inset-0 bg-[#1E971D]/30 flex items-center justify-center">
-                        <div className="bg-[#1E971D] text-white p-1 rounded-full shadow-lg">
+                      <div className="absolute inset-0 bg-[#24672E]/30 flex items-center justify-center">
+                        <div className="bg-[#24672E] text-white p-1 rounded-full shadow-lg">
                           <Check size={18} strokeWidth={3} />
                         </div>
                       </div>
@@ -166,7 +166,7 @@ const ImagePickerModal = ({ isOpen, onClose, onSelect }) => {
               <button
                 disabled={page <= 1}
                 onClick={() => setPage(page - 1)}
-                className="p-1.5 rounded-full border text-slate-600 disabled:opacity-30 hover:bg-[#1E971D] hover:text-white transition-all"
+                className="p-1.5 rounded-full border text-slate-600 disabled:opacity-30 hover:bg-[#24672E] hover:text-white transition-all"
               >
                 <ChevronLeft size={16} />
               </button>
@@ -176,7 +176,7 @@ const ImagePickerModal = ({ isOpen, onClose, onSelect }) => {
               <button
                 disabled={page >= totalPages}
                 onClick={() => setPage(page + 1)}
-                className="p-1.5 rounded-full border text-slate-600 disabled:opacity-30 hover:bg-[#1E971D] hover:text-white transition-all"
+                className="p-1.5 rounded-full border text-slate-600 disabled:opacity-30 hover:bg-[#24672E] hover:text-white transition-all"
               >
                 <ChevronRight size={16} />
               </button>
@@ -194,7 +194,7 @@ const ImagePickerModal = ({ isOpen, onClose, onSelect }) => {
             </button>
             <button
               onClick={handleSelect}
-              className="flex-1 sm:flex-none px-6 py-2 text-sm font-bold text-white bg-[#1E971D] hover:bg-[#167a17] rounded-xl shadow transition-colors"
+              className="flex-1 sm:flex-none px-6 py-2 text-sm font-bold text-white bg-[#24672E] hover:bg-[#167a17] rounded-xl shadow transition-colors"
             >
               Select Image
             </button>

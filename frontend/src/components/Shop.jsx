@@ -122,7 +122,7 @@ const Shop = () => {
           step="100"
           value={priceRange}
           onChange={(e) => setPriceRange(Number(e.target.value))}
-          className="w-full accent-[#F9DD19] cursor-pointer"
+          className="w-full accent-[#FFDD00] cursor-pointer"
         />
         <div className="flex justify-between text-xs text-gray-400 font-bold mt-2 uppercase tracking-widest">
           <span>₹0</span>
@@ -141,7 +141,7 @@ const Shop = () => {
         <ul className="flex flex-col gap-1 text-[11px] font-black text-gray-500 uppercase tracking-widest">
           <li
             onClick={() => { setActiveCategory("All"); setVisibleCount(12); setShowMobileFilters(false); }}
-            className={`flex justify-between items-center p-2 rounded cursor-pointer transition-colors ${activeCategory === "All" ? "bg-[#F9DD19] text-black" : "hover:bg-gray-50"}`}
+            className={`flex justify-between items-center p-2 rounded cursor-pointer transition-colors ${activeCategory === "All" ? "bg-[#FFDD00] text-black" : "hover:bg-gray-50"}`}
           >
             <span>All Products</span>
             <span className="bg-gray-100 text-gray-400 px-2 py-0.5 rounded">{products.length}</span>
@@ -150,7 +150,7 @@ const Shop = () => {
             <li
               key={idx}
               onClick={() => { setActiveCategory(title); setVisibleCount(12); setShowMobileFilters(false); }}
-              className={`flex justify-between items-center p-2 rounded cursor-pointer transition-colors ${activeCategory === title ? "bg-[#F9DD19] text-black" : "hover:bg-gray-50 hover:text-black"}`}
+              className={`flex justify-between items-center p-2 rounded cursor-pointer transition-colors ${activeCategory === title ? "bg-[#FFDD00] text-black" : "hover:bg-gray-50 hover:text-black"}`}
             >
               <span>{title}</span>
               <span className="bg-gray-100 text-gray-400 px-2 py-0.5 rounded">{count}</span>
@@ -170,7 +170,7 @@ const Shop = () => {
         {/* HEADER */}
         <div className="max-w-7xl mx-auto flex flex-col items-center mb-16 text-center border-b border-gray-200 pb-12">
           <h1 className="text-4xl md:text-5xl font-black text-black tracking-tight uppercase">
-            OwnFresh <span className="text-[#F9DD19]">Shop</span>
+            OwnFresh <span className="text-[#FFDD00]">Shop</span>
           </h1>
           <p className="text-gray-500 mt-4 text-sm uppercase tracking-widest font-bold">
             Explore our premium collection of 100% natural, cold-pressed botanic purity.
@@ -184,7 +184,7 @@ const Shop = () => {
             className="w-full bg-black text-white py-4 px-6 rounded-xl font-black uppercase tracking-widest text-[11px] flex justify-between items-center active:scale-95 transition-all shadow-lg shadow-gray-200"
           >
             <span>{showMobileFilters ? "Hide Filters" : `Filters (Selected: ${activeCategory})`}</span>
-            <span className="text-[#F9DD19] text-lg">{showMobileFilters ? "-" : "+"}</span>
+            <span className="text-[#FFDD00] text-lg">{showMobileFilters ? "-" : "+"}</span>
           </button>
 
           {showMobileFilters && (
@@ -205,7 +205,7 @@ const Shop = () => {
           {/* RIGHT COLUMN: MAIN GRID (75%) */}
           <div className="lg:col-span-3">
             {loading ? (
-              <div className="flex justify-center py-32"><Loader2 className="w-12 h-12 text-[#F9DD19] animate-spin" /></div>
+              <div className="flex justify-center py-32"><Loader2 className="w-12 h-12 text-[#FFDD00] animate-spin" /></div>
             ) : displayedProducts.length === 0 ? (
               <div className="bg-white p-10 border border-gray-200 text-center text-gray-400 font-bold uppercase tracking-widest w-full">
                 No products found matching your current filters.
@@ -221,7 +221,7 @@ const Shop = () => {
                     >
                       <div className="relative h-48 w-full rounded-md overflow-hidden bg-transparent mb-4 flex items-center justify-center">
                         <img src={p.image} alt={p.name} className="h-full w-auto object-contain transition-transform duration-500 group-hover:scale-105 mix-blend-multiply" />
-                        {Number(p.price) < 500 && <span className="absolute top-2 left-2 bg-[#F9DD19] text-black text-[10px] font-bold px-2 py-1 uppercase tracking-widest">Sale</span>}
+                        {Number(p.price) < 500 && <span className="absolute top-2 left-2 bg-[#FFDD00] text-black text-[10px] font-bold px-2 py-1 uppercase tracking-widest">Sale</span>}
                       </div>
 
                       <div className="flex flex-col flex-grow w-full items-center">
@@ -233,7 +233,7 @@ const Shop = () => {
                           <button
                             onClick={(e) => { e.stopPropagation(); e.preventDefault(); handleAddToCart(p); }}
                             disabled={addedItems[p._id]}
-                            className={`w-full py-3 rounded-full text-xs font-bold uppercase tracking-widest transition-all duration-300 ${addedItems[p._id] ? "bg-green-500 text-white" : "bg-black text-white hover:bg-[#F9DD19] hover:text-black"}`}
+                            className={`w-full py-3 rounded-full text-xs font-bold uppercase tracking-widest transition-all duration-300 ${addedItems[p._id] ? "bg-green-500 text-white" : "bg-black text-white hover:bg-[#FFDD00] hover:text-black"}`}
                           >
                             {addedItems[p._id] ? "Added to Cart" : "Add to Cart"}
                           </button>
@@ -248,7 +248,7 @@ const Shop = () => {
                   <div className="flex justify-center w-full">
                     <button
                       onClick={() => setVisibleCount(v => v + 6)}
-                      className="flex items-center justify-center px-10 py-4 rounded-2xl font-black uppercase tracking-[0.2em] text-[11px] bg-[#F9DD19] text-slate-900 shadow-xl shadow-yellow-200 transition-all duration-300 hover:bg-slate-900 hover:text-white active:scale-95 border-2 border-transparent hover:border-slate-800 cursor-pointer w-full md:w-auto group"
+                      className="flex items-center justify-center px-10 py-4 rounded-2xl font-black uppercase tracking-[0.2em] text-[11px] bg-[#FFDD00] text-slate-900 shadow-xl shadow-yellow-200 transition-all duration-300 hover:bg-slate-900 hover:text-white active:scale-95 border-2 border-transparent hover:border-slate-800 cursor-pointer w-full md:w-auto group"
                     >
                       Load More Products
                       <ArrowRight size={16} className="ml-2 transition-transform group-hover:translate-x-1" />

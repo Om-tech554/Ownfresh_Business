@@ -43,7 +43,7 @@ const Contact = () => {
                 <div className="relative z-10 flex flex-col items-center max-w-4xl mx-auto">
                     <span className="text-[10px] md:text-xs font-black text-gray-500 uppercase tracking-[0.3em] mb-4">Get In Touch</span>
                     <h1 className="text-4xl md:text-6xl font-black text-black leading-tight uppercase tracking-tight">
-                        Connect with OwnFresh for <span className="text-[#F9DD19]">Premium Oils</span>
+                        Connect with OwnFresh for <span className="text-[#FFDD00]">Premium Oils</span>
                     </h1>
                 </div>
             </section>
@@ -55,7 +55,7 @@ const Contact = () => {
                     {/* Phone block */}
                     <div className="p-10 flex flex-col items-center text-center group hover:bg-gray-50 transition-colors cursor-default">
                         <div className="w-14 h-14 bg-gray-50 group-hover:bg-white rounded-full flex items-center justify-center mb-6 shadow-sm border border-gray-100 transition-colors">
-                            <Phone className="w-6 h-6 text-[#F9DD19]" />
+                            <Phone className="w-6 h-6 text-[#FFDD00]" />
                         </div>
                         <h3 className="text-sm font-black uppercase tracking-widest text-black mb-2">Call Us</h3>
                         <p className="text-gray-500 font-bold hover:text-black transition-colors cursor-pointer">+91 8999 77 3438</p>
@@ -64,7 +64,7 @@ const Contact = () => {
                     {/* Email block */}
                     <div className="p-10 flex flex-col items-center text-center group hover:bg-gray-50 transition-colors cursor-default">
                         <div className="w-14 h-14 bg-gray-50 group-hover:bg-white rounded-full flex items-center justify-center mb-6 shadow-sm border border-gray-100 transition-colors">
-                            <Mail className="w-6 h-6 text-[#F9DD19]" />
+                            <Mail className="w-6 h-6 text-[#FFDD00]" />
                         </div>
                         <h3 className="text-sm font-black uppercase tracking-widest text-black mb-2">Email Us</h3>
                         <p className="text-gray-500 font-bold hover:text-black transition-colors cursor-pointer">contact@myownfresh.com</p>
@@ -73,7 +73,7 @@ const Contact = () => {
                     {/* Address block */}
                     <div className="p-10 flex flex-col items-center text-center group hover:bg-gray-50 transition-colors cursor-default">
                         <div className="w-14 h-14 bg-gray-50 group-hover:bg-white rounded-full flex items-center justify-center mb-6 shadow-sm border border-gray-100 transition-colors">
-                            <MapPin className="w-6 h-6 text-[#F9DD19]" />
+                            <MapPin className="w-6 h-6 text-[#FFDD00]" />
                         </div>
                         <h3 className="text-sm font-black uppercase tracking-widest text-black mb-2">Location</h3>
                         <p className="text-gray-500 font-bold leading-relaxed text-sm">
@@ -84,13 +84,13 @@ const Contact = () => {
                     {/* Socials block */}
                     <div className="p-10 flex flex-col items-center text-center group hover:bg-gray-50 transition-colors cursor-default">
                         <div className="w-14 h-14 bg-gray-50 group-hover:bg-white rounded-full flex items-center justify-center mb-6 shadow-sm border border-gray-100 transition-colors">
-                            <Share2 className="w-6 h-6 text-[#F9DD19]" />
+                            <Share2 className="w-6 h-6 text-[#FFDD00]" />
                         </div>
                         <h3 className="text-sm font-black uppercase tracking-widest text-black mb-3">Follow Us</h3>
                         <div className="flex gap-4">
-                            <div className="w-8 h-8 rounded-full bg-black text-white flex items-center justify-center text-xs font-bold hover:bg-[#F9DD19] hover:text-black cursor-pointer transition-colors">FB</div>
-                            <div className="w-8 h-8 rounded-full bg-black text-white flex items-center justify-center text-xs font-bold hover:bg-[#F9DD19] hover:text-black cursor-pointer transition-colors">IG</div>
-                            <div className="w-8 h-8 rounded-full bg-black text-white flex items-center justify-center text-xs font-bold hover:bg-[#F9DD19] hover:text-black cursor-pointer transition-colors">X</div>
+                            <div className="w-8 h-8 rounded-full bg-black text-white flex items-center justify-center text-xs font-bold hover:bg-[#FFDD00] hover:text-black cursor-pointer transition-colors">FB</div>
+                            <div className="w-8 h-8 rounded-full bg-black text-white flex items-center justify-center text-xs font-bold hover:bg-[#FFDD00] hover:text-black cursor-pointer transition-colors">IG</div>
+                            <div className="w-8 h-8 rounded-full bg-black text-white flex items-center justify-center text-xs font-bold hover:bg-[#FFDD00] hover:text-black cursor-pointer transition-colors">X</div>
                         </div>
                     </div>
 
@@ -103,7 +103,7 @@ const Contact = () => {
                     
                     {/* Left: Form */}
                     <div className="w-full lg:w-[45%] p-10 lg:p-16 flex flex-col justify-center bg-white z-10 relative">
-                        <h2 className="text-3xl md:text-4xl font-black text-black uppercase tracking-tight mb-2">Contact Us <span className="text-[#F9DD19]">Today</span></h2>
+                        <h2 className="text-3xl md:text-4xl font-black text-black uppercase tracking-tight mb-2">Contact Us <span className="text-[#FFDD00]">Today</span></h2>
                         <p className="text-gray-500 text-sm font-bold uppercase tracking-widest mb-10">We would love to hear from you.</p>
 
                         <form onSubmit={handleFormSubmit} className="flex flex-col gap-6 w-full">
@@ -144,7 +144,7 @@ const Contact = () => {
                             <button 
                                 type="submit" 
                                 disabled={loading}
-                                className={`mt-6 w-full bg-black text-white font-black uppercase tracking-[0.2em] text-xs py-5 transition-all duration-300 ${loading ? 'opacity-50' : 'hover:bg-[#F9DD19] hover:text-black'}`}
+                                className={`mt-6 w-full bg-black text-white font-black uppercase tracking-[0.2em] text-xs py-5 transition-all duration-300 ${loading ? 'opacity-50' : 'hover:bg-[#FFDD00] hover:text-black'}`}
                             >
                                 {loading ? 'Sending...' : 'Submit Message'}
                             </button>
@@ -169,7 +169,7 @@ const Contact = () => {
             </section>
 
             {/* 4. YELLOW CTA */}
-            <section className="w-full bg-[#F9DD19] py-20 px-6 mt-10">
+            <section className="w-full bg-[#FFDD00] py-20 px-6 mt-10">
                 <div className="max-w-4xl mx-auto flex flex-col md:flex-row items-center justify-between gap-10">
                     <div className="flex flex-col items-center md:items-start text-center md:text-left">
                         <h2 className="text-3xl md:text-5xl font-black text-black leading-tight tracking-tight uppercase mb-4">

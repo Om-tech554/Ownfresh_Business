@@ -203,7 +203,7 @@ const ReferralDashboard = () => {
   if (loading) {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-        <div className="w-12 h-12 border-4 border-[#1E971D] border-t-transparent rounded-full animate-spin"></div>
+        <div className="w-12 h-12 border-4 border-[#24672E] border-t-transparent rounded-full animate-spin"></div>
       </div>
     );
   }
@@ -253,10 +253,10 @@ const ReferralDashboard = () => {
                 
                 {/* HERO CARD */}
                 <div className="bg-slate-900 rounded-[2.5rem] p-8 md:p-10 text-white relative overflow-hidden shadow-2xl">
-                    <div className="absolute top-0 right-0 w-64 h-64 bg-[#1E971D] opacity-10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
+                    <div className="absolute top-0 right-0 w-64 h-64 bg-[#24672E] opacity-10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
                     <div className="relative z-10 text-center md:text-left">
                         <h1 className="text-3xl md:text-4xl font-black mb-4">
-                          Invite Friends & <span className="text-[#1E971D]">Earn Rewards</span>
+                          Invite Friends & <span className="text-[#24672E]">Earn Rewards</span>
                         </h1>
                         <p className="text-slate-400">
                           Get **₹{stats?.settings?.referralRewardReferrer || 100}** in your wallet when your friends sign up and make their first purchase. Your friends get **₹{stats?.settings?.referralRewardReferred || 50}** discount instantly!
@@ -270,7 +270,7 @@ const ReferralDashboard = () => {
                                 {!stats?.hasChangedReferralCode && (
                                     <button 
                                       onClick={() => setShowCustomizer(!showCustomizer)}
-                                      className="text-xs text-[#1E971D] hover:underline font-bold flex items-center gap-1"
+                                      className="text-xs text-[#24672E] hover:underline font-bold flex items-center gap-1"
                                     >
                                       <Edit2 size={12} /> Customize Code
                                     </button>
@@ -289,7 +289,7 @@ const ReferralDashboard = () => {
                                 <button 
                                   type="submit" 
                                   disabled={submittingCode}
-                                  className="bg-[#1E971D] text-white px-6 py-3 rounded-xl font-bold hover:bg-[#167a17] transition disabled:opacity-50"
+                                  className="bg-[#24672E] text-white px-6 py-3 rounded-xl font-bold hover:bg-[#167a17] transition disabled:opacity-50"
                                 >
                                   {submittingCode ? "..." : "Save"}
                                 </button>
@@ -303,7 +303,7 @@ const ReferralDashboard = () => {
                                 <div className="flex gap-2">
                                     <button 
                                         onClick={() => copyToClipboard(stats?.referralCode || user?.referralCode)}
-                                        className="bg-[#1E971D] text-white px-6 py-4 rounded-xl font-bold flex items-center justify-center gap-2 hover:scale-[1.02] transition-all active:scale-95 cursor-pointer"
+                                        className="bg-[#24672E] text-white px-6 py-4 rounded-xl font-bold flex items-center justify-center gap-2 hover:scale-[1.02] transition-all active:scale-95 cursor-pointer"
                                     >
                                         <Copy size={20} /> Copy
                                     </button>
@@ -334,7 +334,7 @@ const ReferralDashboard = () => {
                 {!stats?.referredBy && (
                   <div className="bg-white rounded-[2rem] p-8 border border-slate-200 shadow-sm">
                     <h2 className="text-xl font-black text-slate-800 mb-2 flex items-center gap-2">
-                      <Gift size={22} className="text-[#1E971D]" /> Were you referred?
+                      <Gift size={22} className="text-[#24672E]" /> Were you referred?
                     </h2>
                     <p className="text-slate-500 text-sm mb-6">
                       Enter a friend's referral code here to unlock a welcome bonus of **₹{stats?.settings?.referralRewardReferred || 50}** on your first purchase!
@@ -343,7 +343,7 @@ const ReferralDashboard = () => {
                       <input 
                         type="text" 
                         placeholder="Friend's referral code (e.g. OMKAR24)" 
-                        className="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-5 py-4 outline-none focus:border-[#1E971D] transition uppercase font-bold text-slate-800"
+                        className="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-5 py-4 outline-none focus:border-[#24672E] transition uppercase font-bold text-slate-800"
                         value={applyCode}
                         onChange={(e) => setApplyCode(e.target.value)}
                         disabled={applyingCode}
@@ -362,7 +362,7 @@ const ReferralDashboard = () => {
                 {/* PROGRESS / MILESTONES */}
                 <div className="bg-white rounded-[2rem] p-8 border border-slate-200 shadow-sm">
                     <h2 className="text-xl font-black mb-8 flex items-center gap-2 text-slate-800">
-                        <TrendingUp size={20} className="text-[#1E971D]" /> Referrer Progression Milestones
+                        <TrendingUp size={20} className="text-[#24672E]" /> Referrer Progression Milestones
                     </h2>
                     
                     <div className="space-y-12 relative">
@@ -371,15 +371,15 @@ const ReferralDashboard = () => {
 
                         {/* Tier 1 */}
                         <div className="flex items-start gap-6 relative group">
-                            <div className={`w-10 h-10 rounded-full flex items-center justify-center font-black shrink-0 z-10 ${stats?.referralCount >= stats?.settings?.tier1Threshold ? 'bg-[#1E971D] text-white' : 'bg-slate-100 text-slate-400'}`}>
+                            <div className={`w-10 h-10 rounded-full flex items-center justify-center font-black shrink-0 z-10 ${stats?.referralCount >= stats?.settings?.tier1Threshold ? 'bg-[#24672E] text-white' : 'bg-slate-100 text-slate-400'}`}>
                                 {stats?.referralCount >= stats?.settings?.tier1Threshold ? <CheckCircle2 size={20} /> : "1"}
                             </div>
                             <div className="flex-1">
                                 <p className="font-black text-slate-900 text-lg">Tier 1: Starter Reward</p>
-                                <p className="text-slate-500 text-sm mb-4 font-medium">Complete {stats?.settings?.tier1Threshold} successful invites to grab an extra <span className="text-[#1E971D] font-bold">₹{stats?.settings?.tier1Reward} wallet cash</span>.</p>
+                                <p className="text-slate-500 text-sm mb-4 font-medium">Complete {stats?.settings?.tier1Threshold} successful invites to grab an extra <span className="text-[#24672E] font-bold">₹{stats?.settings?.tier1Reward} wallet cash</span>.</p>
                                 <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
                                     <div 
-                                        className="bg-[#1E971D] h-full transition-all duration-1000" 
+                                        className="bg-[#24672E] h-full transition-all duration-1000" 
                                         style={{ width: `${Math.min((stats?.referralCount / stats?.settings?.tier1Threshold) * 100, 100)}%` }}
                                     ></div>
                                 </div>
@@ -389,12 +389,12 @@ const ReferralDashboard = () => {
 
                         {/* Tier 2 */}
                         <div className="flex items-start gap-6 relative">
-                            <div className={`w-10 h-10 rounded-full flex items-center justify-center font-black shrink-0 z-10 ${stats?.referralCount >= stats?.settings?.tier2Threshold || stats?.isAffiliate ? 'bg-[#1E971D] text-white' : 'bg-slate-100 text-slate-400'}`}>
+                            <div className={`w-10 h-10 rounded-full flex items-center justify-center font-black shrink-0 z-10 ${stats?.referralCount >= stats?.settings?.tier2Threshold || stats?.isAffiliate ? 'bg-[#24672E] text-white' : 'bg-slate-100 text-slate-400'}`}>
                                 {stats?.referralCount >= stats?.settings?.tier2Threshold || stats?.isAffiliate ? <Crown size={20} /> : "2"}
                             </div>
                             <div className="flex-1">
                                 <p className="font-black text-slate-900 text-lg">Tier 2: Unlock Affiliate Status</p>
-                                <p className="text-slate-500 text-sm font-medium">Get {stats?.settings?.tier2Threshold} successful invites or purchase standard subscription directly to become an Affiliate. Earn <span className="text-[#1E971D] font-bold">{stats?.settings?.baseCommission}% commission</span> on orders using custom codes.</p>
+                                <p className="text-slate-500 text-sm font-medium">Get {stats?.settings?.tier2Threshold} successful invites or purchase standard subscription directly to become an Affiliate. Earn <span className="text-[#24672E] font-bold">{stats?.settings?.baseCommission}% commission</span> on orders using custom codes.</p>
                                 {!stats?.isAffiliate && (
                                     <div className="mt-4 p-4 border border-dashed border-yellow-200 bg-yellow-50 rounded-2xl flex items-center justify-between">
                                         <div className="flex items-center gap-3">
@@ -417,12 +417,12 @@ const ReferralDashboard = () => {
 
                         {/* Tier 3 */}
                         <div className="flex items-start gap-6 relative">
-                            <div className={`w-10 h-10 rounded-full flex items-center justify-center font-black shrink-0 z-10 ${stats?.referralCount >= stats?.settings?.tier3Threshold ? 'bg-[#1E971D] text-white' : 'bg-slate-100 text-slate-400'}`}>
+                            <div className={`w-10 h-10 rounded-full flex items-center justify-center font-black shrink-0 z-10 ${stats?.referralCount >= stats?.settings?.tier3Threshold ? 'bg-[#24672E] text-white' : 'bg-slate-100 text-slate-400'}`}>
                                 {stats?.referralCount >= stats?.settings?.tier3Threshold ? <Zap size={20} /> : "3"}
                             </div>
                             <div className="flex-1">
                                 <p className="font-black text-slate-900 text-lg">Tier 3: Mega Affiliate</p>
-                                <p className="text-slate-500 text-sm font-medium">Accumulate {stats?.settings?.tier3Threshold} successful invites to jump directly to Tier 3. Boost custom coupon commissions to <span className="text-[#1E971D] font-bold">{stats?.settings?.tier3Commission}% commission rate</span>.</p>
+                                <p className="text-slate-500 text-sm font-medium">Accumulate {stats?.settings?.tier3Threshold} successful invites to jump directly to Tier 3. Boost custom coupon commissions to <span className="text-[#24672E] font-bold">{stats?.settings?.tier3Commission}% commission rate</span>.</p>
                             </div>
                         </div>
                     </div>
@@ -459,7 +459,7 @@ const ReferralDashboard = () => {
                 {activeTab === "referrals" ? (
                     <div className="bg-white rounded-[2rem] p-6 border border-slate-200 shadow-sm grow flex flex-col h-[600px]">
                         <h2 className="text-xl font-black text-slate-800 mb-6 flex items-center gap-2">
-                            <Gift size={20} className="text-[#1E971D]" /> Referral History
+                            <Gift size={20} className="text-[#24672E]" /> Referral History
                         </h2>
                         
                         <div className="overflow-y-auto pr-2 space-y-4 custom-scrollbar flex-1">
@@ -530,7 +530,7 @@ const ReferralDashboard = () => {
                 ) : (
                     <div className="space-y-6">
                         {/* EARNINGS SUMMARY */}
-                        <div className="bg-gradient-to-br from-[#1E971D] to-[#156b15] rounded-[2.2rem] p-8 text-white shadow-lg shadow-[#1E971D]/10">
+                        <div className="bg-gradient-to-br from-[#24672E] to-[#156b15] rounded-[2.2rem] p-8 text-white shadow-lg shadow-[#24672E]/10">
                             <p className="text-white/70 text-xs font-bold uppercase tracking-wider mb-1">Affiliate Commission Balance</p>
                             <h3 className="text-4xl font-black mb-8">₹{stats?.earnings?.toFixed(2) || 0}</h3>
                             
@@ -557,7 +557,7 @@ const ReferralDashboard = () => {
                                     <input 
                                         type="text" 
                                         placeholder="e.g. FRESH50" 
-                                        className="w-full bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 outline-none focus:border-[#1E971D] transition uppercase font-bold"
+                                        className="w-full bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 outline-none focus:border-[#24672E] transition uppercase font-bold"
                                         required
                                         value={couponCode}
                                         onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
@@ -569,7 +569,7 @@ const ReferralDashboard = () => {
                                         <input 
                                             type="number" 
                                             placeholder="50" 
-                                            className="w-full bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 outline-none focus:border-[#1E971D] transition font-bold"
+                                            className="w-full bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 outline-none focus:border-[#24672E] transition font-bold"
                                             required
                                             value={discountValue}
                                             onChange={(e) => setDiscountValue(e.target.value)}
@@ -578,7 +578,7 @@ const ReferralDashboard = () => {
                                     <div>
                                         <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1 mb-1 block">Type</label>
                                         <select 
-                                            className="w-full bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 outline-none focus:border-[#1E971D] transition font-bold"
+                                            className="w-full bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 outline-none focus:border-[#24672E] transition font-bold"
                                             value={discountType}
                                             onChange={(e) => setDiscountType(e.target.value)}
                                         >
@@ -591,7 +591,7 @@ const ReferralDashboard = () => {
                                     <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1 mb-1 block">Expiry Date</label>
                                     <input 
                                         type="date" 
-                                        className="w-full bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 outline-none focus:border-[#1E971D] transition font-bold"
+                                        className="w-full bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 outline-none focus:border-[#24672E] transition font-bold"
                                         required
                                         value={expiryDate}
                                         onChange={(e) => setExpiryDate(e.target.value)}

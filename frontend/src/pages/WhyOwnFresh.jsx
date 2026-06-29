@@ -9,9 +9,9 @@ const WhyOwnFresh = () => {
         {/* HEADER */}
         <div className="max-w-7xl mx-auto text-center mb-20">
           <h1 className="text-4xl md:text-6xl font-black text-black uppercase tracking-tighter">
-            Our <span className="text-[#F9DD19]">Story</span>
+            Our <span className="text-[#FFDD00]">Story</span>
           </h1>
-          <div className="w-24 h-1.5 bg-[#F9DD19] mx-auto mt-6 mb-8"></div>
+          <div className="w-24 h-1.5 bg-[#FFDD00] mx-auto mt-6 mb-8"></div>
           <h2 className="text-2xl md:text-3xl font-black text-black uppercase tracking-widest mb-4">
             From Soil to Soul: Crafting Purity, One Drop at a Time
           </h2>
@@ -25,7 +25,7 @@ const WhyOwnFresh = () => {
           {/* ZIG ZAG 1: IMAGE LEFT / TEXT RIGHT */}
           <div className="flex flex-col md:flex-row items-center gap-12 lg:gap-20">
             <div className="w-full md:w-1/2 flex justify-center">
-              <div className="relative w-[90%] md:w-[80%] aspect-[4/5] bg-gray-100 shadow-[20px_20px_0_#F9DD19] border border-gray-200">
+              <div className="relative w-[90%] md:w-[80%] aspect-[4/5] bg-gray-100 shadow-[20px_20px_0_#FFDD00] border border-gray-200">
                 <img
                   className="w-full h-full object-contain"
                   src="https://res.cloudinary.com/dkhq2wlwg/image/upload/v1775059081/ownfresh_media/w3evsx01oayzdykqk4oz.png"
@@ -35,7 +35,7 @@ const WhyOwnFresh = () => {
             </div>
             <div className="w-full md:w-1/2 flex flex-col items-start text-left">
               <h2 className="text-3xl md:text-4xl font-black text-black uppercase mb-6">
-                Botanic <span className="bg-[#F9DD19] px-2 py-1">Purity</span>
+                Botanic <span className="bg-[#FFDD00] px-2 py-1">Purity</span>
               </h2>
               <p className="text-gray-700 leading-relaxed mb-6 font-medium">
                 OwnFresh Cooking Oil Series is a premium, researched produce of the OwnFresh Group.
@@ -50,7 +50,7 @@ const WhyOwnFresh = () => {
           {/* ZIG ZAG 2: TEXT LEFT / IMAGE RIGHT */}
           <div className="flex flex-col md:flex-row-reverse items-center gap-12 lg:gap-20">
             <div className="w-full md:w-1/2 flex justify-center">
-              <div className="relative w-[90%] md:w-[80%] aspect-[4/5] bg-gray-100 shadow-[-20px_20px_0_#F9DD19] border border-gray-200">
+              <div className="relative w-[90%] md:w-[80%] aspect-[4/5] bg-gray-100 shadow-[-20px_20px_0_#FFDD00] border border-gray-200">
                 <img
                   className="w-full h-full object-cover"
                   src="https://images.unsplash.com/photo-1620706857370-e1b9770e8bb1?q=80&w=1000&auto=format&fit=crop"
@@ -77,17 +77,17 @@ const WhyOwnFresh = () => {
               <div className="relative w-[90%] md:w-[80%] aspect-square bg-gray-100 shadow-[20px_20px_0_black] border border-gray-200 p-8 flex flex-col justify-center">
                 <h3 className="text-2xl font-black text-black uppercase mb-4">“Oil Hai… Oily Nahi”</h3>
                 <ul className="space-y-3 list-none text-gray-800 font-bold text-sm">
-                  <li className="flex items-start gap-2"><span className="text-[#F9DD19] text-lg">■</span> Minimal oil retention during deep frying</li>
-                  <li className="flex items-start gap-2"><span className="text-[#F9DD19] text-lg">■</span> Non-genetically modified soil nuts</li>
-                  <li className="flex items-start gap-2"><span className="text-[#F9DD19] text-lg">■</span> Unfiltered & Unrefined – No chemicals</li>
-                  <li className="flex items-start gap-2"><span className="text-[#F9DD19] text-lg">■</span> High Smoke Point – Maintains molecular integrity</li>
-                  <li className="flex items-start gap-2"><span className="text-[#F9DD19] text-lg">■</span> Free from Argemone Oil & Trans Fat</li>
+                  <li className="flex items-start gap-2"><span className="text-[#FFDD00] text-lg">■</span> Minimal oil retention during deep frying</li>
+                  <li className="flex items-start gap-2"><span className="text-[#FFDD00] text-lg">■</span> Non-genetically modified soil nuts</li>
+                  <li className="flex items-start gap-2"><span className="text-[#FFDD00] text-lg">■</span> Unfiltered & Unrefined – No chemicals</li>
+                  <li className="flex items-start gap-2"><span className="text-[#FFDD00] text-lg">■</span> High Smoke Point – Maintains molecular integrity</li>
+                  <li className="flex items-start gap-2"><span className="text-[#FFDD00] text-lg">■</span> Free from Argemone Oil & Trans Fat</li>
                 </ul>
               </div>
             </div>
             <div className="w-full md:w-1/2 flex flex-col items-start text-left">
               <h2 className="text-3xl md:text-4xl font-black text-black uppercase mb-6">
-                Culinary <span className="text-[#F9DD19]">Benefits</span>
+                Culinary <span className="text-[#FFDD00]">Benefits</span>
               </h2>
               <p className="text-gray-700 leading-relaxed mb-6 font-medium">
                 “Good Food Language” – more food flavour, less oil taste, reduced usage. Stone Pressing ensures first pressing under controlled temperatures to retain micro nutrients, antioxidants and minerals.
@@ -97,7 +97,7 @@ const WhyOwnFresh = () => {
 
           {/* MISSION & VISION SECTION */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-12 lg:gap-20 mt-12 border-t border-gray-200 pt-20">
-            <div className="bg-gray-50 border border-gray-200 p-10 shadow-[10px_10px_0_#F9DD19] hover:-translate-y-2 transition-transform duration-300">
+            <div className="bg-gray-50 border border-gray-200 p-10 shadow-[10px_10px_0_#FFDD00] hover:-translate-y-2 transition-transform duration-300">
               <h2 className="text-3xl font-black text-black uppercase mb-6 flex items-center gap-4">
                 <span className="bg-black text-white w-12 h-12 flex items-center justify-center rounded-full text-xl shadow-lg">🎯</span>
                 Our Mission
@@ -107,9 +107,9 @@ const WhyOwnFresh = () => {
               </p>
             </div>
 
-            <div className="bg-black text-white p-10 shadow-[10px_10px_0_#F9DD19] hover:-translate-y-2 transition-transform duration-300 border border-black">
+            <div className="bg-black text-white p-10 shadow-[10px_10px_0_#FFDD00] hover:-translate-y-2 transition-transform duration-300 border border-black">
               <h2 className="text-3xl font-black uppercase mb-6 flex items-center gap-4 text-white">
-                <span className="bg-[#F9DD19] text-black w-12 h-12 flex items-center justify-center rounded-full text-xl shadow-lg">👁️</span>
+                <span className="bg-[#FFDD00] text-black w-12 h-12 flex items-center justify-center rounded-full text-xl shadow-lg">👁️</span>
                 Our Vision
               </h2>
               <p className="text-gray-300 leading-relaxed font-medium">
@@ -132,7 +132,7 @@ const WhyOwnFresh = () => {
                 alt="FSSAI Certification"
                 className="w-full h-[400px] object-contain rounded-xl group-hover:scale-[1.02] transition-transform"
               />
-              <p className="mt-4 text-center text-sm font-bold text-[#1E971D] uppercase tracking-wider">FSSAI Certified</p>
+              <p className="mt-4 text-center text-sm font-bold text-[#24672E] uppercase tracking-wider">FSSAI Certified</p>
             </div>
 
             <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-xl hover:shadow-2xl transition-all duration-500 group">
@@ -141,7 +141,7 @@ const WhyOwnFresh = () => {
                 alt="Quality Monitoring Certificate"
                 className="w-full h-[400px] object-contain rounded-xl group-hover:scale-[1.02] transition-transform"
               />
-              <p className="mt-4 text-center text-sm font-bold text-[#1E971D] uppercase tracking-wider">Quality Verified</p>
+              <p className="mt-4 text-center text-sm font-bold text-[#24672E] uppercase tracking-wider">Quality Verified</p>
             </div>
 
             <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-xl hover:shadow-2xl transition-all duration-500 group">
@@ -150,7 +150,7 @@ const WhyOwnFresh = () => {
                 alt="Global Process Excellence"
                 className="w-full h-[400px] object-contain rounded-xl group-hover:scale-[1.02] transition-transform"
               />
-              <p className="mt-4 text-center text-sm font-bold text-[#1E971D] uppercase tracking-wider">Global Process Excellence</p>
+              <p className="mt-4 text-center text-sm font-bold text-[#24672E] uppercase tracking-wider">Global Process Excellence</p>
             </div>
 
             <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-xl hover:shadow-2xl transition-all duration-500 group lg:col-start-1">
@@ -159,7 +159,7 @@ const WhyOwnFresh = () => {
                 alt="Botanic Purity Verified"
                 className="w-full h-[400px] object-contain rounded-xl group-hover:scale-[1.02] transition-transform"
               />
-              <p className="mt-4 text-center text-sm font-bold text-[#1E971D] uppercase tracking-wider">Botanic Purity Verified</p>
+              <p className="mt-4 text-center text-sm font-bold text-[#24672E] uppercase tracking-wider">Botanic Purity Verified</p>
             </div>
 
             <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-xl hover:shadow-2xl transition-all duration-500 group">
@@ -168,7 +168,7 @@ const WhyOwnFresh = () => {
                 alt="Safety Compliance"
                 className="w-full h-[400px] object-contain rounded-xl group-hover:scale-[1.02] transition-transform"
               />
-              <p className="mt-4 text-center text-sm font-bold text-[#1E971D] uppercase tracking-wider">Safety & Compliance Certified</p>
+              <p className="mt-4 text-center text-sm font-bold text-[#24672E] uppercase tracking-wider">Safety & Compliance Certified</p>
             </div>
           </div>
         </div>

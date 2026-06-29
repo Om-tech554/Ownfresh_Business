@@ -69,7 +69,7 @@ const Lightbox = ({ images, index, onClose }) => {
       >
         {/* Close */}
         <button
-          className="absolute top-4 right-4 text-white hover:text-[#F9DD19] transition-all bg-black/40 hover:bg-black/60 p-2 rounded-full z-10"
+          className="absolute top-4 right-4 text-white hover:text-[#FFDD00] transition-all bg-black/40 hover:bg-black/60 p-2 rounded-full z-10"
           onClick={onClose}
         >
           <RxCross2 size={24} />
@@ -86,13 +86,13 @@ const Lightbox = ({ images, index, onClose }) => {
           {/* Prev / Next */}
           <button
             onClick={prev}
-            className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-full pr-4 text-white hover:text-[#F9DD19] transition-colors hidden sm:block"
+            className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-full pr-4 text-white hover:text-[#FFDD00] transition-colors hidden sm:block"
           >
             <FaChevronLeft size={32} />
           </button>
           <button
             onClick={next}
-            className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-full pl-4 text-white hover:text-[#F9DD19] transition-colors hidden sm:block"
+            className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-full pl-4 text-white hover:text-[#FFDD00] transition-colors hidden sm:block"
           >
             <FaChevronRight size={32} />
           </button>
@@ -107,7 +107,7 @@ const Lightbox = ({ images, index, onClose }) => {
             <button
               key={i}
               onClick={() => setCurrent(i)}
-              className={`w-1.5 h-1.5 rounded-full transition-all ${i === current ? 'bg-[#F9DD19] w-4' : 'bg-white/30'
+              className={`w-1.5 h-1.5 rounded-full transition-all ${i === current ? 'bg-[#FFDD00] w-4' : 'bg-white/30'
                 }`}
             />
           ))}
@@ -170,7 +170,7 @@ const GalleryPage = () => {
 
       {/* ── Page Header ── */}
       <section className="pt-28 md:pt-12 pb-12 px-6 bg-white text-center">
-        <p className="text-[#F9DD19] text-[10px] md:text-sm font-black uppercase tracking-[0.4em] mb-4">
+        <p className="text-[#FFDD00] text-[10px] md:text-sm font-black uppercase tracking-[0.4em] mb-4">
           Visual Journey
         </p>
         <h1 className="text-4xl md:text-7xl font-black text-black uppercase tracking-tighter leading-none">
@@ -202,7 +202,7 @@ const GalleryPage = () => {
               key={cat}
               onClick={() => setActiveCategory(cat)}
               className={`px-4 py-1.5 text-xs font-black uppercase tracking-widest border transition-all duration-200 ${activeCategory === cat
-                ? 'bg-black text-[#F9DD19] border-black'
+                ? 'bg-black text-[#FFDD00] border-black'
                 : 'bg-white text-black border-gray-300 hover:border-black'
                 }`}
             >
@@ -237,7 +237,7 @@ const GalleryPage = () => {
                 </span>
               </div>
               {/* Category badge */}
-              <span className="absolute top-3 left-3 bg-[#F9DD19] text-black text-[9px] font-black uppercase tracking-widest px-2 py-0.5 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+              <span className="absolute top-3 left-3 bg-[#FFDD00] text-black text-[9px] font-black uppercase tracking-widest px-2 py-0.5 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                 {img.category}
               </span>
             </div>
@@ -253,7 +253,7 @@ const GalleryPage = () => {
 
       {/* ── Instagram section ── */}
       <section className="w-full bg-black text-white py-16 px-6 text-center">
-        <FaInstagram size={36} className="mx-auto mb-4 text-[#F9DD19]" />
+        <FaInstagram size={36} className="mx-auto mb-4 text-[#FFDD00]" />
         <h2 className="text-2xl md:text-4xl font-black uppercase tracking-tight mb-3">
           Follow Us on Instagram
         </h2>
@@ -264,7 +264,7 @@ const GalleryPage = () => {
           href="https://www.instagram.com/ownfresh_official/"
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-flex items-center gap-2 bg-[#F9DD19] text-black font-black uppercase text-xs tracking-widest px-8 py-3 hover:bg-white transition-colors duration-200"
+          className="inline-flex items-center gap-2 bg-[#FFDD00] text-black font-black uppercase text-xs tracking-widest px-8 py-3 hover:bg-white transition-colors duration-200"
         >
           <FaInstagram size={16} /> @ownfresh_official
         </a>

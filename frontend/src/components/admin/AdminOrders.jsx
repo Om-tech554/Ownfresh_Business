@@ -150,7 +150,7 @@ const AdminOrders = () => {
 
     if (loading) return (
         <div className="flex flex-col items-center justify-center min-h-[60vh]">
-            <Loader2 className="w-12 h-12 text-[#F9DD19] animate-spin" />
+            <Loader2 className="w-12 h-12 text-[#FFDD00] animate-spin" />
             <p className="mt-4 font-black uppercase tracking-widest text-slate-400 text-xs">Initializing Central Dashboard...</p>
         </div>
     );
@@ -189,18 +189,18 @@ const AdminOrders = () => {
                             {tab.label}
                             <span className="ml-2 px-2 py-0.5 bg-slate-100 border border-slate-200 rounded-full text-[9px] text-slate-500">{tab.count}</span>
                             {activeTab === tab.id && (
-                                <div className="absolute bottom-0 left-0 w-full h-1 bg-[#F9DD19] shadow-[0_-2px_8px_rgba(249,221,25,0.4)]"></div>
+                                <div className="absolute bottom-0 left-0 w-full h-1 bg-[#FFDD00] shadow-[0_-2px_8px_rgba(249,221,25,0.4)]"></div>
                             )}
                         </button>
                     ))}
 
                     <div className="ml-auto px-6 py-4 flex items-center gap-4">
                         <div className="relative group">
-                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400 group-focus-within:text-[#1E971D] transition-colors" />
+                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400 group-focus-within:text-[#24672E] transition-colors" />
                             <input
                                 type="text"
                                 placeholder="Search Orders..."
-                                className="pl-11 pr-6 py-2.5 bg-white border border-slate-200 rounded-2xl outline-none text-[10px] font-bold w-64 focus:border-[#1E971D] transition-all shadow-inner shadow-slate-50"
+                                className="pl-11 pr-6 py-2.5 bg-white border border-slate-200 rounded-2xl outline-none text-[10px] font-bold w-64 focus:border-[#24672E] transition-all shadow-inner shadow-slate-50"
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
                             />
@@ -245,7 +245,7 @@ const AdminOrders = () => {
                                     </td>
                                     <td className="px-8 py-6">
                                         <div className="flex items-center gap-3">
-                                            <div className="w-8 h-8 rounded-full bg-slate-900 text-[#F9DD19] flex items-center justify-center text-[10px] font-black uppercase">
+                                            <div className="w-8 h-8 rounded-full bg-slate-900 text-[#FFDD00] flex items-center justify-center text-[10px] font-black uppercase">
                                                 {order.user?.fullName?.substring(0, 2)}
                                             </div>
                                             <div>
@@ -257,7 +257,7 @@ const AdminOrders = () => {
                                     <td className="px-8 py-6">
                                         <div className="flex flex-col">
                                             <span className="text-xs font-black text-slate-900 font-mono">₹{order.totalAmount}</span>
-                                            <span className="text-[9px] font-black text-[#1E971D] uppercase bg-emerald-50 px-2 py-0.5 rounded border border-emerald-100 self-start mt-1">
+                                            <span className="text-[9px] font-black text-[#24672E] uppercase bg-emerald-50 px-2 py-0.5 rounded border border-emerald-100 self-start mt-1">
                                                 {order.items.length} ITEM{order.items.length > 1 ? 'S' : ''}
                                             </span>
                                         </div>
@@ -439,7 +439,7 @@ const AdminOrders = () => {
                                 {/* Customer Summary Card */}
                                 <div className="bg-white p-6 rounded-xl border border-slate-300 shadow-sm">
                                     <div className="flex items-center gap-3 mb-6">
-                                        <div className="p-2 bg-slate-900 rounded-lg"><User className="text-[#F9DD19] w-4 h-4" /></div>
+                                        <div className="p-2 bg-slate-900 rounded-lg"><User className="text-[#FFDD00] w-4 h-4" /></div>
                                         <h4 className="text-[11px] font-black text-slate-900 uppercase tracking-widest">Customer Profile</h4>
                                     </div>
                                     <div className="space-y-4">
@@ -454,7 +454,7 @@ const AdminOrders = () => {
                                         <div className="pt-4 border-t border-slate-100">
                                             <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none mb-2">Shipping Terminal</p>
                                             <div className="flex items-start gap-2">
-                                                <MapPin size={12} className="text-[#1E971D] mt-0.5 flex-shrink-0" />
+                                                <MapPin size={12} className="text-[#24672E] mt-0.5 flex-shrink-0" />
                                                 <p className="text-[10px] font-bold text-slate-600 leading-relaxed uppercase">
                                                     {selectedOrder.deliveryAddress?.roomNumber}, {selectedOrder.deliveryAddress?.areaName}<br />
                                                     {selectedOrder.deliveryAddress?.text}
@@ -471,7 +471,7 @@ const AdminOrders = () => {
                                         <h4 className="text-[11px] font-black text-white uppercase tracking-widest">Internal Fleet Notes</h4>
                                     </div>
                                     <textarea
-                                        className="w-full p-4 bg-white/5 border border-white/10 rounded-xl text-xs text-white outline-none focus:border-[#F9DD19] transition-all h-32 resize-none leading-relaxed"
+                                        className="w-full p-4 bg-white/5 border border-white/10 rounded-xl text-xs text-white outline-none focus:border-[#FFDD00] transition-all h-32 resize-none leading-relaxed"
                                         placeholder="Add private team notes here..."
                                         defaultValue={selectedOrder.adminNotes}
                                         onBlur={(e) => handleUpdateField(selectedOrder._id, { adminNotes: e.target.value })}
@@ -537,7 +537,7 @@ const AdminOrders = () => {
                                 </button>
                             </div>
                             <div className="flex items-center gap-4">
-                                <button className="px-8 py-3 bg-[#F9DD19] text-slate-900 rounded-xl text-[10px] font-black uppercase tracking-widest hover:shadow-xl hover:shadow-yellow-100 transition-all">
+                                <button className="px-8 py-3 bg-[#FFDD00] text-slate-900 rounded-xl text-[10px] font-black uppercase tracking-widest hover:shadow-xl hover:shadow-yellow-100 transition-all">
                                     Full Audit Report
                                 </button>
                                 <button className="px-8 py-3 bg-slate-900 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-slate-800 transition-all">

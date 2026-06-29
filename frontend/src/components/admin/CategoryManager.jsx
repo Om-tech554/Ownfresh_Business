@@ -127,8 +127,8 @@ const CategoryManager = () => {
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-10">
                 <div>
                     <h2 className="text-3xl font-extrabold text-slate-900 tracking-tight flex items-center gap-3">
-                        <Layers className="text-[#1E971D] w-8 h-8" />
-                        Product <span className="text-[#1E971D]">Categories</span>
+                        <Layers className="text-[#24672E] w-8 h-8" />
+                        Product <span className="text-[#24672E]">Categories</span>
                     </h2>
                     <p className="text-slate-500 text-sm mt-1 uppercase tracking-widest font-bold">
                         Organize Your Inventory
@@ -137,7 +137,7 @@ const CategoryManager = () => {
 
                 <button
                     onClick={() => { resetForm(); setShowModal(true); }}
-                    className="flex items-center gap-2 bg-[#1E971D] text-white px-6 py-3 rounded-xl font-bold hover:bg-[#167a17] transition-all shadow-lg shadow-[#1E971D]/20"
+                    className="flex items-center gap-2 bg-[#24672E] text-white px-6 py-3 rounded-xl font-bold hover:bg-[#167a17] transition-all shadow-lg shadow-[#24672E]/20"
                 >
                     <Plus size={20} />
                     Add Category
@@ -161,7 +161,7 @@ const CategoryManager = () => {
                                 </div>
                             )}
                             <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-sm p-2 rounded-xl shadow-sm">
-                                <Layers className="text-[#1E971D]" size={20} />
+                                <Layers className="text-[#24672E]" size={20} />
                             </div>
                             <div className="absolute top-4 right-4 flex gap-2 translate-x-12 opacity-0 group-hover:translate-x-0 group-hover:opacity-100 transition-all duration-300">
                                 <button
@@ -186,7 +186,7 @@ const CategoryManager = () => {
                             </p>
 
                             <div className="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] bg-slate-50 p-2.5 rounded-xl border border-slate-100">
-                                <Type size={12} className="text-[#1E971D]" />
+                                <Type size={12} className="text-[#24672E]" />
                                 <span>Slug: <span className="text-slate-600">{cat.slug}</span></span>
                             </div>
                         </div>
@@ -205,7 +205,7 @@ const CategoryManager = () => {
             {showModal && (
                 <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[2000] flex items-center justify-center p-4">
                     <div className="bg-white w-full max-w-md rounded-3xl overflow-hidden shadow-2xl animate-in fade-in zoom-in duration-200">
-                        <div className="bg-[#1E971D] p-6 text-white flex justify-between items-center">
+                        <div className="bg-[#24672E] p-6 text-white flex justify-between items-center">
                             <h3 className="text-xl font-bold flex items-center gap-2">
                                 {editMode ? <Edit size={20} /> : <Plus size={20} />}
                                 {editMode ? "Edit Category" : "New Category"}
@@ -220,7 +220,7 @@ const CategoryManager = () => {
                                 <label className="block text-sm font-bold text-slate-700 mb-1">Category Name</label>
                                 <input
                                     autoFocus
-                                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-[#1E971D] transition-all"
+                                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-[#24672E] transition-all"
                                     placeholder="e.g. Cold Pressed Oils"
                                     required
                                     value={formData.name}
@@ -243,9 +243,9 @@ const CategoryManager = () => {
                                             </button>
                                         </div>
                                     )}
-                                    <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-slate-200 rounded-2xl cursor-pointer hover:bg-slate-50 hover:border-[#1E971D] transition-all group">
+                                    <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-slate-200 rounded-2xl cursor-pointer hover:bg-slate-50 hover:border-[#24672E] transition-all group">
                                         <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                                            <ImageIcon className="w-8 h-8 text-slate-400 group-hover:text-[#1E971D] mb-2" />
+                                            <ImageIcon className="w-8 h-8 text-slate-400 group-hover:text-[#24672E] mb-2" />
                                             <p className="text-xs text-slate-500 font-bold uppercase tracking-widest">
                                                 {imageFile ? "Change Photo" : "Upload Photo"}
                                             </p>
@@ -256,7 +256,7 @@ const CategoryManager = () => {
                                     <button
                                         type="button"
                                         onClick={() => setShowImagePicker(true)}
-                                        className="w-full bg-slate-900 text-white hover:bg-[#1E971D] py-3 rounded-xl text-xs font-bold uppercase tracking-widest transition-colors flex items-center justify-center gap-2"
+                                        className="w-full bg-slate-900 text-white hover:bg-[#24672E] py-3 rounded-xl text-xs font-bold uppercase tracking-widest transition-colors flex items-center justify-center gap-2"
                                     >
                                         <ImageIcon size={14} />
                                         Choose from Gallery
@@ -267,7 +267,7 @@ const CategoryManager = () => {
                             <div>
                                 <label className="block text-sm font-bold text-slate-700 mb-1">Description</label>
                                 <textarea
-                                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-[#1E971D] transition-all min-h-[100px] resize-none"
+                                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-[#24672E] transition-all min-h-[100px] resize-none"
                                     placeholder="Tell us about this category..."
                                     value={formData.description}
                                     onChange={(e) => setFormData({ ...formData, description: e.target.value })}
@@ -277,7 +277,7 @@ const CategoryManager = () => {
                             <button
                                 type="submit"
                                 disabled={loading}
-                                className="w-full bg-slate-900 text-white py-4 rounded-2xl font-bold hover:bg-[#1E971D] transition-all transform active:scale-95 disabled:opacity-50 mt-4 shadow-xl"
+                                className="w-full bg-slate-900 text-white py-4 rounded-2xl font-bold hover:bg-[#24672E] transition-all transform active:scale-95 disabled:opacity-50 mt-4 shadow-xl"
                             >
                                 {loading ? "Processing..." : (editMode ? "Save Changes" : "Create Category")}
                             </button>

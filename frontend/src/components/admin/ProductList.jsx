@@ -211,8 +211,8 @@ const ProductList = () => {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-10">
         <div>
           <h2 className="text-3xl font-extrabold text-slate-900 tracking-tight flex items-center gap-3">
-            <Layers className="text-[#1E971D] w-8 h-8" />
-            Product <span className="text-[#1E971D]">Inventory</span>
+            <Layers className="text-[#24672E] w-8 h-8" />
+            Product <span className="text-[#24672E]">Inventory</span>
           </h2>
           <p className="text-slate-500 text-sm mt-1 uppercase tracking-widest font-bold">
             Asset Management & Logistics
@@ -225,7 +225,7 @@ const ProductList = () => {
           </div>
           <button
             onClick={() => navigate("/admin/product/editor/create")}
-            className="flex items-center gap-2 bg-[#1E971D] text-white px-6 py-2 rounded-xl font-bold hover:bg-[#1E971D]/90 transition-all shadow-lg shadow-[#1E971D]/20 h-fit"
+            className="flex items-center gap-2 bg-[#24672E] text-white px-6 py-2 rounded-xl font-bold hover:bg-[#24672E]/90 transition-all shadow-lg shadow-[#24672E]/20 h-fit"
           >
             <Edit3 className="w-4 h-4" />
             Create New Product
@@ -238,7 +238,7 @@ const ProductList = () => {
         <div className="relative w-full">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
           <input
-            className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border-none rounded-xl focus:ring-2 focus:ring-[#1E971D]/20 outline-none"
+            className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border-none rounded-xl focus:ring-2 focus:ring-[#24672E]/20 outline-none"
             placeholder="Search inventory (name or description)..."
             value={search}
             onChange={(e) => {
@@ -271,7 +271,7 @@ const ProductList = () => {
         {currentProducts.map((p) => (
           <div
             key={p._id}
-            className="group bg-white rounded-2xl overflow-hidden border border-slate-200 hover:border-[#1E971D]/50 hover:shadow-2xl hover:shadow-slate-200 transition-all duration-300"
+            className="group bg-white rounded-2xl overflow-hidden border border-slate-200 hover:border-[#24672E]/50 hover:shadow-2xl hover:shadow-slate-200 transition-all duration-300"
           >
             {/* Image Container: NEVER CUT OFF */}
             <div className="relative h-60 bg-slate-100 p-4 overflow-hidden">
@@ -281,7 +281,7 @@ const ProductList = () => {
                 className="w-full h-full object-contain mix-blend-multiply transition-transform duration-500 group-hover:scale-110"
               />
               <div className="absolute top-4 right-4 bg-white/90 backdrop-blur px-3 py-1 rounded-full shadow-sm">
-                <p className="text-[#1E971D] font-black text-sm">₹{p.price}</p>
+                <p className="text-[#24672E] font-black text-sm">₹{p.price}</p>
               </div>
             </div>
 
@@ -329,7 +329,7 @@ const ProductList = () => {
           <button
             disabled={currentPage === 1}
             onClick={() => setCurrentPage((p) => p - 1)}
-            className="p-3 bg-white border border-slate-200 rounded-full text-slate-600 hover:bg-[#1E971D] hover:text-white disabled:opacity-30 disabled:hover:bg-white disabled:hover:text-slate-600 transition-all shadow-sm"
+            className="p-3 bg-white border border-slate-200 rounded-full text-slate-600 hover:bg-[#24672E] hover:text-white disabled:opacity-30 disabled:hover:bg-white disabled:hover:text-slate-600 transition-all shadow-sm"
           >
             <ChevronLeft className="w-6 h-6" />
           </button>
@@ -343,7 +343,7 @@ const ProductList = () => {
           <button
             disabled={currentPage === totalPages}
             onClick={() => setCurrentPage((p) => p + 1)}
-            className="p-3 bg-white border border-slate-200 rounded-full text-slate-600 hover:bg-[#1E971D] hover:text-white disabled:opacity-30 disabled:hover:bg-white disabled:hover:text-slate-600 transition-all shadow-sm"
+            className="p-3 bg-white border border-slate-200 rounded-full text-slate-600 hover:bg-[#24672E] hover:text-white disabled:opacity-30 disabled:hover:bg-white disabled:hover:text-slate-600 transition-all shadow-sm"
           >
             <ChevronRight className="w-6 h-6" />
           </button>

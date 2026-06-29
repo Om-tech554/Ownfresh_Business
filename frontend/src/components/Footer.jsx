@@ -75,28 +75,28 @@ const Footer = () => {
         </div>
 
         {/* Company */}
-       <div>
-  <h3 className="text-lg font-semibold text-black mb-6">Company</h3>
+        <div>
+          <h3 className="text-lg font-semibold text-black mb-6">Company</h3>
 
-  <ul className="space-y-4">
-    {[
-      { name: "About Us", path: "/whyownfresh" },
-      { name: "Blogs", path: "/oilinsights" },
-      { name: "Contact", path: "/contact" },
-      { name: "WHY OWNFRESH ?", path: "/whyownfresh" },
-    ].map((item, index) => (
-      <li key={index} className="w-fit">
-        <SLink
-          to={item.path}
-          className="group relative inline-block transition-all duration-300 hover:text-black"
-        >
-          {item.name}
-          <span className="absolute left-0 -bottom-1 h-[2px] w-0 bg-black transition-all duration-300 group-hover:w-full"></span>
-        </SLink>
-      </li>
-    ))}
-  </ul>
-</div>
+          <ul className="space-y-4">
+            {[
+              { name: "About Us", path: "/whyownfresh" },
+              { name: "Blogs", path: "/oilinsights" },
+              { name: "Contact", path: "/contact" },
+              { name: "WHY OWNFRESH ?", path: "/whyownfresh" },
+            ].map((item, index) => (
+              <li key={index} className="w-fit">
+                <SLink
+                  to={item.path}
+                  className="group relative inline-block transition-all duration-300 hover:text-black"
+                >
+                  {item.name}
+                  <span className="absolute left-0 -bottom-1 h-[2px] w-0 bg-black transition-all duration-300 group-hover:w-full"></span>
+                </SLink>
+              </li>
+            ))}
+          </ul>
+        </div>
 
         {/* Support */}
         <div>
@@ -120,35 +120,35 @@ const Footer = () => {
 
         {/* Newsletter */}
 
-<div>
-  <h3 className="text-lg font-semibold text-black mb-6">
-    Newsletter
-  </h3>
+        <div>
+          <h3 className="text-lg font-semibold text-black mb-6">
+            Newsletter
+          </h3>
 
-  <p className="mb-6">
-    Avail attractive discounts on your orders by joining our Newsletter
-  </p>
+          <p className="mb-6">
+            Avail attractive discounts on your orders by joining our Newsletter
+          </p>
 
-  <div className="flex w-full max-w-md bg-white border border-gray-300 rounded-full overflow-hidden shadow-sm">
-    
-    <input
-      type="email"
-      value={email}
-      onChange={(e) => setEmail(e.target.value)}
-      placeholder="your@email.com"
-      className="flex-1 px-5 py-3 text-sm outline-none"
-    />
+          <div className="flex w-full max-w-md bg-white border border-gray-300 rounded-full overflow-hidden shadow-sm">
 
-    <button
-      onClick={handleSubscribe}
-      disabled={loading}
-      className="px-6 py-3 bg-black text-white text-sm font-semibold hover:bg-gray-800 transition duration-300 disabled:opacity-60"
-    >
-      {loading ? "..." : "SUBSCRIBE"}
-    </button>
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="your@email.com"
+              className="flex-1 px-5 py-3 text-sm outline-none"
+            />
 
-  </div>
-</div>
+            <button
+              onClick={handleSubscribe}
+              disabled={loading}
+              className="px-6 py-3 bg-black text-white text-sm font-semibold hover:bg-gray-800 transition duration-300 disabled:opacity-60"
+            >
+              {loading ? "..." : "SUBSCRIBE"}
+            </button>
+
+          </div>
+        </div>
 
       </div>
 

@@ -13,7 +13,7 @@
 //   const [otp, setOtp] = useState("");
 //   const [password, setPassword] = useState("");
 //   const [confirmPassword, setConfirmPassword] = useState("");
-  
+
 //   const [showPassword, setShowPassword] = useState(false);
 //   const primaryColor = "#FFD700";
 //   const hoverColor = "#E6B800";

@@ -244,8 +244,8 @@ const GalleryManager = () => {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-10">
         <div>
           <h2 className="text-3xl font-extrabold text-slate-900 tracking-tight flex items-center gap-3">
-            <ImageIcon className="text-[#1E971D] w-8 h-8" />
-            Media & <span className="text-[#1E971D]">Gallery</span>
+            <ImageIcon className="text-[#24672E] w-8 h-8" />
+            Media & <span className="text-[#24672E]">Gallery</span>
           </h2>
           <p className="text-slate-500 text-sm mt-1 uppercase tracking-widest font-bold">
             Central Media Library
@@ -258,7 +258,7 @@ const GalleryManager = () => {
           </div>
           <button
             onClick={() => setShowUploadModal(true)}
-            className="flex items-center gap-2 bg-[#1E971D] text-white px-6 py-3 rounded-xl font-bold hover:bg-[#167a17] transition-all shadow-lg shadow-[#1E971D]/20"
+            className="flex items-center gap-2 bg-[#24672E] text-white px-6 py-3 rounded-xl font-bold hover:bg-[#167a17] transition-all shadow-lg shadow-[#24672E]/20"
           >
             <Plus size={20} />
             Upload Photo
@@ -271,7 +271,7 @@ const GalleryManager = () => {
         <div className="relative w-full">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
           <input
-            className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border-none rounded-xl focus:ring-2 focus:ring-[#1E971D]/20 outline-none"
+            className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border-none rounded-xl focus:ring-2 focus:ring-[#24672E]/20 outline-none"
             placeholder="Search by title or description..."
             value={search}
             onChange={(e) => {
@@ -304,7 +304,7 @@ const GalleryManager = () => {
       {/* GALLERY GRID */}
       {loading && images.length === 0 ? (
         <div className="flex justify-center py-20">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#1E971D]"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#24672E]"></div>
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
@@ -364,7 +364,7 @@ const GalleryManager = () => {
                 <div className="pt-3 border-t border-slate-100 flex items-center justify-between">
                   <button
                     onClick={() => handleCopyLink(img.imageUrl, img._id)}
-                    className="text-xs font-bold text-slate-600 hover:text-[#1E971D] flex items-center gap-1 transition-colors"
+                    className="text-xs font-bold text-slate-600 hover:text-[#24672E] flex items-center gap-1 transition-colors"
                   >
                     {copiedId === img._id ? (
                       <>
@@ -415,7 +415,7 @@ const GalleryManager = () => {
           <button
             disabled={page <= 1}
             onClick={() => setPage(page - 1)}
-            className="p-2.5 rounded-full bg-white border text-slate-600 disabled:opacity-30 hover:bg-[#1E971D] hover:text-white transition-all shadow-sm"
+            className="p-2.5 rounded-full bg-white border text-slate-600 disabled:opacity-30 hover:bg-[#24672E] hover:text-white transition-all shadow-sm"
           >
             <ChevronLeft className="w-5 h-5" />
           </button>
@@ -427,7 +427,7 @@ const GalleryManager = () => {
           <button
             disabled={page >= totalPages}
             onClick={() => setPage(page + 1)}
-            className="p-2.5 rounded-full bg-white border text-slate-600 disabled:opacity-30 hover:bg-[#1E971D] hover:text-white transition-all shadow-sm"
+            className="p-2.5 rounded-full bg-white border text-slate-600 disabled:opacity-30 hover:bg-[#24672E] hover:text-white transition-all shadow-sm"
           >
             <ChevronRight className="w-5 h-5" />
           </button>
@@ -438,7 +438,7 @@ const GalleryManager = () => {
       {showUploadModal && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[2000] flex items-center justify-center p-4">
           <div className="bg-white w-full max-w-lg rounded-3xl overflow-hidden shadow-2xl animate-in fade-in zoom-in duration-200">
-            <div className="bg-[#1E971D] p-6 text-white flex justify-between items-center">
+            <div className="bg-[#24672E] p-6 text-white flex justify-between items-center">
               <h3 className="text-xl font-bold flex items-center gap-2">
                 <Upload size={20} />
                 Upload New Image
@@ -476,9 +476,9 @@ const GalleryManager = () => {
                       </button>
                     </div>
                   )}
-                  <label className="flex flex-col items-center justify-center w-full h-36 border-2 border-dashed border-slate-200 rounded-2xl cursor-pointer hover:bg-slate-50 hover:border-[#1E971D] transition-all group">
+                  <label className="flex flex-col items-center justify-center w-full h-36 border-2 border-dashed border-slate-200 rounded-2xl cursor-pointer hover:bg-slate-50 hover:border-[#24672E] transition-all group">
                     <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                      <Upload className="w-8 h-8 text-slate-400 group-hover:text-[#1E971D] mb-2" />
+                      <Upload className="w-8 h-8 text-slate-400 group-hover:text-[#24672E] mb-2" />
                       <p className="text-xs text-slate-500 font-bold uppercase tracking-widest">
                         {uploadFile ? "Change Image File" : "Choose Image File"}
                       </p>
@@ -499,7 +499,7 @@ const GalleryManager = () => {
                   Image Title
                 </label>
                 <input
-                  className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-[#1E971D] transition-all font-medium"
+                  className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-[#24672E] transition-all font-medium"
                   placeholder="e.g. Traditional cold pressed grinding"
                   required
                   value={uploadForm.title}
@@ -513,7 +513,7 @@ const GalleryManager = () => {
                     Category
                   </label>
                   <select
-                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-[#1E971D] transition-all font-bold cursor-pointer"
+                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-[#24672E] transition-all font-bold cursor-pointer"
                     value={uploadForm.category}
                     onChange={(e) => setUploadForm({ ...uploadForm, category: e.target.value })}
                   >
@@ -531,7 +531,7 @@ const GalleryManager = () => {
                   </label>
                   <input
                     type="number"
-                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-[#1E971D] transition-all font-bold"
+                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-[#24672E] transition-all font-bold"
                     placeholder="0"
                     value={uploadForm.displayOrder}
                     onChange={(e) => setUploadForm({ ...uploadForm, displayOrder: parseInt(e.target.value) || 0 })}
@@ -544,7 +544,7 @@ const GalleryManager = () => {
                   Description / Caption
                 </label>
                 <textarea
-                  className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-[#1E971D] transition-all min-h-[80px] resize-none font-medium"
+                  className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-[#24672E] transition-all min-h-[80px] resize-none font-medium"
                   placeholder="Provide a caption or short description..."
                   value={uploadForm.description}
                   onChange={(e) => setUploadForm({ ...uploadForm, description: e.target.value })}
@@ -557,7 +557,7 @@ const GalleryManager = () => {
                   id="isActiveUpload"
                   checked={uploadForm.isActive}
                   onChange={(e) => setUploadForm({ ...uploadForm, isActive: e.target.checked })}
-                  className="w-4 h-4 text-[#1E971D] focus:ring-[#1E971D] border-slate-300 rounded cursor-pointer"
+                  className="w-4 h-4 text-[#24672E] focus:ring-[#24672E] border-slate-300 rounded cursor-pointer"
                 />
                 <label
                   htmlFor="isActiveUpload"
@@ -570,7 +570,7 @@ const GalleryManager = () => {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full bg-slate-900 text-white py-4 rounded-2xl font-bold hover:bg-[#1E971D] transition-all transform active:scale-95 disabled:opacity-50 mt-6 shadow-xl uppercase tracking-wider text-xs"
+                className="w-full bg-slate-900 text-white py-4 rounded-2xl font-bold hover:bg-[#24672E] transition-all transform active:scale-95 disabled:opacity-50 mt-6 shadow-xl uppercase tracking-wider text-xs"
               >
                 {loading ? "Uploading image..." : "Upload Image"}
               </button>
@@ -583,7 +583,7 @@ const GalleryManager = () => {
       {showEditModal && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[2000] flex items-center justify-center p-4">
           <div className="bg-white w-full max-w-lg rounded-3xl overflow-hidden shadow-2xl animate-in fade-in zoom-in duration-200">
-            <div className="bg-[#1E971D] p-6 text-white flex justify-between items-center">
+            <div className="bg-[#24672E] p-6 text-white flex justify-between items-center">
               <h3 className="text-xl font-bold flex items-center gap-2">
                 <Edit size={20} />
                 Edit Gallery Image Properties
@@ -607,7 +607,7 @@ const GalleryManager = () => {
                   Image Title
                 </label>
                 <input
-                  className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-[#1E971D] transition-all font-medium"
+                  className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-[#24672E] transition-all font-medium"
                   placeholder="e.g. Pure cold pressed oil extraction"
                   required
                   value={editForm.title}
@@ -621,7 +621,7 @@ const GalleryManager = () => {
                     Category
                   </label>
                   <select
-                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-[#1E971D] transition-all font-bold cursor-pointer"
+                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-[#24672E] transition-all font-bold cursor-pointer"
                     value={editForm.category}
                     onChange={(e) => setEditForm({ ...editForm, category: e.target.value })}
                   >
@@ -639,7 +639,7 @@ const GalleryManager = () => {
                   </label>
                   <input
                     type="number"
-                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-[#1E971D] transition-all font-bold"
+                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-[#24672E] transition-all font-bold"
                     placeholder="0"
                     value={editForm.displayOrder}
                     onChange={(e) => setEditForm({ ...editForm, displayOrder: parseInt(e.target.value) || 0 })}
@@ -652,7 +652,7 @@ const GalleryManager = () => {
                   Description / Caption
                 </label>
                 <textarea
-                  className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-[#1E971D] transition-all min-h-[80px] resize-none font-medium"
+                  className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-[#24672E] transition-all min-h-[80px] resize-none font-medium"
                   placeholder="Provide a caption or short description..."
                   value={editForm.description}
                   onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
@@ -665,7 +665,7 @@ const GalleryManager = () => {
                   id="isActiveEdit"
                   checked={editForm.isActive}
                   onChange={(e) => setEditForm({ ...editForm, isActive: e.target.checked })}
-                  className="w-4 h-4 text-[#1E971D] focus:ring-[#1E971D] border-slate-300 rounded cursor-pointer"
+                  className="w-4 h-4 text-[#24672E] focus:ring-[#24672E] border-slate-300 rounded cursor-pointer"
                 />
                 <label
                   htmlFor="isActiveEdit"
@@ -678,7 +678,7 @@ const GalleryManager = () => {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full bg-slate-900 text-white py-4 rounded-2xl font-bold hover:bg-[#1E971D] transition-all transform active:scale-95 disabled:opacity-50 mt-6 shadow-xl uppercase tracking-wider text-xs"
+                className="w-full bg-slate-900 text-white py-4 rounded-2xl font-bold hover:bg-[#24672E] transition-all transform active:scale-95 disabled:opacity-50 mt-6 shadow-xl uppercase tracking-wider text-xs"
               >
                 {loading ? "Saving changes..." : "Save Image Properties"}
               </button>

@@ -96,7 +96,7 @@ const OilInsights = () => {
         {/* HEADER */}
         <div className="max-w-7xl mx-auto flex flex-col items-center mb-16 text-center border-b border-gray-200 pb-12">
           <h1 className="text-4xl md:text-5xl font-black text-black tracking-tight uppercase">
-            OwnFresh <span className="text-[#F9DD19]">Insights</span>
+            OwnFresh <span className="text-[#FFDD00]">Insights</span>
           </h1>
           <p className="text-gray-500 mt-4 text-sm uppercase tracking-widest font-bold">
             Health Benefits, Science, and Lifestyle Insights
@@ -127,7 +127,7 @@ const OilInsights = () => {
                                 </div>
                                 <div className="flex flex-col items-start px-6 md:px-10 pb-10">
                                     <div className="flex items-center gap-3 mb-4">
-                                        <span className="text-[10px] font-black bg-[#F9DD19] text-black px-3 py-1 rounded-full uppercase tracking-widest">
+                                        <span className="text-[10px] font-black bg-[#FFDD00] text-black px-3 py-1 rounded-full uppercase tracking-widest">
                                             {(() => {
                                                 let cat = blog.category ? blog.category.trim() : 'General';
                                                 return cat.charAt(0).toUpperCase() + cat.slice(1).toLowerCase();
@@ -135,11 +135,11 @@ const OilInsights = () => {
                                         </span>
                                         <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{blog.date || 'Recent'}</span>
                                     </div>
-                                    <h2 className="text-2xl md:text-3xl font-black text-black leading-tight mb-4 group-hover:text-[#F9DD19] transition-colors" dangerouslySetInnerHTML={{ __html: blog.title }}>
+                                    <h2 className="text-2xl md:text-3xl font-black text-black leading-tight mb-4 group-hover:text-[#FFDD00] transition-colors" dangerouslySetInnerHTML={{ __html: blog.title }}>
                                     </h2>
                                     <div className="text-gray-600 leading-relaxed font-medium line-clamp-3 mb-8" dangerouslySetInnerHTML={{ __html: blog.description }}>
                                     </div>
-                                    <span className="text-xs font-black text-black border-b-2 border-black pb-1 uppercase tracking-widest group-hover:border-[#F9DD19] group-hover:text-[#F9DD19] transition-colors">
+                                    <span className="text-xs font-black text-black border-b-2 border-black pb-1 uppercase tracking-widest group-hover:border-[#FFDD00] group-hover:text-[#FFDD00] transition-colors">
                                         Read Article
                                     </span>
                                 </div>
@@ -156,7 +156,7 @@ const OilInsights = () => {
                                     setCurrentPage(prev => prev - 1);
                                     window.scrollTo({ top: 0, behavior: "smooth" });
                                 }}
-                                className="p-4 rounded-full bg-white border border-gray-200 text-slate-800 disabled:opacity-30 shadow-sm hover:shadow-md hover:bg-[#F9DD19] hover:border-[#F9DD19] transition-all"
+                                className="p-4 rounded-full bg-white border border-gray-200 text-slate-800 disabled:opacity-30 shadow-sm hover:shadow-md hover:bg-[#FFDD00] hover:border-[#FFDD00] transition-all"
                             >
                                 <ChevronLeft className="w-6 h-6" />
                             </button>
@@ -171,7 +171,7 @@ const OilInsights = () => {
                                     setCurrentPage(prev => prev + 1);
                                     window.scrollTo({ top: 0, behavior: "smooth" });
                                 }}
-                                className="p-4 rounded-full bg-white border border-gray-200 text-slate-800 disabled:opacity-30 shadow-sm hover:shadow-md hover:bg-[#F9DD19] hover:border-[#F9DD19] transition-all"
+                                className="p-4 rounded-full bg-white border border-gray-200 text-slate-800 disabled:opacity-30 shadow-sm hover:shadow-md hover:bg-[#FFDD00] hover:border-[#FFDD00] transition-all"
                             >
                                 <ChevronRight className="w-6 h-6" />
                             </button>
@@ -212,7 +212,7 @@ const OilInsights = () => {
                     <ul className="flex flex-col gap-1 text-[11px] font-black text-gray-500 uppercase tracking-widest">
                         <li 
                             onClick={() => setActiveCategory("All")} 
-                            className={`flex justify-between items-center p-2 rounded cursor-pointer transition-colors ${activeCategory === "All" ? "bg-[#F9DD19] text-black" : "hover:bg-gray-50"}`}
+                            className={`flex justify-between items-center p-2 rounded cursor-pointer transition-colors ${activeCategory === "All" ? "bg-[#FFDD00] text-black" : "hover:bg-gray-50"}`}
                         >
                             <span>All</span>
                             <span className="bg-gray-100 text-gray-400 px-2 py-0.5 rounded">{allBlogs.length}</span>
@@ -221,7 +221,7 @@ const OilInsights = () => {
                             <li 
                                 key={idx} 
                                 onClick={() => setActiveCategory(title)} 
-                                className={`flex justify-between items-center p-2 rounded cursor-pointer transition-colors ${activeCategory === title ? "bg-[#F9DD19] text-black" : "hover:bg-gray-50 hover:text-black"}`}
+                                className={`flex justify-between items-center p-2 rounded cursor-pointer transition-colors ${activeCategory === title ? "bg-[#FFDD00] text-black" : "hover:bg-gray-50 hover:text-black"}`}
                             >
                                 <span>{title}</span>
                                 <span className="bg-gray-100 text-gray-400 px-2 py-0.5 rounded">{count}</span>
@@ -236,7 +236,7 @@ const OilInsights = () => {
                     <div className="flex flex-col gap-4">
                         {allBlogs.slice(0, 3).map((blog) => (
                             <SLink key={`recent-${blog.id || blog._id}`} to={`/blog/${blog.id || blog._id}`} className="group flex flex-col gap-1 cursor-pointer">
-                                <h4 className="text-sm font-bold text-black leading-tight group-hover:text-[#F9DD19] transition-colors" dangerouslySetInnerHTML={{ __html: blog.title }}>
+                                <h4 className="text-sm font-bold text-black leading-tight group-hover:text-[#FFDD00] transition-colors" dangerouslySetInnerHTML={{ __html: blog.title }}>
                                 </h4>
                                 <span className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">{blog.date}</span>
                             </SLink>

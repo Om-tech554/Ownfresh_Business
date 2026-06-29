@@ -5,6 +5,7 @@ import ProductSection from "../components/ProductSection";
 import HeroSection from './HeroSection';
 import { OurStorySnippet, Gallery, FAQSection } from './HomeExtras';
 import PartnersSection from './PartnersSection';
+import FeaturesHighlights from './FeaturesHighlights';
 import ContactSection from './ContactSection';
 
 const UserDashboard = () => {
@@ -28,6 +29,9 @@ const UserDashboard = () => {
 
       {/* New Partners Section */}
       <PartnersSection />
+
+      {/* Feature Highlights Section */}
+      <FeaturesHighlights />
 
       {/* New Contact Form Section */}
       <ContactSection />

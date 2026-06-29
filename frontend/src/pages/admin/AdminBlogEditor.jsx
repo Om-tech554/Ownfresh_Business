@@ -380,7 +380,7 @@ const AdminBlogEditor = () => {
   margin-bottom: 1rem;
 }
 .wp-blog-content-admin a {
-  color: #1E971D;
+  color: #24672E;
   text-decoration: none;
 }
 .wp-blog-content-admin a:hover {

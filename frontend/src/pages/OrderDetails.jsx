@@ -69,7 +69,7 @@ const OrderDetails = () => {
 
     if (loading) return (
         <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-            <div className="w-12 h-12 border-4 border-[#F9DD19] border-t-transparent rounded-full animate-spin"></div>
+            <div className="w-12 h-12 border-4 border-[#FFDD00] border-t-transparent rounded-full animate-spin"></div>
         </div>
     );
 
@@ -112,7 +112,7 @@ const OrderDetails = () => {
                 <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10">
                     <div>
                         <h1 className="text-3xl font-black text-slate-900 uppercase tracking-tight">
-                            Order <span className="text-[#F9DD19]">Details</span>
+                            Order <span className="text-[#FFDD00]">Details</span>
                         </h1>
                         <div className="flex flex-wrap items-center gap-x-6 gap-y-2 mt-2">
                             <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wide">Ordered on {new Date(order.createdAt).toLocaleDateString(undefined, { day: 'numeric', month: 'long', year: 'numeric' })}</p>
@@ -120,7 +120,7 @@ const OrderDetails = () => {
                             <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wide font-mono">Order# {order._id.toUpperCase()}</p>
                         </div>
                     </div>
-                    <button onClick={() => window.print()} className="flex items-center gap-2 px-6 py-3 bg-white border border-slate-200 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-[#F9DD19] hover:border-[#F9DD19] transition-all shadow-sm">
+                    <button onClick={() => window.print()} className="flex items-center gap-2 px-6 py-3 bg-white border border-slate-200 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-[#FFDD00] hover:border-[#FFDD00] transition-all shadow-sm">
                         <Printer size={14} /> View or Print Invoice
                     </button>
                 </div>
@@ -134,10 +134,10 @@ const OrderDetails = () => {
                         <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-slate-100">
                             <div className="p-8">
                                 <h4 className="text-[11px] font-black text-slate-900 uppercase tracking-widest mb-4 flex items-center gap-2">
-                                    <MapPin size={14} className="text-[#1E971D]" /> Shipping Address
+                                    <MapPin size={14} className="text-[#24672E]" /> Shipping Address
                                 </h4>
                                 <div className="flex flex-col gap-1 mb-6">
-                                    <span className="text-[10px] font-black text-[#1E971D] uppercase">Delivery Address</span>
+                                    <span className="text-[10px] font-black text-[#24672E] uppercase">Delivery Address</span>
                                     <p className="text-xs font-bold text-slate-600 leading-relaxed uppercase">
                                         {order.deliveryAddress?.roomNumber}<br />
                                         {order.deliveryAddress?.areaName}<br />
@@ -189,7 +189,7 @@ const OrderDetails = () => {
                                 {/* Amazon Style Vertical/Horizontal Stepper */}
                                 <div className="flex items-center justify-between relative">
                                     <div className="absolute top-1/2 left-0 w-full h-1.5 bg-slate-100 -translate-y-1/2 rounded-full"></div>
-                                    <div className="absolute top-1/2 left-0 h-1.5 bg-[#1E971D] -translate-y-1/2 rounded-full transition-all duration-1000"
+                                    <div className="absolute top-1/2 left-0 h-1.5 bg-[#24672E] -translate-y-1/2 rounded-full transition-all duration-1000"
                                         style={{
                                             width: order.status === 'pending' ? '5%' :
                                                 order.status === 'processing' ? '33%' :
@@ -217,11 +217,11 @@ const OrderDetails = () => {
 
                                         return (
                                             <div key={s} className="relative z-10 flex flex-col items-center">
-                                                <div className={`w-10 h-10 rounded-full flex items-center justify-center border-4 border-white shadow-md transition-colors duration-500 ${isCompleted ? 'bg-[#1E971D] text-white' : 'bg-white text-slate-200 border-slate-100'}`}>
+                                                <div className={`w-10 h-10 rounded-full flex items-center justify-center border-4 border-white shadow-md transition-colors duration-500 ${isCompleted ? 'bg-[#24672E] text-white' : 'bg-white text-slate-200 border-slate-100'}`}>
                                                     <CheckCircle2 size={16} className={isCompleted ? 'block' : 'hidden'} />
                                                     <div className={`w-2.5 h-2.5 bg-slate-200 rounded-full ${isCompleted ? 'hidden' : 'block'}`}></div>
                                                 </div>
-                                                <p className={`absolute top-full mt-3 text-[10px] font-black uppercase whitespace-nowrap tracking-wider ${isCompleted ? 'text-[#1E971D]' : 'text-slate-400'}`}>
+                                                <p className={`absolute top-full mt-3 text-[10px] font-black uppercase whitespace-nowrap tracking-wider ${isCompleted ? 'text-[#24672E]' : 'text-slate-400'}`}>
                                                     {s}
                                                 </p>
                                             </div>
@@ -262,7 +262,7 @@ const OrderDetails = () => {
                     {/* RIGHT COL: SUMMARY */}
                     <div className="lg:col-span-1">
                         <div className="bg-slate-900 rounded-[2.5rem] p-8 text-white shadow-xl sticky top-32">
-                            <h4 className="text-[11px] font-black text-[#F9DD19] uppercase tracking-widest mb-8">Order Summary</h4>
+                            <h4 className="text-[11px] font-black text-[#FFDD00] uppercase tracking-widest mb-8">Order Summary</h4>
 
                             <div className="space-y-4 mb-8">
                                 <div className="flex justify-between items-center">
@@ -282,12 +282,12 @@ const OrderDetails = () => {
                             <div className="pt-6 border-t border-white/10 mb-8 flex justify-between items-end">
                                 <div>
                                     <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Grand Total</p>
-                                    <p className="text-3xl font-black text-[#F9DD19] font-mono leading-none mt-2">₹{order.totalAmount}</p>
+                                    <p className="text-3xl font-black text-[#FFDD00] font-mono leading-none mt-2">₹{order.totalAmount}</p>
                                 </div>
                             </div>
 
                             <div className="space-y-3">
-                                <button className="w-full bg-[#F9DD19] text-black text-[10px] font-black uppercase tracking-widest py-4 rounded-2xl hover:shadow-xl hover:shadow-yellow-500/20 transition-all active:scale-[0.98]">
+                                <button className="w-full bg-[#FFDD00] text-black text-[10px] font-black uppercase tracking-widest py-4 rounded-2xl hover:shadow-xl hover:shadow-yellow-500/20 transition-all active:scale-[0.98]">
                                     Track My Package
                                 </button>
                                 {['pending', 'processing'].includes(order.status) && (
@@ -348,7 +348,7 @@ const OrderDetails = () => {
 
                             {cancelReason === "Others" && (
                                 <textarea
-                                    className="w-full p-5 bg-slate-50 border border-slate-200 rounded-3xl outline-none font-bold text-xs h-32 resize-none transition-all focus:border-[#F9DD19]"
+                                    className="w-full p-5 bg-slate-50 border border-slate-200 rounded-3xl outline-none font-bold text-xs h-32 resize-none transition-all focus:border-[#FFDD00]"
                                     placeholder="Tell us more..."
                                     onChange={(e) => setCancelReason(e.target.value)}
                                 ></textarea>

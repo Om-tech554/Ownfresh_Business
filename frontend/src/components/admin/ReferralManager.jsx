@@ -337,7 +337,7 @@ const ReferralManager = () => {
                                 <p className="text-slate-400 text-[10px] italic">Milestones are assessed immediately upon order delivery. Fraud checks protect against duplicate IP/device exploits.</p>
                             </div>
 
-                            <button className="w-full bg-[#1E971D] text-white py-5 rounded-[1.5rem] font-black flex items-center justify-center gap-3 hover:scale-[1.02] active:scale-95 transition-all shadow-xl shadow-[#1E971D]/20 cursor-pointer">
+                            <button className="w-full bg-[#24672E] text-white py-5 rounded-[1.5rem] font-black flex items-center justify-center gap-3 hover:scale-[1.02] active:scale-95 transition-all shadow-xl shadow-[#24672E]/20 cursor-pointer">
                                 <Save size={20} /> Update Affiliate Rules
                             </button>
                         </form>

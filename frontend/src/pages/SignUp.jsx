@@ -321,7 +321,7 @@ const SignUp = () => {
           <div>
             <label>Full Name</label>
             <div className="relative">
-              <User className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"/>
+              <User className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
               <input
                 className="w-full pl-10 pr-3 py-3 border rounded-xl"
                 required
@@ -334,7 +334,7 @@ const SignUp = () => {
           <div>
             <label>WhatsApp Number</label>
             <div className="relative">
-              <Phone className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"/>
+              <Phone className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
               <input
                 className="w-full pl-10 pr-3 py-3 border rounded-xl"
                 type="tel"
@@ -348,7 +348,7 @@ const SignUp = () => {
           <div>
             <label>Email</label>
             <div className="relative">
-              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"/>
+              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
               <input
                 className="w-full pl-10 pr-3 py-3 border rounded-xl"
                 type="email"
@@ -362,7 +362,7 @@ const SignUp = () => {
           <div>
             <label>Create Password</label>
             <div className="relative">
-              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"/>
+              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
               <input
                 className="w-full pl-10 pr-10 py-3 border rounded-xl"
                 required

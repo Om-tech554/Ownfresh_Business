@@ -89,7 +89,7 @@ const UserBlogDetails = () => {
   if (loading)
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-[#FEFDF8]">
-        <Loader2 className="w-12 h-12 animate-spin text-[#F9DD19]" />
+        <Loader2 className="w-12 h-12 animate-spin text-[#FFDD00]" />
         <p className="mt-4 text-gray-500 font-medium">Fetching the story…</p>
       </div>
     );
@@ -101,7 +101,7 @@ const UserBlogDetails = () => {
         <h2 className="text-2xl font-bold">Blog not found</h2>
         <button
           onClick={() => navigate(-1)}
-          className="text-[#1E971D] mt-4 flex items-center gap-2"
+          className="text-[#24672E] mt-4 flex items-center gap-2"
         >
           <ArrowLeft size={18} /> Back
         </button>
@@ -181,7 +181,7 @@ const UserBlogDetails = () => {
         <div className="bg-gradient-to-b from-[#1a1a1a] to-[#0d0d0d] px-4 md:px-8 lg:px-12 pt-7 pb-10">
           <div className="max-w-7xl mx-auto">
             <div className="flex flex-wrap items-center gap-3 mb-4">
-              <span className="inline-flex items-center gap-1.5 bg-[#F9DD19] text-black text-xs font-black uppercase tracking-widest px-3 py-1 rounded-full">
+              <span className="inline-flex items-center gap-1.5 bg-[#FFDD00] text-black text-xs font-black uppercase tracking-widest px-3 py-1 rounded-full">
                 <Calendar size={12} />
                 {new Date(blog.publishedAt || blog.createdAt).toLocaleDateString(undefined, { dateStyle: "long" })}
               </span>
@@ -207,8 +207,8 @@ const UserBlogDetails = () => {
 
             {/* decorative accent line */}
             <div className="flex items-center gap-3 mb-8">
-              <div className="w-10 h-1 bg-[#F9DD19]" />
-              <Leaf size={16} className="text-[#F9DD19]" />
+              <div className="w-10 h-1 bg-[#FFDD00]" />
+              <Leaf size={16} className="text-[#FFDD00]" />
               <div className="flex-1 h-px bg-gray-200" />
             </div>
 
@@ -219,7 +219,7 @@ const UserBlogDetails = () => {
                 prose-headings:font-black prose-headings:text-gray-900
                 prose-h2:text-2xl prose-h2:mt-10 prose-h2:mb-4
                 prose-p:text-gray-700 prose-p:leading-[1.9] prose-p:text-lg
-                prose-a:text-[#1E971D] prose-a:no-underline hover:prose-a:underline
+                prose-a:text-[#24672E] prose-a:no-underline hover:prose-a:underline
                 prose-img:rounded-xl prose-img:shadow-md
                 prose-strong:text-gray-900
                 prose-ul:text-gray-700 prose-li:my-1
@@ -262,7 +262,7 @@ const UserBlogDetails = () => {
               </p>
               <ul className="flex flex-col gap-4">
                 <li className="flex items-start gap-3">
-                  <Calendar size={18} className="text-[#F9DD19] mt-0.5 shrink-0" />
+                  <Calendar size={18} className="text-[#FFDD00] mt-0.5 shrink-0" />
                   <div>
                     <p className="text-xs text-gray-400 font-semibold uppercase tracking-widest">Published</p>
                     <p className="text-sm font-bold text-gray-800">
@@ -271,7 +271,7 @@ const UserBlogDetails = () => {
                   </div>
                 </li>
                 <li className="flex items-start gap-3">
-                  <Leaf size={18} className="text-[#F9DD19] mt-0.5 shrink-0" />
+                  <Leaf size={18} className="text-[#FFDD00] mt-0.5 shrink-0" />
                   <div>
                     <p className="text-xs text-gray-400 font-semibold uppercase tracking-widest">Author</p>
                     <p className="text-sm font-bold text-gray-800">{blog.author || "Own Fresh Team"}</p>
@@ -279,7 +279,7 @@ const UserBlogDetails = () => {
                 </li>
                 {blog.location && (
                   <li className="flex items-start gap-3">
-                    <Leaf size={18} className="text-[#F9DD19] mt-0.5 shrink-0" />
+                    <Leaf size={18} className="text-[#FFDD00] mt-0.5 shrink-0" />
                     <div>
                       <p className="text-xs text-gray-400 font-semibold uppercase tracking-widest">Location</p>
                       <p className="text-sm font-bold text-gray-800">
@@ -289,14 +289,14 @@ const UserBlogDetails = () => {
                   </li>
                 )}
                 <li className="flex items-start gap-3">
-                  <BookOpen size={18} className="text-[#F9DD19] mt-0.5 shrink-0" />
+                  <BookOpen size={18} className="text-[#FFDD00] mt-0.5 shrink-0" />
                   <div>
                     <p className="text-xs text-gray-400 font-semibold uppercase tracking-widest">Read Time</p>
                     <p className="text-sm font-bold text-gray-800">{mins} minute{mins !== 1 ? "s" : ""}</p>
                   </div>
                 </li>
                 <li className="flex items-start gap-3">
-                  <Leaf size={18} className="text-[#F9DD19] mt-0.5 shrink-0" />
+                  <Leaf size={18} className="text-[#FFDD00] mt-0.5 shrink-0" />
                   <div>
                     <p className="text-xs text-gray-400 font-semibold uppercase tracking-widest">Category</p>
                     <p className="text-sm font-bold text-gray-800">
@@ -312,7 +312,7 @@ const UserBlogDetails = () => {
 
             {/* Share card */}
             <div className="bg-black rounded-2xl p-6 flex flex-col items-center text-center gap-4">
-              <Share2 size={28} className="text-[#F9DD19]" />
+              <Share2 size={28} className="text-[#FFDD00]" />
               <p className="text-white font-bold text-base leading-snug">
                 Found this useful?<br />Share it with someone!
               </p>
