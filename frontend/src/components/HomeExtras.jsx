@@ -36,9 +36,9 @@ export const Gallery = () => {
     const navigate = useNavigate();
 
     // ✏️ Replace these 3 URLs with your own product image URLs
-    const featuredImage = "https://images.unsplash.com/photo-1620706857370-e1b9770e8bb1?q=80&w=900&auto=format&fit=crop";
-    const sideImage1 = "https://images.unsplash.com/photo-1598202493891-8f1c6fe5bc4e?q=80&w=700&auto=format&fit=crop";
-    const sideImage2 = "https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?q=80&w=700&auto=format&fit=crop";
+    const featuredImage = "https://res.cloudinary.com/dkhq2wlwg/image/upload/v1782888671/ownfresh_media/jc2gqhappjvdyfvrg6s4.png";
+    const sideImage1 = "https://res.cloudinary.com/dkhq2wlwg/image/upload/v1782889051/ownfresh_media/jvpavxuq3hgbuxatjru0.png";
+    const sideImage2 = "https://res.cloudinary.com/dkhq2wlwg/image/upload/v1782888819/ownfresh_media/ugty6jehznfi7mzqxlyz.png";
 
     const highlights = [
         { label: "Our Manufacturing Process", desc: "From raw seeds to the final golden drop." },
@@ -96,41 +96,35 @@ export const Gallery = () => {
                     {/* CENTER — large featured image */}
                     <div
                         onClick={() => navigate("/gallery")}
-                        className="group w-full lg:w-[44%] overflow-hidden bg-gray-200 cursor-pointer shadow-md"
-                        style={{ minHeight: "380px" }}
+                        className="group w-full lg:w-[44%] overflow-hidden bg-white border border-gray-200 rounded-3xl cursor-pointer shadow-md aspect-[4/3] lg:aspect-auto lg:h-[380px] flex items-center justify-center p-3"
                     >
                         <img
                             src={featuredImage}
                             alt="Featured Gallery"
-                            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                            style={{ minHeight: "380px" }}
+                            className="w-full h-full object-contain transition-transform duration-700 group-hover:scale-105"
                         />
                     </div>
 
                     {/* RIGHT — two stacked images */}
-                    <div className="w-full lg:w-[28%] flex flex-col gap-4">
+                    <div className="w-full lg:w-[28%] flex flex-col gap-4 justify-between">
                         <div
                             onClick={() => navigate("/gallery")}
-                            className="group flex-1 overflow-hidden bg-gray-200 cursor-pointer shadow-md"
-                            style={{ minHeight: "182px" }}
+                            className="group flex-1 overflow-hidden bg-white border border-gray-200 rounded-3xl cursor-pointer shadow-md aspect-[16/9] lg:aspect-auto lg:h-[182px] flex items-center justify-center p-3"
                         >
                             <img
                                 src={sideImage1}
                                 alt="Gallery Image 2"
-                                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                                style={{ minHeight: "182px" }}
+                                className="w-full h-full object-contain transition-transform duration-700 group-hover:scale-105"
                             />
                         </div>
                         <div
                             onClick={() => navigate("/gallery")}
-                            className="group flex-1 overflow-hidden bg-gray-200 cursor-pointer shadow-md"
-                            style={{ minHeight: "182px" }}
+                            className="group flex-1 overflow-hidden bg-white border border-gray-200 rounded-3xl cursor-pointer shadow-md aspect-[16/9] lg:aspect-auto lg:h-[182px] flex items-center justify-center p-3"
                         >
                             <img
                                 src={sideImage2}
                                 alt="Gallery Image 3"
-                                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                                style={{ minHeight: "182px" }}
+                                className="w-full h-full object-contain transition-transform duration-700 group-hover:scale-105"
                             />
                         </div>
                     </div>
