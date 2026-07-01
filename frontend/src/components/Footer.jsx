@@ -144,13 +144,13 @@ const Footer = () => {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="your@email.com"
-              className="w-full sm:flex-1 px-5 py-3 text-sm outline-none bg-white border border-gray-300 rounded-full sm:border-none sm:rounded-none shadow-sm sm:shadow-none"
+              className="w-full sm:flex-1 px-5 py-3 text-sm outline-none bg-white text-black border border-gray-300 rounded-full sm:border-none sm:rounded-none shadow-sm sm:shadow-none focus:border-[#FFDD00] focus:ring-2 focus:ring-[#FFDD00]/20"
             />
 
             <button
               onClick={handleSubscribe}
               disabled={loading}
-              className="w-full sm:w-auto px-6 py-3 bg-black text-white text-sm font-semibold rounded-full sm:rounded-none hover:bg-gray-800 transition duration-300 disabled:opacity-60 shadow-sm sm:shadow-none"
+              className="w-full sm:w-auto px-6 py-3 bg-black text-white text-sm font-semibold rounded-full sm:rounded-none hover:bg-[#FFDD00] hover:text-black transition duration-300 disabled:opacity-60 shadow-sm sm:shadow-none cursor-pointer"
             >
               {loading ? "..." : "SUBSCRIBE"}
             </button>

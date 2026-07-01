@@ -168,7 +168,7 @@ export const FAQSection = () => {
                                 <span className="font-bold text-black uppercase">{faq.q}</span>
                                 <span className={`transform transition-transform duration-300 font-black text-xl text-[#FFDD00] ${i === openIndex ? 'rotate-180' : ''}`}>↓</span>
                             </button>
-                            <div className={`overflow-hidden transition-all duration-300 ${i === openIndex ? 'max-h-40 border-t border-gray-100' : 'max-h-0'}`}>
+                            <div className={`overflow-hidden transition-all duration-300 ${i === openIndex ? 'max-h-96 border-t border-gray-100' : 'max-h-0'}`}>
                                 <p className="p-6 text-gray-600 font-medium">{faq.a}</p>
                             </div>
                         </div>
