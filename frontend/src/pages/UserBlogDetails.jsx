@@ -213,12 +213,19 @@ const UserBlogDetails = () => {
             </div>
 
             {/* Blog content */}
+            <style dangerouslySetInnerHTML={{ __html: `
+              .wp-blog-content p {
+                margin-top: 0.5rem !important;
+                margin-bottom: 0.5rem !important;
+              }
+            ` }} />
             <div
               className="
                 prose prose-lg max-w-none
+                space-y-2
                 prose-headings:font-black prose-headings:text-gray-900
                 prose-h2:text-2xl prose-h2:mt-10 prose-h2:mb-4
-                prose-p:text-gray-700 prose-p:leading-[1.9] prose-p:text-lg
+                prose-p:text-gray-700 prose-p:leading-[1.9] prose-p:text-lg prose-p:my-2
                 prose-a:text-[#24672E] prose-a:no-underline hover:prose-a:underline
                 prose-img:rounded-xl prose-img:shadow-md
                 prose-strong:text-gray-900
@@ -391,7 +398,7 @@ const UserBlogDetails = () => {
 
       {/* ── SCROLL-TO-TOP FAB ── */}
       <div
-        className={`fixed bottom-8 right-8 transition-all duration-300 transform ${
+        className={`fixed bottom-24 right-8 transition-all duration-300 transform ${
           showTopBtn ? "translate-y-0 opacity-100" : "translate-y-10 opacity-0 pointer-events-none"
         }`}
       >

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import toast from 'react-hot-toast';
 import { Send, Mail, User, MessageSquare } from 'lucide-react';
+import { serverUrl } from '../App';
 
 const ContactSection = () => {
   const [formData, setFormData] = useState({ name: '', email: '', message: '' });
@@ -11,9 +12,8 @@ const ContactSection = () => {
     e.preventDefault();
     setLoading(true);
     try {
-      const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
-      await axios.post(`${API_BASE_URL}/api/contact/submit`, formData);
-      toast.success('Message sent! We will get back to you at my1ownfresh@gmail.com');
+      await axios.post(`${serverUrl}/api/contact/submit`, formData);
+      toast.success('Thanks for reaching out! We will get back to you shortly.');
       setFormData({ name: '', email: '', message: '' });
     } catch (error) {
       toast.error('Failed to send message. Please try again.');
@@ -40,12 +40,12 @@ const ContactSection = () => {
                 Reach out to us directly. We are here to help you choose the best cold-pressed oils for your health.
               </p>
               
-              <div className="flex items-center gap-4 text-sm font-bold text-gray-300">
+              <a href="mailto:my1ownfresh@gmail.com" className="flex items-center gap-4 text-sm font-bold text-gray-300 hover:text-white transition-colors">
                 <div className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center">
                   <Mail className="w-4 h-4 text-[#FFDD00]" />
                 </div>
                 my1ownfresh@gmail.com
-              </div>
+              </a>
             </div>
           </div>
 

@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import Navbar from '../components/Navbar';
 import { Phone, Mail, MapPin, Share2 } from 'lucide-react';
+import { FaInstagram, FaFacebookF, FaXTwitter, FaYoutube, FaLinkedinIn } from "react-icons/fa6";
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import toast, { Toaster } from 'react-hot-toast';
 import SLink from '../components/SLink';
+import { serverUrl } from '../App';
 
 const Contact = () => {
     const navigate = useNavigate();
@@ -19,8 +21,7 @@ const Contact = () => {
         e.preventDefault();
         setLoading(true);
         try {
-            const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
-            await axios.post(`${API_BASE_URL}/api/contact/submit`, formData);
+            await axios.post(`${serverUrl}/api/contact/submit`, formData);
             toast.success("Thanks for reaching out! We will get back to you shortly.");
             setFormData({ name: "", email: "", message: "" });
         } catch (error) {
@@ -58,7 +59,7 @@ const Contact = () => {
                             <Phone className="w-6 h-6 text-[#FFDD00]" />
                         </div>
                         <h3 className="text-sm font-black uppercase tracking-widest text-black mb-2">Call Us</h3>
-                        <p className="text-gray-500 font-bold hover:text-black transition-colors cursor-pointer">+91 8999 77 3438</p>
+                        <a href="tel:+918999773438" className="text-gray-500 font-bold hover:text-black transition-colors cursor-pointer">+91 8999 77 3438</a>
                     </div>
 
                     {/* Email block */}
@@ -67,7 +68,7 @@ const Contact = () => {
                             <Mail className="w-6 h-6 text-[#FFDD00]" />
                         </div>
                         <h3 className="text-sm font-black uppercase tracking-widest text-black mb-2">Email Us</h3>
-                        <p className="text-gray-500 font-bold hover:text-black transition-colors cursor-pointer">contact@myownfresh.com</p>
+                        <a href="mailto:contact@myownfresh.com" className="text-gray-500 font-bold hover:text-black transition-colors cursor-pointer">contact@myownfresh.com</a>
                     </div>
 
                     {/* Address block */}
@@ -87,10 +88,22 @@ const Contact = () => {
                             <Share2 className="w-6 h-6 text-[#FFDD00]" />
                         </div>
                         <h3 className="text-sm font-black uppercase tracking-widest text-black mb-3">Follow Us</h3>
-                        <div className="flex gap-4">
-                            <div className="w-8 h-8 rounded-full bg-black text-white flex items-center justify-center text-xs font-bold hover:bg-[#FFDD00] hover:text-black cursor-pointer transition-colors">FB</div>
-                            <div className="w-8 h-8 rounded-full bg-black text-white flex items-center justify-center text-xs font-bold hover:bg-[#FFDD00] hover:text-black cursor-pointer transition-colors">IG</div>
-                            <div className="w-8 h-8 rounded-full bg-black text-white flex items-center justify-center text-xs font-bold hover:bg-[#FFDD00] hover:text-black cursor-pointer transition-colors">X</div>
+                        <div className="flex gap-3">
+                            <a href="https://www.facebook.com/ownfresh.official" target="_blank" rel="noopener noreferrer" title="Facebook" className="w-8 h-8 rounded-full bg-black text-white flex items-center justify-center hover:bg-[#FFDD00] hover:text-black cursor-pointer transition-all duration-300 hover:scale-110">
+                                <FaFacebookF size={14} />
+                            </a>
+                            <a href="https://www.instagram.com/ownfresh_official/" target="_blank" rel="noopener noreferrer" title="Instagram" className="w-8 h-8 rounded-full bg-black text-white flex items-center justify-center hover:bg-[#FFDD00] hover:text-black cursor-pointer transition-all duration-300 hover:scale-110">
+                                <FaInstagram size={14} />
+                            </a>
+                            <a href="https://x.com/ownfresh_off" target="_blank" rel="noopener noreferrer" title="X (Twitter)" className="w-8 h-8 rounded-full bg-black text-white flex items-center justify-center hover:bg-[#FFDD00] hover:text-black cursor-pointer transition-all duration-300 hover:scale-110">
+                                <FaXTwitter size={14} />
+                            </a>
+                            <a href="https://www.youtube.com/@ownfresh_official" target="_blank" rel="noopener noreferrer" title="YouTube" className="w-8 h-8 rounded-full bg-black text-white flex items-center justify-center hover:bg-[#FFDD00] hover:text-black cursor-pointer transition-all duration-300 hover:scale-110">
+                                <FaYoutube size={14} />
+                            </a>
+                            <a href="https://www.linkedin.com/company/ownfresh/" target="_blank" rel="noopener noreferrer" title="LinkedIn" className="w-8 h-8 rounded-full bg-black text-white flex items-center justify-center hover:bg-[#FFDD00] hover:text-black cursor-pointer transition-all duration-300 hover:scale-110">
+                                <FaLinkedinIn size={14} />
+                            </a>
                         </div>
                     </div>
 
@@ -154,7 +167,7 @@ const Contact = () => {
                     {/* Right: Map (Responsive iFrame) */}
                     <div className="w-full lg:w-[55%] min-h-[400px] lg:min-h-full bg-gray-100 relative">
                         <iframe 
-                            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1m3!1d3784.4578912386!2d73.81977717468165!3d18.43283258264353!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3bc295982e0a24f7%3A0xc6cb5a2b0eebbd78!2sOwnFresh!5e0!3m2!1sen!2sin!4v1700100000000!5m2!1sen!2sin" 
+                            src="https://www.google.com/maps/embed?origin=mfe&pb=!1m4!2m1!1s1,+Laxmi+Industrial+Estate,+Dhayari+Pune!5e0!6i12!3m1!1sen!5m1!1sen" 
                             width="100%" 
                             height="100%" 
                             style={{ border: 0, position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }} 

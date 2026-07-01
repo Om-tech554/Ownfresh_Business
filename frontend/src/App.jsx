@@ -18,6 +18,7 @@ import Shop from './components/Shop'
 import OilInsights from './pages/OilInsights'
 import CheckOut from './pages/CheckOut'
 import Footer from './components/Footer'   // ✅ Import Footer
+import FloatingContact from './components/FloatingContact' // ✅ Import FloatingContact
 import AOS from 'aos';
 import 'aos/dist/aos.css';
 
@@ -135,6 +136,13 @@ const App = () => {
         !location.pathname.startsWith("/blogs") &&
         !(location.pathname === "/" && (userData?.role === "admin" || userData?.role === "blogger")) &&
         <Footer />}
+
+      {/* ✅ Floating Contact Button will show on all pages except auth pages and admin panels */}
+      {!hideFooterRoutes.includes(location.pathname) &&
+        !location.pathname.startsWith("/admin") &&
+        !location.pathname.startsWith("/blogs") &&
+        !(location.pathname === "/" && (userData?.role === "admin" || userData?.role === "blogger")) &&
+        <FloatingContact />}
     </>
   )
 }

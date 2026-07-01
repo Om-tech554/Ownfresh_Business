@@ -1,6 +1,5 @@
 import React, { useState } from "react";
-import { Instagram, Facebook, Linkedin, Youtube } from "lucide-react";
-import { FaXTwitter } from "react-icons/fa6";
+import { FaInstagram, FaFacebookF, FaXTwitter, FaYoutube, FaLinkedinIn } from "react-icons/fa6";
 import axios from "axios";
 import toast from "react-hot-toast";
 import { serverUrl } from "../App";
@@ -9,6 +8,14 @@ import SLink from "../components/SLink";
 const Footer = () => {
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
+
+  const socialLinks = [
+    { Icon: FaInstagram, url: "https://www.instagram.com/ownfresh_official/", label: "Instagram" },
+    { Icon: FaFacebookF, url: "https://www.facebook.com/ownfresh.official", label: "Facebook" },
+    { Icon: FaXTwitter, url: "https://x.com/ownfresh_off", label: "X" },
+    { Icon: FaYoutube, url: "https://www.youtube.com/@ownfresh_official", label: "YouTube" },
+    { Icon: FaLinkedinIn, url: "https://www.linkedin.com/company/ownfresh/", label: "LinkedIn" }
+  ];
 
   const handleSubscribe = async () => {
     if (!email) {
@@ -42,7 +49,7 @@ const Footer = () => {
 
   return (
     <footer className="bg-[#f5f5f5] text-gray-600 pt-16 pb-8 px-6 md:px-20">
-      <div className="grid md:grid-cols-4 gap-12">
+      <div className="grid sm:grid-cols-2 md:grid-cols-4 gap-12">
 
         {/* Column 1 */}
         <div>
@@ -62,15 +69,18 @@ const Footer = () => {
           </p>
 
           <div className="flex gap-6 mt-6 text-black">
-            {[Instagram, Facebook, Linkedin, FaXTwitter, Youtube].map(
-              (Icon, index) => (
-                <Icon
-                  key={index}
-                  size={20}
-                  className="cursor-pointer transition-all duration-300 hover:scale-125 hover:text-yellow-600"
-                />
-              )
-            )}
+            {socialLinks.map(({ Icon, url, label }, index) => (
+              <a
+                key={index}
+                href={url}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label={label}
+                className="cursor-pointer transition-all duration-300 hover:scale-125 hover:text-yellow-600"
+              >
+                <Icon size={20} />
+              </a>
+            ))}
           </div>
         </div>
 
@@ -119,7 +129,6 @@ const Footer = () => {
         </div>
 
         {/* Newsletter */}
-
         <div>
           <h3 className="text-lg font-semibold text-black mb-6">
             Newsletter
@@ -129,24 +138,22 @@ const Footer = () => {
             Avail attractive discounts on your orders by joining our Newsletter
           </p>
 
-          <div className="flex w-full max-w-md bg-white border border-gray-300 rounded-full overflow-hidden shadow-sm">
-
+          <div className="flex flex-col sm:flex-row w-full max-w-md gap-3 sm:gap-0 sm:bg-white sm:border sm:border-gray-300 sm:rounded-full sm:overflow-hidden sm:shadow-sm">
             <input
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="your@email.com"
-              className="flex-1 px-5 py-3 text-sm outline-none"
+              className="w-full sm:flex-1 px-5 py-3 text-sm outline-none bg-white border border-gray-300 rounded-full sm:border-none sm:rounded-none shadow-sm sm:shadow-none"
             />
 
             <button
               onClick={handleSubscribe}
               disabled={loading}
-              className="px-6 py-3 bg-black text-white text-sm font-semibold hover:bg-gray-800 transition duration-300 disabled:opacity-60"
+              className="w-full sm:w-auto px-6 py-3 bg-black text-white text-sm font-semibold rounded-full sm:rounded-none hover:bg-gray-800 transition duration-300 disabled:opacity-60 shadow-sm sm:shadow-none"
             >
               {loading ? "..." : "SUBSCRIBE"}
             </button>
-
           </div>
         </div>
 
