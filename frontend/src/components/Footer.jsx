@@ -138,19 +138,19 @@ const Footer = () => {
             Avail attractive discounts on your orders by joining our Newsletter
           </p>
 
-          <div className="flex flex-col sm:flex-row w-full max-w-md gap-3 sm:gap-0 sm:bg-white sm:border sm:border-gray-300 sm:rounded-full sm:overflow-hidden sm:shadow-sm">
+          <div className="flex flex-row w-full max-w-md bg-white border border-gray-300 rounded-full overflow-hidden shadow-sm">
             <input
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="your@email.com"
-              className="w-full sm:flex-1 px-5 py-3 text-sm outline-none bg-white text-black border border-gray-300 rounded-full sm:border-none sm:rounded-none shadow-sm sm:shadow-none focus:border-[#FFDD00] focus:ring-2 focus:ring-[#FFDD00]/20"
+              className="flex-1 min-w-0 px-5 py-3 text-sm outline-none bg-white text-black border-none rounded-none focus:ring-0"
             />
 
             <button
               onClick={handleSubscribe}
               disabled={loading}
-              className="w-full sm:w-auto px-6 py-3 bg-black text-white text-sm font-semibold rounded-full sm:rounded-none hover:bg-[#FFDD00] hover:text-black transition duration-300 disabled:opacity-60 shadow-sm sm:shadow-none cursor-pointer"
+              className="px-6 py-3 bg-black text-white text-sm font-semibold rounded-none hover:bg-[#FFDD00] hover:text-black transition duration-300 disabled:opacity-60 cursor-pointer shrink-0"
             >
               {loading ? "..." : "SUBSCRIBE"}
             </button>

@@ -35,7 +35,7 @@ export const OurStorySnippet = () => {
 export const Gallery = () => {
     const navigate = useNavigate();
 
-    // ✏️ Replace these 3 URLs with your own product image URLs
+    // ✏️ Replace these 2 URLs with your own product image URLs
     const featuredImage = "https://res.cloudinary.com/dkhq2wlwg/image/upload/v1782888671/ownfresh_media/jc2gqhappjvdyfvrg6s4.png";
     const sideImage1 = "https://res.cloudinary.com/dkhq2wlwg/image/upload/v1782889051/ownfresh_media/jvpavxuq3hgbuxatjru0.png";
     const sideImage2 = "https://res.cloudinary.com/dkhq2wlwg/image/upload/v1782888819/ownfresh_media/ugty6jehznfi7mzqxlyz.png";
@@ -50,25 +50,24 @@ export const Gallery = () => {
     return (
         <section className="w-full bg-[#FEF7DC] py-16 px-6 md:px-12 lg:px-24">
             <div className="max-w-7xl mx-auto">
+                {/* Main Layout Grid */}
+                <div className="flex flex-col lg:flex-row gap-10 lg:gap-16 items-center">
 
-                {/* Big Headline */}
-                <h2 className="text-4xl md:text-6xl font-black text-black leading-tight mb-10 max-w-2xl">
-                    A Journey of Purity &amp; Tradition
-                </h2>
+                    {/* LEFT COLUMN — text + bullets + CTA */}
+                    <div className="w-full lg:w-[43%] flex flex-col justify-center">
+                        {/* Big Headline */}
+                        <h2 className="text-4xl md:text-6xl font-black text-black leading-tight mb-8 max-w-2xl">
+                            A Journey of Purity &amp; Tradition
+                        </h2>
 
-                {/* 3-column layout */}
-                <div className="flex flex-col lg:flex-row gap-6 items-stretch">
-
-                    {/* LEFT — text + bullets + CTA */}
-                    <div className="w-full lg:w-[28%] flex flex-col justify-center gap-6">
-                        <p className="text-gray-700 text-base leading-relaxed">
+                        <p className="text-gray-700 text-base leading-relaxed mb-6 max-w-lg">
                             Explore our journey, from selecting the finest soil nuts and seeds to
                             crafting <strong>100% pure, stone-pressed oils</strong>. Witness the
                             passion behind our process, the richness of our oils, and the people
                             who make it all possible.
                         </p>
 
-                        <div>
+                        <div className="mt-[28px] mb-[36px]">
                             <p className="font-bold text-black mb-3 text-sm">
                                 What You'll Find in Our Gallery:
                             </p>
@@ -84,48 +83,54 @@ export const Gallery = () => {
                             </ul>
                         </div>
 
-                        <button
-                            onClick={() => navigate("/gallery")}
-                            className="group inline-flex items-center gap-3 self-start bg-black hover:bg-[#FFDD00] text-white hover:text-black font-black uppercase tracking-widest text-xs px-7 py-3.5 transition-all duration-300 shadow-md mt-2"
+                        <SLink
+                            to="/gallery"
+                            className="group inline-flex items-center gap-3 self-start bg-black hover:bg-[#FFDD00] text-white hover:text-black font-black uppercase tracking-widest text-xs px-7 py-3.5 transition-all duration-300 shadow-md"
                         >
                             View Full Gallery
                             <span className="transition-transform duration-300 group-hover:translate-x-1">→</span>
-                        </button>
+                        </SLink>
                     </div>
 
-                    {/* CENTER — large featured image */}
-                    <div
-                        onClick={() => navigate("/gallery")}
-                        className="group w-full lg:w-[44%] overflow-hidden bg-white border border-gray-200 rounded-3xl cursor-pointer shadow-md aspect-[4/3] lg:aspect-auto lg:h-[380px] flex items-center justify-center p-3"
-                    >
-                        <img
-                            src={featuredImage}
-                            alt="Featured Gallery"
-                            className="w-full h-full object-contain transition-transform duration-700 group-hover:scale-105"
-                        />
-                    </div>
+                    {/* RIGHT COLUMN — Image Gallery */}
+                    <div className="w-full lg:w-[57%]">
+                        <div className="grid grid-cols-[1.4fr_1fr] grid-rows-2 gap-1 md:gap-4 h-[220px] md:h-[350px] lg:h-[460px] w-full">
 
-                    {/* RIGHT — two stacked images */}
-                    <div className="w-full lg:w-[28%] flex flex-col gap-4 justify-between">
-                        <div
-                            onClick={() => navigate("/gallery")}
-                            className="group flex-1 overflow-hidden bg-white border border-gray-200 rounded-3xl cursor-pointer shadow-md aspect-[16/9] lg:aspect-auto lg:h-[182px] flex items-center justify-center p-3"
-                        >
-                            <img
-                                src={sideImage1}
-                                alt="Gallery Image 2"
-                                className="w-full h-full object-contain transition-transform duration-700 group-hover:scale-105"
-                            />
-                        </div>
-                        <div
-                            onClick={() => navigate("/gallery")}
-                            className="group flex-1 overflow-hidden bg-white border border-gray-200 rounded-3xl cursor-pointer shadow-md aspect-[16/9] lg:aspect-auto lg:h-[182px] flex items-center justify-center p-3"
-                        >
-                            <img
-                                src={sideImage2}
-                                alt="Gallery Image 3"
-                                className="w-full h-full object-contain transition-transform duration-700 group-hover:scale-105"
-                            />
+                            {/* LEFT: Featured Image */}
+                            <SLink
+                                to="/gallery"
+                                className="group block overflow-hidden rounded-[12px] md:rounded-[20px] bg-transparent border-0 p-0 transition-all duration-300 hover:scale-[1.03] hover:-translate-y-1 h-full col-span-1 row-span-2"
+                            >
+                                <img
+                                    src={featuredImage}
+                                    alt="Featured Gallery"
+                                    className="w-full h-full object-contain object-right transition-transform duration-500 group-hover:scale-105"
+                                />
+                            </SLink>
+
+                            {/* RIGHT: 2 Side Images */}
+                            <SLink
+                                to="/gallery"
+                                className="group block overflow-hidden rounded-[12px] md:rounded-[20px] bg-transparent border-0 p-0 transition-all duration-300 hover:scale-[1.03] hover:-translate-y-1 h-full col-span-1 col-start-2 row-start-1"
+                            >
+                                <img
+                                    src={sideImage1}
+                                    alt="Gallery Side 1"
+                                    className="w-full h-full object-contain object-left transition-transform duration-500 group-hover:scale-105"
+                                />
+                            </SLink>
+
+                            <SLink
+                                to="/gallery"
+                                className="group block overflow-hidden rounded-[12px] md:rounded-[20px] bg-transparent border-0 p-0 transition-all duration-300 hover:scale-[1.03] hover:-translate-y-1 h-full col-span-1 col-start-2 row-start-2"
+                            >
+                                <img
+                                    src={sideImage2}
+                                    alt="Gallery Side 2"
+                                    className="w-full h-full object-contain object-left transition-transform duration-500 group-hover:scale-105"
+                                />
+                            </SLink>
+
                         </div>
                     </div>
 
