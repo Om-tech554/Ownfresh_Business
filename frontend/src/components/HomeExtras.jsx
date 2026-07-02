@@ -140,6 +140,7 @@ export const Gallery = () => {
     );
 };
 
+
 /* --- FAQ SECTION --- */
 export const FAQSection = () => {
     const [openIndex, setOpenIndex] = useState(0);

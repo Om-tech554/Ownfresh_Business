@@ -53,10 +53,10 @@ const Footer = () => {
 
         {/* Column 1 */}
         <div>
-          <img 
-            src="https://res.cloudinary.com/dkhq2wlwg/image/upload/v1774962822/ownfresh_media/ndxvmcpisomjzsghrfjs.png" 
-            alt="OwnFresh Logo" 
-            className="h-10 w-auto object-contain mb-6" 
+          <img
+            src="https://res.cloudinary.com/dkhq2wlwg/image/upload/v1774962822/ownfresh_media/ndxvmcpisomjzsghrfjs.png"
+            alt="OwnFresh Logo"
+            className="h-10 w-auto object-contain mb-6"
           />
 
           <p className="mb-4 leading-relaxed">
@@ -166,7 +166,7 @@ const Footer = () => {
         </p>
         <p className="mt-2">All rights reserved</p>
         <p className="mt-2 hover:text-black transition duration-300">
-          Designed & developed by TechNewity
+          Designed & developed by <a href="https://www.technewity.com" target="_blank" rel="noopener noreferrer">TechNewity Labs</a>
         </p>
       </div>
     </footer>
