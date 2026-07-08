@@ -17,6 +17,7 @@ import AdminBlogDetails from './pages/BlogDetails'
 import Shop from './components/Shop'
 import OilInsights from './pages/OilInsights'
 import CheckOut from './pages/CheckOut'
+import OrderSuccess from './pages/OrderSuccess'
 import Footer from './components/Footer'   // ✅ Import Footer
 import FloatingContact from './components/FloatingContact' // ✅ Import FloatingContact
 import AOS from 'aos';
@@ -79,6 +80,7 @@ const App = () => {
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/Oilinsights" element={<OilInsights />} />
         <Route path="/checkout" element={<CheckOut />} />
+        <Route path="/order-success" element={<OrderSuccess />} />
         <Route path="/product/:id" element={<ProductDetails />} />
         <Route
           path="/admin"

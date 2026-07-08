@@ -3,6 +3,7 @@ import Navbar from './Navbar';
 import ProductList from "./admin/ProductList";
 import BlogList from './admin/BlogList';
 import AdminOrders from './admin/AdminOrders'; // [NEW]
+import AdminCustomers from './admin/AdminCustomers'; // [NEW]
 import { useSelector } from 'react-redux';
 import { Package, BookOpen, Ticket, ShoppingCart, Layers, Users, Image as ImageIcon } from "lucide-react"; // Added Layers
 import CouponManager from './admin/CouponManager';
@@ -47,6 +48,17 @@ function AdminDashboard() {
               >
                 <ShoppingCart className="w-4 h-4" />
                 Orders
+              </button>
+
+              <button
+                onClick={() => setActiveTab("customers")}
+                className={`flex items-center gap-2 px-6 py-2.5 rounded-xl font-bold transition-all whitespace-nowrap ${activeTab === "customers"
+                    ? "bg-[#24672E] text-white shadow-lg shadow-[#24672E]/20"
+                    : "text-slate-500 hover:bg-slate-50"
+                  }`}
+              >
+                <Users className="w-4 h-4" />
+                Customers
               </button>
 
               <button
@@ -121,6 +133,7 @@ function AdminDashboard() {
         {activeTab === "coupons" && userData?.role === "admin" && <CouponManager />}
         {activeTab === "categories" && userData?.role === "admin" && <CategoryManager />}
         {activeTab === "orders" && userData?.role === "admin" && <AdminOrders />}
+        {activeTab === "customers" && userData?.role === "admin" && <AdminCustomers />}
         {activeTab === "partners" && userData?.role === "admin" && <ReferralManager />}
       </div>
     </div>
