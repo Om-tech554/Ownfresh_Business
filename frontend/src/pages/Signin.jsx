@@ -383,21 +383,19 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { setUserData } from "../redux/userslice";   // <-- MUST IMPORT
-import { Eye, EyeOff, Mail, Lock, Loader2, ArrowLeft } from "lucide-react";
+import { Eye, EyeOff, Mail, Lock, Loader2, ArrowLeft, User } from "lucide-react";
 import { serverUrl } from "../App";
 import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
 import { auth } from "../../firebase";
 import toast from "react-hot-toast";
-
 const SignIn = () => {
   const navigate = useNavigate();
-  const dispatch = useDispatch(); // <-- IMPORTANT
+  const dispatch = useDispatch(); 
 
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-
   // Theme Colors
   const primaryColor = "#FFD700";
   const hoverColor = "#E6B800";
@@ -488,7 +486,7 @@ const SignIn = () => {
             className="text-4xl font-bold tracking-tight mb-2 font-playfair"
             style={{ color: "#2F5D50" }}
           >
-            Botanic Stone
+            OwnFresh
           </h1>
           <p className="text-gray-500 font-medium">
             Welcome back! Please enter your details.
@@ -497,7 +495,7 @@ const SignIn = () => {
 
         {/* Google Login Button */}
         <button
-          className="w-full flex items-center justify-center gap-3 border border-gray-200 py-3 rounded-xl mb-6 hover:bg-gray-50 transition-all active:scale-[0.98] cursor-pointer shadow-sm"
+          className="w-full flex items-center justify-center gap-3 border border-gray-200 py-3 rounded-xl mb-3 hover:bg-gray-50 transition-all active:scale-[0.98] cursor-pointer shadow-sm"
           onClick={handleGoogleAuth}
         >
           <img
@@ -507,6 +505,7 @@ const SignIn = () => {
           />
           <span className="font-semibold text-gray-700">Log in with Google</span>
         </button>
+
 
         {/* Divider */}
         <div className="flex items-center gap-4 mb-8">
@@ -602,7 +601,7 @@ const SignIn = () => {
 
         {/* Footer */}
         <p className="text-sm text-center text-gray-500 mt-8 font-medium">
-          New to Botanic Stone?{" "}
+          New to OwnFresh?{" "}
           <span
             className="font-bold cursor-pointer transition-colors"
             style={{ color: primaryColor }}
@@ -612,6 +611,7 @@ const SignIn = () => {
           </span>
         </p>
       </div>
+
     </div>
   );
 };

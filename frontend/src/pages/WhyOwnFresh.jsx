@@ -70,7 +70,7 @@ const WhyOwnFresh = () => {
               </h1>
 
               <p className="text-lg md:text-xl text-gray-600 font-medium leading-relaxed max-w-2xl">
-                Honoring nature's wisdom to extract botanically pure, cold-pressed oils. Crafted with precision, transparency, and integrity to enrich your wellness and culinary joy.
+                Honoring nature's wisdom to extract botanically pure, stone-pressed oils. Crafted with precision, transparency, and integrity to enrich your wellness and culinary joy.
               </p>
 
               <div className="pt-4 flex flex-wrap gap-4">
@@ -164,7 +164,7 @@ const WhyOwnFresh = () => {
                 <img
                   className="w-full h-full object-cover transform scale-100 group-hover:scale-105 transition-transform duration-700"
                   src="https://myownfresh.com/wp-content/uploads/2024/12/ligin.png"
-                  alt="OwnFresh Pure Seed Cold Pressing"
+                  alt="OwnFresh Pure Seed Stone Pressing"
                   loading="lazy"
                 />
 

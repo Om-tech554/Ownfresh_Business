@@ -53,15 +53,31 @@ const ShippingForm = () => {
   const [lat, setLat] = useState(shippingDetails.latitude || 19.076);
   const [lon, setLon] = useState(shippingDetails.longitude || 72.8777);
 
+  const getInitialCountryCode = (phone) => {
+    if (!phone) return "+91";
+    const codes = ["+91", "+1", "+44", "+971", "+61", "+65"];
+    for (let c of codes) {
+      if (phone.startsWith(c)) return c;
+    }
+    return "+91";
+  };
+
+  const initialCode = getInitialCountryCode(shippingDetails.phone);
+  const [countryCode, setCountryCode] = useState(initialCode);
+
   const { register, handleSubmit, formState: { errors }, setValue, watch } = useForm({
     resolver: zodResolver(schema),
-    defaultValues: shippingDetails,
+    defaultValues: {
+      ...shippingDetails,
+      phone: shippingDetails.phone ? shippingDetails.phone.replace(initialCode, "") : ""
+    },
   });
 
   const watchAddress = watch('address');
 
   const onSubmit = (data) => {
-    setShippingDetails({ ...data, latitude: lat, longitude: lon });
+    const finalPhone = data.phone.startsWith("+") ? data.phone : countryCode + data.phone;
+    setShippingDetails({ ...data, phone: finalPhone, latitude: lat, longitude: lon });
     nextStep();
   };
 
@@ -183,11 +199,28 @@ const ShippingForm = () => {
           </div>
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-2">Phone Number *</label>
-            <input 
-              {...register('phone')} 
-              className={`w-full px-4 py-3 rounded-xl border bg-gray-50 focus:bg-white focus:ring-2 focus:ring-yellow-500 focus:border-transparent outline-none transition-all ${errors.phone ? 'border-red-500' : 'border-gray-200'}`}
-              placeholder="+91 9876543210"
-            />
+            <div className={`flex bg-gray-50 border rounded-xl focus-within:bg-white focus-within:ring-2 focus-within:ring-yellow-500 focus-within:border-transparent transition-all overflow-hidden ${errors.phone ? 'border-red-500' : 'border-gray-200'}`}>
+              <div className="flex items-center pl-3 border-r border-gray-200 pr-2">
+                <select
+                  className="bg-transparent text-sm font-semibold text-gray-700 focus:outline-none cursor-pointer"
+                  value={countryCode}
+                  onChange={(e) => setCountryCode(e.target.value)}
+                >
+                  <option value="+91">🇮🇳 +91</option>
+                  <option value="+1">🇺🇸 +1</option>
+                  <option value="+44">🇬🇧 +44</option>
+                  <option value="+971">🇦🇪 +971</option>
+                  <option value="+61">🇦🇺 +61</option>
+                  <option value="+65">🇸🇬 +65</option>
+                </select>
+              </div>
+              <input 
+                {...register('phone')} 
+                type="tel"
+                className="w-full px-4 py-3 bg-transparent outline-none"
+                placeholder="9876543210"
+              />
+            </div>
             {errors.phone && <p className="text-red-500 text-xs mt-1">{errors.phone.message}</p>}
           </div>
         </div>

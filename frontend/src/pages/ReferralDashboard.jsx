@@ -34,11 +34,8 @@ const ReferralDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("referrals");
   
-  // Custom Referral Code & Apply Referral Code States
-  const [customCode, setCustomCode] = useState("");
+  // Apply Referral Code States
   const [applyCode, setApplyCode] = useState("");
-  const [showCustomizer, setShowCustomizer] = useState(false);
-  const [submittingCode, setSubmittingCode] = useState(false);
   const [applyingCode, setApplyingCode] = useState(false);
 
   // Affiliate coupon generation states
@@ -102,27 +99,6 @@ const ReferralDashboard = () => {
       }
     } catch (error) {
       console.error("Failed to fetch public coupons", error);
-    }
-  };
-
-  const handleUpdateCustomCode = async (e) => {
-    e.preventDefault();
-    if (!customCode.trim()) return toast.error("Please enter a custom code");
-    setSubmittingCode(true);
-    try {
-      const { data } = await axios.post(`${serverUrl}/api/referral/update-code`, {
-        customCode
-      }, { withCredentials: true });
-      if (data.success) {
-        toast.success("Referral code updated!");
-        setShowCustomizer(false);
-        setCustomCode("");
-        fetchStats();
-      }
-    } catch (error) {
-      toast.error(error.response?.data?.message || "Failed to update code");
-    } finally {
-      setSubmittingCode(false);
     }
   };
 
@@ -267,34 +243,7 @@ const ReferralDashboard = () => {
                                 <p className="text-xs text-slate-400 font-bold uppercase tracking-widest">
                                     Your Unique Referral Code
                                 </p>
-                                {!stats?.hasChangedReferralCode && (
-                                    <button 
-                                      onClick={() => setShowCustomizer(!showCustomizer)}
-                                      className="text-xs text-[#24672E] hover:underline font-bold flex items-center gap-1"
-                                    >
-                                      <Edit2 size={12} /> Customize Code
-                                    </button>
-                                )}
                             </div>
-
-                            {showCustomizer ? (
-                              <form onSubmit={handleUpdateCustomCode} className="flex gap-2 mb-6 animate-in slide-in-from-top-2 duration-200">
-                                <input 
-                                  type="text" 
-                                  placeholder="e.g. OMKAR20"
-                                  className="flex-1 bg-white/10 border border-white/20 rounded-xl px-4 py-3 outline-none text-white font-bold uppercase"
-                                  value={customCode}
-                                  onChange={(e) => setCustomCode(e.target.value)}
-                                />
-                                <button 
-                                  type="submit" 
-                                  disabled={submittingCode}
-                                  className="bg-[#24672E] text-white px-6 py-3 rounded-xl font-bold hover:bg-[#167a17] transition disabled:opacity-50"
-                                >
-                                  {submittingCode ? "..." : "Save"}
-                                </button>
-                              </form>
-                            ) : null}
                             
                             <div className="flex flex-col sm:flex-row gap-4">
                                 <div className="flex-1 bg-white/10 p-4 rounded-xl font-black text-2xl tracking-[0.3em] flex items-center justify-center border border-white/20 uppercase text-white min-h-[64px]">

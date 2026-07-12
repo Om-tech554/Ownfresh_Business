@@ -16,7 +16,10 @@ export const createOrder = async (req, res) => {
       totalAmount, 
       discountAmount, 
       couponCode,
-      useWallet
+      useWallet,
+      cgst,
+      sgst,
+      taxAmount
     } = req.body;
 
     // 1) Validate
@@ -100,6 +103,9 @@ export const createOrder = async (req, res) => {
       totalAmount: finalPayableAmount,
       discountAmount: discountAmount || 0,
       couponCode: couponCode || "",
+      cgst: cgst || 0,
+      sgst: sgst || 0,
+      taxAmount: taxAmount || 0,
       razorpayOrderId: req.body.razorpayOrderId || undefined,
       razorpayPaymentId: req.body.razorpayPaymentId || undefined,
       razorpaySignature: req.body.razorpaySignature || undefined,

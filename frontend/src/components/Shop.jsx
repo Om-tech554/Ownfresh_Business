@@ -82,7 +82,21 @@ const Shop = () => {
       setTimeout(() => navigate("/signin"), 500);
       return;
     }
-    const itemToAdd = { ...product, quantity: 1 };
+    const defaultVariant = product.variants && product.variants.length > 0 ? product.variants[0] : null;
+    if (!defaultVariant) {
+        toast.error("This product is currently out of stock");
+        return;
+    }
+    const itemToAdd = { 
+        ...product, 
+        _id: `${product._id}_${defaultVariant._id}`,
+        productId: product._id,
+        variantId: defaultVariant._id,
+        name: `${product.name} - ${defaultVariant.name}`,
+        variantName: defaultVariant.name,
+        price: defaultVariant.salePrice || defaultVariant.price,
+        quantity: 1 
+    };
     dispatch(addToCart(itemToAdd));
     setAddedItems((prev) => ({ ...prev, [product._id]: true }));
     setTimeout(() => {
@@ -91,7 +105,7 @@ const Shop = () => {
     toast.success(`${product.name} added to cart!`);
   };
 
-  const SidebarContent = () => (
+  const sidebarContent = (
     <div className="flex flex-col gap-10">
       {/* SEARCH WIDGET */}
       <div className="bg-white p-6 border border-gray-200">
@@ -173,7 +187,7 @@ const Shop = () => {
             OwnFresh <span className="text-[#FFDD00]">Shop</span>
           </h1>
           <p className="text-gray-500 mt-4 text-sm uppercase tracking-widest font-bold">
-            Explore our premium collection of 100% natural, cold-pressed botanic purity.
+            Explore our premium collection of 100% natural, stone-pressed botanic purity.
           </p>
         </div>
 
@@ -189,7 +203,7 @@ const Shop = () => {
 
           {showMobileFilters && (
             <div className="animate-in fade-in slide-in-from-top-4 duration-300">
-              <SidebarContent />
+              {sidebarContent}
             </div>
           )}
         </div>
@@ -199,7 +213,7 @@ const Shop = () => {
 
           {/* LEFT COLUMN: SIDEBAR (Desktop) */}
           <div className="hidden lg:flex lg:col-span-1 flex-col sticky top-[100px] h-fit">
-            <SidebarContent />
+            {sidebarContent}
           </div>
 
           {/* RIGHT COLUMN: MAIN GRID (75%) */}

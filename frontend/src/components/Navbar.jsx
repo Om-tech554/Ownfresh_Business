@@ -151,7 +151,8 @@ const Navbar = () => {
             path: "/shop",
             dropdown: categories.length > 0 ? categories.map(cat => ({
                 name: cat.name,
-                path: `/shop?category=${cat.name}`
+                path: `/shop?category=${cat.name}`,
+                image: cat.image
             })) : [
                 { name: "Eating Oils", path: "/shop?category=Eating Oil" },
                 { name: "Hair Oils", path: "/shop?category=Hair Oil" },
@@ -227,14 +228,17 @@ const Navbar = () => {
                                     </SLink>
 
                                     {link.dropdown && showShopDropdown && (
-                                        <div className="absolute top-[100%] left-0 pt-4 w-[200px] animate-in fade-in slide-in-from-top-2 duration-200">
+                                        <div className="absolute top-[100%] left-0 pt-4 w-[220px] animate-in fade-in slide-in-from-top-2 duration-200">
                                             <div className="bg-white border border-gray-100 shadow-2xl p-2 rounded-2xl overflow-hidden">
                                                 {link.dropdown.map((sub) => (
                                                     <SLink
                                                         key={sub.name}
                                                         to={sub.path}
-                                                        className="block px-4 py-3 text-[11px] font-black uppercase tracking-widest text-[#24672E] hover:bg-[#FFDD00] hover:text-black rounded-xl transition-all"
+                                                        className="flex items-center gap-3 px-4 py-3 text-[11px] font-black uppercase tracking-widest text-[#24672E] hover:bg-[#FFDD00] hover:text-black rounded-xl transition-all"
                                                     >
+                                                        {sub.image && (
+                                                            <img src={sub.image} alt={sub.name} className="w-6 h-6 object-cover rounded-md" />
+                                                        )}
                                                         {sub.name}
                                                     </SLink>
                                                 ))}
@@ -394,14 +398,17 @@ const Navbar = () => {
                                             {link.name}
                                         </SLink>
                                         {link.dropdown && (
-                                            <div className="flex flex-col gap-2 pl-4 -mt-2">
+                                            <div className="flex flex-col gap-3 pl-4 -mt-2 mb-2">
                                                 {link.dropdown.map((sub) => (
                                                     <SLink
                                                         key={sub.name}
                                                         to={sub.path}
                                                         onClick={() => setShowMobileNav(false)}
-                                                        className="text-[12px] font-bold uppercase tracking-widest text-gray-500 py-1 hover:text-[#24672E]"
+                                                        className="flex items-center gap-3 text-[12px] font-bold uppercase tracking-widest text-gray-500 py-1 hover:text-[#24672E]"
                                                     >
+                                                        {sub.image && (
+                                                            <img src={sub.image} alt={sub.name} className="w-6 h-6 object-cover rounded-md" />
+                                                        )}
                                                         {sub.name}
                                                     </SLink>
                                                 ))}

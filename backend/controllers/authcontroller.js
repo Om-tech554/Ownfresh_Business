@@ -5,7 +5,6 @@ import genToken from "../utils/token.js"
 import { sendOtpMail } from "../utils/mail.js"
 import Wallet from "../models/walletModel.js"
 import ReferralSettings from "../models/referralSettingsModel.js"
-
 //--------------signUp----------//
 export const signUp = async (req, res) => {
   try {
@@ -74,15 +73,16 @@ export const signUp = async (req, res) => {
 //--------------signIn------------------//
 export const signIn = async (req, res) => {
     try {
-        const { fullName, email, password, mobile } = req.body
-        const user = await User.findOne({ email })
+        const { email, password } = req.body;
+        const user = await User.findOne({ email });
+        
         if (!user) {
-            return res.status(400).json({ message: "⚠️ User does not exists." })
+            return res.status(400).json({ message: "⚠️ User does not exist." });
         }
-
-        const isMatch = await bcrypt.compare(password, user.password)
+        
+        const isMatch = await bcrypt.compare(password, user.password);
         if (!isMatch) {
-            return res.status(400).json({ message: "⚠️ incorrect password." })
+            return res.status(400).json({ message: "⚠️ incorrect password." });
         }
         const token = await genToken(user._id)
         
@@ -102,6 +102,8 @@ export const signIn = async (req, res) => {
         return res.status(500).json(`sign in error ${error}`)
     }
 }
+
+
 //--------------signOut----------------//
 export const signOut = async (req, res) => {
     try {
@@ -182,8 +184,11 @@ export const googleAuth = async (req, res) => {
                 referrer = await User.findOne({ referralCode: referralCode.toUpperCase() });
             }
 
+            const generatedUserName = email.split('@')[0] + Math.random().toString(36).substring(2, 6);
+            
             user = await User.create({
                 fullName,
+                userName: generatedUserName,
                 email,
                 mobile,
                 role: role || "user",
@@ -231,3 +236,4 @@ export const googleAuth = async (req, res) => {
         return res.status(500).json({ message: "Internal Server Error" });
     }
 };
+

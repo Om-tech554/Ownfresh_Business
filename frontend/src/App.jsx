@@ -52,7 +52,6 @@ const App = () => {
   const location = useLocation()
   const userData = useSelector((state) => state.user.userData);
 
-  // ❌ Routes where footer should NOT appear
   const hideFooterRoutes = [
     "/signin",
     "/signup",

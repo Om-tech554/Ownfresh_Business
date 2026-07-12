@@ -36,7 +36,8 @@ const AdminCustomers = () => {
         setEditForm({
             role: customer.role || "user",
             wallet: customer.wallet || 0,
-            mobile: customer.mobile || ""
+            mobile: customer.mobile || "",
+            referralCode: customer.referralCode || ""
         });
         setIsEditModalOpen(true);
     };
@@ -154,6 +155,7 @@ const AdminCustomers = () => {
                                             <div>
                                                 <p className="text-xs font-black text-slate-900 uppercase">{customer.fullName || "N/A"}</p>
                                                 <p className="text-[10px] font-bold text-slate-400 font-mono mt-1">ID: {customer._id.substring(18)}</p>
+                                                <p className="text-[10px] font-bold text-[#24672E] font-mono mt-1">REF: {customer.referralCode || "N/A"}</p>
                                             </div>
                                         </div>
                                     </td>
@@ -264,6 +266,18 @@ const AdminCustomers = () => {
                                         className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none font-bold text-xs focus:border-[#24672E] transition-all"
                                         value={editForm.mobile}
                                         onChange={(e) => setEditForm({ ...editForm, mobile: e.target.value })}
+                                    />
+                                </div>
+                            </div>
+
+                            <div>
+                                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Referral Code</label>
+                                <div className="relative">
+                                    <input
+                                        type="text"
+                                        className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none font-bold text-xs focus:border-[#24672E] transition-all uppercase"
+                                        value={editForm.referralCode}
+                                        onChange={(e) => setEditForm({ ...editForm, referralCode: e.target.value.toUpperCase() })}
                                     />
                                 </div>
                             </div>

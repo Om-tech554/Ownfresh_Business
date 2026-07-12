@@ -11,7 +11,7 @@ const AdminProductEditor = () => {
   const isEditing = id !== "create";
 
   const [name, setName] = useState("");
-  const [price, setPrice] = useState("");
+  const [sku, setSku] = useState("");
   const [shortDesc, setShortDesc] = useState("");
   const [category, setCategory] = useState("");
   const [rating, setRating] = useState(5);
@@ -50,7 +50,7 @@ const AdminProductEditor = () => {
           const product = res.data.product;
           if (product) {
             setName(product.name || "");
-            setPrice(product.price || "");
+            setSku(product.sku || "");
             setShortDesc(product.shortDesc || "");
             setCategory(product.category?._id || product.category || "");
             setRating(product.rating || 5);
@@ -76,7 +76,7 @@ const AdminProductEditor = () => {
   };
 
   const handleSave = async () => {
-    if (!name.trim() || !price || !shortDesc.trim() || !category) {
+    if (!name.trim() || !shortDesc.trim() || !category) {
       toast.error("All textual fields, including category, are required!");
       return;
     }
@@ -88,7 +88,7 @@ const AdminProductEditor = () => {
     setSaving(true);
     const formData = new FormData();
     formData.append("name", name);
-    formData.append("price", price);
+    formData.append("sku", sku);
     formData.append("shortDesc", shortDesc);
     formData.append("category", category);
     formData.append("rating", rating);
@@ -155,7 +155,7 @@ const AdminProductEditor = () => {
               <label className="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">Product Designation</label>
               <input
                 type="text"
-                placeholder="e.g. Premium Cold Pressed Mustard Oil"
+                placeholder="e.g. Premium Stone Pressed Mustard Oil"
                 className="w-full text-3xl font-black text-slate-900 border-none bg-slate-50 rounded-2xl p-4 focus:ring-2 focus:ring-[#24672E]/20 focus:bg-white outline-none transition-all placeholder:text-slate-300"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
@@ -190,17 +190,17 @@ const AdminProductEditor = () => {
 
             {/* Pricing Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 p-6 bg-slate-50 rounded-3xl border border-slate-100">
-              {/* Price */}
+              {/* SKU */}
               <div className="space-y-2">
-                <label className="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">Market Price (₹)</label>
+                <label className="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">SKU / Identifier</label>
                 <div className="relative">
-                  <DollarSign className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
+                  <Package className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
                   <input
-                    type="number"
-                    placeholder="0.00"
+                    type="text"
+                    placeholder="e.g. PRD-123"
                     className="w-full pl-12 pr-4 py-4 text-xl font-bold text-slate-900 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#24672E]/20 focus:border-[#24672E] outline-none transition-all"
-                    value={price}
-                    onChange={(e) => setPrice(e.target.value)}
+                    value={sku}
+                    onChange={(e) => setSku(e.target.value)}
                   />
                 </div>
               </div>

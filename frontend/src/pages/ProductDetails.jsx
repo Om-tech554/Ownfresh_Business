@@ -5,6 +5,7 @@ import { ShoppingCart } from "lucide-react";
 import { useDispatch } from "react-redux";
 import { addToCart } from "../redux/userslice";
 import Navbar from "../components/Navbar";
+import SLink from "../components/SLink";
 
 const ProductDetails = () => {
   const { id } = useParams();
@@ -14,9 +15,9 @@ const ProductDetails = () => {
   const [product, setProduct] = useState(null);
   const [recentProducts, setRecentProducts] = useState([]);
 
-  // Quantity Selector States
-  const [selectedQty, setSelectedQty] = useState("1");
-  const [customQty, setCustomQty] = useState("");
+  // Variant Selector States
+  const [selectedVariant, setSelectedVariant] = useState(null);
+  const [selectedQty, setSelectedQty] = useState(1);
 
   const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
@@ -24,7 +25,15 @@ const ProductDetails = () => {
   useEffect(() => {
     axios
       .get(`${API_BASE_URL}/api/product/${id}`)
-      .then((res) => setProduct(res.data.product))
+      .then((res) => {
+        const prod = res.data.product;
+        setProduct(prod);
+        if (prod.variants && prod.variants.length > 0) {
+          // Preselect the first active variant
+          const activeVariants = prod.variants.filter(v => v.status === 'Active');
+          if (activeVariants.length > 0) setSelectedVariant(activeVariants[0]);
+        }
+      })
       .catch((err) => console.log(err));
   }, [id]);
 
@@ -41,17 +50,44 @@ const ProductDetails = () => {
   }, [id]);
 
   /* Final Quantity (for cart) */
-  const finalQuantity =
-    selectedQty === "custom" ? Number(customQty) || 1 : Number(selectedQty);
+  const finalQuantity = Number(selectedQty) || 1;
 
   /* --- Add To Cart --- */
   const handleAddToCart = () => {
-    dispatch(addToCart({ ...product, quantity: finalQuantity }));
+    if (!selectedVariant) {
+      alert("Please select a variant size");
+      return;
+    }
+    const cartItem = {
+      ...product,
+      _id: `${product._id}_${selectedVariant._id}`,
+      productId: product._id,
+      variantId: selectedVariant._id,
+      name: `${product.name} - ${selectedVariant.name}`,
+      variantName: selectedVariant.name,
+      price: selectedVariant.salePrice || selectedVariant.price,
+      quantity: finalQuantity,
+    };
+    dispatch(addToCart(cartItem));
   };
 
   /* --- Buy Now --- */
   const handleBuyNow = () => {
-    dispatch(addToCart({ ...product, quantity: finalQuantity }));
+    if (!selectedVariant) {
+      alert("Please select a variant size");
+      return;
+    }
+    const cartItem = {
+      ...product,
+      _id: `${product._id}_${selectedVariant._id}`,
+      productId: product._id,
+      variantId: selectedVariant._id,
+      name: `${product.name} - ${selectedVariant.name}`,
+      variantName: selectedVariant.name,
+      price: selectedVariant.salePrice || selectedVariant.price,
+      quantity: finalQuantity,
+    };
+    dispatch(addToCart(cartItem));
     navigate("/checkout");
   };
 
@@ -85,80 +121,60 @@ const ProductDetails = () => {
 
             <div className="mt-4">
               <span className="text-5xl font-extrabold text-yellow-600">
-                ₹{product.price * finalQuantity}
+                ₹{selectedVariant ? ((selectedVariant.salePrice || selectedVariant.price) * finalQuantity) : 0}
               </span>
 
-              <p className="text-sm mt-1 text-gray-500">
-                ({finalQuantity} Litre{finalQuantity > 1 ? "s" : ""})
-              </p>
+              {selectedVariant && (
+                <p className="text-sm mt-1 text-gray-500">
+                  {selectedVariant.name} (x{finalQuantity})
+                </p>
+              )}
             </div>
 
             <p className="mt-6 text-gray-600 text-lg leading-relaxed">
               {product.shortDesc}
             </p>
 
+            {/* VARIANT SELECTOR */}
+            <div className="mt-8">
+              <h3 className="font-bold text-lg mb-3">Select Size</h3>
+              <div className="flex gap-4 flex-wrap">
+                {product.variants?.filter(v => v.status === 'Active').map(variant => (
+                  <button
+                    key={variant._id}
+                    onClick={() => setSelectedVariant(variant)}
+                    className={`px-6 py-3 rounded-xl border font-semibold transition ${selectedVariant?._id === variant._id
+                        ? "bg-yellow-500 text-white"
+                        : "bg-white text-slate-900"
+                      }`}
+                  >
+                    {variant.name}
+                  </button>
+                ))}
+                {(!product.variants || product.variants.filter(v => v.status === 'Active').length === 0) && (
+                  <p className="text-red-500 font-bold">Currently Out of Stock / No Variants Available</p>
+                )}
+              </div>
+            </div>
+
             {/* QUANTITY SELECTOR */}
             <div className="mt-8">
-              <h3 className="font-bold text-lg mb-3">Select Quantity</h3>
-
-              <div className="flex gap-4 flex-wrap">
-
-                {/* 1 Litre */}
-                <button
-                  onClick={() => setSelectedQty("1")}
-                  className={`px-6 py-3 rounded-xl border font-semibold transition ${selectedQty === "1"
-                      ? "bg-yellow-500 text-white"
-                      : "bg-white text-slate-900"
-                    }`}
+              <h3 className="font-bold text-lg mb-3">Quantity</h3>
+              <div className="flex items-center gap-4">
+                <button 
+                  onClick={() => setSelectedQty(Math.max(1, selectedQty - 1))}
+                  className="px-4 py-2 bg-slate-100 rounded-lg font-bold hover:bg-slate-200"
                 >
-                  1L
+                  -
                 </button>
-
-                {/* 2 Litre */}
-                <button
-                  onClick={() => setSelectedQty("2")}
-                  className={`px-6 py-3 rounded-xl border font-semibold transition ${selectedQty === "2"
-                      ? "bg-yellow-500 text-white"
-                      : "bg-white text-slate-900"
-                    }`}
+                <span className="text-xl font-bold">{selectedQty}</span>
+                <button 
+                  onClick={() => setSelectedQty(selectedQty + 1)}
+                  className="px-4 py-2 bg-slate-100 rounded-lg font-bold hover:bg-slate-200"
                 >
-                  2L
-                </button>
-
-                {/* 5 Litre */}
-                <button
-                  onClick={() => setSelectedQty("5")}
-                  className={`px-6 py-3 rounded-xl border font-semibold transition ${selectedQty === "5"
-                      ? "bg-yellow-500 text-white"
-                      : "bg-white text-slate-900"
-                    }`}
-                >
-                  5L
-                </button>
-
-                {/* Custom */}
-                <button
-                  onClick={() => setSelectedQty("custom")}
-                  className={`px-6 py-3 rounded-xl border font-semibold transition ${selectedQty === "custom"
-                      ? "bg-yellow-500 text-white"
-                      : "bg-white text-slate-900"
-                    }`}
-                >
-                  Custom
+                  +
                 </button>
               </div>
-
-              {/* Custom Input */}
-              {selectedQty === "custom" && (
-                <input
-                  type="number"
-                  min="1"
-                  placeholder="Enter quantity in litres"
-                  value={customQty}
-                  onChange={(e) => setCustomQty(e.target.value)}
-                  className="mt-4 w-40 p-3 border rounded-xl"
-                />
-              )}
             </div>
 
             {/* BUTTONS */}
@@ -191,10 +207,10 @@ const ProductDetails = () => {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10">
             {recentProducts.map((p) => (
-              <div
+              <SLink
                 key={p._id}
-                onClick={() => navigate(`/product/${p._id}`)}
-                className="bg-white border border-white shadow-sm rounded-3xl p-6 hover:shadow-xl hover:-translate-y-2 transition-all cursor-pointer"
+                to={`/product/${p._id}`}
+                className="bg-white border border-white shadow-sm rounded-3xl p-6 hover:shadow-xl hover:-translate-y-2 transition-all cursor-pointer block"
               >
                 <div className="h-48 bg-gray-50 rounded-2xl p-6 flex items-center justify-center overflow-hidden">
                   <img
@@ -211,7 +227,7 @@ const ProductDetails = () => {
                 <p className="text-yellow-600 font-extrabold mt-1 text-xl">
                   ₹{p.price}
                 </p>
-              </div>
+              </SLink>
             ))}
           </div>
         </div>

@@ -25,7 +25,7 @@ router.post(
   },
   async (req, res) => {
     try {
-      const { name, price, shortDesc, category, image } = req.body;
+      const { name, shortDesc, description, sku, category, image, status } = req.body;
 
       let imageUrl = "";
       if (req.file) {
@@ -50,8 +50,10 @@ router.post(
 
       const product = await Product.create({
         name,
-        price,
         shortDesc,
+        description,
+        sku,
+        status: status || 'Active',
         category, // Should be an ObjectId string
         image: imageUrl,
       });
@@ -100,7 +102,19 @@ router.get("/all", async (req, res) => {
       .populate("category") // Populate category data
       .sort({ createdAt: -1 })
       .skip(skip)
-      .limit(limitNum);
+      .limit(limitNum)
+      .lean(); // Lean for modifying object
+
+    // Fetch variants for these products
+    const productIds = products.map(p => p._id);
+    const ProductVariant = mongoose.model("ProductVariant");
+    const variants = await ProductVariant.find({ product: { $in: productIds } }).lean();
+    
+    products.forEach(p => {
+      p.variants = variants.filter(v => v.product.toString() === p._id.toString());
+      // Assign a default price for backward compatibility in product listings
+      p.price = p.variants.length > 0 ? (p.variants[0].salePrice || p.variants[0].price) : (p.price || 0);
+    });
 
     res.json({
       success: true,
@@ -122,7 +136,7 @@ router.get("/:id", async (req, res) => {
     if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
       return res.status(400).json({ success: false, message: "Invalid Product ID" });
     }
-    const product = await Product.findById(req.params.id).populate("category");
+    const product = await Product.findById(req.params.id).populate("category").lean();
 
     if (!product) {
       return res.status(404).json({
@@ -130,6 +144,11 @@ router.get("/:id", async (req, res) => {
         message: "Product not found",
       });
     }
+
+    const ProductVariant = mongoose.model("ProductVariant");
+    const variants = await ProductVariant.find({ product: product._id }).lean();
+    product.variants = variants;
+    product.price = variants.length > 0 ? (variants[0].salePrice || variants[0].price) : (product.price || 0);
 
     res.json({ success: true, product });
   } catch (error) {
@@ -156,12 +175,14 @@ router.put(
   },
   async (req, res) => {
     try {
-      const { name, price, shortDesc, category } = req.body;
+      const { name, shortDesc, description, sku, category, status } = req.body;
 
       const updateData = {
         name,
-        price,
         shortDesc,
+        description,
+        sku,
+        status
       };
 
       if (category && category !== "") {

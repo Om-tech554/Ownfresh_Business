@@ -2,14 +2,15 @@ import React, { useState } from 'react';
 import Navbar from './Navbar';
 import ProductList from "./admin/ProductList";
 import BlogList from './admin/BlogList';
-import AdminOrders from './admin/AdminOrders'; // [NEW]
-import AdminCustomers from './admin/AdminCustomers'; // [NEW]
+import AdminOrders from './admin/AdminOrders';
+import AdminCustomers from './admin/AdminCustomers';
 import { useSelector } from 'react-redux';
-import { Package, BookOpen, Ticket, ShoppingCart, Layers, Users, Image as ImageIcon } from "lucide-react"; // Added Layers
+import { Package, BookOpen, Ticket, ShoppingCart, Layers, Users, Image as ImageIcon } from "lucide-react";
 import CouponManager from './admin/CouponManager';
 import CategoryManager from './admin/CategoryManager';
 import ReferralManager from './admin/ReferralManager';
 import GalleryManager from './admin/GalleryManager';
+import InventoryManager from './admin/InventoryManager';
 
 function AdminDashboard() {
   const userData = useSelector((state) => state.user.userData);
@@ -31,18 +32,29 @@ function AdminDashboard() {
               <button
                 onClick={() => setActiveTab("products")}
                 className={`flex items-center gap-2 px-6 py-2.5 rounded-xl font-bold transition-all whitespace-nowrap ${activeTab === "products"
-                    ? "bg-[#24672E] text-white shadow-lg shadow-[#24672E]/20"
+                    ? "bg-[#1E971D] text-white shadow-lg shadow-[#1E971D]/20"
                     : "text-slate-500 hover:bg-slate-50"
                   }`}
               >
                 <Package className="w-4 h-4" />
+                Products
+              </button>
+
+              <button
+                onClick={() => setActiveTab("inventory")}
+                className={`flex items-center gap-2 px-6 py-2.5 rounded-xl font-bold transition-all whitespace-nowrap ${activeTab === "inventory"
+                    ? "bg-[#1E971D] text-white shadow-lg shadow-[#1E971D]/20"
+                    : "text-slate-500 hover:bg-slate-50"
+                  }`}
+              >
+                <Layers className="w-4 h-4" />
                 Inventory
               </button>
 
               <button
                 onClick={() => setActiveTab("orders")}
                 className={`flex items-center gap-2 px-6 py-2.5 rounded-xl font-bold transition-all whitespace-nowrap ${activeTab === "orders"
-                    ? "bg-[#24672E] text-white shadow-lg shadow-[#24672E]/20"
+                    ? "bg-[#1E971D] text-white shadow-lg shadow-[#1E971D]/20"
                     : "text-slate-500 hover:bg-slate-50"
                   }`}
               >
@@ -53,7 +65,7 @@ function AdminDashboard() {
               <button
                 onClick={() => setActiveTab("customers")}
                 className={`flex items-center gap-2 px-6 py-2.5 rounded-xl font-bold transition-all whitespace-nowrap ${activeTab === "customers"
-                    ? "bg-[#24672E] text-white shadow-lg shadow-[#24672E]/20"
+                    ? "bg-[#1E971D] text-white shadow-lg shadow-[#1E971D]/20"
                     : "text-slate-500 hover:bg-slate-50"
                   }`}
               >
@@ -64,7 +76,7 @@ function AdminDashboard() {
               <button
                 onClick={() => setActiveTab("categories")}
                 className={`flex items-center gap-2 px-6 py-2.5 rounded-xl font-bold transition-all whitespace-nowrap ${activeTab === "categories"
-                    ? "bg-[#24672E] text-white shadow-lg shadow-[#24672E]/20"
+                    ? "bg-[#1E971D] text-white shadow-lg shadow-[#1E971D]/20"
                     : "text-slate-500 hover:bg-slate-50"
                   }`}
               >
@@ -77,7 +89,7 @@ function AdminDashboard() {
           <button
             onClick={() => setActiveTab("blogs")}
             className={`flex items-center gap-2 px-6 py-2.5 rounded-xl font-bold transition-all whitespace-nowrap ${activeTab === "blogs"
-                ? "bg-[#24672E] text-white shadow-lg shadow-[#24672E]/20"
+                ? "bg-[#1E971D] text-white shadow-lg shadow-[#1E971D]/20"
                 : "text-slate-500 hover:bg-slate-50"
               }`}
           >
@@ -89,7 +101,7 @@ function AdminDashboard() {
             <button
               onClick={() => setActiveTab("gallery")}
               className={`flex items-center gap-2 px-6 py-2.5 rounded-xl font-bold transition-all whitespace-nowrap ${activeTab === "gallery"
-                  ? "bg-[#24672E] text-white shadow-lg shadow-[#24672E]/20"
+                  ? "bg-[#1E971D] text-white shadow-lg shadow-[#1E971D]/20"
                   : "text-slate-500 hover:bg-slate-50"
                 }`}
             >
@@ -102,7 +114,7 @@ function AdminDashboard() {
             <button
               onClick={() => setActiveTab("coupons")}
               className={`flex items-center gap-2 px-6 py-2.5 rounded-xl font-bold transition-all whitespace-nowrap ${activeTab === "coupons"
-                  ? "bg-[#24672E] text-white shadow-lg shadow-[#24672E]/20"
+                  ? "bg-[#1E971D] text-white shadow-lg shadow-[#1E971D]/20"
                   : "text-slate-500 hover:bg-slate-50"
                 }`}
             >
@@ -115,7 +127,7 @@ function AdminDashboard() {
             <button
               onClick={() => setActiveTab("partners")}
               className={`flex items-center gap-2 px-6 py-2.5 rounded-xl font-bold transition-all whitespace-nowrap ${activeTab === "partners"
-                  ? "bg-[#24672E] text-white shadow-lg shadow-[#24672E]/20"
+                  ? "bg-[#1E971D] text-white shadow-lg shadow-[#1E971D]/20"
                   : "text-slate-500 hover:bg-slate-50"
                 }`}
             >
@@ -128,6 +140,7 @@ function AdminDashboard() {
 
       <div className="mt-6">
         {activeTab === "products" && userData?.role === "admin" && <ProductList />}
+        {activeTab === "inventory" && userData?.role === "admin" && <InventoryManager />}
         {activeTab === "blogs" && (userData?.role === "admin" || userData?.role === "blogger") && <BlogList />}
         {activeTab === "gallery" && (userData?.role === "admin" || userData?.role === "blogger") && <GalleryManager />}
         {activeTab === "coupons" && userData?.role === "admin" && <CouponManager />}

@@ -13,9 +13,13 @@ const OrderSummary = () => {
   const subtotal = cartItems.reduce((acc, item) => acc + (item.price * item.quantity), 0);
   const shippingCost = deliveryMethod?.cost || 0;
   const discount = couponDetails?.discount || 0;
-  // GST is usually calculated based on subtotal or is included. Assuming it's already in the price or we can add it. Let's not add extra tax unless requested, just use subtotal.
   
-  const total = Math.max(0, subtotal + shippingCost - discount);
+  const taxableAmount = Math.max(0, subtotal - discount);
+  const cgst = taxableAmount * 0.025;
+  const sgst = taxableAmount * 0.025;
+  const totalTax = cgst + sgst;
+  
+  const total = taxableAmount + totalTax + shippingCost;
 
   if (cartItems.length === 0) {
     return (
@@ -69,6 +73,16 @@ const OrderSummary = () => {
             <span className="font-bold">-₹{discount.toFixed(2)}</span>
           </div>
         )}
+
+        <div className="flex justify-between text-gray-600 text-sm font-medium">
+          <span>CGST (2.5%)</span>
+          <span className="text-gray-900 font-bold">₹{cgst.toFixed(2)}</span>
+        </div>
+
+        <div className="flex justify-between text-gray-600 text-sm font-medium">
+          <span>SGST (2.5%)</span>
+          <span className="text-gray-900 font-bold">₹{sgst.toFixed(2)}</span>
+        </div>
 
         <div className="flex justify-between text-gray-900 text-lg font-black border-t border-gray-200 pt-4 mt-2">
           <span>Total</span>

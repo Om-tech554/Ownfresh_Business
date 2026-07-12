@@ -37,7 +37,7 @@ const ContactSection = () => {
                 <span className="text-[#FFDD00]">Question?</span>
               </h2>
               <p className="text-gray-400 font-medium leading-relaxed mb-8">
-                Reach out to us directly. We are here to help you choose the best cold-pressed oils for your health.
+                Reach out to us directly. We are here to help you choose the best stone-pressed oils for your health.
               </p>
               
               <a href="mailto:my1ownfresh@gmail.com" className="flex items-center gap-4 text-sm font-bold text-gray-300 hover:text-white transition-colors">

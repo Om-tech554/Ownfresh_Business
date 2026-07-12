@@ -189,7 +189,7 @@ const Contact = () => {
                             Switch to a Healthier Lifetime
                         </h2>
                         <p className="text-black/70 font-bold uppercase tracking-widest text-sm">
-                            Pure, natural cold-pressed oils. Uncompromised Quality.
+                            Pure, natural stone-pressed oils. Uncompromised Quality.
                         </p>
                     </div>
                     <SLink 

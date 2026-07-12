@@ -203,9 +203,15 @@ const CategoryManager = () => {
 
             {/* ADD/EDIT MODAL */}
             {showModal && (
-                <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[2000] flex items-center justify-center p-4">
-                    <div className="bg-white w-full max-w-md rounded-3xl overflow-hidden shadow-2xl animate-in fade-in zoom-in duration-200">
-                        <div className="bg-[#24672E] p-6 text-white flex justify-between items-center">
+                <div 
+                    className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[2000] flex items-center justify-center p-4"
+                    onClick={() => setShowModal(false)}
+                >
+                    <div 
+                        className="bg-white w-full max-w-lg rounded-3xl overflow-hidden shadow-2xl animate-in fade-in zoom-in duration-200 flex flex-col max-h-[90vh]"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <div className="bg-[#24672E] p-5 md:p-6 text-white flex justify-between items-center shrink-0">
                             <h3 className="text-xl font-bold flex items-center gap-2">
                                 {editMode ? <Edit size={20} /> : <Plus size={20} />}
                                 {editMode ? "Edit Category" : "New Category"}
@@ -215,13 +221,13 @@ const CategoryManager = () => {
                             </button>
                         </div>
 
-                        <form onSubmit={handleSubmit} className="p-8 space-y-4">
+                        <div className="overflow-y-auto p-5 md:p-8 space-y-5 custom-scrollbar">
                             <div>
                                 <label className="block text-sm font-bold text-slate-700 mb-1">Category Name</label>
                                 <input
                                     autoFocus
                                     className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-[#24672E] transition-all"
-                                    placeholder="e.g. Cold Pressed Oils"
+                                    placeholder="e.g. Stone Pressed Oils"
                                     required
                                     value={formData.name}
                                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
@@ -273,15 +279,18 @@ const CategoryManager = () => {
                                     onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                                 />
                             </div>
+                        </div>
 
+                        <div className="p-5 md:p-6 border-t border-slate-100 bg-white shrink-0">
                             <button
-                                type="submit"
+                                type="button"
+                                onClick={handleSubmit}
                                 disabled={loading}
-                                className="w-full bg-slate-900 text-white py-4 rounded-2xl font-bold hover:bg-[#24672E] transition-all transform active:scale-95 disabled:opacity-50 mt-4 shadow-xl"
+                                className="w-full bg-slate-900 text-white py-4 rounded-2xl font-bold hover:bg-[#24672E] transition-all transform active:scale-[0.98] disabled:opacity-50 shadow-xl"
                             >
                                 {loading ? "Processing..." : (editMode ? "Save Changes" : "Create Category")}
                             </button>
-                        </form>
+                        </div>
                     </div>
                 </div>
             )}

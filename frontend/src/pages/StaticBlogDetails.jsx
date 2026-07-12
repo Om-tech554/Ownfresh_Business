@@ -9,15 +9,15 @@ import SLink from "../components/SLink";
 const staticBlogs = [
   {
     id: 1,
-    title: "Why Cold-Pressed Oil is Better Than Refined Oil?",
+    title: "Why Stone-Pressed Oil is Better Than Refined Oil?",
     subtitle:
-      "Cold-pressed oils retain nutrients, antioxidants & natural flavor without heat or chemicals.",
+      "Stone-pressed oils retain nutrients, antioxidants & natural flavor without heat or chemicals.",
     image:
       "https://myownfresh.com/wp-content/uploads/2025/06/Groundnut-1-600x600.png",
     category: "Health",
     date: "January 2026",
     content: `
-Cold-pressed oils are extracted naturally, without exposing seeds to heat.
+Stone-pressed oils are extracted naturally, without exposing seeds to heat.
 
 This helps retain:
 
@@ -29,7 +29,7 @@ This helps retain:
 
 Refined oils, on the other hand, go through chemical treatment, bleaching, and heating — which destroys nutrients.
 
-💛 Benefits of Cold-Pressed Oils
+💛 Benefits of Stone-Pressed Oils
 
 • Boosts immunity  
 • Improves heart health  
@@ -39,7 +39,7 @@ Refined oils, on the other hand, go through chemical treatment, bleaching, and h
 
 ✨ Conclusion
 
-Switching to cold-pressed oils is an easy and powerful lifestyle upgrade that your body will thank you for.
+Switching to stone-pressed oils is an easy and powerful lifestyle upgrade that your body will thank you for.
       `,
   },
   {
@@ -62,7 +62,7 @@ Different cooking methods require different oils.
 5. **Sunflower Oil** — Vitamin-rich  
 
 💡 Tip  
-Always choose **cold-pressed** oils to avoid chemicals and retain nutrients.
+Always choose **stone-pressed** oils to avoid chemicals and retain nutrients.
     `,
   },
   {
@@ -70,7 +70,7 @@ Always choose **cold-pressed** oils to avoid chemicals and retain nutrients.
     title: "How Mustard Oil Improves Digestion Naturally",
     subtitle: "Mustard oil stimulates digestion and supports a healthy gut.",
     image:
-      "https://argan-oil.ma/wp-content/uploads/2025/02/DALL%C2%B7E-2025-02-17-16.44.57-A-realistic-digital-illustration-of-traditional-cold-pressed-argan-oil-extraction-using-a-stone-mill.-The-scene-features-a-rustic-stone-grinder-crushi.webp",
+      "https://argan-oil.ma/wp-content/uploads/2025/02/DALL%C2%B7E-2025-02-17-16.44.57-A-realistic-digital-illustration-of-traditional-stone-pressed-argan-oil-extraction-using-a-stone-mill.-The-scene-features-a-rustic-stone-grinder-crushi.webp",
     category: "Wellness",
     date: "February 2026",
 

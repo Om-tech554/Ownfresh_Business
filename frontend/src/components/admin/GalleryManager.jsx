@@ -500,7 +500,7 @@ const GalleryManager = () => {
                 </label>
                 <input
                   className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-[#24672E] transition-all font-medium"
-                  placeholder="e.g. Traditional cold pressed grinding"
+                  placeholder="e.g. Traditional stone pressed grinding"
                   required
                   value={uploadForm.title}
                   onChange={(e) => setUploadForm({ ...uploadForm, title: e.target.value })}
@@ -608,7 +608,7 @@ const GalleryManager = () => {
                 </label>
                 <input
                   className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-[#24672E] transition-all font-medium"
-                  placeholder="e.g. Pure cold pressed oil extraction"
+                  placeholder="e.g. Pure stone pressed oil extraction"
                   required
                   value={editForm.title}
                   onChange={(e) => setEditForm({ ...editForm, title: e.target.value })}

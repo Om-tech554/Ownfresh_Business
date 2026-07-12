@@ -8,7 +8,9 @@ const orderSchema = new mongoose.Schema({
   },
   items: [{
     productId: { type: mongoose.Schema.Types.ObjectId, ref: "Product" },
+    variantId: { type: mongoose.Schema.Types.ObjectId, ref: "ProductVariant" }, // Added to track variants
     name: String,
+    variantName: String, // Added to store variant text (e.g. "1 Liter")
     price: Number,
     quantity: Number,
     image: String
@@ -60,6 +62,18 @@ const orderSchema = new mongoose.Schema({
   totalAmount: {
     type: Number,
     required: true
+  },
+  cgst: {
+    type: Number,
+    default: 0
+  },
+  sgst: {
+    type: Number,
+    default: 0
+  },
+  taxAmount: {
+    type: Number,
+    default: 0
   },
   discountAmount: {
     type: Number,

@@ -60,7 +60,21 @@ const ProductSection = ({ limit = null }) => {
       setTimeout(() => navigate("/signin"), 500);
       return;
     }
-    const itemToAdd = { ...product, quantity: 1 };
+    const defaultVariant = product.variants && product.variants.length > 0 ? product.variants[0] : null;
+    if (!defaultVariant) {
+        toast.error("This product is currently out of stock");
+        return;
+    }
+    const itemToAdd = { 
+        ...product, 
+        _id: `${product._id}_${defaultVariant._id}`,
+        productId: product._id,
+        variantId: defaultVariant._id,
+        name: `${product.name} - ${defaultVariant.name}`,
+        variantName: defaultVariant.name,
+        price: defaultVariant.salePrice || defaultVariant.price,
+        quantity: 1 
+    };
     dispatch(addToCart(itemToAdd));
     setAddedItems((prev) => ({ ...prev, [product._id]: true }));
     setTimeout(() => {

@@ -32,7 +32,11 @@ const OrderReview = () => {
   const subtotal = cartItems.reduce((acc, item) => acc + (item.price * item.quantity), 0);
   const shippingCost = deliveryMethod?.cost || 0;
   const discount = couponDetails?.discount || 0;
-  const finalAmount = Math.max(0, subtotal + shippingCost - discount);
+  const taxableAmount = Math.max(0, subtotal - discount);
+  const cgst = taxableAmount * 0.025;
+  const sgst = taxableAmount * 0.025;
+  const totalTax = cgst + sgst;
+  const finalAmount = taxableAmount + totalTax + shippingCost;
 
   const handleApplyCoupon = async () => {
     if (!couponInput.trim()) return toast.error("Enter coupon code");
@@ -159,6 +163,9 @@ const OrderReview = () => {
         totalAmount: finalAmount,
         discountAmount: discount,
         couponCode: couponDetails.isApplied ? couponDetails.code : "",
+        cgst,
+        sgst,
+        taxAmount: totalTax,
         razorpayOrderId,
         razorpayPaymentId,
         razorpaySignature,
@@ -249,6 +256,28 @@ const OrderReview = () => {
           <p className="text-sm text-gray-600">
             <span className="font-semibold text-gray-800">Payment:</span> {paymentMethod === 'online' ? 'Online Payment (Razorpay)' : 'Cash on Delivery'}
           </p>
+        </div>
+      </div>
+
+      {/* Tax Breakdown */}
+      <div className="mb-8 p-4 bg-yellow-50 rounded-xl border border-yellow-100 flex flex-col md:flex-row justify-between items-center gap-4">
+        <div>
+          <h3 className="font-bold text-gray-800 text-sm">Tax Summary (5% GST)</h3>
+          <p className="text-xs text-gray-600 mt-1">Calculated on Taxable Amount: ₹{taxableAmount.toFixed(2)}</p>
+        </div>
+        <div className="flex gap-6 text-sm">
+          <div className="text-center">
+            <span className="block text-gray-500 font-medium">CGST (2.5%)</span>
+            <span className="font-bold text-gray-900">₹{cgst.toFixed(2)}</span>
+          </div>
+          <div className="text-center">
+            <span className="block text-gray-500 font-medium">SGST (2.5%)</span>
+            <span className="font-bold text-gray-900">₹{sgst.toFixed(2)}</span>
+          </div>
+          <div className="text-center border-l border-yellow-200 pl-6">
+            <span className="block text-gray-500 font-medium">Total Tax</span>
+            <span className="font-bold text-yellow-600">₹{totalTax.toFixed(2)}</span>
+          </div>
         </div>
       </div>
 
