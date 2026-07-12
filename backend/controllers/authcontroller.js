@@ -5,6 +5,7 @@ import genToken from "../utils/token.js"
 import { sendOtpMail } from "../utils/mail.js"
 import Wallet from "../models/walletModel.js"
 import ReferralSettings from "../models/referralSettingsModel.js"
+import admin from "../config/firebaseAdmin.js"
 //--------------signUp----------//
 export const signUp = async (req, res) => {
   try {
@@ -99,7 +100,8 @@ export const signIn = async (req, res) => {
         })
         return res.status(200).json(user)
     } catch (error) {
-        return res.status(500).json(`sign in error ${error}`)
+        console.error("SIGN_IN_ERROR:", error.message);
+        return res.status(500).json({ message: "Internal Server Error" })
     }
 }
 
@@ -115,7 +117,8 @@ export const signOut = async (req, res) => {
         })
         return res.status(200).json({ message: "signout successfully" })
     } catch (error) {
-        return res.status(500).json(`signout error ${error}`)
+        console.error("SIGN_OUT_ERROR:", error.message);
+        return res.status(500).json({ message: "Internal Server Error" })
     }
 }
 //--------------sendOtp----------------//
@@ -134,7 +137,8 @@ export const sendOtp=async (req,res) => {
         await sendOtpMail(email,otp)
         return res.status(200).json({message:"Otp sent successfully"})
     }catch(error){
-       return res.status(500).json(`send Otp error ${error}`)
+       console.error("SEND_OTP_ERROR:", error.message);
+       return res.status(500).json({ message: "Internal Server Error" })
     }
 }
 //--------------VerifyOtp-------------//
@@ -151,7 +155,8 @@ export const verifyOtp=async (req,res) =>{
         await user.save()
          return res.status(200).json({message:"Otp verfied successfully"})
     } catch (error) {
-         return res.status(500).json(`verify Otp error ${error}`)
+         console.error("VERIFY_OTP_ERROR:", error.message);
+         return res.status(500).json({ message: "Internal Server Error" })
     }
 }
 //--------------restPassword---------//
@@ -169,13 +174,29 @@ export const resetPassword=async (req,res) => {
         return res.status(200).json({ message: "Password reset successfully" })
 
     } catch (error) {
-        return res.status(500).json(`Reset password error ${error}`)
+        console.error("RESET_PASSWORD_ERROR:", error.message);
+        return res.status(500).json({ message: "Internal Server Error" })
     }
 }
 
 export const googleAuth = async (req, res) => {
     try {
-        const { fullName, email, mobile, role, referralCode, deviceFingerprint } = req.body;
+        const { idToken, mobile, role, referralCode, deviceFingerprint } = req.body;
+        
+        if (!idToken) {
+            return res.status(401).json({ message: "Missing Firebase ID Token" });
+        }
+
+        let decodedToken;
+        try {
+            decodedToken = await admin.auth().verifyIdToken(idToken);
+        } catch (authErr) {
+            console.error("Firebase Token Verification Error:", authErr.message);
+            return res.status(401).json({ message: "Unauthorized. Invalid Token." });
+        }
+
+        const { email, name: fullName } = decodedToken;
+        
         let user = await User.findOne({ email });
 
         if (!user) {
@@ -190,7 +211,7 @@ export const googleAuth = async (req, res) => {
                 fullName,
                 userName: generatedUserName,
                 email,
-                mobile,
+                mobile: mobile || "",
                 role: role || "user",
                 referredBy: referrer ? referrer._id : null,
                 lastIpAddress: req.headers['x-forwarded-for'] || req.ip || req.socket.remoteAddress,

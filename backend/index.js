@@ -22,6 +22,7 @@ import path from "path";
 import helmet from "helmet";
 import { fileURLToPath } from "url";
 import { initCronJobs } from "./utils/cronJobs.js";
+import { verifyAppCheck } from "./middleware/appCheckMiddleware.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -31,10 +32,10 @@ app.use(helmet({
   contentSecurityPolicy: {
     directives: {
       defaultSrc: ["'self'"],
-      scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'", "https://checkout.razorpay.com"],
-      frameSrc: ["'self'", "https://api.razorpay.com", "https://checkout.razorpay.com"],
-      connectSrc: ["'self'", "https://api.geoapify.com", "https://api.razorpay.com", "https://*.onrender.com"],
-      imgSrc: ["'self'", "data:", "https://res.cloudinary.com", "https://*.tile.openstreetmap.org"],
+      scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'", "https://checkout.razorpay.com", "https://apis.google.com", "https://www.gstatic.com"],
+      frameSrc: ["'self'", "https://api.razorpay.com", "https://checkout.razorpay.com", "https://own-fresh.firebaseapp.com", "https://www.google.com"],
+      connectSrc: ["'self'", "https://api.geoapify.com", "https://api.razorpay.com", "https://*.onrender.com", "https://identitytoolkit.googleapis.com", "https://securetoken.googleapis.com", "https://firebaseinstallations.googleapis.com", "https://content-firebaseappcheck.googleapis.com"],
+      imgSrc: ["'self'", "data:", "https://res.cloudinary.com", "https://*.tile.openstreetmap.org", "https://lh3.googleusercontent.com"],
     },
   },
   crossOriginEmbedderPolicy: false,
@@ -50,18 +51,24 @@ const allowedOrigins = [
 app.use(cors({
     origin: (origin, callback) => {
         if (!origin) return callback(null, true);
-        if (allowedOrigins.includes(origin) || origin.includes("localhost") || origin.includes("127.0.0.1")) {
+        if (allowedOrigins.includes(origin)) {
             return callback(null, true);
         }
+        // Very strict - only allow if exactly in allowedOrigins (for prod)
         if (origin.endsWith(".onrender.com")) {
            return callback(null, true);
         }
-        return callback(new Error(`CORS blocked: ${origin}`));
+        return callback(new Error(`CORS blocked: unauthorized origin ${origin}`));
     },
-    credentials: true
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Firebase-AppCheck']
 }))
 app.use(express.json())
 app.use(cookieParser())
+
+// Protect API routes with App Check
+app.use("/api", verifyAppCheck)
 app.use("/api/auth", authRouter)
 app.use("/api/user", userRouter)
 app.use("/api/product", productRoutes);

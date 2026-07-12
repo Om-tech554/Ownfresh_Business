@@ -188,7 +188,8 @@ import {
 } from "lucide-react";
 import { serverUrl } from "../App";
 import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
-import { auth } from "../../firebase";
+import { getToken } from "firebase/app-check";
+import { auth, appCheck } from "../../firebase";
 import toast from "react-hot-toast";
 import { useDispatch } from "react-redux";
 import { setUserData, clearCart } from "../redux/userslice";  // ⭐ ADDED
@@ -254,16 +255,29 @@ const SignUp = () => {
 
     try {
       const google = await signInWithPopup(auth, provider);
+      const idToken = await google.user.getIdToken();
+
+      let appCheckToken = "";
+      if (appCheck) {
+          try {
+              const tokenResponse = await getToken(appCheck, false);
+              appCheckToken = tokenResponse.token;
+          } catch (e) {
+              console.warn("App Check token fetch failed", e);
+          }
+      }
 
       const { data } = await axios.post(
         `${serverUrl}/api/auth/google-auth`,
         {
-          fullName: google.user.displayName,
-          email: google.user.email,
+          idToken,
           mobile: countryCode + mobile,
           role,
         },
-        { withCredentials: true }
+        { 
+          withCredentials: true,
+          headers: appCheckToken ? { 'X-Firebase-AppCheck': appCheckToken } : {}
+        }
       );
 
       dispatch(setUserData(data));
@@ -271,6 +285,9 @@ const SignUp = () => {
       localStorage.setItem("oil_user", JSON.stringify(data));
 
       toast.success("Google signup completed");
+      
+      // Remove query params from browser history for security
+      window.history.replaceState({}, document.title, window.location.pathname);
       navigate("/");
 
     } catch (error) {
@@ -320,7 +337,7 @@ const SignUp = () => {
               className="text-4xl font-black tracking-tight mb-2 font-playfair"
               style={{ color: "#2F5D50" }}
             >
-              OwnFresh
+              Botanic Purity
             </h1>
             <p className="text-gray-500 font-medium">Create your account</p>
           </div>
