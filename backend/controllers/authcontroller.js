@@ -5,7 +5,8 @@ import genToken from "../utils/token.js"
 import { sendOtpMail } from "../utils/mail.js"
 import Wallet from "../models/walletModel.js"
 import ReferralSettings from "../models/referralSettingsModel.js"
-import admin from "../config/firebaseAdmin.js"
+import adminApp from "../config/firebaseAdmin.js"
+import { getAuth } from "firebase-admin/auth"
 //--------------signUp----------//
 export const signUp = async (req, res) => {
   try {
@@ -189,7 +190,7 @@ export const googleAuth = async (req, res) => {
 
         let decodedToken;
         try {
-            decodedToken = await admin.auth().verifyIdToken(idToken);
+            decodedToken = await getAuth(adminApp).verifyIdToken(idToken);
         } catch (authErr) {
             console.error("Firebase Token Verification Error:", authErr.message);
             return res.status(401).json({ message: "Unauthorized. Invalid Token." });

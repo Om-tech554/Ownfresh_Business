@@ -1,8 +1,15 @@
-import admin from "../config/firebaseAdmin.js";
+import adminApp from "../config/firebaseAdmin.js";
+import { getAppCheck } from "firebase-admin/app-check";
 
 export const verifyAppCheck = async (req, res, next) => {
-    // Only enforce if the env var requires it, making it easier for local testing if needed
-    if (process.env.NODE_ENV !== "production" && !process.env.ENFORCE_APP_CHECK) {
+    // Only enforce if explicitly requested via environment variable.
+    if (process.env.ENFORCE_APP_CHECK !== "true") {
+        return next();
+    }
+
+    if (!adminApp) {
+        // Admin SDK not initialized (missing env variables), bypass App Check
+        console.warn("⚠️ Bypassing App Check: Firebase Admin SDK is not configured.");
         return next();
     }
 
@@ -13,7 +20,7 @@ export const verifyAppCheck = async (req, res, next) => {
     }
 
     try {
-        const appCheckClaims = await admin.appCheck().verifyToken(appCheckToken);
+        const appCheckClaims = await getAppCheck(adminApp).verifyToken(appCheckToken);
         req.appCheckClaims = appCheckClaims;
         return next();
     } catch (err) {

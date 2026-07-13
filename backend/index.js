@@ -39,6 +39,7 @@ app.use(helmet({
     },
   },
   crossOriginEmbedderPolicy: false,
+  crossOriginOpenerPolicy: { policy: "same-origin-allow-popups" },
 })); // Set standard security headers
 const port = process.env.PORT || 10000
 

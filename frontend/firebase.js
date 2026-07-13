@@ -8,9 +8,9 @@ import { initializeAppCheck, ReCaptchaV3Provider } from "firebase/app-check";
 // Your web app's Firebase configuration
 const firebaseConfig = {
   apiKey:import.meta.env.VITE_FIREBASE_APIKEY,
-  authDomain: "own-fresh.firebaseapp.com",
-  projectId: "own-fresh",
-  storageBucket: "own-fresh.firebasestorage.app",
+  authDomain: "ownfresh-auth.firebaseapp.com",
+  projectId: "ownfresh-auth",
+  storageBucket: "ownfresh-auth.firebasestorage.app",
   messagingSenderId: "250708106658",
   appId: "1:250708106658:web:eeb5462a2e073a481d26fb"
 };
@@ -27,10 +27,15 @@ if (typeof window !== "undefined") {
         self.FIREBASE_APPCHECK_DEBUG_TOKEN = true;
     }
     
-    appCheck = initializeAppCheck(app, {
-        provider: new ReCaptchaV3Provider(import.meta.env.VITE_RECAPTCHA_SITE_KEY || "dummy_key_until_configured"),
-        isTokenAutoRefreshEnabled: true
-    });
+    // Only initialize if we have a real reCAPTCHA key to avoid breaking Firebase Auth
+    if (import.meta.env.VITE_RECAPTCHA_SITE_KEY) {
+        appCheck = initializeAppCheck(app, {
+            provider: new ReCaptchaV3Provider(import.meta.env.VITE_RECAPTCHA_SITE_KEY),
+            isTokenAutoRefreshEnabled: true
+        });
+    } else {
+        console.warn("⚠️ Firebase App Check skipped: VITE_RECAPTCHA_SITE_KEY is missing.");
+    }
 }
 
 export { app, auth, appCheck };
