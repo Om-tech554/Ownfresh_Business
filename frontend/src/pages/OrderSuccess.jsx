@@ -3,10 +3,11 @@ import { useLocation, useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { FaCheckCircle, FaExclamationCircle, FaDownload, FaShoppingBag, FaSpinner, FaPhone } from 'react-icons/fa';
 import axios from 'axios';
-import { serverUrl } from '../App';
 import { appCheck } from '../../firebase';
 import { getToken } from 'firebase/app-check';
 import toast from 'react-hot-toast';
+
+const serverUrl = import.meta.env.VITE_API_URL || "http://localhost:10000";
 
 const OrderSuccess = () => {
   const location = useLocation();

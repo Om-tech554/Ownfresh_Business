@@ -3,13 +3,14 @@ import { useCheckout } from './CheckoutContext';
 import { useSelector, useDispatch } from 'react-redux';
 import { motion } from 'framer-motion';
 import axios from 'axios';
-import { serverUrl } from '../../App';
 import toast from 'react-hot-toast';
 import { clearCart, updateQuantity, removeFromCart } from '../../redux/userslice';
 import { useNavigate } from 'react-router-dom';
 import { FaTrash, FaMinus, FaPlus, FaCopy, FaUpload, FaTimes } from 'react-icons/fa';
 import { appCheck } from '../../../firebase';
 import { getToken } from 'firebase/app-check';
+
+const serverUrl = import.meta.env.VITE_API_URL || "http://localhost:10000";
 
 const OrderReview = () => {
   const dispatch = useDispatch();
