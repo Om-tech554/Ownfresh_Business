@@ -117,3 +117,99 @@ export const sendContactMail = async (name, email, message) => {
     `,
   });
 };
+
+export const sendOrderConfirmationMail = async (order) => {
+  const itemsHtml = order.items.map(item => `
+    <tr>
+      <td style="padding: 10px; border-bottom: 1px solid #EEE;">
+        <img src="${item.image}" alt="${item.name}" style="width: 50px; height: 50px; object-fit: cover; border-radius: 6px; margin-right: 10px; vertical-align: middle;" />
+        <span style="font-weight: bold; vertical-align: middle;">${item.name}</span>
+        ${item.variantName ? `<span style="font-size: 12px; color: #777; display: block; margin-left: 60px;">Variant: ${item.variantName}</span>` : ''}
+      </td>
+      <td style="padding: 10px; border-bottom: 1px solid #EEE; text-align: center;">${item.quantity}</td>
+      <td style="padding: 10px; border-bottom: 1px solid #EEE; text-align: right;">₹${(item.price * item.quantity).toFixed(2)}</td>
+    </tr>
+  `).join('');
+
+  await transporter.sendMail({
+    from: `"OwnFresh Orders" <${process.env.EMAIL}>`,
+    to: order.user.email,
+    subject: `Order Confirmed - #${order._id}`,
+    html: `
+      <div style="background-color:#F9F9F9;padding:24px;font-family:Arial,sans-serif;">
+        <div style="max-width:600px;margin:auto;background:#ffffff;border:1px solid #E5E5E5;border-radius:12px;overflow:hidden;box-shadow:0 4px 10px rgba(0,0,0,0.05);">
+          
+          <!-- Header -->
+          <div style="background:#FFD700;padding:20px;text-align:center;">
+            <h1 style="margin:0;color:#000;font-size:24px;text-transform:uppercase;letter-spacing:2px;">Order Confirmed!</h1>
+            <p style="margin:5px 0 0 0;color:#333;font-size:14px;">Thank you for shopping with OwnFresh</p>
+          </div>
+
+          <!-- Body -->
+          <div style="padding:32px;color:#333;">
+            <p style="font-size:16px;margin-top:0;">Hi <b>${order.user.fullName}</b>,</p>
+            <p style="font-size:14px;color:#555;line-height:1.5;">
+              We've received your order and payment. We are preparing the items for shipment! Below are your order details:
+            </p>
+
+            <div style="background:#F5F5F5;padding:15px;border-radius:8px;margin:20px 0;font-size:14px;">
+              <b>Order ID:</b> #${order._id}<br/>
+              <b>Payment Method:</b> ${order.PaymentMethod.toUpperCase()} (Online / UPI)<br/>
+              <b>Delivery Address:</b> ${order.deliveryAddress.text}
+            </div>
+
+            <!-- Items Table -->
+            <table style="width:100%;border-collapse:collapse;margin:20px 0;font-size:14px;">
+              <thead>
+                <tr style="background:#EEE;">
+                  <th style="padding:10px;text-align:left;">Item</th>
+                  <th style="padding:10px;text-align:center;width:60px;">Qty</th>
+                  <th style="padding:10px;text-align:right;width:100px;">Price</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${itemsHtml}
+              </tbody>
+            </table>
+
+            <!-- Totals -->
+            <table style="width:100%;font-size:14px;line-height:1.6;margin-top:10px;">
+              ${order.discountAmount > 0 ? `
+              <tr>
+                <td style="text-align:right;color:#777;">Discount:</td>
+                <td style="text-align:right;width:120px;color:red;">-₹${order.discountAmount.toFixed(2)}</td>
+              </tr>
+              ` : ''}
+              ${order.taxAmount > 0 ? `
+              <tr>
+                <td style="text-align:right;color:#777;">GST:</td>
+                <td style="text-align:right;width:120px;">₹${order.taxAmount.toFixed(2)}</td>
+              </tr>
+              ` : ''}
+              ${order.walletDeductedAmount > 0 ? `
+              <tr>
+                <td style="text-align:right;color:#777;">Wallet Used:</td>
+                <td style="text-align:right;width:120px;color:green;">-₹${order.walletDeductedAmount.toFixed(2)}</td>
+              </tr>
+              ` : ''}
+              <tr style="font-size:16px;font-weight:bold;">
+                <td style="text-align:right;padding-top:10px;">Total Amount Paid:</td>
+                <td style="text-align:right;width:120px;padding-top:10px;border-top:1px solid #333;">₹${order.totalAmount.toFixed(2)}</td>
+              </tr>
+            </table>
+
+            <p style="font-size:14px;color:#555;margin-top:30px;line-height:1.5;">
+              If you have any questions or concerns regarding your order, feel free to reply directly to this email.
+            </p>
+          </div>
+
+          <!-- Footer -->
+          <div style="background:#F5F5F5;padding:15px;text-align:center;font-size:12px;color:#777;">
+            © ${new Date().getFullYear()} OwnFresh. All rights reserved.
+          </div>
+
+        </div>
+      </div>
+    `,
+  });
+};

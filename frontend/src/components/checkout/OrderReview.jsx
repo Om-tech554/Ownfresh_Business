@@ -8,6 +8,8 @@ import toast from 'react-hot-toast';
 import { clearCart, updateQuantity, removeFromCart } from '../../redux/userslice';
 import { useNavigate } from 'react-router-dom';
 import { FaTrash, FaMinus, FaPlus, FaCopy, FaUpload, FaTimes } from 'react-icons/fa';
+import { appCheck } from '../../../firebase';
+import { getToken } from 'firebase/app-check';
 
 const OrderReview = () => {
   const dispatch = useDispatch();
@@ -67,6 +69,10 @@ const OrderReview = () => {
     toast.success("Coupon removed");
   };
 
+  // ========================================================
+  // --- RAZORPAY CODE COMMENTED OUT AS REQUESTED ---
+  // ========================================================
+  /*
   const loadRazorpayScript = () => {
     return new Promise((resolve) => {
       const script = document.createElement("script");
@@ -146,13 +152,63 @@ const OrderReview = () => {
       setIsProcessing(false);
     }
   };
+  */
+
+  // ========================================================
+  // --- PHONEPE PAYMENT INTEGRATION ---
+  // ========================================================
+  const initiatePhonePePayment = async () => {
+    setIsProcessing(true);
+    try {
+      // 1) First create the order in the database (marked as paymentStatus: pending)
+      const order = await processOrderToDB();
+      if (!order || !order._id) {
+        setIsProcessing(false);
+        return;
+      }
+
+      // 2) Get App Check Token if available
+      let appCheckToken = "";
+      if (appCheck) {
+        try {
+          const tokenResponse = await getToken(appCheck, false);
+          appCheckToken = tokenResponse.token;
+        } catch (err) {
+          console.error("AppCheck Token Error:", err);
+        }
+      }
+      const headers = appCheckToken ? { 'X-Firebase-AppCheck': appCheckToken } : {};
+
+      // 3) Call the backend to initiate PhonePe transaction
+      const { data } = await axios.post(`${serverUrl}/api/payment/phonepe-initiate`, {
+        orderId: order._id
+      }, { 
+        headers,
+        withCredentials: true 
+      });
+
+      if (data.success && data.redirectUrl) {
+        toast.success("Redirecting to secure UPI payment gateway...");
+        dispatch(clearCart());
+        // Redirect to PhonePe payment page
+        window.location.href = data.redirectUrl;
+      } else {
+        toast.error(data.msg || "Failed to initiate payment. Please try again.");
+        setIsProcessing(false);
+      }
+    } catch (error) {
+      console.error("PhonePe Initiation Error:", error);
+      toast.error(error.response?.data?.msg || "Payment initiation failed. Please try again.");
+      setIsProcessing(false);
+    }
+  };
 
   const handlePlaceOrder = async () => {
     if (!user) return toast.error("Please login to place an order");
     if (cartItems.length === 0) return toast.error("Your cart is empty");
 
     if (paymentMethod === "online") {
-      initiateRazorpayPayment();
+      await initiatePhonePePayment();
     } else {
       setIsProcessing(true);
       await processOrderToDB();
@@ -161,6 +217,18 @@ const OrderReview = () => {
 
   const processOrderToDB = async (razorpayOrderId = null, razorpayPaymentId = null, razorpaySignature = null) => {
     try {
+      // Get App Check Token if available
+      let appCheckToken = "";
+      if (appCheck) {
+        try {
+          const tokenResponse = await getToken(appCheck, false);
+          appCheckToken = tokenResponse.token;
+        } catch (err) {
+          console.error("AppCheck Token Error:", err);
+        }
+      }
+      const headers = appCheckToken ? { 'X-Firebase-AppCheck': appCheckToken } : {};
+
       const { data } = await axios.post(`${serverUrl}/api/order/create`, {
         userId: user._id,
         items: cartItems,
@@ -183,17 +251,26 @@ const OrderReview = () => {
         razorpayPaymentId,
         razorpaySignature,
         useWallet: useWallet
-      }, { withCredentials: true });
+      }, { 
+        headers,
+        withCredentials: true 
+      });
 
       if (data.success) {
-        toast.success("Order placed successfully!");
-        dispatch(clearCart());
-        navigate("/order-success", { state: { orderId: data.order?._id || Date.now() } });
+        if (paymentMethod === "cod") {
+          toast.success("Order placed successfully!");
+          dispatch(clearCart());
+          navigate("/order-success", { state: { orderId: data.order?._id || Date.now() } });
+        }
+        return data.order;
       }
     } catch (error) {
-      toast.error("Order placement failed");
+      toast.error(error.response?.data?.msg || "Order placement failed");
+      return null;
     } finally {
-      setIsProcessing(false);
+      if (paymentMethod !== "online") {
+        setIsProcessing(false);
+      }
     }
   };
 

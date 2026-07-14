@@ -37,7 +37,12 @@ export const createOrder = async (req, res) => {
     let finalPayableAmount = Number(totalAmount);
     let walletDeducted = 0;
 
-    // 3) Wallet Deduction Logic
+    // We only execute state changes (wallet balance deduction and coupon count increment)
+    // immediately if it is COD or if the final amount becomes 0 (fully paid by wallet/coupons).
+    // For online payments with remaining balances, these changes are executed in the webhook callback.
+    const isInstantOrder = (paymentMethod === 'cod');
+
+    // 3) Wallet Deduction Calculation
     if (useWallet) {
       let wallet = await Wallet.findOne({ userId });
       if (!wallet) {
@@ -46,29 +51,34 @@ export const createOrder = async (req, res) => {
 
       if (wallet.balance > 0) {
         walletDeducted = Math.min(wallet.balance, finalPayableAmount);
-        wallet.balance -= walletDeducted;
-        wallet.totalRedeemed += walletDeducted;
-        await wallet.save();
-
-        // Create transaction log
-        await Transaction.create({
-          userId,
-          type: "REDEEM",
-          amount: walletDeducted,
-          description: `Paid for order using wallet balance`,
-          status: "SUCCESS"
-        });
-
         finalPayableAmount -= walletDeducted;
+
+        // Perform instant deduction if applicable
+        if (isInstantOrder || finalPayableAmount <= 0) {
+          wallet.balance -= walletDeducted;
+          wallet.totalRedeemed += walletDeducted;
+          await wallet.save();
+
+          // Create transaction log
+          await Transaction.create({
+            userId,
+            type: "REDEEM",
+            amount: walletDeducted,
+            description: `Paid for order using wallet balance`,
+            status: "SUCCESS"
+          });
+        }
       }
     }
 
-    // 4) Coupon Usage Incrementation
+    // 4) Coupon Usage Calculation
     if (couponCode) {
       const coupon = await Coupon.findOne({ code: couponCode.toUpperCase() });
       if (coupon) {
-        coupon.usedCount += 1;
-        await coupon.save();
+        if (isInstantOrder || finalPayableAmount <= 0) {
+          coupon.usedCount += 1;
+          await coupon.save();
+        }
       }
     }
 
@@ -78,10 +88,13 @@ export const createOrder = async (req, res) => {
     if (finalPayableAmount <= 0) {
       paymentStatus = 'completed';
     } else if (paymentMethod === 'online') {
+      /* Razorpay Code commented out as requested
       if (!razorpayPaymentId) {
         return res.status(400).json({ msg: "Missing Razorpay Payment ID for online payment" });
       }
       paymentStatus = 'completed'; // Paid via Razorpay
+      */
+      paymentStatus = 'pending';
     }
 
     // Map items to strip out the invalid _id from frontend and extra fields

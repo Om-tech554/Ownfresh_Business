@@ -2,6 +2,11 @@ import adminApp from "../config/firebaseAdmin.js";
 import { getAppCheck } from "firebase-admin/app-check";
 
 export const verifyAppCheck = async (req, res, next) => {
+    // Allow PhonePe callback webhook to bypass App Check
+    if (req.originalUrl && req.originalUrl.includes("/phonepe-callback")) {
+        return next();
+    }
+
     // Only enforce if explicitly requested via environment variable.
     if (process.env.ENFORCE_APP_CHECK !== "true") {
         return next();

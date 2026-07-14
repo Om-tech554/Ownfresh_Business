@@ -12,6 +12,7 @@
   "author": "TechNewitty",
   "license": "ISC",
   "dependencies": {
+    "axios": "^1.18.1",
     "bcryptjs": "^3.0.3",
     "cloudinary": "^1.36.3",
     "cookie-parser": "^1.4.7",
