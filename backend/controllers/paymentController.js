@@ -10,10 +10,21 @@ import { sendOrderConfirmationMail } from "../utils/mail.js";
 import { sendOrderConfirmationSms } from "../utils/sms.js";
 
 // --- PHONEPE CONFIGURATION ---
-const PHONEPE_MERCHANT_ID = process.env.PHONEPE_MERCHANT_ID || "PGTESTPAYUAT86";
-const PHONEPE_SALT_KEY = process.env.PHONEPE_SALT_KEY || "96434309-7796-489d-8924-ab56988a6076";
+const isPlaceholder = (val) => !val || val.includes("your_") || val.includes("placeholder") || val.includes("your-");
+
+const PHONEPE_MERCHANT_ID = !isPlaceholder(process.env.PHONEPE_MERCHANT_ID)
+  ? process.env.PHONEPE_MERCHANT_ID
+  : "PGTESTPAYUAT86";
+
+const PHONEPE_SALT_KEY = !isPlaceholder(process.env.PHONEPE_SALT_KEY)
+  ? process.env.PHONEPE_SALT_KEY
+  : "96434309-7796-489d-8924-ab56988a6076";
+
 const PHONEPE_SALT_INDEX = process.env.PHONEPE_SALT_INDEX || "1";
-const PHONEPE_ENV = process.env.PHONEPE_ENV || "uat"; // 'uat' or 'production'
+
+const PHONEPE_ENV = (!isPlaceholder(process.env.PHONEPE_MERCHANT_ID) && process.env.PHONEPE_ENV)
+  ? process.env.PHONEPE_ENV
+  : "uat"; // Fallback to 'uat' for sandbox testing if using placeholders
 
 const PHONEPE_BASE_URL = PHONEPE_ENV === "production"
   ? "https://api.phonepe.com/apis/pg"
@@ -47,9 +58,9 @@ export const initiatePhonePePayment = async (req, res) => {
 
     // Callback webhook URL (Hit by PhonePe S2S)
     const callbackUrl = process.env.PHONEPE_CALLBACK_URL || `${req.protocol}://${req.get("host")}/api/payment/phonepe-callback`;
-    
+
     // Redirect URL (User's browser landing page after payment)
-    const redirectUrl = process.env.FRONTEND_URL 
+    const redirectUrl = process.env.FRONTEND_URL
       ? `${process.env.FRONTEND_URL}/order-success?orderId=${order._id}`
       : `${req.protocol}://${req.get("host")}/order-success?orderId=${order._id}`;
 
@@ -164,7 +175,7 @@ export const phonepeCallback = async (req, res) => {
       // 1) Mark order as paid
       order.paymentStatus = "completed";
       order.razorpayPaymentId = transactionId; // Store PhonePe transaction ID in existing slot
-      
+
       // 2) Deduct wallet balance (Deferred execution)
       if (order.walletDeductedAmount > 0) {
         let wallet = await Wallet.findOne({ userId: order.user._id });
@@ -278,8 +289,8 @@ export const checkPhonePeStatus = async (req, res) => {
 
       // 1) Mark order as paid
       order.paymentStatus = "completed";
-      order.razorpayPaymentId = transactionId; 
-      
+      order.razorpayPaymentId = transactionId;
+
       // 2) Deduct wallet balance
       if (order.walletDeductedAmount > 0) {
         let wallet = await Wallet.findOne({ userId: order.user._id });
@@ -329,7 +340,7 @@ export const checkPhonePeStatus = async (req, res) => {
       });
     } else {
       const currentPhonePeStatus = response.data?.code || "PENDING";
-      
+
       if (["PAYMENT_ERROR", "PAYMENT_DECLINED", "TIMED_OUT"].includes(currentPhonePeStatus)) {
         order.paymentStatus = "failed";
         await order.save();
