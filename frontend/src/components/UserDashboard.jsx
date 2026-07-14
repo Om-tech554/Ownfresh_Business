@@ -7,10 +7,17 @@ import { OurStorySnippet, Gallery, FAQSection } from './HomeExtras';
 import PartnersSection from './PartnersSection';
 import FeaturesHighlights from './FeaturesHighlights';
 import ContactSection from './ContactSection';
+import SEO from './SEO';
 
 const UserDashboard = () => {
   return (
     <div className="w-full">
+      <SEO 
+        title="Premium Stone Pressed Oils & Organic Products"
+        description="Shop the best 100% natural, stone-pressed oils and organic products at Own Fresh. Pure, healthy, and delivered fresh to your doorstep."
+        keywords="stone pressed oil, pure organic oil, fresh natural oil, healthy cooking oil, buy stone pressed oil online"
+        url="/"
+      />
       <Navbar />
       <HeroSection />
 

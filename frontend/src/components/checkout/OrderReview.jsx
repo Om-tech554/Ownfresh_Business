@@ -7,26 +7,28 @@ import { serverUrl } from '../../App';
 import toast from 'react-hot-toast';
 import { clearCart, updateQuantity, removeFromCart } from '../../redux/userslice';
 import { useNavigate } from 'react-router-dom';
-import { FaTrash, FaMinus, FaPlus } from 'react-icons/fa';
+import { FaTrash, FaMinus, FaPlus, FaCopy, FaUpload, FaTimes } from 'react-icons/fa';
 
 const OrderReview = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const user = useSelector((state) => state.user.userData);
   const cartItems = useSelector((state) => state.user.cartItems);
-  const { 
-    shippingDetails, 
-    deliveryMethod, 
-    paymentMethod, 
-    couponDetails, 
+  const {
+    shippingDetails,
+    deliveryMethod,
+    paymentMethod,
+    couponDetails,
     setCouponDetails,
     useWallet,
-    prevStep 
+    prevStep
   } = useCheckout();
 
   const [couponInput, setCouponInput] = useState(couponDetails.code || '');
   const [validatingCoupon, setValidatingCoupon] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
+
+
 
   // Cart calculations
   const subtotal = cartItems.reduce((acc, item) => acc + (item.price * item.quantity), 0);
@@ -75,79 +77,89 @@ const OrderReview = () => {
     });
   };
 
+  const initiateRazorpayPayment = async () => {
+    setIsProcessing(true);
+    const res = await loadRazorpayScript();
+
+    if (!res) {
+      setIsProcessing(false);
+      return toast.error("Razorpay SDK failed to load. Are you online?");
+    }
+
+    try {
+      const { data } = await axios.post(`${serverUrl}/api/payment/create-order`, {
+        amount: finalAmount
+      }, { withCredentials: true });
+
+      if (!data.success) {
+        setIsProcessing(false);
+        return toast.error("Failed to create payment order");
+      }
+
+      const options = {
+        key: import.meta.env.VITE_RAZORPAY_KEY_ID || "rzp_test_SdpJSZtNnLHmjO",
+        amount: data.order.amount,
+        currency: "INR",
+        name: "OWN FRESH",
+        description: "Order Payment",
+        order_id: data.order.id,
+        handler: async function (response) {
+          try {
+            const verifyRes = await axios.post(`${serverUrl}/api/payment/verify`, {
+              razorpayOrderId: response.razorpay_order_id,
+              razorpayPaymentId: response.razorpay_payment_id,
+              razorpaySignature: response.razorpay_signature,
+            }, { withCredentials: true });
+
+            if (verifyRes.data.success) {
+              await processOrderToDB(response.razorpay_order_id, response.razorpay_payment_id, response.razorpay_signature);
+            } else {
+              toast.error("Payment verification failed");
+              setIsProcessing(false);
+            }
+          } catch (error) {
+            toast.error("Payment verification error");
+            setIsProcessing(false);
+          }
+        },
+        prefill: {
+          name: user.fullName || "",
+          email: user.email || "",
+          contact: shippingDetails.phone || user.mobile || ""
+        },
+        theme: {
+          color: "#EAB308"
+        },
+        modal: {
+          ondismiss: function () {
+            setIsProcessing(false);
+            toast.error("Payment cancelled");
+          }
+        }
+      };
+
+      const paymentObject = new window.Razorpay(options);
+      paymentObject.open();
+    } catch (error) {
+      console.error(error);
+      toast.error("Failed to initiate payment");
+      setIsProcessing(false);
+    }
+  };
+
   const handlePlaceOrder = async () => {
     if (!user) return toast.error("Please login to place an order");
     if (cartItems.length === 0) return toast.error("Your cart is empty");
 
-    setIsProcessing(true);
-
     if (paymentMethod === "online") {
-      const res = await loadRazorpayScript();
-      if (!res) {
-        setIsProcessing(false);
-        return toast.error("Razorpay SDK failed to load. Are you online?");
-      }
-
-      try {
-        const { data } = await axios.post(`${serverUrl}/api/payment/create-order`, {
-          amount: finalAmount
-        }, { withCredentials: true });
-
-        if (!data.success) {
-          setIsProcessing(false);
-          return toast.error("Failed to create order");
-        }
-
-        const options = {
-          key: import.meta.env.VITE_RAZORPAY_KEY_ID || "rzp_test_SdpJSZtNnLHmjO",
-          amount: data.order.amount,
-          currency: "INR",
-          name: "Own Fresh",
-          description: "Order Payment",
-          order_id: data.order.id,
-          handler: async function (response) {
-            try {
-              const verifyRes = await axios.post(`${serverUrl}/api/payment/verify`, {
-                razorpayOrderId: response.razorpay_order_id,
-                razorpayPaymentId: response.razorpay_payment_id,
-                razorpaySignature: response.razorpay_signature
-              }, { withCredentials: true });
-
-              if (verifyRes.data.success) {
-                await processOrderToDB(response.razorpay_order_id, response.razorpay_payment_id, response.razorpay_signature);
-              }
-            } catch (error) {
-              toast.error("Payment Verification Failed");
-              setIsProcessing(false);
-            }
-          },
-          modal: {
-            ondismiss: function() {
-              setIsProcessing(false);
-              toast.error("Payment cancelled");
-            }
-          },
-          prefill: {
-            name: shippingDetails.fullName,
-            email: shippingDetails.email,
-            contact: shippingDetails.phone
-          },
-          theme: { color: "#eab308" }
-        };
-
-        const paymentObject = new window.Razorpay(options);
-        paymentObject.open();
-
-      } catch (error) {
-        setIsProcessing(false);
-        toast.error("Failed to initiate payment");
-      }
+      initiateRazorpayPayment();
     } else {
+      setIsProcessing(true);
       await processOrderToDB();
     }
   };
 
-  const processOrderToDB = async (razorpayOrderId, razorpayPaymentId, razorpaySignature) => {
+  const processOrderToDB = async (razorpayOrderId = null, razorpayPaymentId = null, razorpaySignature = null) => {
     try {
       const { data } = await axios.post(`${serverUrl}/api/order/create`, {
         userId: user._id,
@@ -157,6 +169,7 @@ const OrderReview = () => {
           roomNumber: shippingDetails.landmark || "",
           areaName: shippingDetails.city,
           text: `${shippingDetails.address}, ${shippingDetails.city}, ${shippingDetails.state}, ${shippingDetails.country} - ${shippingDetails.zipCode}`,
+          phone: shippingDetails.phone || user.mobile || "",
           latitude: shippingDetails.latitude,
           longitude: shippingDetails.longitude,
         },
@@ -192,7 +205,7 @@ const OrderReview = () => {
       className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 md:p-8"
     >
       <h2 className="text-2xl font-black text-gray-900 mb-6">Review Your Order</h2>
-      
+
       {/* Items Review */}
       <div className="mb-8">
         <h3 className="text-lg font-bold text-gray-800 mb-4 border-b pb-2">Order Items</h3>
@@ -206,17 +219,17 @@ const OrderReview = () => {
               </div>
               <div className="flex items-center gap-3">
                 <div className="flex items-center border border-gray-200 rounded-lg overflow-hidden bg-gray-50">
-                  <button 
+                  <button
                     onClick={() => dispatch(updateQuantity({ id: item._id, quantity: Math.max(1, item.quantity - 1) }))}
                     className="w-8 h-8 flex items-center justify-center hover:bg-gray-200 transition text-gray-600"
                   ><FaMinus size={10} /></button>
                   <span className="w-8 text-center font-semibold text-sm">{item.quantity}</span>
-                  <button 
+                  <button
                     onClick={() => dispatch(updateQuantity({ id: item._id, quantity: item.quantity + 1 }))}
                     className="w-8 h-8 flex items-center justify-center hover:bg-gray-200 transition text-gray-600"
                   ><FaPlus size={10} /></button>
                 </div>
-                <button 
+                <button
                   onClick={() => dispatch(removeFromCart(item._id))}
                   className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition"
                 >
@@ -247,14 +260,14 @@ const OrderReview = () => {
             {shippingDetails.phone}
           </p>
         </div>
-        
+
         <div className="bg-gray-50 p-4 rounded-xl border border-gray-200">
           <h3 className="font-bold text-gray-800 mb-2">Delivery & Payment</h3>
           <p className="text-sm text-gray-600 mb-4">
             <span className="font-semibold text-gray-800">Method:</span> {deliveryMethod.name} ({deliveryMethod.estimatedTime})
           </p>
           <p className="text-sm text-gray-600">
-            <span className="font-semibold text-gray-800">Payment:</span> {paymentMethod === 'online' ? 'Online Payment (Razorpay)' : 'Cash on Delivery'}
+            <span className="font-semibold text-gray-800">Payment:</span> {paymentMethod === 'online' ? 'UPI / Bank Transfer' : 'Cash on Delivery'}
           </p>
         </div>
       </div>
@@ -281,13 +294,13 @@ const OrderReview = () => {
         </div>
       </div>
 
-      {/* Coupon Application */}
+      {/* Referral Code Application */}
       <div className="mb-8 border-t border-gray-100 pt-6">
-        <h3 className="font-bold text-gray-800 mb-3">Gift Card or Discount Code</h3>
+        <h3 className="font-bold text-gray-800 mb-3">Referral Code</h3>
         <div className="flex gap-2 max-w-md">
           <input
             type="text"
-            placeholder="Enter code"
+            placeholder="Enter referral code"
             className="flex-1 px-4 py-3 border border-gray-200 rounded-xl outline-none focus:border-yellow-500 uppercase font-bold text-sm"
             value={couponInput}
             onChange={(e) => setCouponInput(e.target.value.toUpperCase())}
@@ -334,6 +347,8 @@ const OrderReview = () => {
           )}
         </button>
       </div>
+
+
     </motion.div>
   );
 };

@@ -7,87 +7,87 @@ import Wallet from "../models/walletModel.js"
 import ReferralSettings from "../models/referralSettingsModel.js"
 import adminApp from "../config/firebaseAdmin.js"
 import { getAuth } from "firebase-admin/auth"
-//--------------signUp----------//
+//--------------signUp----------------//
 export const signUp = async (req, res) => {
-  try {
-    const { fullName, email, password, mobile, role, referralCode, deviceFingerprint } = req.body;
+    try {
+        const { fullName, email, password, mobile, role, referralCode, deviceFingerprint } = req.body;
 
-    if (!fullName || !email || !password || !mobile) {
-      return res.status(400).json({ message: "All fields are required" });
-    }
-
-    const existingUser = await User.findOne({ email });
-    if (existingUser) {
-      return res.status(409).json({ message: "Email already exists" });
-    }
-
-    // Check for referrer
-    let referrer = null;
-    if (referralCode) {
-        referrer = await User.findOne({ referralCode: referralCode.toUpperCase() });
-    }
-
-    const hashedPassword = await bcrypt.hash(password, 10);
-
-    const user = await User.create({
-      fullName,
-      email,
-      password: hashedPassword,
-      mobile,
-      role: role || "user",
-      referredBy: referrer ? referrer._id : null,
-      lastIpAddress: req.headers['x-forwarded-for'] || req.ip || req.socket.remoteAddress,
-      lastDeviceFingerprint: deviceFingerprint || req.headers['user-agent']
-    });
-
-    // Create wallet for the new user
-    await Wallet.create({ userId: user._id, balance: 0, totalEarned: 0, totalRedeemed: 0 });
-
-    if (referrer) {
-        let rewardAmount = 50;
-        const settings = await ReferralSettings.findOne();
-        if (settings) {
-            rewardAmount = settings.referralRewardReferred || 50;
+        if (!fullName || !email || !password || !mobile) {
+            return res.status(400).json({ message: "All fields are required" });
         }
 
-        const ipAddress = req.headers['x-forwarded-for'] || req.ip || req.socket.remoteAddress;
+        const existingUser = await User.findOne({ email });
+        if (existingUser) {
+            return res.status(409).json({ message: "Email already exists" });
+        }
 
-        await Referral.create({
-            referrerUserId: referrer._id,
-            referredUserId: user._id,
-            referralCode: referralCode.toUpperCase(),
-            status: "PENDING",
-            rewardAmount,
-            deviceFingerprint: deviceFingerprint || req.headers['user-agent'],
-            ipAddress
+        // Check for referrer
+        let referrer = null;
+        if (referralCode) {
+            referrer = await User.findOne({ referralCode: referralCode.toUpperCase() });
+        }
+
+        const hashedPassword = await bcrypt.hash(password, 10);
+
+        const user = await User.create({
+            fullName,
+            email,
+            password: hashedPassword,
+            mobile,
+            role: role || "user",
+            referredBy: referrer ? referrer._id : null,
+            lastIpAddress: req.headers['x-forwarded-for'] || req.ip || req.socket.remoteAddress,
+            lastDeviceFingerprint: deviceFingerprint || req.headers['user-agent']
         });
-    }
 
-    return res.status(201).json({
-      message: "Account created successfully",
-      user,
-    });
-  } catch (error) {
-    console.error("Signup error:", error);
-    return res.status(500).json({ message: "Signup failed" });
-  }
+        // Create wallet for the new user
+        await Wallet.create({ userId: user._id, balance: 0, totalEarned: 0, totalRedeemed: 0 });
+
+        if (referrer) {
+            let rewardAmount = 50;
+            const settings = await ReferralSettings.findOne();
+            if (settings) {
+                rewardAmount = settings.referralRewardReferred || 50;
+            }
+
+            const ipAddress = req.headers['x-forwarded-for'] || req.ip || req.socket.remoteAddress;
+
+            await Referral.create({
+                referrerUserId: referrer._id,
+                referredUserId: user._id,
+                referralCode: referralCode.toUpperCase(),
+                status: "PENDING",
+                rewardAmount,
+                deviceFingerprint: deviceFingerprint || req.headers['user-agent'],
+                ipAddress
+            });
+        }
+
+        return res.status(201).json({
+            message: "Account created successfully",
+            user,
+        });
+    } catch (error) {
+        console.error("Signup error:", error);
+        return res.status(500).json({ message: "Signup failed" });
+    }
 };
 //--------------signIn------------------//
 export const signIn = async (req, res) => {
     try {
         const { email, password } = req.body;
         const user = await User.findOne({ email });
-        
+
         if (!user) {
             return res.status(400).json({ message: "⚠️ User does not exist." });
         }
-        
+
         const isMatch = await bcrypt.compare(password, user.password);
         if (!isMatch) {
             return res.status(400).json({ message: "⚠️ incorrect password." });
         }
         const token = await genToken(user._id)
-        
+
         // Update tracking info
         user.lastIpAddress = req.headers['x-forwarded-for'] || req.ip || req.socket.remoteAddress;
         user.lastDeviceFingerprint = req.body.deviceFingerprint || req.headers['user-agent'];
@@ -106,7 +106,6 @@ export const signIn = async (req, res) => {
     }
 }
 
-
 //--------------signOut----------------//
 export const signOut = async (req, res) => {
     try {
@@ -123,54 +122,54 @@ export const signOut = async (req, res) => {
     }
 }
 //--------------sendOtp----------------//
-export const sendOtp=async (req,res) => {
-    try{
-        const {email}=req.body
-        const user=await User.findOne({email})
-        if(!user){
-            return res.status(400).json({ message: "⚠️ User does not exists."})
+export const sendOtp = async (req, res) => {
+    try {
+        const { email } = req.body
+        const user = await User.findOne({ email })
+        if (!user) {
+            return res.status(400).json({ message: "⚠️ User does not exists." })
         }
         const otp = Math.floor(100000 + Math.random() * 900000).toString();
-        user.resetOtp=otp
-        user.otpExpires=Date.now()+5*60*1000
-        user.isOtpVerified=false
+        user.resetOtp = otp
+        user.otpExpires = Date.now() + 5 * 60 * 1000
+        user.isOtpVerified = false
         await user.save()
-        await sendOtpMail(email,otp)
-        return res.status(200).json({message:"Otp sent successfully"})
-    }catch(error){
-       console.error("SEND_OTP_ERROR:", error.message);
-       return res.status(500).json({ message: "Internal Server Error" })
+        await sendOtpMail(email, otp)
+        return res.status(200).json({ message: "Otp sent successfully" })
+    } catch (error) {
+        console.error("SEND_OTP_ERROR:", error.message);
+        return res.status(500).json({ message: "Internal Server Error" })
     }
 }
 //--------------VerifyOtp-------------//
-export const verifyOtp=async (req,res) =>{
+export const verifyOtp = async (req, res) => {
     try {
-        const {email,otp}=req.body
-        const user=await User.findOne({email})
-        if(!user || user.resetOtp!=otp || user.otpExpires<Date.now()){
-            return res.status(400).json({message:"invalid Otp/expired Otp"})
+        const { email, otp } = req.body
+        const user = await User.findOne({ email })
+        if (!user || user.resetOtp != otp || user.otpExpires < Date.now()) {
+            return res.status(400).json({ message: "invalid Otp/expired Otp" })
         }
-        user.isOtpVerified=true
-        user.resetOtp=undefined
-        user.otpExpires=undefined
+        user.isOtpVerified = true
+        user.resetOtp = undefined
+        user.otpExpires = undefined
         await user.save()
-         return res.status(200).json({message:"Otp verfied successfully"})
+        return res.status(200).json({ message: "Otp verfied successfully" })
     } catch (error) {
-         console.error("VERIFY_OTP_ERROR:", error.message);
-         return res.status(500).json({ message: "Internal Server Error" })
+        console.error("VERIFY_OTP_ERROR:", error.message);
+        return res.status(500).json({ message: "Internal Server Error" })
     }
 }
 //--------------restPassword---------//
-export const resetPassword=async (req,res) => {
+export const resetPassword = async (req, res) => {
     try {
-        const {email,password}=req.body
-        const user=await User.findOne({email})
-        if(!user || !user.isOtpVerified){
-            return res.status(400).json({ message: "⚠️ Otp verification required..."})
+        const { email, password } = req.body
+        const user = await User.findOne({ email })
+        if (!user || !user.isOtpVerified) {
+            return res.status(400).json({ message: "⚠️ Otp verification required..." })
         }
         const hashedPassword = await bcrypt.hash(password, 10)
-        user.password=hashedPassword
-        user.isOtpVerified=false
+        user.password = hashedPassword
+        user.isOtpVerified = false
         await user.save()
         return res.status(200).json({ message: "Password reset successfully" })
 
@@ -183,7 +182,7 @@ export const resetPassword=async (req,res) => {
 export const googleAuth = async (req, res) => {
     try {
         const { idToken, mobile, role, referralCode, deviceFingerprint } = req.body;
-        
+
         if (!idToken) {
             return res.status(401).json({ message: "Missing Firebase ID Token" });
         }
@@ -197,7 +196,7 @@ export const googleAuth = async (req, res) => {
         }
 
         const { email, name: fullName } = decodedToken;
-        
+
         let user = await User.findOne({ email });
 
         if (!user) {
@@ -207,7 +206,7 @@ export const googleAuth = async (req, res) => {
             }
 
             const generatedUserName = email.split('@')[0] + Math.random().toString(36).substring(2, 6);
-            
+
             user = await User.create({
                 fullName,
                 userName: generatedUserName,
@@ -258,4 +257,4 @@ export const googleAuth = async (req, res) => {
         return res.status(500).json({ message: "Internal Server Error" });
     }
 };
-
+

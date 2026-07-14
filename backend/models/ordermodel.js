@@ -29,6 +29,7 @@ const orderSchema = new mongoose.Schema({
   razorpaySignature: {
     type: String
   },
+
   paymentStatus: {
     type: String,
     enum: ['pending', 'completed', 'failed'],
@@ -56,6 +57,7 @@ const orderSchema = new mongoose.Schema({
     roomNumber: String,
     areaName: String,
     text: String,
+    phone: String,
     latitude: Number,
     longitude: Number
   },

@@ -4,6 +4,7 @@ import axios from "axios";
 import { ArrowLeft, Loader2, Calendar, Clock, ChevronUp, Share2, BookOpen, Leaf } from "lucide-react";
 import { Helmet } from "react-helmet-async";
 import SLink from "../components/SLink";
+import SEO from "../components/SEO";
 
 /* ─── tiny helper: strip HTML tags ─── */
 const stripHtml = (html = "") => html.replace(/<[^>]+>/g, "");
@@ -137,19 +138,32 @@ const UserBlogDetails = () => {
     leftoverImages = images.slice(imgIndex);
   }
 
+  const schemaMarkup = {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    "headline": cleanTitle,
+    "image": blog.image ? [blog.image] : [],
+    "datePublished": blog.publishedAt || blog.createdAt,
+    "dateModified": blog.updatedAt || blog.createdAt,
+    "author": [{
+        "@type": "Person",
+        "name": blog.author || "Own Fresh Team",
+      }]
+  };
+
   /* ════════════════════════════════════════════════════
       RENDER
   ════════════════════════════════════════════════════ */
   return (
     <div className="bg-[#FEFDF8] min-h-screen relative">
-      <Helmet>
-        <title>{cleanTitle} | OwnFresh</title>
-        <meta name="description" content={cleanDescription + "..."} />
-        <meta property="og:title" content={cleanTitle} />
-        <meta property="og:description" content={cleanDescription + "..."} />
-        {blog.image && <meta property="og:image" content={blog.image} />}
-        <meta property="og:type" content="article" />
-      </Helmet>
+      <SEO 
+        title={cleanTitle}
+        description={cleanDescription}
+        image={blog.image}
+        url={`/blog/${id}`}
+        type="article"
+        schemaMarkup={schemaMarkup}
+      />
 
       {/* ── HERO ── */}
       <div className="w-full bg-[#1a1a1a]">

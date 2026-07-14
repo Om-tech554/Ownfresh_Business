@@ -7,6 +7,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { addToCart } from "../redux/userslice";
 import SLink from "./SLink";
+import SEO from "./SEO";
 
 const Shop = () => {
   const [products, setProducts] = useState([]);
@@ -177,6 +178,12 @@ const Shop = () => {
 
   return (
     <>
+      <SEO 
+        title="Shop Stone Pressed Oils"
+        description="Browse our collection of premium stone-pressed oils. Buy 100% natural and organic oils online at the best prices."
+        keywords="shop stone pressed oil, buy organic oil online, stone pressed cooking oil"
+        url="/shop"
+      />
       <Navbar />
       <div className="w-full bg-[#fcfcfc] min-h-screen py-12 px-6 md:px-12 lg:px-24">
         <Toaster position="top-center" />

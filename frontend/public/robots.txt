@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+
+Disallow: /admin
+Disallow: /checkout
+Disallow: /my-orders
+
+Sitemap: https://frontend-ownfresh.onrender.com/sitemap.xml

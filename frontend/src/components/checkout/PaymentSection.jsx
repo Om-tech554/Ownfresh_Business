@@ -7,8 +7,8 @@ import { FaWallet, FaShieldAlt, FaLock } from 'react-icons/fa';
 const paymentOptions = [
   {
     id: 'online',
-    name: 'Credit/Debit Card, UPI, NetBanking',
-    description: 'Pay securely using Razorpay',
+    name: 'UPI / Bank Transfer',
+    description: 'Pay via GPay, PhonePe, or Bank Transfer. Requires manual verification.',
     icon: <BsCreditCard2FrontFill className="text-2xl" />
   },
   {

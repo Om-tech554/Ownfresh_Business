@@ -244,22 +244,45 @@ const AdminOrders = () => {
                                         </div>
                                     </td>
                                     <td className="px-8 py-6">
-                                        <div className="flex items-center gap-3">
-                                            <div className="w-8 h-8 rounded-full bg-slate-900 text-[#FFDD00] flex items-center justify-center text-[10px] font-black uppercase">
-                                                {order.user?.fullName?.substring(0, 2)}
+                                        <div className="flex items-start gap-3">
+                                            <div className="w-8 h-8 rounded-full bg-slate-900 text-[#FFDD00] flex items-center justify-center text-[10px] font-black uppercase mt-1 flex-shrink-0">
+                                                {order.user?.fullName?.substring(0, 2) || "U"}
                                             </div>
                                             <div>
                                                 <p className="text-[10px] font-black text-slate-900 uppercase leading-none">{order.user?.fullName}</p>
                                                 <p className="text-[9px] font-bold text-slate-400 lowercase mt-1">{order.user?.email}</p>
+                                                <div className="bg-slate-50 p-2 rounded border border-slate-100 mt-2 max-w-[200px]">
+                                                    <p className="text-[9px] font-medium text-slate-600 flex items-start gap-1 mb-1 leading-tight">
+                                                        <MapPin size={10} className="text-slate-400 flex-shrink-0 mt-0.5" />
+                                                        <span className="line-clamp-2" title={order.deliveryAddress?.text}>
+                                                            {order.deliveryAddress?.text || "No address provided"}
+                                                        </span>
+                                                    </p>
+                                                    <p className="text-[9px] font-medium text-slate-600 flex items-center gap-1">
+                                                        <span className="text-slate-400 font-bold text-xs">☎</span>
+                                                        {order.deliveryAddress?.phone || order.user?.mobile || order.senderPhone || "No Phone"}
+                                                    </p>
+                                                </div>
                                             </div>
                                         </div>
                                     </td>
                                     <td className="px-8 py-6">
-                                        <div className="flex flex-col">
+                                        <div className="flex flex-col gap-1.5">
                                             <span className="text-xs font-black text-slate-900 font-mono">₹{order.totalAmount}</span>
-                                            <span className="text-[9px] font-black text-[#24672E] uppercase bg-emerald-50 px-2 py-0.5 rounded border border-emerald-100 self-start mt-1">
-                                                {order.items.length} ITEM{order.items.length > 1 ? 'S' : ''}
-                                            </span>
+                                            <div className="flex flex-wrap gap-2">
+                                                <span className="text-[9px] font-black text-[#24672E] uppercase bg-emerald-50 px-2 py-0.5 rounded border border-emerald-100">
+                                                    {order.items.length} ITEM{order.items.length > 1 ? 'S' : ''}
+                                                </span>
+                                                {order.PaymentMethod === 'cod' ? (
+                                                    <span className="text-[9px] font-black text-orange-700 uppercase bg-orange-100 px-2 py-0.5 rounded border border-orange-200 shadow-sm">
+                                                        💵 COD
+                                                    </span>
+                                                ) : (
+                                                    <span className="text-[9px] font-black text-blue-700 uppercase bg-blue-100 px-2 py-0.5 rounded border border-blue-200 shadow-sm">
+                                                        💳 ONLINE
+                                                    </span>
+                                                )}
+                                            </div>
                                         </div>
                                     </td>
                                     <td className="px-8 py-6">
@@ -463,6 +486,32 @@ const AdminOrders = () => {
                                         </div>
                                     </div>
                                 </div>
+
+                                {/* Online Payment Details */}
+                                {selectedOrder.razorpayPaymentId && (
+                                    <div className="bg-white p-6 rounded-xl border border-slate-300 shadow-sm">
+                                        <div className="flex items-center gap-3 mb-4">
+                                            <div className="p-2 bg-emerald-100 rounded-lg"><CreditCard className="text-emerald-600 w-4 h-4" /></div>
+                                            <h4 className="text-[11px] font-black text-slate-900 uppercase tracking-widest">Online Payment Details</h4>
+                                        </div>
+                                        <div className="space-y-3">
+                                            <div>
+                                                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">Razorpay Payment ID</p>
+                                                <p className="text-[11px] font-bold text-slate-900 font-mono flex items-center gap-2">
+                                                    {selectedOrder.razorpayPaymentId}
+                                                    <button onClick={() => { navigator.clipboard.writeText(selectedOrder.razorpayPaymentId); toast.success("Payment ID Copied!"); }} className="text-slate-400 hover:text-blue-500 transition-colors"><Copy size={12} /></button>
+                                                </p>
+                                            </div>
+                                            <div>
+                                                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">Razorpay Order ID</p>
+                                                <p className="text-[11px] font-bold text-slate-900 font-mono flex items-center gap-2">
+                                                    {selectedOrder.razorpayOrderId}
+                                                    <button onClick={() => { navigator.clipboard.writeText(selectedOrder.razorpayOrderId); toast.success("Order ID Copied!"); }} className="text-slate-400 hover:text-blue-500 transition-colors"><Copy size={12} /></button>
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
 
                                 {/* Admin Internal Notes */}
                                 <div className="bg-slate-900 p-6 rounded-xl shadow-xl">

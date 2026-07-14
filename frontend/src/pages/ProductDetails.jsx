@@ -6,6 +6,7 @@ import { useDispatch } from "react-redux";
 import { addToCart } from "../redux/userslice";
 import Navbar from "../components/Navbar";
 import SLink from "../components/SLink";
+import SEO from "../components/SEO";
 
 const ProductDetails = () => {
   const { id } = useParams();
@@ -94,8 +95,38 @@ const ProductDetails = () => {
   if (!product)
     return <div className="p-20 text-center text-xl font-semibold">Loading...</div>;
 
+  const currentPrice = selectedVariant ? (selectedVariant.salePrice || selectedVariant.price) : product.price;
+
+  // Schema Markup for Product
+  const schemaMarkup = {
+    "@context": "https://schema.org/",
+    "@type": "Product",
+    "name": product.name,
+    "image": product.image,
+    "description": product.shortDesc,
+    "brand": {
+      "@type": "Brand",
+      "name": "Own Fresh"
+    },
+    "offers": {
+      "@type": "Offer",
+      "url": `https://frontend-ownfresh.onrender.com/product/${product._id}`,
+      "priceCurrency": "INR",
+      "price": currentPrice,
+      "availability": (product.variants && product.variants.filter(v => v.status === 'Active').length > 0) ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
+    }
+  };
+
   return (
     <>
+      <SEO 
+        title={product.name}
+        description={product.shortDesc}
+        image={product.image}
+        url={`/product/${product._id}`}
+        type="product"
+        schemaMarkup={schemaMarkup}
+      />
       <Navbar />
 
       <div className="min-h-screen py-12 px-6 md:px-20 bg-[#fafafa]">

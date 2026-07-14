@@ -11,7 +11,16 @@
   <link
     href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Poppins:ital,wght@0,100..900;1,100..900&display=swap"
     rel="stylesheet">
-  <title>OwnFresh - Feel </title>
+  <title>OwnFresh | Butonical Purity </title>
+
+  <!-- Google Analytics (GA4) - Will use VITE_GA_TRACKING_ID from .env -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=%VITE_GA_TRACKING_ID%"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag() { dataLayer.push(arguments); }
+    gtag('js', new Date());
+    gtag('config', '%VITE_GA_TRACKING_ID%');
+  </script>
 </head>
 
 <body>

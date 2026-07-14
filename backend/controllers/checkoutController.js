@@ -19,7 +19,10 @@ export const createOrder = async (req, res) => {
       useWallet,
       cgst,
       sgst,
-      taxAmount
+      taxAmount,
+      razorpayOrderId,
+      razorpayPaymentId,
+      razorpaySignature
     } = req.body;
 
     // 1) Validate
@@ -71,31 +74,31 @@ export const createOrder = async (req, res) => {
 
     // Determine initial payment status
     let paymentStatus = 'pending';
+    
     if (finalPayableAmount <= 0) {
       paymentStatus = 'completed';
     } else if (paymentMethod === 'online') {
-      const { razorpayOrderId, razorpayPaymentId, razorpaySignature } = req.body;
-      if (!razorpayOrderId || !razorpayPaymentId || !razorpaySignature) {
-        return res.status(400).json({ msg: "Missing Razorpay details for online payment" });
+      if (!razorpayPaymentId) {
+        return res.status(400).json({ msg: "Missing Razorpay Payment ID for online payment" });
       }
-
-      const body = razorpayOrderId + "|" + razorpayPaymentId;
-      const expectedSignature = crypto
-        .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET || "qwtSRoeKd9p6pjHC7dXRjrjs")
-        .update(body.toString())
-        .digest("hex");
-
-      if (expectedSignature !== razorpaySignature) {
-        return res.status(400).json({ msg: "Payment signature verification failed" });
-      }
-
-      paymentStatus = 'completed';
+      paymentStatus = 'completed'; // Paid via Razorpay
     }
+
+    // Map items to strip out the invalid _id from frontend and extra fields
+    const orderItems = items.map(item => ({
+      productId: item.productId,
+      variantId: item.variantId,
+      name: item.name,
+      variantName: item.variantName,
+      price: item.price,
+      quantity: item.quantity,
+      image: item.image
+    }));
 
     // 5) Create Order logic
     const order = await Order.create({
       user: userId,
-      items: items, 
+      items: orderItems, 
       PaymentMethod: paymentMethod,
       paymentStatus,
       status: 'pending',
@@ -106,9 +109,10 @@ export const createOrder = async (req, res) => {
       cgst: cgst || 0,
       sgst: sgst || 0,
       taxAmount: taxAmount || 0,
-      razorpayOrderId: req.body.razorpayOrderId || undefined,
-      razorpayPaymentId: req.body.razorpayPaymentId || undefined,
-      razorpaySignature: req.body.razorpaySignature || undefined,
+      transactionId: razorpayPaymentId || undefined,
+      razorpayOrderId: razorpayOrderId || undefined,
+      razorpayPaymentId: razorpayPaymentId || undefined,
+      razorpaySignature: razorpaySignature || undefined,
       walletDeductedAmount: walletDeducted
     });
 
@@ -120,6 +124,6 @@ export const createOrder = async (req, res) => {
 
   } catch (error) {
     console.error("Order creation error:", error);
-    res.status(500).json({ msg: "Server error" });
+    res.status(500).json({ msg: "Server error", error: error.message });
   }
 };
