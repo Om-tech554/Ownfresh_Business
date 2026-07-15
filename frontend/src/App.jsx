@@ -32,6 +32,10 @@ import AdminProductEditor from "./pages/admin/AdminProductEditor";
 import MyOrders from "./pages/MyOrders";
 import OrderDetails from "./pages/OrderDetails";
 import ReferralDashboard from "./pages/ReferralDashboard";
+import PrivacyPolicy from './pages/PrivacyPolicy';
+import TermsAndConditions from './pages/TermsAndConditions';
+import RefundPolicy from './pages/RefundPolicy';
+import ShippingPolicy from './pages/ShippingPolicy';
 
 export const serverUrl = import.meta.env.VITE_API_URL || "http://localhost:10000"
 
@@ -130,6 +134,10 @@ const App = () => {
         <Route path="/my-orders" element={<MyOrders />} />
         <Route path="/order-details/:id" element={<OrderDetails />} />
         <Route path="/referral" element={<ReferralDashboard />} />
+        <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+        <Route path="/terms-and-conditions" element={<TermsAndConditions />} />
+        <Route path="/refund-policy" element={<RefundPolicy />} />
+        <Route path="/shipping-policy" element={<ShippingPolicy />} />
       </Routes>
 
       {/* ✅ Footer will show on all pages except auth pages and admin panels */}

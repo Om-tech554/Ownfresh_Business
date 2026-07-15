@@ -110,7 +110,7 @@ const Footer = () => {
 
         {/* Support */}
         <div>
-          <h3 className="text-lg font-semibold text-black mb-6">Support</h3>
+          <h3 className="text-lg font-semibold text-black mb-6">Support & Policies</h3>
           <ul className="space-y-4">
             <li>
               <SLink
@@ -121,9 +121,41 @@ const Footer = () => {
                 <span className="absolute left-0 -bottom-1 h-[2px] w-0 bg-black transition-all duration-300 group-hover:w-full"></span>
               </SLink>
             </li>
-            <li className="relative w-fit cursor-pointer transition-all duration-300 hover:text-black group">
-              Help Center
-              <span className="absolute left-0 -bottom-1 h-[2px] w-0 bg-black transition-all duration-300 group-hover:w-full"></span>
+            <li>
+              <SLink
+                to="/privacy-policy"
+                className="group relative inline-block transition-all duration-300 hover:text-black"
+              >
+                Privacy Policy
+                <span className="absolute left-0 -bottom-1 h-[2px] w-0 bg-black transition-all duration-300 group-hover:w-full"></span>
+              </SLink>
+            </li>
+            <li>
+              <SLink
+                to="/terms-and-conditions"
+                className="group relative inline-block transition-all duration-300 hover:text-black"
+              >
+                Terms & Conditions
+                <span className="absolute left-0 -bottom-1 h-[2px] w-0 bg-black transition-all duration-300 group-hover:w-full"></span>
+              </SLink>
+            </li>
+            <li>
+              <SLink
+                to="/refund-policy"
+                className="group relative inline-block transition-all duration-300 hover:text-black"
+              >
+                Refund Policy
+                <span className="absolute left-0 -bottom-1 h-[2px] w-0 bg-black transition-all duration-300 group-hover:w-full"></span>
+              </SLink>
+            </li>
+            <li>
+              <SLink
+                to="/shipping-policy"
+                className="group relative inline-block transition-all duration-300 hover:text-black"
+              >
+                Shipping Policy
+                <span className="absolute left-0 -bottom-1 h-[2px] w-0 bg-black transition-all duration-300 group-hover:w-full"></span>
+              </SLink>
             </li>
           </ul>
         </div>
@@ -162,9 +194,8 @@ const Footer = () => {
       {/* Bottom Section */}
       <div className="border-t mt-16 pt-6 text-center text-sm text-gray-500">
         <p className="hover:text-black transition duration-300">
-          ©2026 OwnFresh Privacy Policy
+          © 2026 OwnFresh. All rights reserved.
         </p>
-        <p className="mt-2">All rights reserved</p>
         <p className="mt-2 hover:text-black transition duration-300">
           Designed & developed by <a href="https://www.technewity.com" target="_blank" rel="noopener noreferrer">TechNewity Labs</a>
         </p>
