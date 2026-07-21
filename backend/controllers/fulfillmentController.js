@@ -148,6 +148,10 @@ export const previewShipmentEmail = async (req, res) => {
       return res.status(404).json({ success: false, msg: "Order not found" });
     }
 
+    if (!order.user) {
+      return res.status(400).json({ success: false, msg: "The user account associated with this order has been deleted. Cannot preview shipment email." });
+    }
+
     if (!order.trackingId || !order.courierPartner) {
       return res.status(400).json({ success: false, msg: "Order lacks tracking ID or courier partner. Please confirm fulfillment first." });
     }
@@ -218,6 +222,10 @@ export const sendShipmentEmail = async (req, res) => {
     const order = await Order.findById(id).populate("user", "fullName email");
     if (!order) {
       return res.status(404).json({ success: false, msg: "Order not found" });
+    }
+
+    if (!order.user) {
+      return res.status(400).json({ success: false, msg: "The user account associated with this order has been deleted. Cannot send shipment email." });
     }
 
     await sendCustomMail({

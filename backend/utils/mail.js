@@ -225,6 +225,7 @@ export const sendCustomMail = async ({ to, subject, html, text }) => {
 };
 
 export const generateShipmentEmailHtml = (order, trackingUrl) => {
+  const customerName = order.user?.fullName || "Customer";
   return `
       <div style="background-color:#FFFDF2;padding:24px;font-family:Arial,sans-serif;">
         <div style="max-width:520px;margin:auto;background:#ffffff;border:1px solid #E5E5E5;border-radius:12px;overflow:hidden;">
@@ -236,7 +237,7 @@ export const generateShipmentEmailHtml = (order, trackingUrl) => {
           <div style="padding:24px;color:#333;">
             <h2 style="margin-top:0;color:#24672E;">Your Order is on the Way!</h2>
             <p style="font-size:14px;color:#555;">
-              Hi <b>${order.user.fullName}</b>,
+              Hi <b>${customerName}</b>,
             </p>
             <p style="font-size:14px;color:#555;line-height:1.5;">
               Exciting news! Your order <b>#${order._id.toString().toUpperCase()}</b> has been handed over to our courier partner <b>${order.courierPartner}</b>.

@@ -99,6 +99,13 @@ export const requestOrderCancellation = async (req, res) => {
       return res.status(400).json({ msg: "Order cannot be cancelled at this stage" });
     }
 
+    // Restrict cancellation to within 1 hour of placing the order
+    const orderAgeInMs = Date.now() - new Date(order.createdAt).getTime();
+    const oneHourInMs = 60 * 60 * 1000;
+    if (orderAgeInMs > oneHourInMs) {
+      return res.status(400).json({ msg: "Orders can only be cancelled within 1 hour of placing them." });
+    }
+
     order.status = 'cancellation_requested';
     order.cancellationReason = reason || "No reason provided";
     await order.save();

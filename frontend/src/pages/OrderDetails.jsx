@@ -293,12 +293,23 @@ const OrderDetails = () => {
                                     Track My Package
                                 </button>
                                 {['pending', 'processing'].includes(order.status) && (
-                                    <button
-                                        onClick={() => setIsCancellingModalOpen(true)}
-                                        className="w-full bg-white/5 border border-white/10 text-red-400 text-[10px] font-black uppercase tracking-widest py-4 rounded-2xl hover:bg-red-500/10 hover:text-red-500 transition-all"
-                                    >
-                                        Request Cancellation
-                                    </button>
+                                    order.createdAt && (Date.now() - new Date(order.createdAt).getTime() < 60 * 60 * 1000) ? (
+                                        <div className="space-y-2">
+                                            <button
+                                                onClick={() => setIsCancellingModalOpen(true)}
+                                                className="w-full bg-white/5 border border-white/10 text-red-400 text-[10px] font-black uppercase tracking-widest py-4 rounded-2xl hover:bg-red-500/10 hover:text-red-500 transition-all"
+                                            >
+                                                Request Cancellation
+                                            </button>
+                                            <p className="text-[9px] text-slate-400 font-bold text-center uppercase tracking-widest">
+                                                * Note: You can cancel the order within 1 hour of placing it
+                                            </p>
+                                        </div>
+                                    ) : (
+                                        <div className="w-full bg-white/5 border border-white/10 text-slate-500 text-[9px] font-black uppercase tracking-widest py-4 rounded-2xl text-center">
+                                            Cancellation Window Closed (1 hr limit)
+                                        </div>
+                                    )
                                 )}
                                 {order.status === 'cancelled' && (
                                     <button

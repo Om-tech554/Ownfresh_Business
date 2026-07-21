@@ -19,8 +19,8 @@ const AdminOrders = () => {
 
     // New Fulfillment workflow states
     const [carriers, setCarriers] = useState([]);
-    const [isUploading, setIsUploading] = useState(false);
-    const [ocrResult, setOcrResult] = useState(null);
+    const [courierPartner, setCourierPartner] = useState("Unknown Carrier");
+    const [trackingId, setTrackingId] = useState("");
     const [emailPreview, setEmailPreview] = useState(null);
     const [testEmailAddress, setTestEmailAddress] = useState("");
     const [isPreparingEmail, setIsPreparingEmail] = useState(false);
@@ -34,6 +34,16 @@ const AdminOrders = () => {
         fetchOrders();
         fetchCarriers();
     }, []);
+
+    useEffect(() => {
+        if (selectedOrder) {
+            setCourierPartner(selectedOrder.courierPartner || "Unknown Carrier");
+            setTrackingId(selectedOrder.trackingId || "");
+        } else {
+            setCourierPartner("Unknown Carrier");
+            setTrackingId("");
+        }
+    }, [selectedOrder]);
 
     const fetchCarriers = async () => {
         try {
@@ -92,55 +102,11 @@ const AdminOrders = () => {
         }
     };
 
-    const handleReceiptUpload = async (e, orderId) => {
-        const file = e.target.files?.[0] || e.dataTransfer?.files?.[0];
-        if (!file) return;
-
-        const formData = new FormData();
-        formData.append("receipt", file);
-        formData.append("orderId", orderId);
-
-        setIsUploading(true);
-        setOcrResult(null);
-        try {
-            const { data } = await axios.post(
-                `${serverUrl}/api/fulfillment/upload-receipt`,
-                formData,
-                {
-                    headers: { "Content-Type": "multipart/form-data" },
-                    withCredentials: true
-                }
-            );
-            if (data.success) {
-                toast.success("Receipt uploaded & OCR completed!");
-                setOcrResult({
-                    fileUrl: data.fileUrl,
-                    rawText: data.rawText,
-                    courierPartner: data.courierPartner,
-                    trackingId: data.trackingId
-                });
-            }
-        } catch (error) {
-            console.error("OCR Failed:", error);
-            const errorMsg = error.response?.data?.msg || "OCR scanning failed";
-            toast.error(errorMsg);
-            // Setup sandbox so manual entry works
-            setOcrResult({
-                fileUrl: error.response?.data?.fileUrl || "",
-                rawText: error.response?.data?.rawText || "",
-                courierPartner: "Unknown Carrier",
-                trackingId: ""
-            });
-        } finally {
-            setIsUploading(false);
-        }
-    };
-
     const handleConfirmFulfillment = async (orderId) => {
-        if (!ocrResult?.courierPartner || ocrResult.courierPartner === "Unknown Carrier") {
+        if (!courierPartner || courierPartner === "Unknown Carrier") {
             return toast.error("Please select a valid Courier Partner");
         }
-        if (!ocrResult?.trackingId?.trim()) {
+        if (!trackingId?.trim()) {
             return toast.error("Please enter a Tracking Number");
         }
 
@@ -148,10 +114,8 @@ const AdminOrders = () => {
             const { data } = await axios.put(
                 `${serverUrl}/api/fulfillment/confirm/${orderId}`,
                 {
-                    courierPartner: ocrResult.courierPartner,
-                    trackingId: ocrResult.trackingId,
-                    courierReceiptUrl: ocrResult.fileUrl,
-                    courierReceiptRawText: ocrResult.rawText
+                    courierPartner,
+                    trackingId
                 },
                 { withCredentials: true }
             );
@@ -160,7 +124,6 @@ const AdminOrders = () => {
                 toast.success("Fulfillment confirmed!");
                 setOrders(orders.map(o => o._id === orderId ? { ...o, ...data.order } : o));
                 setSelectedOrder({ ...selectedOrder, ...data.order });
-                setOcrResult(null);
                 handlePrepareEmail(orderId);
             }
         } catch (error) {
@@ -602,8 +565,6 @@ const AdminOrders = () => {
                                                 { label: "Placed", done: true },
                                                 { label: "Paid", done: selectedOrder.paymentStatus === "completed" },
                                                 { label: "Label Printed", done: selectedOrder.labelPrinted },
-                                                { label: "Receipt Uploaded", done: !!selectedOrder.courierReceiptUrl },
-                                                { label: "OCR Completed", done: !!selectedOrder.courierReceiptRawText },
                                                 { label: "Tracking Generated", done: !!selectedOrder.trackingId },
                                                 { label: "Email Sent", done: selectedOrder.shipmentEmailSent }
                                             ].map((step, idx) => (
@@ -612,7 +573,7 @@ const AdminOrders = () => {
                                                         {step.done ? "✓" : idx + 1}
                                                     </div>
                                                     <span className={`text-[10px] font-bold uppercase tracking-wider ${step.done ? 'text-slate-900' : 'text-slate-300'}`}>{step.label}</span>
-                                                    {idx < 6 && <div className={`h-[1px] w-4 hidden sm:block ${step.done ? 'bg-[#24672E]' : 'bg-slate-200'}`}></div>}
+                                                    {idx < 4 && <div className={`h-[1px] w-4 hidden sm:block ${step.done ? 'bg-[#24672E]' : 'bg-slate-200'}`}></div>}
                                                 </div>
                                             ))}
                                         </div>
@@ -632,48 +593,17 @@ const AdminOrders = () => {
                                         </div>
                                     )}
 
-                                    {/* OCR Upload Area */}
-                                    {selectedOrder.labelPrinted && !selectedOrder.trackingId && !ocrResult && (
-                                        <div className="mt-8 pt-8 border-t border-slate-100">
-                                            <h5 className="text-[10px] font-black text-slate-900 uppercase tracking-widest mb-4">Upload Courier Receipt</h5>
-                                            <div
-                                                onDragOver={(e) => e.preventDefault()}
-                                                onDrop={(e) => { e.preventDefault(); handleReceiptUpload(e, selectedOrder._id); }}
-                                                className="border-2 border-dashed border-slate-300 rounded-2xl p-8 text-center hover:bg-slate-50 hover:border-slate-400 transition-all cursor-pointer relative"
-                                            >
-                                                <input
-                                                    type="file"
-                                                    accept="image/*,application/pdf"
-                                                    onChange={(e) => handleReceiptUpload(e, selectedOrder._id)}
-                                                    className="absolute inset-0 opacity-0 cursor-pointer"
-                                                />
-                                                {isUploading ? (
-                                                    <div className="flex flex-col items-center justify-center">
-                                                        <Loader2 className="w-8 h-8 text-[#FFDD00] animate-spin mb-2" />
-                                                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Running OCR Analysis...</p>
-                                                    </div>
-                                                ) : (
-                                                    <div className="flex flex-col items-center justify-center">
-                                                        <UploadCloud className="w-8 h-8 text-slate-400 mb-2" />
-                                                        <p className="text-[11px] font-bold text-slate-600">Drag & drop receipt here, or click to browse</p>
-                                                        <p className="text-[9px] font-bold text-slate-400 mt-1">Supports PNG, JPG, JPEG, and PDF (Max 10MB)</p>
-                                                    </div>
-                                                )}
-                                            </div>
-                                        </div>
-                                    )}
-
-                                    {/* OCR Sandbox Confirmation Dialog */}
-                                    {ocrResult && (
+                                    {/* Direct Manual Courier/Tracking Details Input */}
+                                    {selectedOrder.labelPrinted && !selectedOrder.trackingId && (
                                         <div className="mt-8 pt-8 border-t border-slate-100 bg-slate-50 p-6 rounded-2xl border border-slate-200">
-                                            <h5 className="text-[10px] font-black text-[#24672E] uppercase tracking-widest mb-4">Confirm OCR Extraction Results</h5>
+                                            <h5 className="text-[10px] font-black text-[#24672E] uppercase tracking-widest mb-4">Enter Courier Details</h5>
 
                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                                                 <div>
                                                     <label className="block text-[9px] font-black text-slate-400 uppercase mb-2">Courier Partner</label>
                                                     <select
-                                                        value={ocrResult.courierPartner}
-                                                        onChange={(e) => setOcrResult({ ...ocrResult, courierPartner: e.target.value })}
+                                                        value={courierPartner}
+                                                        onChange={(e) => setCourierPartner(e.target.value)}
                                                         className="w-full p-3 bg-white border border-slate-200 rounded-xl outline-none font-bold text-xs"
                                                     >
                                                         <option value="Unknown Carrier">Unknown Carrier</option>
@@ -684,36 +614,20 @@ const AdminOrders = () => {
                                                     <label className="block text-[9px] font-black text-slate-400 uppercase mb-2">AWB / Tracking Number</label>
                                                     <input
                                                         type="text"
-                                                        value={ocrResult.trackingId}
-                                                        onChange={(e) => setOcrResult({ ...ocrResult, trackingId: e.target.value })}
+                                                        value={trackingId}
+                                                        onChange={(e) => setTrackingId(e.target.value)}
                                                         className="w-full p-3 bg-white border border-slate-200 rounded-xl outline-none font-bold text-xs"
                                                         placeholder="Enter Tracking ID..."
                                                     />
                                                 </div>
                                             </div>
 
-                                            {ocrResult.fileUrl && (
-                                                <div className="mb-4">
-                                                    <label className="block text-[9px] font-black text-slate-400 uppercase mb-2">Receipt Preview</label>
-                                                    <div className="bg-white border border-slate-200 p-3 rounded-xl flex items-center justify-between">
-                                                        <span className="text-[10px] font-bold text-slate-500 truncate max-w-[250px]">{ocrResult.fileUrl.split('/').pop()}</span>
-                                                        <a href={ocrResult.fileUrl} target="_blank" rel="noreferrer" className="text-blue-600 text-[10px] font-black uppercase hover:underline">View File ↗</a>
-                                                    </div>
-                                                </div>
-                                            )}
-
                                             <div className="flex gap-2">
                                                 <button
                                                     onClick={() => handleConfirmFulfillment(selectedOrder._id)}
-                                                    className="flex-1 bg-[#24672E] text-white py-3 rounded-xl text-[10px] font-black uppercase tracking-wider hover:bg-[#1E971D] transition-colors"
+                                                    className="w-full bg-[#24672E] text-white py-3 rounded-xl text-[10px] font-black uppercase tracking-wider hover:bg-[#1E971D] transition-colors"
                                                 >
                                                     Confirm Details
-                                                </button>
-                                                <button
-                                                    onClick={() => setOcrResult(null)}
-                                                    className="px-6 bg-white border border-slate-300 text-slate-600 py-3 rounded-xl text-[10px] font-black uppercase tracking-wider hover:bg-slate-100 transition-colors"
-                                                >
-                                                    Cancel
                                                 </button>
                                             </div>
                                         </div>
@@ -991,7 +905,6 @@ const AdminOrders = () => {
                                         if (currentIndex !== -1 && currentIndex < orders.length - 1) {
                                             setSelectedOrder(orders[currentIndex + 1]);
                                             setEmailPreview(null);
-                                            setOcrResult(null);
                                         } else {
                                             toast.error("No more orders in the list!");
                                         }

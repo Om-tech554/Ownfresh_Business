@@ -34,8 +34,9 @@ const schema = z.object({
   state: z.string().min(2, 'State is required'),
   city: z.string().min(2, 'City is required'),
   zipCode: z.string().min(4, 'ZIP code is required'),
-  address: z.string().min(5, 'Address is required'),
-  landmark: z.string().optional(),
+  flatNo: z.string().min(1, 'Flat / House / Building No. is required'),
+  address: z.string().min(5, 'Street Address is required'),
+  landmark: z.string().min(2, 'Landmark / Area is required'),
 });
 
 // Auto-center map component
@@ -231,28 +232,32 @@ const ShippingForm = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
              <div className="md:col-span-2">
               <label className="block text-sm font-semibold text-gray-700 mb-2">Complete Shipping Address *</label>
-              <div className="flex gap-2">
+              <div className="flex flex-col sm:flex-row gap-2">
                 <input 
                   {...register('address')} 
                   className={`flex-1 px-4 py-3 rounded-xl border bg-gray-50 focus:bg-white focus:ring-2 focus:ring-yellow-500 focus:border-transparent outline-none transition-all ${errors.address ? 'border-red-500' : 'border-gray-200'}`}
-                  placeholder="Street address, P.O. box, room no, etc."
+                  placeholder="Street address, colony, area name, etc."
                 />
-                <button
-                  type="button"
-                  onClick={searchLocation}
-                  className="px-4 bg-gray-900 text-white rounded-xl shadow hover:bg-yellow-500 hover:text-black transition flex items-center justify-center"
-                  title="Search Location on Map"
-                >
-                  <FaSearchLocation className="text-lg" />
-                </button>
-                <button
-                  type="button"
-                  onClick={getCurrentLocation}
-                  className="px-4 bg-gray-200 text-gray-800 rounded-xl shadow hover:bg-yellow-500 transition flex items-center justify-center"
-                  title="Use Current Location"
-                >
-                  <TbCurrentLocation className="text-xl" />
-                </button>
+                <div className="flex gap-2 w-full sm:w-auto">
+                  <button
+                    type="button"
+                    onClick={searchLocation}
+                    className="flex-1 sm:flex-initial px-4 py-3 bg-gray-900 text-white rounded-xl shadow hover:bg-yellow-500 hover:text-black transition flex items-center justify-center gap-2 font-bold text-xs"
+                    title="Search Location on Map"
+                  >
+                    <FaSearchLocation className="text-base" />
+                    <span className="sm:hidden">Search Address</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={getCurrentLocation}
+                    className="flex-1 sm:flex-initial px-4 py-3 bg-gray-200 text-gray-800 rounded-xl shadow hover:bg-yellow-500 transition flex items-center justify-center gap-2 font-bold text-xs"
+                    title="Use Current Location"
+                  >
+                    <TbCurrentLocation className="text-lg" />
+                    <span className="sm:hidden">My Location</span>
+                  </button>
+                </div>
               </div>
               {errors.address && <p className="text-red-500 text-xs mt-1">{errors.address.message}</p>}
             </div>
@@ -266,6 +271,25 @@ const ShippingForm = () => {
               <div className="absolute bottom-2 left-2 z-[1000] bg-white/90 backdrop-blur px-3 py-1 text-xs font-bold rounded-lg shadow border border-gray-200">
                 Drag marker to pinpoint exact location
               </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">Flat / House No. / Building *</label>
+              <input 
+                {...register('flatNo')} 
+                className={`w-full px-4 py-3 rounded-xl border bg-gray-50 focus:bg-white focus:ring-2 focus:ring-yellow-500 focus:border-transparent outline-none transition-all ${errors.flatNo ? 'border-red-500' : 'border-gray-200'}`}
+                placeholder="e.g. Flat 402, Building A"
+              />
+              {errors.flatNo && <p className="text-red-500 text-xs mt-1">{errors.flatNo.message}</p>}
+            </div>
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">Landmark / Area *</label>
+              <input 
+                {...register('landmark')} 
+                className={`w-full px-4 py-3 rounded-xl border bg-gray-50 focus:bg-white focus:ring-2 focus:ring-yellow-500 focus:border-transparent outline-none transition-all ${errors.landmark ? 'border-red-500' : 'border-gray-200'}`}
+                placeholder="e.g. Near HDFC Bank, Sector 5"
+              />
+              {errors.landmark && <p className="text-red-500 text-xs mt-1">{errors.landmark.message}</p>}
             </div>
 
             <div>
@@ -303,14 +327,6 @@ const ShippingForm = () => {
                 placeholder="400001"
               />
               {errors.zipCode && <p className="text-red-500 text-xs mt-1">{errors.zipCode.message}</p>}
-            </div>
-            <div className="md:col-span-2">
-              <label className="block text-sm font-semibold text-gray-700 mb-2">Landmark (Optional)</label>
-              <input 
-                {...register('landmark')} 
-                className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-yellow-500 focus:border-transparent outline-none transition-all"
-                placeholder="Near the central park"
-              />
             </div>
           </div>
         </div>

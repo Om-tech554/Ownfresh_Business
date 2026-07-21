@@ -17,6 +17,7 @@ export const CheckoutProvider = ({ children }) => {
     state: '',
     city: '',
     zipCode: '',
+    flatNo: '',
     address: '',
     landmark: '',
     latitude: 19.076,

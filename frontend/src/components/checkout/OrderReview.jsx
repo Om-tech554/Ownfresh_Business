@@ -268,9 +268,9 @@ const OrderReview = () => {
         items: cartItems,
         paymentMethod,
         deliveryAddress: {
-          roomNumber: shippingDetails.landmark || "",
+          roomNumber: `${shippingDetails.flatNo || ""} (Landmark: ${shippingDetails.landmark || ""})`,
           areaName: shippingDetails.city,
-          text: `${shippingDetails.address}, ${shippingDetails.city}, ${shippingDetails.state}, ${shippingDetails.country} - ${shippingDetails.zipCode}`,
+          text: `${shippingDetails.flatNo ? shippingDetails.flatNo + ', ' : ''}${shippingDetails.address}, ${shippingDetails.landmark ? 'Near ' + shippingDetails.landmark + ', ' : ''}${shippingDetails.city}, ${shippingDetails.state}, ${shippingDetails.country} - ${shippingDetails.zipCode}`,
           phone: shippingDetails.phone || user.mobile || "",
           latitude: shippingDetails.latitude,
           longitude: shippingDetails.longitude,
@@ -363,14 +363,15 @@ const OrderReview = () => {
             <h3 className="font-bold text-gray-800">Shipping Details</h3>
             <button onClick={() => prevStep()} className="text-sm text-yellow-600 font-bold hover:underline">Edit</button>
           </div>
-          <p className="text-sm text-gray-600 leading-relaxed">
+          <div className="bg-gray-50 p-4 rounded-xl border border-gray-100 text-sm text-gray-600">
             <span className="font-semibold text-gray-800">{shippingDetails.fullName}</span><br />
+            {shippingDetails.flatNo && <span>{shippingDetails.flatNo}, </span>}
             {shippingDetails.address}<br />
-            {shippingDetails.landmark && <span>{shippingDetails.landmark}<br /></span>}
+            {shippingDetails.landmark && <span>Landmark: {shippingDetails.landmark}<br /></span>}
             {shippingDetails.city}, {shippingDetails.state} {shippingDetails.zipCode}<br />
             {shippingDetails.country}<br />
             {shippingDetails.phone}
-          </p>
+          </div>
         </div>
 
         <div className="bg-gray-50 p-4 rounded-xl border border-gray-200">

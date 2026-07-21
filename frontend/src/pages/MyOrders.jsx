@@ -277,12 +277,23 @@ const MyOrders = () => {
                                                 Track Package
                                             </button>
                                             {['pending', 'processing'].includes(order.status) && (
-                                                <button
-                                                    onClick={() => setCancellingOrder(order._id)}
-                                                    className="flex-1 bg-white border border-slate-200 text-red-600 text-[10px] font-black uppercase tracking-widest py-3 rounded-xl hover:bg-red-50 hover:border-red-200 transition-colors"
-                                                >
-                                                    Cancel Order
-                                                </button>
+                                                order.createdAt && (Date.now() - new Date(order.createdAt).getTime() < 60 * 60 * 1000) ? (
+                                                    <div className="flex-1 flex flex-col gap-1.5">
+                                                        <button
+                                                            onClick={() => setCancellingOrder(order._id)}
+                                                            className="w-full bg-white border border-slate-200 text-red-600 text-[10px] font-black uppercase tracking-widest py-3 rounded-xl hover:bg-red-50 hover:border-red-200 transition-colors"
+                                                        >
+                                                            Cancel Order
+                                                        </button>
+                                                        <span className="text-[8px] text-slate-400 font-bold uppercase tracking-wider text-center block">
+                                                            Allowed within 1 hour
+                                                        </span>
+                                                    </div>
+                                                ) : (
+                                                    <div className="flex-1 bg-slate-50 border border-slate-200 text-slate-400 text-[9px] font-bold uppercase tracking-widest py-3 rounded-xl text-center flex items-center justify-center">
+                                                        Cancellation Closed
+                                                    </div>
+                                                )
                                             )}
                                             {order.status === 'cancelled' && (
                                                 <button
