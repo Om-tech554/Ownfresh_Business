@@ -1,474 +1,689 @@
+import mongoose from "mongoose";
 import User from "../models/usermodel.js";
-import Referral from "../models/referralModel.js";
-import ReferralSettings from "../models/referralSettingsModel.js";
-import Coupon from "../models/couponModel.js";
 import Order from "../models/ordermodel.js";
+import ReferralCode from "../models/referralCodeModel.js";
+import ReferralUsage from "../models/referralUsageModel.js";
 import Wallet from "../models/walletModel.js";
-import Transaction from "../models/transactionModel.js";
+import WalletTransaction from "../models/walletTransactionModel.js";
+import Notification from "../models/notificationModel.js";
+import { logEvent } from "../utils/auditLogger.js";
 
-// Fetch settings helper
-const getSettings = async () => {
-    let settings = await ReferralSettings.findOne();
-    if (!settings) {
-        settings = await ReferralSettings.create({
-            referralRewardReferrer: 100,
-            referralRewardReferred: 50,
-            tier1Threshold: 3,
-            tier1Reward: 50,
-            tier2Threshold: 6,
-            tier3Threshold: 15,
-            baseCommission: 10,
-            tier3Commission: 15,
-            subscriptionPrice: 999
-        });
+/**
+ * Generate a unique and secure referral code for a user
+ */
+export const generateUniqueCode = async (fullName) => {
+    let prefix = "OWN";
+    if (fullName) {
+        prefix = fullName.replace(/[^a-zA-Z0-9]/g, "").toUpperCase().substring(0, 5);
+        if (prefix.length < 3) prefix = "OWN";
     }
-    return settings;
+    
+    let isUnique = false;
+    let code = "";
+    let attempts = 0;
+    
+    while (!isUnique && attempts < 10) {
+        attempts++;
+        const suffix = Math.random().toString(36).substring(2, 6).toUpperCase();
+        code = `${prefix}${suffix}`;
+        const existing = await ReferralCode.findOne({ code });
+        if (!existing) {
+            isUnique = true;
+        }
+    }
+    return code;
 };
 
-// Get referral stats for the logged-in user
-export const getReferralStats = async (req, res) => {
+/**
+ * Validate a referral code against checkout purchase rules
+ */
+export const validateReferralCode = async (req, res) => {
+    const { code } = req.body;
+    const currentUserId = req.userId;
+
     try {
-        const user = await User.findById(req.userId);
-        if (!user) return res.status(404).json({ message: "User not found" });
-
-        const settings = await getSettings();
-
-        // Populate referrals list
-        const referrals = await Referral.find({ referrerUserId: user._id })
-            .populate("referredUserId", "fullName createdAt")
-            .sort({ createdAt: -1 }) || [];
-
-        const successfulCount = await Referral.countDocuments({ referrerUserId: user._id, status: "SUCCESS" }) || 0;
-        const pendingCount = await Referral.countDocuments({ referrerUserId: user._id, status: "PENDING" }) || 0;
-
-        // Fetch wallet details
-        let wallet = await Wallet.findOne({ userId: user._id });
-        if (!wallet) {
-            wallet = await Wallet.create({ userId: user._id, balance: 0, totalEarned: 0, totalRedeemed: 0 });
+        if (!code || typeof code !== "string") {
+            return res.status(400).json({ success: false, message: "Referral code is required." });
         }
 
-        // Determine current milestone tier dynamically
-        let currentTier = 0;
-        if (successfulCount >= settings.tier3Threshold) currentTier = 3;
-        else if (successfulCount >= settings.tier2Threshold || user.subscriptionActive) currentTier = 2;
-        else if (successfulCount >= settings.tier1Threshold) currentTier = 1;
-
-        // Ensure user affiliate status is kept in sync
-        const isAffiliate = user.isAffiliate || currentTier >= 2 || user.subscriptionActive;
-        if (isAffiliate !== user.isAffiliate) {
-            user.isAffiliate = isAffiliate;
-            await user.save();
+        const referralCodeRecord = await ReferralCode.findOne({ code: code.toUpperCase() });
+        if (!referralCodeRecord) {
+            await logEvent({
+                eventType: "FAILED_VALIDATION",
+                req,
+                details: { reason: "Code does not exist", code }
+            });
+            return res.status(404).json({ success: false, message: "Referral code does not exist." });
         }
 
-        // Calculate rewards earned (sum of successful referrals + milstone rewards)
-        // Look up REFERRAL_BONUS transactions in transaction log
-        const bonusTx = await Transaction.find({ userId: user._id, type: "REFERRAL_BONUS" });
-        const rewardsEarned = bonusTx.reduce((sum, tx) => sum + tx.amount, 0);
+        const ownerId = referralCodeRecord.userId.toString();
+        if (ownerId === currentUserId.toString()) {
+            await logEvent({
+                eventType: "FAILED_VALIDATION",
+                req,
+                details: { reason: "Self-referral", code }
+            });
+            return res.status(400).json({ success: false, message: "You cannot refer yourself." });
+        }
 
-        res.status(200).json({
+        const hasUsedReferralBefore = await ReferralUsage.findOne({
+            referredUserId: currentUserId,
+            status: { $in: ["PENDING", "APPROVED"] }
+        });
+        if (hasUsedReferralBefore) {
+            await logEvent({
+                eventType: "FAILED_VALIDATION",
+                req,
+                details: { reason: "User already used a code before", code }
+            });
+            return res.status(400).json({ success: false, message: "You have already used a referral code before." });
+        }
+
+        return res.status(200).json({
             success: true,
-            referralCode: user.referralCode,
-            hasChangedReferralCode: user.hasChangedReferralCode,
-            referredBy: user.referredBy,
-            referralCount: successfulCount,
-            totalReferrals: referrals.length,
-            successful: successfulCount,
-            pending: pendingCount,
-            referrals,
-            currentTier,
-            isAffiliate,
-            earnings: user.commissionBalance || wallet.balance, // compatible field mappings
-            totalEarnings: user.totalEarnings || wallet.totalEarned,
-            walletBalance: wallet.balance,
-            rewardsEarned,
-            settings
+            message: "Referral code is valid.",
+            ownerId
         });
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: "Error fetching referral stats" });
+        console.error("Error validating referral code:", error);
+        await logEvent({
+            eventType: "API_ERROR",
+            req,
+            details: { error: error.message, path: "validate-code" }
+        });
+        return res.status(500).json({ success: false, message: "Server error during validation." });
     }
 };
 
-// Apply a referral code to the user after signup (but before first purchase)
-export const applyReferral = async (req, res) => {
+/**
+ * Apply referral code during checkout order placement
+ */
+export const applyReferralCodeOnOrder = async (req, res) => {
+    const { orderId, code } = req.body;
+    const currentUserId = req.userId;
+
     try {
-        const { referralCode } = req.body;
-        if (!referralCode) {
-            return res.status(400).json({ message: "Referral code is required" });
+        if (!orderId || !code) {
+            return res.status(400).json({ success: false, message: "Order ID and Referral Code are required." });
         }
 
-        const user = await User.findById(req.userId);
-        if (!user) return res.status(404).json({ message: "User not found" });
-
-        // Check if already referred
-        if (user.referredBy) {
-            return res.status(400).json({ message: "You have already been referred by someone" });
+        const order = await Order.findById(orderId);
+        if (!order) {
+            return res.status(404).json({ success: false, message: "Order not found." });
         }
 
-        // Check if user has already placed orders
-        const ordersCount = await Order.countDocuments({ user: user._id });
-        if (ordersCount > 0) {
-            return res.status(400).json({ message: "Referral code can only be applied before placing your first order" });
+        if (order.user.toString() !== currentUserId.toString()) {
+            return res.status(403).json({ success: false, message: "Unauthorized order link." });
         }
 
-        // Check if trying to apply own code
-        if (user.referralCode && user.referralCode.toUpperCase() === referralCode.toUpperCase()) {
-            return res.status(400).json({ message: "You cannot use your own referral code" });
+        const referralCodeRecord = await ReferralCode.findOne({ code: code.toUpperCase() });
+        if (!referralCodeRecord) {
+            return res.status(404).json({ success: false, message: "Referral code does not exist." });
         }
 
-        // Find referrer
-        const referrer = await User.findOne({ referralCode: referralCode.toUpperCase() });
-        if (!referrer) {
-            return res.status(404).json({ message: "Invalid referral code" });
+        const ownerId = referralCodeRecord.userId.toString();
+        if (ownerId === currentUserId.toString()) {
+            return res.status(400).json({ success: false, message: "You cannot refer yourself." });
         }
 
-        // Check same IP / same device fingerprint checks for abuse
-        const ipAddress = req.headers['x-forwarded-for'] || req.ip || req.socket.remoteAddress;
-        const deviceFingerprint = req.body.deviceFingerprint || req.headers['user-agent'];
+        const hasUsedReferralBefore = await ReferralUsage.findOne({
+            referredUserId: currentUserId,
+            status: { $in: ["PENDING", "APPROVED"] }
+        });
+        if (hasUsedReferralBefore) {
+            return res.status(400).json({ success: false, message: "You have already used a referral code before." });
+        }
 
-        // Associate referrer
-        user.referredBy = referrer._id;
-        await user.save();
+        const existingUsageForOrder = await ReferralUsage.findOne({ orderId });
+        if (existingUsageForOrder) {
+            return res.status(400).json({ success: false, message: "Referral benefits already applied to this order." });
+        }
 
-        const settings = await getSettings();
-
-        // Create pending referral record
-        const referral = await Referral.create({
-            referrerUserId: referrer._id,
-            referredUserId: user._id,
-            referralCode: referralCode.toUpperCase(),
+        // Create the PENDING referral record
+        const usage = new ReferralUsage({
+            referrerUserId: ownerId,
+            referredUserId: currentUserId,
+            referralCodeId: referralCodeRecord._id,
+            orderId,
             status: "PENDING",
-            rewardAmount: settings.referralRewardReferred,
-            deviceFingerprint,
-            ipAddress
+            rewardAmount: 100, // Points to referrer
+            refereeRewardAmount: 50 // Points to referred user
+        });
+        await usage.save();
+
+        // Update the Order with the referral code
+        order.referralCode = code.toUpperCase();
+        await order.save();
+
+        await logEvent({
+            eventType: "REFERRAL_USED",
+            req,
+            userId: currentUserId,
+            details: { orderId, code, referrerId: ownerId }
         });
 
-        res.status(200).json({
+        // Notify referrer
+        await new Notification({
+            userId: ownerId,
+            title: "Your referral code was used!",
+            message: `A friend placed an order using your code ${code.toUpperCase()}. Your reward points are pending admin review.`,
+            type: "REFERRAL_USED"
+        }).save();
+
+        return res.status(200).json({
             success: true,
-            message: "Referral code applied successfully",
-            referral
+            message: "Referral code successfully applied to order.",
+            referralUsage: usage
         });
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: "Error applying referral code" });
+        console.error("Error applying referral code:", error);
+        await logEvent({
+            eventType: "API_ERROR",
+            req,
+            details: { error: error.message, path: "apply-code" }
+        });
+        return res.status(500).json({ success: false, message: "Server error while applying code." });
     }
 };
 
-// Change own referral code once
-export const updateCustomReferralCode = async (req, res) => {
+/**
+ * Approve a pending referral (Admin only)
+ */
+export const approveReferral = async (req, res) => {
+    const { id } = req.params;
+    const { notes } = req.body;
+    const adminId = req.userId;
+
+    const session = await mongoose.startSession();
     try {
-        const { customCode } = req.body;
-        if (!customCode || customCode.trim().length < 3) {
-            return res.status(400).json({ message: "Please provide a valid custom code (min 3 characters)" });
+        session.startTransaction();
+
+        const referral = await ReferralUsage.findById(id).session(session);
+        if (!referral) {
+            return res.status(404).json({ success: false, message: "Referral record not found." });
         }
 
-        const user = await User.findById(req.userId);
-        if (!user) return res.status(404).json({ message: "User not found" });
-
-        if (user.hasChangedReferralCode) {
-            return res.status(400).json({ message: "You can only customize your referral code once" });
+        if (referral.status !== "PENDING") {
+            return res.status(400).json({ success: false, message: "Referral is already processed." });
         }
 
-        const formattedCode = customCode.trim().toUpperCase().replace(/[^A-Z0-9]/g, "");
-        if (formattedCode.length < 3) {
-            return res.status(400).json({ message: "Code must contain alphanumeric characters only" });
+        // Verify order payment success
+        const order = await Order.findById(referral.orderId).session(session);
+        if (!order) {
+            return res.status(404).json({ success: false, message: "Linked order not found." });
         }
 
-        // Check uniqueness
-        const existing = await User.findOne({ referralCode: formattedCode });
-        if (existing) {
-            return res.status(400).json({ message: "Referral code already taken" });
+        if (order.paymentStatus !== "completed") {
+            return res.status(400).json({
+                success: false,
+                message: `Order payment status is '${order.paymentStatus}'. Referrals can only be approved for paid orders.`
+            });
         }
 
-        user.referralCode = formattedCode;
-        user.hasChangedReferralCode = true;
-        await user.save();
+        // Double-check order hasn't received points
+        if (order.isReferralRewarded || order.rewardCredited) {
+            return res.status(400).json({ success: false, message: "Referral rewards have already been credited for this order." });
+        }
 
-        res.status(200).json({
+        // Process rewards using sessions (Atomic Transaction)
+        // 1. Credit Referrer Wallet
+        let referrerWallet = await Wallet.findOneAndUpdate(
+            { userId: referral.referrerUserId },
+            { $setOnInsert: { userId: referral.referrerUserId } },
+            { upsert: true, new: true, session }
+        );
+        referrerWallet.balance += referral.rewardAmount;
+        referrerWallet.totalEarned += referral.rewardAmount;
+        await referrerWallet.save({ session });
+
+        // Update Referrer User document
+        const referrerUser = await User.findById(referral.referrerUserId).session(session);
+        if (referrerUser) {
+            referrerUser.wallet = (referrerUser.wallet || 0) + referral.rewardAmount;
+            referrerUser.walletBalance = (referrerUser.walletBalance || 0) + referral.rewardAmount;
+            referrerUser.referralPoints = (referrerUser.referralPoints || 0) + referral.rewardAmount;
+            await referrerUser.save({ session });
+        }
+
+        // Immutable Transaction log for Referrer
+        const referrerTx = new WalletTransaction({
+            walletId: referrerWallet._id,
+            userId: referral.referrerUserId,
+            type: "REFERRAL_BONUS",
+            amount: referral.rewardAmount,
+            description: `Referral bonus for referring User ID: ${referral.referredUserId}`,
+            referenceOrderId: referral.orderId,
+            adminId,
+            timestamp: new Date()
+        });
+        await referrerTx.save({ session });
+
+        // 2. Credit Referee Wallet
+        let refereeWallet = await Wallet.findOneAndUpdate(
+            { userId: referral.referredUserId },
+            { $setOnInsert: { userId: referral.referredUserId } },
+            { upsert: true, new: true, session }
+        );
+        refereeWallet.balance += referral.refereeRewardAmount;
+        refereeWallet.totalEarned += referral.refereeRewardAmount;
+        await refereeWallet.save({ session });
+
+        // Update Referee User document
+        const refereeUser = await User.findById(referral.referredUserId).session(session);
+        if (refereeUser) {
+            refereeUser.wallet = (refereeUser.wallet || 0) + referral.refereeRewardAmount;
+            refereeUser.walletBalance = (refereeUser.walletBalance || 0) + referral.refereeRewardAmount;
+            refereeUser.hasRedeemedReferral = true;
+            await refereeUser.save({ session });
+        }
+
+        // Immutable Transaction log for Referee
+        const refereeTx = new WalletTransaction({
+            walletId: refereeWallet._id,
+            userId: referral.referredUserId,
+            type: "REFERRAL_BONUS",
+            amount: referral.refereeRewardAmount,
+            description: `Welcome bonus for using a referral code.`,
+            referenceOrderId: referral.orderId,
+            adminId,
+            timestamp: new Date()
+        });
+        await refereeTx.save({ session });
+
+        // 3. Mark Referral Approved and Order Rewarded
+        referral.status = "APPROVED";
+        referral.approvedAt = new Date();
+        referral.adminId = adminId;
+        referral.approvedBy = adminId;
+        referral.notes = notes || "Approved by Admin.";
+        await referral.save({ session });
+
+        order.isReferralRewarded = true;
+        order.rewardCredited = true;
+        order.referralStatus = "APPROVED";
+        await order.save({ session });
+
+        // Commit transaction
+        await session.commitTransaction();
+
+        // Audit log
+        await logEvent({
+            eventType: "REFERRAL_APPROVED",
+            req,
+            adminId,
+            details: { referralId: referral._id, orderId: order._id, referrerReward: referral.rewardAmount, refereeReward: referral.refereeRewardAmount }
+        });
+
+        // Notifications (outside transaction in case of separate delivery failure)
+        await new Notification({
+            userId: referral.referrerUserId,
+            title: "Referral Approved!",
+            message: `Congratulations! Your referral for order ${order._id} was approved. ₹${referral.rewardAmount} credited to your wallet.`,
+            type: "REFERRAL_APPROVED"
+        }).save();
+
+        await new Notification({
+            userId: referral.referredUserId,
+            title: "Welcome Bonus Credited!",
+            message: `Congratulations! Your welcome bonus of ₹${referral.refereeRewardAmount} has been approved and credited to your wallet.`,
+            type: "WALLET_CREDITED"
+        }).save();
+
+        return res.status(200).json({
             success: true,
-            message: "Referral code updated successfully",
-            referralCode: user.referralCode
+            message: "Referral successfully approved and wallet rewards credited."
         });
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: "Error updating referral code" });
+        await session.abortTransaction();
+        console.error("Transaction Error during referral approval:", error);
+        await logEvent({
+            eventType: "API_ERROR",
+            req,
+            adminId,
+            details: { error: error.message, path: "approve-referral" }
+        });
+        return res.status(500).json({ success: false, message: "Error approving referral transaction." });
+    } finally {
+        session.endSession();
     }
 };
 
-// Generate affiliate coupon code
-export const generateAffiliateCoupon = async (req, res) => {
+/**
+ * Reject a pending referral (Admin only)
+ */
+export const rejectReferral = async (req, res) => {
+    const { id } = req.params;
+    const { notes } = req.body;
+    const adminId = req.userId;
+
+    const session = await mongoose.startSession();
     try {
-        const { code, discountType, discountValue, expiryDate } = req.body;
-        const user = await User.findById(req.userId);
-        if (!user) return res.status(404).json({ message: "User not found" });
+        session.startTransaction();
 
-        const settings = await getSettings();
-
-        // Check eligibility: user must be affiliate (Tier 2, subscription, or explicit)
-        const successfulCount = await Referral.countDocuments({ referrerUserId: user._id, status: "SUCCESS" });
-        const isEligible = user.isAffiliate || successfulCount >= settings.tier2Threshold || user.subscriptionActive;
-        
-        if (!isEligible) {
-            return res.status(403).json({ message: "You must reach Tier 2 (Affiliate) to create custom coupons." });
+        const referral = await ReferralUsage.findById(id).session(session);
+        if (!referral) {
+            return res.status(404).json({ success: false, message: "Referral record not found." });
         }
 
-        const existingCoupon = await Coupon.findOne({ code: code.toUpperCase() });
-        if (existingCoupon) {
-            return res.status(400).json({ message: "Coupon code already exists." });
+        if (referral.status !== "PENDING") {
+            return res.status(400).json({ success: false, message: "Referral is already processed." });
         }
 
-        const coupon = await Coupon.create({
-            code: code.toUpperCase(),
-            discountType: discountType === "percentage" ? "PERCENTAGE" : "FIXED_AMOUNT",
-            discountValue: Number(discountValue),
-            expiryDate: new Date(expiryDate),
-            affiliateId: user._id
+        referral.status = "REJECTED";
+        referral.rejectedAt = new Date();
+        referral.adminId = adminId;
+        referral.notes = notes || "Rejected by Admin.";
+        await referral.save({ session });
+
+        // Update Order
+        const order = await Order.findById(referral.orderId).session(session);
+        if (order) {
+            order.referralStatus = "REJECTED";
+            await order.save({ session });
+        }
+
+        // Reset buyer hasRedeemedReferral = false, since this referral usage was rejected
+        const refereeUser = await User.findById(referral.referredUserId).session(session);
+        if (refereeUser) {
+            refereeUser.hasRedeemedReferral = false;
+            await refereeUser.save({ session });
+        }
+
+        await session.commitTransaction();
+
+        await logEvent({
+            eventType: "REFERRAL_REJECTED",
+            req,
+            adminId,
+            details: { referralId: referral._id, orderId: referral.orderId, notes }
         });
 
-        res.status(201).json({ success: true, coupon });
+        // Notifications
+        await new Notification({
+            userId: referral.referrerUserId,
+            title: "Referral Rejected",
+            message: `Your referral reward for order ${referral.orderId} was rejected. Note: ${referral.notes}`,
+            type: "REFERRAL_REJECTED"
+        }).save();
+
+        await new Notification({
+            userId: referral.referredUserId,
+            title: "Referral Code Bonus Rejected",
+            message: `Your referral code welcome bonus for order ${referral.orderId} was rejected. Note: ${referral.notes}`,
+            type: "REFERRAL_REJECTED"
+        }).save();
+
+        return res.status(200).json({
+            success: true,
+            message: "Referral successfully rejected."
+        });
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: "Error generating custom coupon" });
+        await session.abortTransaction();
+        console.error("Error rejecting referral:", error);
+        await logEvent({
+            eventType: "API_ERROR",
+            req,
+            adminId,
+            details: { error: error.message, path: "reject-referral" }
+        });
+        return res.status(500).json({ success: false, message: "Error rejecting referral." });
+    } finally {
+        session.endSession();
     }
 };
 
-// Get affiliate earnings and conversions
-export const getAffiliateData = async (req, res) => {
-    try {
-        const coupons = await Coupon.find({ affiliateId: req.userId });
-        const couponCodes = coupons.map(c => c.code);
+/**
+ * Get customer-facing referral dashboard stats
+ */
+export const getReferralStats = async (req, res) => {
+    const userId = req.userId;
 
-        const orders = await Order.find({ couponCode: { $in: couponCodes }, status: "delivered" })
-            .populate("user", "fullName email")
+    try {
+        // Get user referral code
+        let referralCodeRecord = await ReferralCode.findOne({ userId });
+        if (!referralCodeRecord) {
+            // Self-healing: create code if it is missing
+            const code = await generateUniqueCode(req.user.fullName);
+            referralCodeRecord = new ReferralCode({ userId, code });
+            await referralCodeRecord.save();
+            
+            // Also update the User record for convenience
+            await User.findByIdAndUpdate(userId, { referralCode: code });
+        }
+
+        // Get user's wallet
+        const wallet = await Wallet.findOne({ userId }) || { balance: 0, totalEarned: 0, totalRedeemed: 0 };
+
+        // Get transactions
+        const transactions = await WalletTransaction.find({ userId }).sort({ timestamp: -1 }).limit(10);
+
+        // Get referral histories where this user is the referrer
+        const referrals = await ReferralUsage.find({ referrerUserId: userId })
+            .populate("referredUserId", "fullName createdAt")
+            .populate("orderId", "paymentStatus totalAmount status")
             .sort({ createdAt: -1 });
 
-        // Retrieve wallet details
-        let wallet = await Wallet.findOne({ userId: req.userId });
+        // Calculate reward totals
+        const pendingCount = referrals.filter(r => r.status === "PENDING").length;
+        const approvedCount = referrals.filter(r => r.status === "APPROVED").length;
+        const rejectedCount = referrals.filter(r => r.status === "REJECTED").length;
 
-        res.status(200).json({
+        return res.status(200).json({
             success: true,
-            coupons,
-            orders,
-            totalConversions: orders.length,
-            totalEarnings: wallet ? wallet.totalEarned : 0
-        });
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: "Error fetching affiliate data" });
-    }
-};
-
-// Admin: Get all referral/affiliate data
-export const adminGetAffiliateStats = async (req, res) => {
-    try {
-        const users = await User.find({ $or: [{ referralCount: { $gt: 0 } }, { isAffiliate: true }] })
-            .select("fullName email referralCode referralCount isAffiliate commissionBalance totalEarnings");
-
-        const settings = await getSettings();
-
-        // Get total stats
-        const totalReferrals = await Referral.countDocuments({});
-        const successfulReferrals = await Referral.countDocuments({ status: "SUCCESS" });
-        const failedReferrals = await Referral.countDocuments({ status: "FAILED" });
-        
-        // Sum distributed rewards
-        const referralRewards = await Transaction.find({ type: "REFERRAL_BONUS" });
-        const rewardsDistributed = referralRewards.reduce((sum, tx) => sum + tx.amount, 0);
-
-        res.status(200).json({ 
-            success: true, 
-            users, 
-            settings,
-            stats: {
-                total: totalReferrals,
-                successful: successfulReferrals,
-                failed: failedReferrals,
-                rewardsDistributed
+            referralCode: referralCodeRecord.code,
+            wallet,
+            transactions,
+            referrals,
+            counts: {
+                pending: pendingCount,
+                approved: approvedCount,
+                rejected: rejectedCount,
+                total: referrals.length
             }
         });
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: "Error fetching admin stats" });
+        console.error("Error fetching referral stats:", error);
+        return res.status(500).json({ success: false, message: "Error loading referral stats." });
     }
 };
 
-// Admin: Update settings
-export const updateAffiliateSettings = async (req, res) => {
+/**
+ * Get admin-facing referral lists with pagination, search, filter
+ */
+export const getAdminReferrals = async (req, res) => {
     try {
-        const settings = await ReferralSettings.findOneAndUpdate({}, req.body, { upsert: true, new: true });
-        res.status(200).json({ success: true, settings });
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 10;
+        const status = req.query.status;
+        const search = req.query.search;
+        const sortField = req.query.sortField || "createdAt";
+        const sortOrder = req.query.sortOrder === "asc" ? 1 : -1;
+
+        const query = {};
+
+        if (status) {
+            query.status = status;
+        }
+
+        if (search) {
+            // Find users matching search keyword to filter by owner or customer
+            const users = await User.find({
+                $or: [
+                    { fullName: { $regex: search, $options: "i" } },
+                    { email: { $regex: search, $options: "i" } }
+                ]
+            }).select("_id");
+            const userIds = users.map(u => u._id);
+
+            // Also check for matching code
+            const codes = await ReferralCode.find({
+                code: { $regex: search, $options: "i" }
+            }).select("_id");
+            const codeIds = codes.map(c => c._id);
+
+            query.$or = [
+                { referrerUserId: { $in: userIds } },
+                { referredUserId: { $in: userIds } },
+                { referralCodeId: { $in: codeIds } }
+            ];
+        }
+
+        const total = await ReferralUsage.countDocuments(query);
+        const referrals = await ReferralUsage.find(query)
+            .populate("referrerUserId", "fullName email")
+            .populate("referredUserId", "fullName email")
+            .populate("referralCodeId", "code")
+            .populate("orderId", "paymentStatus totalAmount status createdAt")
+            .sort({ [sortField]: sortOrder })
+            .skip((page - 1) * limit)
+            .limit(limit);
+
+        return res.status(200).json({
+            success: true,
+            referrals,
+            pagination: {
+                total,
+                page,
+                limit,
+                pages: Math.ceil(total / limit)
+            }
+        });
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: "Error updating settings" });
+        console.error("Error fetching admin referrals:", error);
+        return res.status(500).json({ success: false, message: "Error loading admin referral details." });
     }
 };
 
-// Handle Subscription to unlock Affiliate
-export const unlockAffiliateViaSubscription = async (req, res) => {
+/**
+ * Get admin analytics stats and chart data
+ */
+export const getAdminStats = async (req, res) => {
     try {
-        const user = await User.findById(req.userId);
-        if (!user) return res.status(404).json({ message: "User not found" });
+        const totalCodes = await ReferralCode.countDocuments({});
+        const pending = await ReferralUsage.countDocuments({ status: "PENDING" });
+        const approved = await ReferralUsage.countDocuments({ status: "APPROVED" });
+        const rejected = await ReferralUsage.countDocuments({ status: "REJECTED" });
 
-        user.subscriptionActive = true;
-        user.isAffiliate = true;
-        await user.save();
+        // Sum wallet rewards paid out (referral rewards)
+        const walletRewardsTx = await WalletTransaction.aggregate([
+            { $match: { type: "REFERRAL_BONUS" } },
+            { $group: { _id: null, total: { $sum: "$amount" } } }
+        ]);
+        const rewardsTotal = walletRewardsTx.length > 0 ? walletRewardsTx[0].total : 0;
 
-        res.status(200).json({ success: true, message: "Affiliate status unlocked successfully!" });
+        // Today's Referrals (created today)
+        const todayStart = new Date();
+        todayStart.setHours(0, 0, 0, 0);
+        const todayCount = await ReferralUsage.countDocuments({ createdAt: { $gte: todayStart } });
+
+        // Conversion Rate (referred orders paid out vs total users)
+        const totalUsers = await User.countDocuments({});
+        const conversionRate = totalUsers > 0 ? ((approved / totalUsers) * 100).toFixed(1) : 0;
+
+        // Top Referrers
+        const topReferrers = await ReferralUsage.aggregate([
+            { $match: { status: "APPROVED" } },
+            { $group: { _id: "$referrerUserId", count: { $sum: 1 }, totalEarned: { $sum: "$rewardAmount" } } },
+            { $sort: { count: -1 } },
+            { $limit: 5 }
+        ]);
+        await User.populate(topReferrers, { path: "_id", select: "fullName email" });
+
+        // Top Customers
+        const topCustomers = await ReferralUsage.aggregate([
+            { $match: { status: "APPROVED" } },
+            { $group: { _id: "$referredUserId", count: { $sum: 1 } } },
+            { $sort: { count: -1 } },
+            { $limit: 5 }
+        ]);
+        await User.populate(topCustomers, { path: "_id", select: "fullName email" });
+
+        // Monthly Rewards paid out (Grouped by month, past 6 months)
+        const sixMonthsAgo = new Date();
+        sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
+        const monthlyData = await WalletTransaction.aggregate([
+            { 
+                $match: { 
+                    type: "REFERRAL_BONUS",
+                    timestamp: { $gte: sixMonthsAgo } 
+                } 
+            },
+            {
+                $group: {
+                    _id: {
+                        year: { $year: "$timestamp" },
+                        month: { $month: "$timestamp" }
+                    },
+                    amount: { $sum: "$amount" }
+                }
+            },
+            { $sort: { "_id.year": 1, "_id.month": 1 } }
+        ]);
+
+        const formattedMonthly = monthlyData.map(d => {
+            const date = new Date(d._id.year, d._id.month - 1);
+            return {
+                month: date.toLocaleString("default", { month: "short", year: "numeric" }),
+                rewards: d.amount
+            };
+        });
+
+        return res.status(200).json({
+            success: true,
+            summary: {
+                totalCodes,
+                pending,
+                approved,
+                rejected,
+                rewardsTotal,
+                todayCount,
+                conversionRate
+            },
+            topReferrers,
+            topCustomers,
+            monthlyRewards: formattedMonthly
+        });
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: "Error unlocking affiliate status" });
+        console.error("Error fetching admin stats:", error);
+        return res.status(500).json({ success: false, message: "Error loading admin analytics." });
     }
 };
 
-// Helper: Process Referral Reward on Order Delivery
-export const processReferralRewards = async (orderId) => {
+/**
+ * Export all referral stats as CSV format
+ */
+export const exportReferrals = async (req, res) => {
     try {
-        const order = await Order.findById(orderId).populate("user");
-        if (!order || order.status !== "delivered" || order.isReferralCounted) return;
+        const referrals = await ReferralUsage.find({})
+            .populate("referrerUserId", "fullName email")
+            .populate("referredUserId", "fullName email")
+            .populate("referralCodeId", "code")
+            .populate("orderId", "paymentStatus totalAmount");
 
-        const user = order.user;
-        const settings = await getSettings();
-
-        // 1. Process Referral (only for the first purchase)
-        // Verify this is the user's first delivered order
-        const deliveredOrders = await Order.countDocuments({ user: user._id, status: "delivered" });
+        let csv = "Referral Code,Owner,Owner Email,Customer,Customer Email,Order ID,Payment Status,Order Amount,Status,Used Date,Approved Date,Notes\n";
         
-        // Ensure this is the first delivered order
-        if (deliveredOrders === 1) {
-            const referral = await Referral.findOne({ referredUserId: user._id, status: "PENDING" });
-            if (referral) {
-                const referrer = await User.findById(referral.referrerUserId);
-                
-                // Anti-Abuse Checks:
-                const isSelfReferral = referrer && referrer._id.toString() === user._id.toString();
-                const isSameDevice = referrer && (
-                    referral.deviceFingerprint === referrer.lastDeviceFingerprint || 
-                    referral.ipAddress === referrer.lastIpAddress
-                );
-                
-                if (isSelfReferral || isSameDevice) {
-                    referral.status = "FAILED";
-                    referral.completedAt = new Date();
-                    await referral.save();
-                    console.log(`Referral marked as FAILED due to abuse: selfReferral=${isSelfReferral}, sameDevice=${isSameDevice}`);
-                } else if (referrer) {
-                    referral.status = "SUCCESS";
-                    referral.completedAt = new Date();
-                    referral.orderId = orderId;
-                    await referral.save();
+        referrals.forEach(r => {
+            const code = r.referralCodeId?.code || "N/A";
+            const owner = r.referrerUserId?.fullName || "N/A";
+            const ownerEmail = r.referrerUserId?.email || "N/A";
+            const customer = r.referredUserId?.fullName || "N/A";
+            const customerEmail = r.referredUserId?.email || "N/A";
+            const orderId = r.orderId?._id || "N/A";
+            const paymentStatus = r.orderId?.paymentStatus || "N/A";
+            const amount = r.orderId?.totalAmount || 0;
+            const status = r.status;
+            const used = r.usedAt ? new Date(r.usedAt).toISOString().split("T")[0] : "N/A";
+            const approved = r.approvedAt ? new Date(r.approvedAt).toISOString().split("T")[0] : "N/A";
+            const notes = r.notes ? r.notes.replace(/,/g, " ") : "";
 
-                    // Referrer Wallet Reward
-                    let referrerWallet = await Wallet.findOne({ userId: referrer._id });
-                    if (!referrerWallet) {
-                        referrerWallet = await Wallet.create({ userId: referrer._id });
-                    }
-                    const referrerReward = settings.referralRewardReferrer;
-                    referrerWallet.balance += referrerReward;
-                    referrerWallet.totalEarned += referrerReward;
-                    await referrerWallet.save();
+            csv += `"${code}","${owner}","${ownerEmail}","${customer}","${customerEmail}","${orderId}","${paymentStatus}",${amount},"${status}","${used}","${approved}","${notes}"\n`;
+        });
 
-                    await Transaction.create({
-                        userId: referrer._id,
-                        type: "REFERRAL_BONUS",
-                        amount: referrerReward,
-                        description: `Referral bonus for inviting ${user.fullName}`,
-                        status: "SUCCESS"
-                    });
-
-                    // Referred User Wallet Reward
-                    let referredWallet = await Wallet.findOne({ userId: user._id });
-                    if (!referredWallet) {
-                        referredWallet = await Wallet.create({ userId: user._id });
-                    }
-                    const referredReward = settings.referralRewardReferred;
-                    referredWallet.balance += referredReward;
-                    referredWallet.totalEarned += referredReward;
-                    await referredWallet.save();
-
-                    await Transaction.create({
-                        userId: user._id,
-                        type: "REFERRAL_BONUS",
-                        amount: referredReward,
-                        description: `Welcome bonus for using referral code from ${referrer.fullName}`,
-                        status: "SUCCESS"
-                    });
-
-                    // Increment referrer count
-                    referrer.referralCount += 1;
-
-                    // Evaluate milestones dynamically
-                    // Reached Tier 1 Milestone
-                    if (referrer.referralCount === settings.tier1Threshold) {
-                        referrerWallet.balance += settings.tier1Reward;
-                        referrerWallet.totalEarned += settings.tier1Reward;
-                        await referrerWallet.save();
-
-                        await Transaction.create({
-                            userId: referrer._id,
-                            type: "REFERRAL_BONUS",
-                            amount: settings.tier1Reward,
-                            description: `Milestone bonus for reaching Tier 1 (${settings.tier1Threshold} referrals)`,
-                            status: "SUCCESS"
-                        });
-                    }
-
-                    // Update affiliate status flags based on tiers
-                    if (referrer.referralCount >= settings.tier2Threshold) {
-                        referrer.isAffiliate = true;
-                    }
-                    
-                    await referrer.save();
-                }
-            }
-        }
-
-        // 2. Process Affiliate Commission (if affiliate coupon used)
-        if (order.couponCode) {
-            const coupon = await Coupon.findOne({ code: order.couponCode.toUpperCase() });
-            if (coupon && coupon.affiliateId) {
-                const affiliate = await User.findById(coupon.affiliateId);
-                if (affiliate) {
-                    const successfulRefs = await Referral.countDocuments({ referrerUserId: affiliate._id, status: "SUCCESS" });
-                    
-                    // Determine commission rate based on dynamic milestones
-                    let commissionPercent = settings.baseCommission;
-                    if (successfulRefs >= settings.tier3Threshold) {
-                        commissionPercent = settings.tier3Commission;
-                    }
-
-                    const commissionAmount = (order.totalAmount * commissionPercent) / 100;
-                    
-                    let affiliateWallet = await Wallet.findOne({ userId: affiliate._id });
-                    if (!affiliateWallet) {
-                        affiliateWallet = await Wallet.create({ userId: affiliate._id });
-                    }
-                    
-                    affiliateWallet.balance += commissionAmount;
-                    affiliateWallet.totalEarned += commissionAmount;
-                    await affiliateWallet.save();
-
-                    // Sync values to User model for compatibility
-                    affiliate.commissionBalance = affiliateWallet.balance;
-                    affiliate.totalEarnings = affiliateWallet.totalEarned;
-                    await affiliate.save();
-
-                    await Transaction.create({
-                        userId: affiliate._id,
-                        type: "CASHBACK",
-                        amount: commissionAmount,
-                        description: `Affiliate commission for order ${order._id}`,
-                        status: "SUCCESS"
-                    });
-
-                    order.referrer = affiliate._id;
-                    order.referralCommission = commissionAmount;
-                }
-            }
-        }
-
-        order.isReferralCounted = true;
-        await order.save();
-    } catch (err) {
-        console.error("Error processing referral rewards:", err);
+        res.setHeader("Content-Type", "text/csv");
+        res.setHeader("Content-Disposition", "attachment; filename=referral_report.csv");
+        return res.status(200).send(csv);
+    } catch (error) {
+        console.error("Error exporting referrals:", error);
+        return res.status(500).json({ success: false, message: "Error exporting CSV file." });
     }
 };

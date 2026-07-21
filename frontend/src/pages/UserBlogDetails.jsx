@@ -18,7 +18,7 @@ const readingTime = (text = "") => {
 /* ─── share helper ─── */
 const handleShare = (title) => {
   if (navigator.share) {
-    navigator.share({ title, url: window.location.href }).catch(() => {});
+    navigator.share({ title, url: window.location.href }).catch(() => { });
   } else {
     navigator.clipboard.writeText(window.location.href);
     alert("Link copied to clipboard!");
@@ -146,9 +146,9 @@ const UserBlogDetails = () => {
     "datePublished": blog.publishedAt || blog.createdAt,
     "dateModified": blog.updatedAt || blog.createdAt,
     "author": [{
-        "@type": "Person",
-        "name": blog.author || "Own Fresh Team",
-      }]
+      "@type": "Person",
+      "name": blog.author || "Own Fresh Team",
+    }]
   };
 
   /* ════════════════════════════════════════════════════
@@ -156,7 +156,7 @@ const UserBlogDetails = () => {
   ════════════════════════════════════════════════════ */
   return (
     <div className="bg-[#FEFDF8] min-h-screen relative">
-      <SEO 
+      <SEO
         title={cleanTitle}
         description={cleanDescription}
         image={blog.image}
@@ -227,7 +227,8 @@ const UserBlogDetails = () => {
             </div>
 
             {/* Blog content */}
-            <style dangerouslySetInnerHTML={{ __html: `
+            <style dangerouslySetInnerHTML={{
+              __html: `
               .wp-blog-content p {
                 margin-top: 0.5rem !important;
                 margin-bottom: 0.5rem !important;
@@ -412,9 +413,8 @@ const UserBlogDetails = () => {
 
       {/* ── SCROLL-TO-TOP FAB ── */}
       <div
-        className={`fixed bottom-24 right-8 transition-all duration-300 transform ${
-          showTopBtn ? "translate-y-0 opacity-100" : "translate-y-10 opacity-0 pointer-events-none"
-        }`}
+        className={`fixed bottom-24 right-8 transition-all duration-300 transform ${showTopBtn ? "translate-y-0 opacity-100" : "translate-y-10 opacity-0 pointer-events-none"
+          }`}
       >
         <button
           onClick={goToTop}

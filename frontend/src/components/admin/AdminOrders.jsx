@@ -4,7 +4,8 @@ import { serverUrl } from "../../App";
 import {
     Search, Loader2, Package, User, Clock, CheckCircle2, Truck, X, XCircle,
     MapPin, ExternalLink, Calendar, CreditCard, ChevronDown, Printer,
-    MoreHorizontal, Filter, ArrowUpRight, Copy, Save, AlertCircle, Trash2
+    MoreHorizontal, Filter, ArrowUpRight, Copy, Save, AlertCircle, Trash2,
+    UploadCloud, Send, ShieldAlert
 } from "lucide-react";
 import toast from "react-hot-toast";
 
@@ -16,12 +17,34 @@ const AdminOrders = () => {
     const [selectedOrder, setSelectedOrder] = useState(null);
     const [updatingId, setUpdatingId] = useState(null);
 
-    // Fulfillment state
-    const [logistics, setLogistics] = useState({ trackingId: "", courier: "", notes: "" });
+    // New Fulfillment workflow states
+    const [carriers, setCarriers] = useState([]);
+    const [isUploading, setIsUploading] = useState(false);
+    const [ocrResult, setOcrResult] = useState(null);
+    const [emailPreview, setEmailPreview] = useState(null);
+    const [testEmailAddress, setTestEmailAddress] = useState("");
+    const [isPreparingEmail, setIsPreparingEmail] = useState(false);
+
+    // Audit logs states
+    const [showAuditModal, setShowAuditModal] = useState(false);
+    const [auditLogs, setAuditLogs] = useState([]);
+    const [isLoadingAudit, setIsLoadingAudit] = useState(false);
 
     useEffect(() => {
         fetchOrders();
+        fetchCarriers();
     }, []);
+
+    const fetchCarriers = async () => {
+        try {
+            const { data } = await axios.get(`${serverUrl}/api/fulfillment/carriers`, { withCredentials: true });
+            if (data.success) {
+                setCarriers(data.carriers);
+            }
+        } catch (error) {
+            console.error("Failed to fetch carriers:", error);
+        }
+    };
 
     const fetchOrders = async () => {
         try {
@@ -54,16 +77,168 @@ const AdminOrders = () => {
         }
     };
 
-    const handleShipOrder = async (orderId) => {
-        if (!logistics.trackingId || !logistics.courier) {
-            return toast.error("Please enter tracking details");
+    const handlePrintLabel = async (order) => {
+        printPackingSlip(order);
+        try {
+            const { data } = await axios.put(`${serverUrl}/api/fulfillment/label-printed/${order._id}`, {}, { withCredentials: true });
+            if (data.success) {
+                setOrders(orders.map(o => o._id === order._id ? { ...o, labelPrinted: true } : o));
+                if (selectedOrder?._id === order._id) {
+                    setSelectedOrder({ ...selectedOrder, labelPrinted: true });
+                }
+            }
+        } catch (error) {
+            console.error("Failed to mark label as printed:", error);
         }
-        await handleUpdateField(orderId, {
-            status: 'shipped',
-            trackingId: logistics.trackingId,
-            courierPartner: logistics.courier
-        });
-        setLogistics({ trackingId: "", courier: "", notes: "" });
+    };
+
+    const handleReceiptUpload = async (e, orderId) => {
+        const file = e.target.files?.[0] || e.dataTransfer?.files?.[0];
+        if (!file) return;
+
+        const formData = new FormData();
+        formData.append("receipt", file);
+        formData.append("orderId", orderId);
+
+        setIsUploading(true);
+        setOcrResult(null);
+        try {
+            const { data } = await axios.post(
+                `${serverUrl}/api/fulfillment/upload-receipt`,
+                formData,
+                {
+                    headers: { "Content-Type": "multipart/form-data" },
+                    withCredentials: true
+                }
+            );
+            if (data.success) {
+                toast.success("Receipt uploaded & OCR completed!");
+                setOcrResult({
+                    fileUrl: data.fileUrl,
+                    rawText: data.rawText,
+                    courierPartner: data.courierPartner,
+                    trackingId: data.trackingId
+                });
+            }
+        } catch (error) {
+            console.error("OCR Failed:", error);
+            const errorMsg = error.response?.data?.msg || "OCR scanning failed";
+            toast.error(errorMsg);
+            // Setup sandbox so manual entry works
+            setOcrResult({
+                fileUrl: error.response?.data?.fileUrl || "",
+                rawText: error.response?.data?.rawText || "",
+                courierPartner: "Unknown Carrier",
+                trackingId: ""
+            });
+        } finally {
+            setIsUploading(false);
+        }
+    };
+
+    const handleConfirmFulfillment = async (orderId) => {
+        if (!ocrResult?.courierPartner || ocrResult.courierPartner === "Unknown Carrier") {
+            return toast.error("Please select a valid Courier Partner");
+        }
+        if (!ocrResult?.trackingId?.trim()) {
+            return toast.error("Please enter a Tracking Number");
+        }
+
+        try {
+            const { data } = await axios.put(
+                `${serverUrl}/api/fulfillment/confirm/${orderId}`,
+                {
+                    courierPartner: ocrResult.courierPartner,
+                    trackingId: ocrResult.trackingId,
+                    courierReceiptUrl: ocrResult.fileUrl,
+                    courierReceiptRawText: ocrResult.rawText
+                },
+                { withCredentials: true }
+            );
+
+            if (data.success) {
+                toast.success("Fulfillment confirmed!");
+                setOrders(orders.map(o => o._id === orderId ? { ...o, ...data.order } : o));
+                setSelectedOrder({ ...selectedOrder, ...data.order });
+                setOcrResult(null);
+                handlePrepareEmail(orderId);
+            }
+        } catch (error) {
+            console.error("Confirmation failed:", error);
+            toast.error(error.response?.data?.msg || "Confirmation failed");
+        }
+    };
+
+    const handlePrepareEmail = async (orderId) => {
+        setIsPreparingEmail(true);
+        setEmailPreview(null);
+        try {
+            const { data } = await axios.post(
+                `${serverUrl}/api/fulfillment/preview-email/${orderId}`,
+                {},
+                { withCredentials: true }
+            );
+            if (data.success) {
+                setEmailPreview({
+                    subject: data.subject,
+                    html: data.html,
+                    text: data.text,
+                    customerEmail: data.customerEmail
+                });
+            }
+        } catch (error) {
+            console.error("Preparing email failed:", error);
+            toast.error(error.response?.data?.msg || "Failed to prepare email preview");
+        } finally {
+            setIsPreparingEmail(false);
+        }
+    };
+
+    const handleSendTestEmail = async (orderId) => {
+        if (!testEmailAddress.trim()) {
+            return toast.error("Please enter a test email address");
+        }
+        try {
+            const { data } = await axios.post(
+                `${serverUrl}/api/fulfillment/test-email/${orderId}`,
+                {
+                    subject: emailPreview.subject,
+                    html: emailPreview.html,
+                    text: emailPreview.text,
+                    testEmail: testEmailAddress
+                },
+                { withCredentials: true }
+            );
+            if (data.success) {
+                toast.success(data.msg || "Test email sent!");
+            }
+        } catch (error) {
+            console.error("Test email failed:", error);
+            toast.error(error.response?.data?.msg || "Failed to send test email");
+        }
+    };
+
+    const handleSendShipmentEmail = async (orderId) => {
+        try {
+            const { data } = await axios.post(
+                `${serverUrl}/api/fulfillment/send-email/${orderId}`,
+                {
+                    subject: emailPreview.subject,
+                    html: emailPreview.html,
+                    text: emailPreview.text
+                },
+                { withCredentials: true }
+            );
+            if (data.success) {
+                toast.success("Shipment email sent & status updated to Shipped!");
+                setOrders(orders.map(o => o._id === orderId ? { ...o, ...data.order } : o));
+                setSelectedOrder({ ...selectedOrder, ...data.order });
+                setEmailPreview(null);
+            }
+        } catch (error) {
+            console.error("Fulfillment email sending failed:", error);
+            toast.error(error.response?.data?.msg || "Failed to send shipment email");
+        }
     };
 
     const handleDeleteOrder = async (orderId) => {
@@ -78,6 +253,21 @@ const AdminOrders = () => {
             }
         } catch (error) {
             toast.error("Deletion failed");
+        }
+    };
+
+    const fetchAuditLogs = async (orderId) => {
+        setIsLoadingAudit(true);
+        try {
+            const { data } = await axios.get(`${serverUrl}/api/fulfillment/audit-logs/${orderId}`, { withCredentials: true });
+            if (data.success) {
+                setAuditLogs(data.logs);
+            }
+        } catch (error) {
+            console.error("Failed to fetch audit logs:", error);
+            toast.error("Failed to load audit logs");
+        } finally {
+            setIsLoadingAudit(false);
         }
     };
 
@@ -304,7 +494,7 @@ const AdminOrders = () => {
                                                 <ExternalLink size={14} />
                                             </button>
                                             <button
-                                                onClick={() => printPackingSlip(order)}
+                                                onClick={() => handlePrintLabel(order)}
                                                 className="p-2.5 bg-white border border-slate-200 rounded-xl text-slate-400 hover:text-slate-900 hover:border-slate-900 transition-all shadow-sm"
                                                 title="Print Packing Slip"
                                             >
@@ -351,10 +541,10 @@ const AdminOrders = () => {
                             </div>
                             <button
                                 onClick={() => setSelectedOrder(null)}
-                                className="w-10 h-10 flex items-center justify-center rounded-full bg-slate-100 text-slate-500 hover:bg-red-50 hover:text-red-600 transition-all shadow-sm"
+                                className="w-10 h-10 flex items-center justify-center rounded-full border border-slate-200 bg-white text-slate-600 hover:bg-red-500 hover:text-white hover:rotate-90 hover:scale-105 transition-all duration-300 shadow-sm cursor-pointer"
                                 title="Close Panel"
                             >
-                                <X size={20} strokeWidth={2.5} />
+                                <X size={18} />
                             </button>
                         </div>
 
@@ -404,36 +594,236 @@ const AdminOrders = () => {
                                             </div>
                                         </div>
                                     </div>
+                                    {/* Fulfillment Timeline Progress */}
+                                    <div className="mt-8 pt-8 border-t border-slate-100">
+                                        <h5 className="text-[10px] font-black text-slate-900 uppercase tracking-widest mb-6">Fulfillment Progress Timeline</h5>
+                                        <div className="flex flex-wrap items-center justify-between gap-y-4">
+                                            {[
+                                                { label: "Placed", done: true },
+                                                { label: "Paid", done: selectedOrder.paymentStatus === "completed" },
+                                                { label: "Label Printed", done: selectedOrder.labelPrinted },
+                                                { label: "Receipt Uploaded", done: !!selectedOrder.courierReceiptUrl },
+                                                { label: "OCR Completed", done: !!selectedOrder.courierReceiptRawText },
+                                                { label: "Tracking Generated", done: !!selectedOrder.trackingId },
+                                                { label: "Email Sent", done: selectedOrder.shipmentEmailSent }
+                                            ].map((step, idx) => (
+                                                <div key={idx} className="flex items-center gap-2">
+                                                    <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold ${step.done ? 'bg-[#24672E] text-white' : 'bg-slate-100 text-slate-300 border border-slate-200'}`}>
+                                                        {step.done ? "✓" : idx + 1}
+                                                    </div>
+                                                    <span className={`text-[10px] font-bold uppercase tracking-wider ${step.done ? 'text-slate-900' : 'text-slate-300'}`}>{step.label}</span>
+                                                    {idx < 6 && <div className={`h-[1px] w-4 hidden sm:block ${step.done ? 'bg-[#24672E]' : 'bg-slate-200'}`}></div>}
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
 
-                                    {/* Logistics Input Control */}
-                                    {selectedOrder.status === 'processing' && (
-                                        <div className="mt-8 pt-8 border-t border-slate-100 animate-in slide-in-from-top-4">
-                                            <div className="flex items-center gap-2 mb-4">
-                                                <div className="w-1.5 h-6 bg-blue-500 rounded-full"></div>
-                                                <h5 className="text-[10px] font-black text-slate-900 uppercase tracking-widest">Confirm Shipment Details</h5>
-                                            </div>
-                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                                <input
-                                                    type="text"
-                                                    placeholder="Enter Tracking AWB ID..."
-                                                    className="p-4 bg-slate-900 text-white placeholder:text-slate-500 rounded-xl font-bold text-xs outline-none border border-slate-800 focus:border-blue-500"
-                                                    value={logistics.trackingId}
-                                                    onChange={(e) => setLogistics({ ...logistics, trackingId: e.target.value })}
-                                                />
-                                                <input
-                                                    type="text"
-                                                    placeholder="Courier Name (Delhivery, BlueDart...)"
-                                                    className="p-4 bg-slate-900 text-white placeholder:text-slate-500 rounded-xl font-bold text-xs outline-none border border-slate-800 focus:border-blue-500"
-                                                    value={logistics.courier}
-                                                    onChange={(e) => setLogistics({ ...logistics, courier: e.target.value })}
-                                                />
-                                            </div>
+                                    {/* Action Flow - Step by Step */}
+                                    {!selectedOrder.labelPrinted && (
+                                        <div className="mt-8 pt-8 border-t border-slate-100 text-center bg-slate-50 p-6 rounded-2xl border border-slate-200">
+                                            <AlertCircle className="w-8 h-8 text-amber-500 mx-auto mb-2" />
+                                            <p className="text-xs font-bold text-slate-700">Generate and print the packing slip first to begin the fulfillment process.</p>
                                             <button
-                                                onClick={() => handleShipOrder(selectedOrder._id)}
-                                                className="mt-4 w-full bg-blue-600 text-white py-4 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] hover:bg-blue-700 hover:shadow-xl hover:shadow-blue-200 transition-all flex items-center justify-center gap-3"
+                                                onClick={() => handlePrintLabel(selectedOrder)}
+                                                className="mt-4 px-6 py-3 bg-[#FFDD00] text-slate-900 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-yellow-400 transition-colors"
                                             >
-                                                <Truck size={16} /> Generate Shipment Update
+                                                Print Packing Slip
                                             </button>
+                                        </div>
+                                    )}
+
+                                    {/* OCR Upload Area */}
+                                    {selectedOrder.labelPrinted && !selectedOrder.trackingId && !ocrResult && (
+                                        <div className="mt-8 pt-8 border-t border-slate-100">
+                                            <h5 className="text-[10px] font-black text-slate-900 uppercase tracking-widest mb-4">Upload Courier Receipt</h5>
+                                            <div
+                                                onDragOver={(e) => e.preventDefault()}
+                                                onDrop={(e) => { e.preventDefault(); handleReceiptUpload(e, selectedOrder._id); }}
+                                                className="border-2 border-dashed border-slate-300 rounded-2xl p-8 text-center hover:bg-slate-50 hover:border-slate-400 transition-all cursor-pointer relative"
+                                            >
+                                                <input
+                                                    type="file"
+                                                    accept="image/*,application/pdf"
+                                                    onChange={(e) => handleReceiptUpload(e, selectedOrder._id)}
+                                                    className="absolute inset-0 opacity-0 cursor-pointer"
+                                                />
+                                                {isUploading ? (
+                                                    <div className="flex flex-col items-center justify-center">
+                                                        <Loader2 className="w-8 h-8 text-[#FFDD00] animate-spin mb-2" />
+                                                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Running OCR Analysis...</p>
+                                                    </div>
+                                                ) : (
+                                                    <div className="flex flex-col items-center justify-center">
+                                                        <UploadCloud className="w-8 h-8 text-slate-400 mb-2" />
+                                                        <p className="text-[11px] font-bold text-slate-600">Drag & drop receipt here, or click to browse</p>
+                                                        <p className="text-[9px] font-bold text-slate-400 mt-1">Supports PNG, JPG, JPEG, and PDF (Max 10MB)</p>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* OCR Sandbox Confirmation Dialog */}
+                                    {ocrResult && (
+                                        <div className="mt-8 pt-8 border-t border-slate-100 bg-slate-50 p-6 rounded-2xl border border-slate-200">
+                                            <h5 className="text-[10px] font-black text-[#24672E] uppercase tracking-widest mb-4">Confirm OCR Extraction Results</h5>
+
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                                                <div>
+                                                    <label className="block text-[9px] font-black text-slate-400 uppercase mb-2">Courier Partner</label>
+                                                    <select
+                                                        value={ocrResult.courierPartner}
+                                                        onChange={(e) => setOcrResult({ ...ocrResult, courierPartner: e.target.value })}
+                                                        className="w-full p-3 bg-white border border-slate-200 rounded-xl outline-none font-bold text-xs"
+                                                    >
+                                                        <option value="Unknown Carrier">Unknown Carrier</option>
+                                                        {carriers.map(c => <option key={c._id} value={c.name}>{c.name}</option>)}
+                                                    </select>
+                                                </div>
+                                                <div>
+                                                    <label className="block text-[9px] font-black text-slate-400 uppercase mb-2">AWB / Tracking Number</label>
+                                                    <input
+                                                        type="text"
+                                                        value={ocrResult.trackingId}
+                                                        onChange={(e) => setOcrResult({ ...ocrResult, trackingId: e.target.value })}
+                                                        className="w-full p-3 bg-white border border-slate-200 rounded-xl outline-none font-bold text-xs"
+                                                        placeholder="Enter Tracking ID..."
+                                                    />
+                                                </div>
+                                            </div>
+
+                                            {ocrResult.fileUrl && (
+                                                <div className="mb-4">
+                                                    <label className="block text-[9px] font-black text-slate-400 uppercase mb-2">Receipt Preview</label>
+                                                    <div className="bg-white border border-slate-200 p-3 rounded-xl flex items-center justify-between">
+                                                        <span className="text-[10px] font-bold text-slate-500 truncate max-w-[250px]">{ocrResult.fileUrl.split('/').pop()}</span>
+                                                        <a href={ocrResult.fileUrl} target="_blank" rel="noreferrer" className="text-blue-600 text-[10px] font-black uppercase hover:underline">View File ↗</a>
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            <div className="flex gap-2">
+                                                <button
+                                                    onClick={() => handleConfirmFulfillment(selectedOrder._id)}
+                                                    className="flex-1 bg-[#24672E] text-white py-3 rounded-xl text-[10px] font-black uppercase tracking-wider hover:bg-[#1E971D] transition-colors"
+                                                >
+                                                    Confirm Details
+                                                </button>
+                                                <button
+                                                    onClick={() => setOcrResult(null)}
+                                                    className="px-6 bg-white border border-slate-300 text-slate-600 py-3 rounded-xl text-[10px] font-black uppercase tracking-wider hover:bg-slate-100 transition-colors"
+                                                >
+                                                    Cancel
+                                                </button>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* Email Dispatcher Sandbox */}
+                                    {selectedOrder.trackingId && !selectedOrder.shipmentEmailSent && (
+                                        <div className="mt-8 pt-8 border-t border-slate-100">
+                                            {!emailPreview ? (
+                                                <div className="text-center py-4">
+                                                    {isPreparingEmail ? (
+                                                        <div className="flex flex-col items-center">
+                                                            <Loader2 className="w-6 h-6 text-blue-500 animate-spin mb-2" />
+                                                            <p className="text-[9px] font-black text-slate-400 uppercase">Generating Shipment Email Preview...</p>
+                                                        </div>
+                                                    ) : (
+                                                        <button
+                                                            onClick={() => handlePrepareEmail(selectedOrder._id)}
+                                                            className="px-6 py-3 bg-blue-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-blue-700 transition-colors"
+                                                        >
+                                                            Prepare Shipment Email Preview
+                                                        </button>
+                                                    )}
+                                                </div>
+                                            ) : (
+                                                <div className="bg-slate-50 border border-slate-200 rounded-2xl p-6">
+                                                    <h5 className="text-[10px] font-black text-blue-600 uppercase tracking-widest mb-4">Shipment Email Dispatcher</h5>
+
+                                                    <div className="space-y-4 mb-4">
+                                                        <div>
+                                                            <label className="block text-[9px] font-black text-slate-400 uppercase mb-1">Email Subject</label>
+                                                            <input
+                                                                type="text"
+                                                                value={emailPreview.subject}
+                                                                onChange={(e) => setEmailPreview({ ...emailPreview, subject: e.target.value })}
+                                                                className="w-full p-3 bg-white border border-slate-200 rounded-xl outline-none font-bold text-xs"
+                                                            />
+                                                        </div>
+                                                        <div>
+                                                            <label className="block text-[9px] font-black text-slate-400 uppercase mb-1">Recipient</label>
+                                                            <div className="p-3 bg-slate-100 border border-slate-200 rounded-xl font-mono text-[11px] text-slate-600">
+                                                                {emailPreview.customerEmail}
+                                                            </div>
+                                                        </div>
+                                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                            <div>
+                                                                <label className="block text-[9px] font-black text-slate-400 uppercase mb-1 font-bold">HTML Preview</label>
+                                                                <iframe
+                                                                    srcDoc={emailPreview.html}
+                                                                    className="w-full h-64 border border-slate-200 rounded-xl bg-white"
+                                                                    title="HTML Email Preview"
+                                                                />
+                                                            </div>
+                                                            <div>
+                                                                <label className="block text-[9px] font-black text-slate-400 uppercase mb-1 font-bold">Plain Text Preview</label>
+                                                                <textarea
+                                                                    value={emailPreview.text}
+                                                                    onChange={(e) => setEmailPreview({ ...emailPreview, text: e.target.value })}
+                                                                    className="w-full h-64 p-3 bg-white border border-slate-200 rounded-xl outline-none font-mono text-[10px] resize-none"
+                                                                />
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="flex gap-2 mb-4 bg-white p-4 rounded-xl border border-slate-200">
+                                                        <input
+                                                            type="email"
+                                                            placeholder="Enter admin test email address..."
+                                                            value={testEmailAddress}
+                                                            onChange={(e) => setTestEmailAddress(e.target.value)}
+                                                            className="flex-1 p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none font-bold text-xs"
+                                                        />
+                                                        <button
+                                                            onClick={() => handleSendTestEmail(selectedOrder._id)}
+                                                            className="px-6 bg-slate-900 text-white rounded-xl text-[10px] font-black uppercase tracking-wider hover:bg-slate-800 transition-colors"
+                                                        >
+                                                            Test Send
+                                                        </button>
+                                                    </div>
+
+                                                    <div className="flex gap-2">
+                                                        <button
+                                                            onClick={() => handleSendShipmentEmail(selectedOrder._id)}
+                                                            className="flex-1 bg-blue-600 text-white py-3 rounded-xl text-[10px] font-black uppercase tracking-wider hover:bg-blue-700 transition-colors flex items-center justify-center gap-2"
+                                                        >
+                                                            <Send size={12} /> Send Email to Customer
+                                                        </button>
+                                                        <button
+                                                            onClick={() => setEmailPreview(null)}
+                                                            className="px-6 bg-white border border-slate-300 text-slate-600 py-3 rounded-xl text-[10px] font-black uppercase tracking-wider hover:bg-slate-100 transition-colors"
+                                                        >
+                                                            Hide Preview
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
+
+                                    {/* Already Shipped Notification */}
+                                    {selectedOrder.shipmentEmailSent && (
+                                        <div className="mt-8 pt-8 border-t border-slate-100 bg-emerald-50 p-6 rounded-2xl border border-emerald-200">
+                                            <h5 className="text-[10px] font-black text-emerald-800 uppercase tracking-widest mb-2 flex items-center gap-2">
+                                                <CheckCircle2 size={14} /> Order Shipped & Notified
+                                            </h5>
+                                            <p className="text-[11px] font-bold text-slate-700 leading-relaxed">
+                                                The shipment email was successfully sent to the customer on <b>{new Date(selectedOrder.shipmentEmailSentAt).toLocaleString()}</b>.<br/>
+                                                AWB/Tracking Code: <b>{selectedOrder.trackingId}</b> via <b>{selectedOrder.courierPartner}</b>.<br/>
+                                                <a href={selectedOrder.trackingUrl} target="_blank" rel="noreferrer" className="text-emerald-700 hover:underline font-black uppercase mt-2 inline-block">Track Package ↗</a>
+                                            </p>
                                         </div>
                                     )}
                                 </div>
@@ -447,7 +837,7 @@ const AdminOrders = () => {
                                                 <img src={item.image} className="w-16 h-16 object-contain mix-blend-multiply flex-shrink-0" />
                                                 <div className="flex-1 min-w-0">
                                                     <p className="text-[11px] font-black text-slate-900 uppercase truncate">{item.name}</p>
-                                                    <p className="text-[10px] font-bold text-slate-500 mt-1">QTY: {item.quantity} | SKU: OIL-${item.productId.substring(0, 6).toUpperCase()}</p>
+                                                    <p className="text-[10px] font-bold text-slate-500 mt-1">QTY: {item.quantity} | SKU: OIL-${((typeof item.productId === 'object' ? item.productId?._id : item.productId) || "").substring(0, 6).toUpperCase()}</p>
                                                 </div>
                                                 <p className="text-sm font-black text-slate-900 font-mono">₹{item.price * item.quantity}</p>
                                             </div>
@@ -586,15 +976,112 @@ const AdminOrders = () => {
                                 </button>
                             </div>
                             <div className="flex items-center gap-4">
-                                <button className="px-8 py-3 bg-[#FFDD00] text-slate-900 rounded-xl text-[10px] font-black uppercase tracking-widest hover:shadow-xl hover:shadow-yellow-100 transition-all">
+                                <button
+                                    onClick={() => {
+                                        setShowAuditModal(true);
+                                        fetchAuditLogs(selectedOrder._id);
+                                    }}
+                                    className="px-8 py-3 bg-[#FFDD00] text-slate-900 rounded-xl text-[10px] font-black uppercase tracking-widest hover:shadow-xl hover:shadow-yellow-100 transition-all"
+                                >
                                     Full Audit Report
                                 </button>
-                                <button className="px-8 py-3 bg-slate-900 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-slate-800 transition-all">
+                                <button
+                                    onClick={() => {
+                                        const currentIndex = orders.findIndex(o => o._id === selectedOrder._id);
+                                        if (currentIndex !== -1 && currentIndex < orders.length - 1) {
+                                            setSelectedOrder(orders[currentIndex + 1]);
+                                            setEmailPreview(null);
+                                            setOcrResult(null);
+                                        } else {
+                                            toast.error("No more orders in the list!");
+                                        }
+                                    }}
+                                    disabled={orders.findIndex(o => o._id === selectedOrder._id) === orders.length - 1}
+                                    className="px-8 py-3 bg-slate-900 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-slate-800 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
                                     Next Order →
                                 </button>
                             </div>
                         </div>
 
+                    </div>
+                </div>
+            )}
+
+            {/* ── INTERACTIVE AUDIT TRAIL MODAL ── */}
+            {showAuditModal && (
+                <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
+                    <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-md" onClick={() => setShowAuditModal(false)}></div>
+                    <div className="bg-[#f0f2f2] w-full max-w-5xl max-h-[90vh] rounded-2xl shadow-2xl relative z-10 flex flex-col overflow-hidden border-t-8 border-[#24672E]">
+                        {/* Audit Header */}
+                        <div className="bg-white px-8 py-5 border-b border-slate-300 flex items-center justify-between">
+                            <div className="flex items-center gap-4">
+                                <h3 className="text-lg font-black text-slate-900 uppercase tracking-tight flex items-center gap-2">
+                                    <ShieldAlert className="text-[#24672E]" size={20} /> Order Audit Trail & History
+                                </h3>
+                                <div className="w-[1px] h-6 bg-slate-200"></div>
+                                <p className="text-xs font-black text-slate-500 font-mono">Order ID: {selectedOrder?._id.toUpperCase()}</p>
+                            </div>
+                            <button
+                                onClick={() => setShowAuditModal(false)}
+                                className="w-10 h-10 flex items-center justify-center rounded-full border border-slate-200 bg-white text-slate-600 hover:bg-red-500 hover:text-white hover:rotate-90 hover:scale-105 transition-all duration-300 shadow-sm cursor-pointer"
+                                title="Close Report"
+                            >
+                                <X size={18} />
+                            </button>
+                        </div>
+
+                        {/* Audit Body */}
+                        <div className="flex-1 overflow-y-auto p-8 max-w-5xl mx-auto w-full">
+                            {isLoadingAudit ? (
+                                <div className="flex flex-col items-center justify-center h-64">
+                                    <Loader2 className="w-10 h-10 text-[#24672E] animate-spin mb-4" />
+                                    <p className="text-xs font-black text-slate-400 uppercase tracking-widest">Loading audit logs...</p>
+                                </div>
+                            ) : auditLogs.length === 0 ? (
+                                <div className="text-center py-20 bg-white rounded-3xl border border-slate-200 p-8 shadow-sm">
+                                    <p className="text-sm font-bold text-slate-500">No audit logs found for this order.</p>
+                                </div>
+                            ) : (
+                                <div className="space-y-6">
+                                    {auditLogs.map((log) => (
+                                        <div key={log._id} className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col md:flex-row md:items-start justify-between gap-6 hover:shadow-md transition-shadow">
+                                            <div className="space-y-3">
+                                                <div className="flex flex-wrap items-center gap-3">
+                                                    <span className={`px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-wider ${
+                                                        log.eventType.includes("FAIL") || log.eventType.includes("ERROR") 
+                                                            ? "bg-red-50 text-red-600 border border-red-200" 
+                                                            : log.eventType.includes("SENT") || log.eventType.includes("COMPLETED") || log.eventType.includes("GENERATION")
+                                                            ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                                                            : "bg-blue-50 text-blue-700 border border-blue-200"
+                                                    }`}>
+                                                        {log.eventType.replace(/_/g, " ")}
+                                                    </span>
+                                                    <span className="text-[10px] font-bold text-slate-400">{new Date(log.timestamp).toLocaleString()}</span>
+                                                </div>
+                                                
+                                                {log.details && (
+                                                    <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 font-mono text-[10px] text-slate-600 space-y-1">
+                                                        {Object.entries(log.details).map(([key, val]) => (
+                                                            <div key={key} className="break-all">
+                                                                <span className="font-bold text-slate-800 uppercase tracking-wider mr-2">{key}:</span> 
+                                                                {typeof val === 'object' ? JSON.stringify(val) : String(val)}
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                )}
+                                            </div>
+
+                                            <div className="text-left md:text-right text-[10px] font-bold text-slate-500 space-y-1 min-w-[200px]">
+                                                <p><span className="font-black text-slate-400 uppercase tracking-widest">Admin:</span> {log.adminId?.fullName || "System/Automatic"}</p>
+                                                <p><span className="font-black text-slate-400 uppercase tracking-widest">IP Addr:</span> {log.ipAddress || "N/A"}</p>
+                                                <p><span className="font-black text-slate-400 uppercase tracking-widest">Browser:</span> {log.browser || "N/A"} ({log.device || "N/A"})</p>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
                     </div>
                 </div>
             )}

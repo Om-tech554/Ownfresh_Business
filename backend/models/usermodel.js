@@ -35,40 +35,29 @@ const userSchema = new mongoose.Schema({
         enum: ["user", "admin", "blogger"],
         default: "user",
     },
-    // Referral and Affiliate fields
     referralCode: {
         type: String,
+        uppercase: true,
+        trim: true,
         unique: true,
-        sparse: true
-    },
-    hasChangedReferralCode: {
-        type: Boolean,
-        default: false
-    },
-    referredBy: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "User",
-        default: null
-    },
-    referralCount: {
-        type: Number,
-        default: 0
-    },
-    isAffiliate: {
-        type: Boolean,
-        default: false
-    },
-    commissionBalance: {
-        type: Number,
-        default: 0
-    },
-    totalEarnings: {
-        type: Number,
-        default: 0
+        sparse: true,
+        index: true
     },
     wallet: {
         type: Number,
         default: 0
+    },
+    walletBalance: {
+        type: Number,
+        default: 0
+    },
+    referralPoints: {
+        type: Number,
+        default: 0
+    },
+    hasRedeemedReferral: {
+        type: Boolean,
+        default: false
     },
     subscriptionActive: {
         type: Boolean,
@@ -86,36 +75,11 @@ const userSchema = new mongoose.Schema({
     }
 }, { timestamps: true });
 
-// Pre-save hook to generate referral code
-userSchema.pre('save', async function () {
-    if (!this.referralCode) {
-        let prefix = "OWN";
-        if (this.fullName) {
-            // Keep only alphanumeric characters
-            const cleanName = this.fullName.replace(/[^a-zA-Z0-9]/g, "").toUpperCase();
-            if (cleanName.length > 0) {
-                prefix = cleanName.substring(0, 5); // Take first 5 characters
-            }
-        }
-        
-        let code = "";
-        let isUnique = false;
-        let attempts = 0;
-        
-        // Loop until unique code generated
-        while (!isUnique && attempts < 10) {
-            attempts++;
-            const suffix = Math.random().toString(36).substring(2, 6).toUpperCase();
-            code = `${prefix}${suffix}`;
-            
-            // Check if user model exists in mongoose.models
-            const User = mongoose.models.User || mongoose.model("User", userSchema);
-            const existing = await User.findOne({ referralCode: code });
-            if (!existing) {
-                isUnique = true;
-            }
-        }
-        this.referralCode = code;
+userSchema.pre("save", function() {
+    if (this.isModified("wallet")) {
+        this.walletBalance = this.wallet;
+    } else if (this.isModified("walletBalance")) {
+        this.wallet = this.walletBalance;
     }
 });
 

@@ -16,7 +16,7 @@ const AdminBlogDetails = () => {
 
   // SECURITY: If not admin → redirect
   useEffect(() => {
-    if (userData?.role !== "admin") navigate("/"); 
+    if (userData?.role !== "admin") navigate("/");
   }, [userData]);
 
   useEffect(() => {
@@ -158,9 +158,8 @@ const AdminBlogDetails = () => {
       {/* FLOATING BUTTON */}
       <button
         onClick={goToTop}
-        className={`fixed bottom-8 right-8 p-3 bg-[#24672E] text-white rounded-full shadow-xl hover:bg-[#e64527] transition-all z-50 ${
-          showTopBtn ? "opacity-100" : "opacity-0 pointer-events-none"
-        }`}
+        className={`fixed bottom-8 right-8 p-3 bg-[#24672E] text-white rounded-full shadow-xl hover:bg-[#e64527] transition-all z-50 ${showTopBtn ? "opacity-100" : "opacity-0 pointer-events-none"
+          }`}
       >
         <ChevronUp size={24} />
       </button>

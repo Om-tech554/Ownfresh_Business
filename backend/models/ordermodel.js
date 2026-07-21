@@ -50,6 +50,26 @@ const orderSchema = new mongoose.Schema({
   courierPartner: {
     type: String
   },
+  courierReceiptUrl: {
+    type: String
+  },
+  courierReceiptRawText: {
+    type: String
+  },
+  trackingUrl: {
+    type: String
+  },
+  labelPrinted: {
+    type: Boolean,
+    default: false
+  },
+  shipmentEmailSent: {
+    type: Boolean,
+    default: false
+  },
+  shipmentEmailSentAt: {
+    type: Date
+  },
   adminNotes: {
     type: String
   },
@@ -89,16 +109,21 @@ const orderSchema = new mongoose.Schema({
     type: Number,
     default: 0
   },
-  referrer: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "User",
-    default: null
+  referralCode: {
+    type: String,
+    uppercase: true,
+    trim: true
   },
-  referralCommission: {
-    type: Number,
-    default: 0
+  referralStatus: {
+    type: String,
+    enum: ["PENDING", "APPROVED", "REJECTED", "NONE"],
+    default: "NONE"
   },
-  isReferralCounted: {
+  rewardCredited: {
+    type: Boolean,
+    default: false
+  },
+  isReferralRewarded: {
     type: Boolean,
     default: false
   },
@@ -107,6 +132,14 @@ const orderSchema = new mongoose.Schema({
     default: false
   }
 }, { timestamps: true });
+
+orderSchema.pre("save", function() {
+  if (this.isModified("isReferralRewarded")) {
+    this.rewardCredited = this.isReferralRewarded;
+  } else if (this.isModified("rewardCredited")) {
+    this.isReferralRewarded = this.rewardCredited;
+  }
+});
 
 // FIX OverwriteModelError
 export default mongoose.models.Order || mongoose.model("Order", orderSchema);

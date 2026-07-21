@@ -5,8 +5,10 @@ import {
     Search, Loader2, Users, User, Shield, Edit2, Trash2, X, Save, Phone, Mail, Wallet
 } from "lucide-react";
 import toast from "react-hot-toast";
+import { useConfirm } from "../../hooks/ConfirmContext.jsx";
 
 const AdminCustomers = () => {
+    const confirm = useConfirm();
     const [customers, setCustomers] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState("");
@@ -37,7 +39,7 @@ const AdminCustomers = () => {
             role: customer.role || "user",
             wallet: customer.wallet || 0,
             mobile: customer.mobile || "",
-            referralCode: customer.referralCode || ""
+            referralCode: customer.referralCode || "N/A"
         });
         setIsEditModalOpen(true);
     };
@@ -56,7 +58,13 @@ const AdminCustomers = () => {
     };
 
     const handleDeleteCustomer = async (id) => {
-        if (!window.confirm("CRITICAL: Permanently delete this customer? This action CANNOT be undone.")) return;
+        const isConfirmed = await confirm({
+            title: "CRITICAL: Delete Customer?",
+            message: "Permanently delete this customer? This action CANNOT be undone.",
+            type: "danger",
+            confirmText: "Delete Customer"
+        });
+        if (!isConfirmed) return;
 
         try {
             const { data } = await axios.delete(`${serverUrl}/api/user/admin/${id}`, { withCredentials: true });
@@ -271,15 +279,13 @@ const AdminCustomers = () => {
                             </div>
 
                             <div>
-                                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Referral Code</label>
-                                <div className="relative">
-                                    <input
-                                        type="text"
-                                        className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none font-bold text-xs focus:border-[#24672E] transition-all uppercase"
-                                        value={editForm.referralCode}
-                                        onChange={(e) => setEditForm({ ...editForm, referralCode: e.target.value.toUpperCase() })}
-                                    />
-                                </div>
+                                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Referral Code (Read-Only)</label>
+                                <input
+                                    type="text"
+                                    readOnly
+                                    className="w-full px-4 py-3 bg-slate-100 border border-slate-200 rounded-xl outline-none font-black text-xs text-slate-500 uppercase tracking-wider cursor-not-allowed"
+                                    value={editForm.referralCode}
+                                />
                             </div>
                         </div>
 

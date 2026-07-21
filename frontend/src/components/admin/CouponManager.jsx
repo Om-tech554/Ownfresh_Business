@@ -15,8 +15,10 @@ import {
 } from "lucide-react";
 import toast from "react-hot-toast";
 import { serverUrl } from "../../App";
+import { useConfirm } from "../../hooks/ConfirmContext.jsx";
 
 const CouponManager = () => {
+  const confirm = useConfirm();
   const [coupons, setCoupons] = useState([]);
   const [loading, setLoading] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
@@ -114,7 +116,13 @@ const CouponManager = () => {
   };
 
   const handleDelete = async (id) => {
-    if (!window.confirm("Are you sure you want to delete this coupon?")) return;
+    const isConfirmed = await confirm({
+      title: "Delete Coupon?",
+      message: "Are you sure you want to delete this coupon?",
+      type: "danger",
+      confirmText: "Delete"
+    });
+    if (!isConfirmed) return;
     try {
       await axios.delete(`${serverUrl}/api/coupon/${id}`, { withCredentials: true });
       toast.success("Promo code deleted");

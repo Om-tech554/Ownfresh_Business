@@ -247,8 +247,8 @@ const SignUp = () => {
   // GOOGLE SIGNUP
   // -------------------------
   const handleGoogleAuth = async () => {
-    if (mobile.length < 10)
-      return toast.error("Enter mobile number before Google signup");
+    if (mobile && mobile.length < 10)
+      return toast.error("Enter a valid 10-digit mobile number or leave it blank");
 
     const provider = new GoogleAuthProvider();
     setLoading(true);
@@ -271,7 +271,7 @@ const SignUp = () => {
         `${serverUrl}/api/auth/google-auth`,
         {
           idToken,
-          mobile: countryCode + mobile,
+          mobile: mobile ? (countryCode + mobile) : undefined,
           role,
         },
         { 

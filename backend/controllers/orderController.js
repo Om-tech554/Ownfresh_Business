@@ -1,6 +1,5 @@
 import mongoose from "mongoose";
 import Order from "../models/ordermodel.js";
-import { processReferralRewards } from "./referralController.js";
 
 // GET USER ORDERS
 export const getUserOrders = async (req, res) => {
@@ -72,11 +71,6 @@ export const updateOrderStatus = async (req, res) => {
     );
 
     if (!order) return res.status(404).json({ msg: "Order not found" });
-
-    // Process Referral Rewards if status changed to delivered
-    if (order.status === "delivered") {
-        await processReferralRewards(order._id);
-    }
 
     res.status(200).json({
       success: true,

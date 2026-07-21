@@ -23,9 +23,9 @@ const CategoryManager = () => {
         name: "",
         description: ""
     });
-     const [imageFile, setImageFile] = useState(null);
-     const [imagePreview, setImagePreview] = useState("");
-     const [showImagePicker, setShowImagePicker] = useState(false);
+    const [imageFile, setImageFile] = useState(null);
+    const [imagePreview, setImagePreview] = useState("");
+    const [showImagePicker, setShowImagePicker] = useState(false);
 
     const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
@@ -203,11 +203,11 @@ const CategoryManager = () => {
 
             {/* ADD/EDIT MODAL */}
             {showModal && (
-                <div 
+                <div
                     className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[2000] flex items-center justify-center p-4"
                     onClick={() => setShowModal(false)}
                 >
-                    <div 
+                    <div
                         className="bg-white w-full max-w-lg rounded-3xl overflow-hidden shadow-2xl animate-in fade-in zoom-in duration-200 flex flex-col max-h-[90vh]"
                         onClick={(e) => e.stopPropagation()}
                     >

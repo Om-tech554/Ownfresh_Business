@@ -24,14 +24,18 @@ const OrderReview = () => {
     couponDetails,
     setCouponDetails,
     useWallet,
-    prevStep
+    prevStep,
+    referralCode,
+    setReferralCode,
+    referralApplied,
+    setReferralApplied
   } = useCheckout();
 
   const [couponInput, setCouponInput] = useState(couponDetails.code || '');
   const [validatingCoupon, setValidatingCoupon] = useState(false);
+  const [referralInput, setReferralInput] = useState(referralCode || '');
+  const [validatingReferral, setValidatingReferral] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
-
-
 
   // Cart calculations
   const subtotal = cartItems.reduce((acc, item) => acc + (item.price * item.quantity), 0);
@@ -68,6 +72,35 @@ const OrderReview = () => {
     setCouponInput("");
     setCouponDetails({ code: '', discount: 0, isApplied: false });
     toast.success("Coupon removed");
+  };
+
+  const handleApplyReferral = async () => {
+    if (!referralInput.trim()) return toast.error("Enter referral code");
+    setValidatingReferral(true);
+    try {
+      const { data } = await axios.post(`${serverUrl}/api/referral/validate-code`, {
+        code: referralInput.trim()
+      }, { withCredentials: true });
+
+      if (data.success) {
+        setReferralCode(referralInput.trim().toUpperCase());
+        setReferralApplied(true);
+        toast.success("Referral code applied!");
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Invalid referral code");
+      setReferralCode('');
+      setReferralApplied(false);
+    } finally {
+      setValidatingReferral(false);
+    }
+  };
+
+  const removeReferral = () => {
+    setReferralInput("");
+    setReferralCode("");
+    setReferralApplied(false);
+    toast.success("Referral code removed");
   };
 
   // ========================================================
@@ -245,6 +278,7 @@ const OrderReview = () => {
         totalAmount: finalAmount,
         discountAmount: discount,
         couponCode: couponDetails.isApplied ? couponDetails.code : "",
+        referralCode: referralApplied ? referralCode : "",
         cgst,
         sgst,
         taxAmount: totalTax,
@@ -372,34 +406,68 @@ const OrderReview = () => {
         </div>
       </div>
 
-      {/* Referral Code Application */}
-      <div className="mb-8 border-t border-gray-100 pt-6">
-        <h3 className="font-bold text-gray-800 mb-3">Referral Code</h3>
-        <div className="flex gap-2 max-w-md">
-          <input
-            type="text"
-            placeholder="Enter referral code"
-            className="flex-1 px-4 py-3 border border-gray-200 rounded-xl outline-none focus:border-yellow-500 uppercase font-bold text-sm"
-            value={couponInput}
-            onChange={(e) => setCouponInput(e.target.value.toUpperCase())}
-            disabled={couponDetails.isApplied}
-          />
-          {couponDetails.isApplied ? (
-            <button
-              onClick={removeCoupon}
-              className="px-6 py-3 bg-red-100 text-red-600 rounded-xl font-bold text-sm hover:bg-red-200 transition"
-            >
-              Remove
-            </button>
-          ) : (
-            <button
-              onClick={handleApplyCoupon}
-              disabled={validatingCoupon}
-              className="px-6 py-3 bg-gray-900 text-white rounded-xl font-bold text-sm hover:bg-yellow-500 hover:text-black transition disabled:opacity-50"
-            >
-              {validatingCoupon ? "Applying..." : "Apply"}
-            </button>
-          )}
+      {/* Coupon & Referral Code Section */}
+      <div className="mb-8 border-t border-gray-100 pt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Promo Coupon Application */}
+        <div>
+          <h3 className="font-bold text-gray-800 mb-3">Promo Coupon</h3>
+          <div className="flex gap-2 w-full">
+            <input
+              type="text"
+              placeholder="Enter coupon code"
+              className="flex-1 px-4 py-3 border border-gray-200 rounded-xl outline-none focus:border-yellow-500 uppercase font-bold text-sm"
+              value={couponInput}
+              onChange={(e) => setCouponInput(e.target.value.toUpperCase())}
+              disabled={couponDetails.isApplied}
+            />
+            {couponDetails.isApplied ? (
+              <button
+                onClick={removeCoupon}
+                className="px-6 py-3 bg-red-100 text-red-600 rounded-xl font-bold text-sm hover:bg-red-200 transition"
+              >
+                Remove
+              </button>
+            ) : (
+              <button
+                onClick={handleApplyCoupon}
+                disabled={validatingCoupon}
+                className="px-6 py-3 bg-gray-900 text-white rounded-xl font-bold text-sm hover:bg-yellow-500 hover:text-black transition disabled:opacity-50"
+              >
+                {validatingCoupon ? "Applying..." : "Apply"}
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Referral Code Application */}
+        <div>
+          <h3 className="font-bold text-gray-800 mb-3">Referral Code</h3>
+          <div className="flex gap-2 w-full">
+            <input
+              type="text"
+              placeholder="Enter referral code"
+              className="flex-1 px-4 py-3 border border-gray-200 rounded-xl outline-none focus:border-yellow-500 uppercase font-bold text-sm"
+              value={referralInput}
+              onChange={(e) => setReferralInput(e.target.value.toUpperCase())}
+              disabled={referralApplied}
+            />
+            {referralApplied ? (
+              <button
+                onClick={removeReferral}
+                className="px-6 py-3 bg-red-100 text-red-600 rounded-xl font-bold text-sm hover:bg-red-200 transition"
+              >
+                Remove
+              </button>
+            ) : (
+              <button
+                onClick={handleApplyReferral}
+                disabled={validatingReferral}
+                className="px-6 py-3 bg-gray-900 text-white rounded-xl font-bold text-sm hover:bg-yellow-500 hover:text-black transition disabled:opacity-50"
+              >
+                {validatingReferral ? "Applying..." : "Apply"}
+              </button>
+            )}
+          </div>
         </div>
       </div>
 

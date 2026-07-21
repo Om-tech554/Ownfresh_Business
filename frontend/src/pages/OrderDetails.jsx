@@ -180,55 +180,57 @@ const OrderDetails = () => {
                             </div>
                         </div>
 
-                        {/* Order Progress / Tracking */}
+                        {/* Order Fulfillment Progress Timeline */}
                         <div className="bg-white rounded-3xl border border-slate-200 shadow-sm p-8">
                             <h4 className="text-[11px] font-black text-slate-900 uppercase tracking-widest mb-8 flex items-center gap-2">
                                 {getStatusIcon(order.status)} Order Status: {order.status}
                             </h4>
-                            <div className="relative pt-4 pb-8 px-10">
-                                {/* Amazon Style Vertical/Horizontal Stepper */}
-                                <div className="flex items-center justify-between relative">
-                                    <div className="absolute top-1/2 left-0 w-full h-1.5 bg-slate-100 -translate-y-1/2 rounded-full"></div>
-                                    <div className="absolute top-1/2 left-0 h-1.5 bg-[#24672E] -translate-y-1/2 rounded-full transition-all duration-1000"
-                                        style={{
-                                            width: order.status === 'pending' ? '5%' :
-                                                order.status === 'processing' ? '33%' :
-                                                    order.status === 'shipped' ? '66%' :
-                                                        order.status === 'delivered' ? '100%' : '0%'
-                                        }}
-                                    ></div>
-
-                                    {['pending', 'processing', 'shipped', 'delivered'].map((s, idx) => {
-                                        const isCompleted = ['delivered', 'shipped', 'processing', 'pending'].indexOf(order.status) >= ['delivered', 'shipped', 'processing', 'pending'].indexOf(s);
-
-                                        if (order.status === 'cancelled' || order.status === 'cancellation_requested') {
-                                            if (idx === 0) return (
-                                                <div key={s} className="relative z-10 flex flex-col items-center">
-                                                    <div className={`w-12 h-12 rounded-full flex items-center justify-center border-4 border-white shadow-lg transition-colors duration-500 ${order.status === 'cancelled' ? 'bg-red-500' : 'bg-orange-500'} text-white`}>
-                                                        <XCircle size={20} />
-                                                    </div>
-                                                    <p className={`absolute top-full mt-3 text-[10px] font-black uppercase whitespace-nowrap tracking-wider ${order.status === 'cancelled' ? 'text-red-500' : 'text-orange-500'}`}>
-                                                        {order.status === 'cancelled' ? 'Cancelled' : 'Cancel Requested'}
-                                                    </p>
+                            {['cancelled', 'cancellation_requested'].includes(order.status) ? (
+                                <div className="text-center py-6">
+                                    <XCircle className={`w-12 h-12 mx-auto mb-2 ${order.status === 'cancelled' ? 'text-red-500' : 'text-orange-500 animate-pulse'}`} />
+                                    <h5 className={`text-sm font-black uppercase tracking-wider ${order.status === 'cancelled' ? 'text-red-600' : 'text-orange-600'}`}>
+                                        {order.status === 'cancelled' ? 'Order Cancelled / Voided' : 'Cancellation Under Review'}
+                                    </h5>
+                                    <p className="text-[10px] font-bold text-slate-500 mt-2 capitalize leading-relaxed">
+                                        Reason: {order.cancellationReason || "No reason specified."}
+                                    </p>
+                                </div>
+                            ) : (
+                                <div className="space-y-6">
+                                    {[
+                                        { label: "Order Placed", done: true, desc: "We have received your order." },
+                                        { label: "Payment Received", done: order.paymentStatus === 'completed', desc: order.paymentStatus === 'completed' ? "Payment cleared successfully." : "Awaiting payment clearance." },
+                                        { label: "Thank You Email Sent", done: order.paymentStatus === 'completed', desc: "Order confirmation sent to your email." },
+                                        { label: "Packing & Preparing", done: order.labelPrinted, desc: "We are packing your items at our warehouse." },
+                                        { label: "Receipt Uploaded", done: !!order.courierReceiptUrl, desc: "Courier partner receipt received." },
+                                        { label: "Tracking Generated", done: !!order.trackingId, desc: order.trackingId ? `Tracking ID generated: ${order.trackingId}` : "Generating AWB shipment tracking number." },
+                                        { label: "Shipped & Dispatched", done: order.shipmentEmailSent, desc: order.shipmentEmailSent ? "Package handed over to courier." : "Awaiting dispatch." }
+                                    ].map((step, idx) => (
+                                        <div key={idx} className="flex gap-4">
+                                            <div className="flex flex-col items-center">
+                                                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all ${
+                                                    step.done ? 'bg-[#24672E] text-white shadow-md' : 'bg-slate-100 text-slate-300 border border-slate-200'
+                                                }`}>
+                                                    {step.done ? "✓" : idx + 1}
                                                 </div>
-                                            );
-                                            return null;
-                                        }
-
-                                        return (
-                                            <div key={s} className="relative z-10 flex flex-col items-center">
-                                                <div className={`w-10 h-10 rounded-full flex items-center justify-center border-4 border-white shadow-md transition-colors duration-500 ${isCompleted ? 'bg-[#24672E] text-white' : 'bg-white text-slate-200 border-slate-100'}`}>
-                                                    <CheckCircle2 size={16} className={isCompleted ? 'block' : 'hidden'} />
-                                                    <div className={`w-2.5 h-2.5 bg-slate-200 rounded-full ${isCompleted ? 'hidden' : 'block'}`}></div>
-                                                </div>
-                                                <p className={`absolute top-full mt-3 text-[10px] font-black uppercase whitespace-nowrap tracking-wider ${isCompleted ? 'text-[#24672E]' : 'text-slate-400'}`}>
-                                                    {s}
+                                                {idx < 6 && (
+                                                    <div className={`w-0.5 h-10 ${
+                                                        step.done ? 'bg-[#24672E]' : 'bg-slate-100'
+                                                    }`} />
+                                                )}
+                                            </div>
+                                            <div className="pt-1">
+                                                <p className={`text-xs font-black uppercase tracking-wider ${step.done ? 'text-slate-900' : 'text-slate-300'}`}>
+                                                    {step.label}
+                                                </p>
+                                                <p className={`text-[10px] font-bold mt-0.5 ${step.done ? 'text-slate-500' : 'text-slate-300'}`}>
+                                                    {step.desc}
                                                 </p>
                                             </div>
-                                        );
-                                    })}
+                                        </div>
+                                    ))}
                                 </div>
-                            </div>
+                            )}
                         </div>
 
                         {/* Items List */}
@@ -246,7 +248,7 @@ const OrderDetails = () => {
                                             <h5 className="text-sm font-black text-slate-900 uppercase leading-tight mb-2">{item.name}</h5>
                                             <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Qty: {item.quantity} | ₹{item.price} each</p>
                                             <div className="mt-4 flex flex-wrap justify-center sm:justify-start gap-3">
-                                                <Link to={`/product/${item.productId}`} className="px-4 py-2 bg-slate-900 text-white text-[9px] font-black uppercase tracking-widest rounded-lg hover:bg-slate-800 transition-all">Buy it again</Link>
+                                                <Link to={`/product/${item.productId?._id || item.productId}`} className="px-4 py-2 bg-slate-900 text-white text-[9px] font-black uppercase tracking-widest rounded-lg hover:bg-slate-800 transition-all">Buy it again</Link>
                                                 <button className="px-4 py-2 bg-white border border-slate-200 text-slate-900 text-[9px] font-black uppercase tracking-widest rounded-lg hover:bg-slate-50 transition-all">View item</button>
                                             </div>
                                         </div>

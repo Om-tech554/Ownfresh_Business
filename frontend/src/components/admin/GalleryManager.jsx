@@ -197,7 +197,13 @@ const GalleryManager = () => {
   };
 
   const handleDeleteImage = async (id) => {
-    if (!window.confirm("Are you sure you want to delete this photo from gallery?")) return;
+    const isConfirmed = await confirm({
+      title: "Delete Image?",
+      message: "Are you sure you want to delete this photo from the gallery?",
+      type: "danger",
+      confirmText: "Delete"
+    });
+    if (!isConfirmed) return;
 
     setLoading(true);
     try {
@@ -311,9 +317,8 @@ const GalleryManager = () => {
           {images.map((img) => (
             <div
               key={img._id}
-              className={`bg-white rounded-2xl overflow-hidden border shadow-sm transition-all duration-300 flex flex-col group relative ${
-                img.isActive ? "border-slate-200 hover:shadow-md" : "border-slate-200 bg-slate-50/55 opacity-75"
-              }`}
+              className={`bg-white rounded-2xl overflow-hidden border shadow-sm transition-all duration-300 flex flex-col group relative ${img.isActive ? "border-slate-200 hover:shadow-md" : "border-slate-200 bg-slate-50/55 opacity-75"
+                }`}
             >
               {/* IMAGE PREVIEW */}
               <div className="relative w-full h-48 bg-slate-100 overflow-hidden">
@@ -330,11 +335,10 @@ const GalleryManager = () => {
                     {img.category}
                   </span>
                   <span
-                    className={`text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded ${
-                      img.isActive
+                    className={`text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded ${img.isActive
                         ? "bg-emerald-100 text-emerald-800"
                         : "bg-amber-100 text-amber-800"
-                    }`}
+                      }`}
                   >
                     Order: {img.displayOrder}
                   </span>

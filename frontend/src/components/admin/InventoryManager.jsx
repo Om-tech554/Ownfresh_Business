@@ -2,10 +2,12 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { Package, Search, Plus, Edit3, Trash2, Tag } from "lucide-react";
 import toast, { Toaster } from "react-hot-toast";
+import { useConfirm } from "../../hooks/ConfirmContext.jsx";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
 const InventoryManager = () => {
+  const confirm = useConfirm();
   const [products, setProducts] = useState([]);
   const [variants, setVariants] = useState([]);
   const [categories, setCategories] = useState([]);
@@ -99,7 +101,13 @@ const InventoryManager = () => {
   };
 
   const handleDeleteVariant = async (id) => {
-    if (!window.confirm("Are you sure you want to delete this variant?")) return;
+    const isConfirmed = await confirm({
+      title: "Delete Variant?",
+      message: "Are you sure you want to delete this variant?",
+      type: "danger",
+      confirmText: "Delete"
+    });
+    if (!isConfirmed) return;
     try {
       await axios.delete(`${API_BASE_URL}/api/inventory/variants/${id}`);
       toast.success("Variant deleted");

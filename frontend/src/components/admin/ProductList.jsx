@@ -133,8 +133,10 @@ import {
   Filter
 } from "lucide-react";
 import toast, { Toaster } from "react-hot-toast";
+import { useConfirm } from "../../hooks/ConfirmContext.jsx";
 
 const ProductList = () => {
+  const confirm = useConfirm();
   const [products, setProducts] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -179,7 +181,13 @@ const ProductList = () => {
   };
 
   const deleteProduct = async (id) => {
-    if (!window.confirm("Confirm deletion of this industrial asset?")) return;
+    const isConfirmed = await confirm({
+      title: "Delete Product?",
+      message: "Are you sure you want to permanently delete this product from the database?",
+      type: "danger",
+      confirmText: "Delete"
+    });
+    if (!isConfirmed) return;
 
     try {
       await axios.delete(`${API_BASE_URL}/api/product/delete/${id}`, {

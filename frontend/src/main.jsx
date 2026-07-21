@@ -6,6 +6,7 @@ import { BrowserRouter } from 'react-router-dom'
 import { Provider } from 'react-redux'
 import { store } from './redux/store.js'
 import { HelmetProvider } from 'react-helmet-async'
+import { ConfirmProvider } from './hooks/ConfirmContext.jsx'
 
 // Custom Error Boundary to display runtime errors on screen
 class ErrorBoundary extends React.Component {
@@ -57,7 +58,9 @@ createRoot(document.getElementById('root')).render(
     <BrowserRouter>
       <Provider store={store}>
         <ErrorBoundary>
-          <App />
+          <ConfirmProvider>
+            <App />
+          </ConfirmProvider>
         </ErrorBoundary>
       </Provider>
     </BrowserRouter>

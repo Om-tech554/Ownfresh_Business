@@ -3,6 +3,8 @@ import User from "../models/usermodel.js";
 import Wallet from "../models/walletModel.js";
 import Transaction from "../models/transactionModel.js";
 import Coupon from "../models/couponModel.js";
+import ReferralCode from "../models/referralCodeModel.js";
+import ReferralUsage from "../models/referralUsageModel.js";
 import crypto from "crypto";
 
 // CREATE ORDER (CHECKOUT)
@@ -16,6 +18,7 @@ export const createOrder = async (req, res) => {
       totalAmount, 
       discountAmount, 
       couponCode,
+      referralCode,
       useWallet,
       cgst,
       sgst,
@@ -33,6 +36,36 @@ export const createOrder = async (req, res) => {
     // 2) Check User Exists
     const user = await User.findById(userId);
     if (!user) return res.status(404).json({ msg: "User not found" });
+
+    // Validate Referral Code if provided
+    let referralCodeRecord = null;
+    if (referralCode) {
+      referralCodeRecord = await ReferralCode.findOne({ code: referralCode.toUpperCase() });
+      if (!referralCodeRecord) {
+        return res.status(400).json({ msg: "Referral code does not exist" });
+      }
+
+      if (referralCodeRecord.userId.toString() === userId.toString()) {
+        return res.status(400).json({ msg: "You cannot use your own referral code" });
+      }
+
+      if (user.hasRedeemedReferral) {
+        return res.status(400).json({ msg: "You have already redeemed a referral code before" });
+      }
+
+      const existingUsage = await ReferralUsage.findOne({
+        referredUserId: userId,
+        status: { $in: ["PENDING", "APPROVED"] }
+      });
+      if (existingUsage) {
+        return res.status(400).json({ msg: "You have already redeemed a referral code before" });
+      }
+
+      const priorCompletedOrder = await Order.findOne({ user: userId, paymentStatus: "completed" });
+      if (priorCompletedOrder) {
+        return res.status(400).json({ msg: "Referral code can only be applied before your first purchase" });
+      }
+    }
 
     let finalPayableAmount = Number(totalAmount);
     let walletDeducted = 0;
@@ -119,6 +152,9 @@ export const createOrder = async (req, res) => {
       totalAmount: finalPayableAmount,
       discountAmount: discountAmount || 0,
       couponCode: couponCode || "",
+      referralCode: referralCode ? referralCode.toUpperCase() : "",
+      referralStatus: referralCode ? "PENDING" : "NONE",
+      rewardCredited: false,
       cgst: cgst || 0,
       sgst: sgst || 0,
       taxAmount: taxAmount || 0,
@@ -128,6 +164,26 @@ export const createOrder = async (req, res) => {
       razorpaySignature: razorpaySignature || undefined,
       walletDeductedAmount: walletDeducted
     });
+
+    // Create Referral Usage record and update User if referral code is applied
+    if (referralCode && referralCodeRecord) {
+      await ReferralUsage.create({
+        referralCode: referralCode.toUpperCase(),
+        referrerUserId: referralCodeRecord.userId,
+        referrerId: referralCodeRecord.userId,
+        referredUserId: userId,
+        referralCodeId: referralCodeRecord._id,
+        orderId: order._id,
+        status: "PENDING",
+        rewardAmount: 100,
+        rewardPoints: 100,
+        refereeRewardAmount: 50
+      });
+
+      // Mark the user as having redeemed a referral
+      user.hasRedeemedReferral = true;
+      await user.save();
+    }
 
     res.status(201).json({
       success: true,

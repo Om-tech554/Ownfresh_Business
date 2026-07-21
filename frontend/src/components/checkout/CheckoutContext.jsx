@@ -35,6 +35,8 @@ export const CheckoutProvider = ({ children }) => {
     isApplied: false
   });
   const [useWallet, setUseWallet] = useState(false);
+  const [referralCode, setReferralCode] = useState('');
+  const [referralApplied, setReferralApplied] = useState(false);
 
   const nextStep = () => setCurrentStep((prev) => Math.min(prev + 1, 4));
   const prevStep = () => setCurrentStep((prev) => Math.max(prev - 1, 1));
@@ -54,7 +56,11 @@ export const CheckoutProvider = ({ children }) => {
     couponDetails,
     setCouponDetails,
     useWallet,
-    setUseWallet
+    setUseWallet,
+    referralCode,
+    setReferralCode,
+    referralApplied,
+    setReferralApplied
   };
 
   return (

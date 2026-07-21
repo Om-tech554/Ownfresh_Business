@@ -213,3 +213,66 @@ export const sendOrderConfirmationMail = async (order) => {
     `,
   });
 };
+
+export const sendCustomMail = async ({ to, subject, html, text }) => {
+  await transporter.sendMail({
+    from: `"OwnFresh Support" <${process.env.EMAIL}>`,
+    to,
+    subject,
+    html,
+    text
+  });
+};
+
+export const generateShipmentEmailHtml = (order, trackingUrl) => {
+  return `
+      <div style="background-color:#FFFDF2;padding:24px;font-family:Arial,sans-serif;">
+        <div style="max-width:520px;margin:auto;background:#ffffff;border:1px solid #E5E5E5;border-radius:12px;overflow:hidden;">
+          <!-- Header -->
+          <div style="background:#24672E;padding:16px;text-align:center;">
+            <h1 style="margin:0;color:#FFF;font-size:22px;">OwnFresh</h1>
+          </div>
+          <!-- Body -->
+          <div style="padding:24px;color:#333;">
+            <h2 style="margin-top:0;color:#24672E;">Your Order is on the Way!</h2>
+            <p style="font-size:14px;color:#555;">
+              Hi <b>${order.user.fullName}</b>,
+            </p>
+            <p style="font-size:14px;color:#555;line-height:1.5;">
+              Exciting news! Your order <b>#${order._id.toString().toUpperCase()}</b> has been handed over to our courier partner <b>${order.courierPartner}</b>.
+            </p>
+            <!-- Tracking Details -->
+            <div style="margin:24px 0;padding:16px;background:#F5F5F5;border-radius:8px;border:1px solid #E5E5E5;">
+              <p style="margin:0 0 8px 0;font-size:14px;"><b>Courier:</b> ${order.courierPartner}</p>
+              <p style="margin:0 0 16px 0;font-size:14px;"><b>AWB/Tracking Number:</b> ${order.trackingId}</p>
+              <div style="text-align:center;">
+                <a href="${trackingUrl}" target="_blank" style="
+                  display:inline-block;
+                  padding:12px 24px;
+                  font-size:14px;
+                  font-weight:bold;
+                  background:#FFD700;
+                  color:#000;
+                  border-radius:8px;
+                  text-decoration:none;
+                  border:1px solid #E5E5E5;
+                ">
+                  Track Package →
+                </a>
+              </div>
+            </div>
+            <p style="font-size:14px;color:#555;">
+              📅 <b>Expected Delivery:</b> You should receive your items within 3-5 business days.
+            </p>
+            <p style="font-size:13px;color:#777;margin-top:16px;">
+              If you have any questions or concerns, contact our support team at <a href="mailto:my1ownfresh@gmail.com" style="color:#24672E;text-decoration:none;">my1ownfresh@gmail.com</a>.
+            </p>
+          </div>
+          <!-- Footer -->
+          <div style="background:#F5F5F5;padding:12px;text-align:center;font-size:12px;color:#777;">
+            © ${new Date().getFullYear()} OwnFresh. All rights reserved.
+          </div>
+        </div>
+      </div>
+  `;
+};

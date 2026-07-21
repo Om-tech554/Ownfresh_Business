@@ -8,9 +8,9 @@ import { useSelector } from 'react-redux';
 import { Package, BookOpen, Ticket, ShoppingCart, Layers, Users, Image as ImageIcon } from "lucide-react";
 import CouponManager from './admin/CouponManager';
 import CategoryManager from './admin/CategoryManager';
-import ReferralManager from './admin/ReferralManager';
 import GalleryManager from './admin/GalleryManager';
 import InventoryManager from './admin/InventoryManager';
+import ReferralManager from './admin/ReferralManager';
 
 function AdminDashboard() {
   const userData = useSelector((state) => state.user.userData);
@@ -21,7 +21,7 @@ function AdminDashboard() {
   );
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-slate-50 admin-panel">
       <Navbar />
 
       {/* DASHBOARD TABS */}

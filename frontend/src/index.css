@@ -37,3 +37,13 @@ input[type="password"]::-ms-clear {
 input[type="password"]::-webkit-textfield-decoration-container {
   display: none;
 }
+
+/* Custom styling for Admin Panel */
+.admin-panel,
+.admin-panel *,
+.admin-panel select,
+.admin-panel input,
+.admin-panel button,
+.admin-panel textarea {
+  font-family: "Poppins", sans-serif !important;
+}

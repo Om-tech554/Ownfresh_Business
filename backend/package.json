@@ -31,6 +31,8 @@
     "node-cron": "^4.2.1",
     "nodemailer": "^7.0.12",
     "nodemon": "^3.1.11",
-    "razorpay": "^2.9.6"
+    "pdf-parse": "^2.4.5",
+    "razorpay": "^2.9.6",
+    "tesseract.js": "^7.0.0"
   }
 }

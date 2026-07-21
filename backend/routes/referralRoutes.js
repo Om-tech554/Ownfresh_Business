@@ -1,26 +1,28 @@
 import express from "express";
-import { 
-    getReferralStats, 
-    generateAffiliateCoupon, 
-    getAffiliateData, 
-    adminGetAffiliateStats, 
-    updateAffiliateSettings, 
-    unlockAffiliateViaSubscription,
-    applyReferral
-} from "../controllers/referralController.js";
 import isAuth, { isAdmin } from "../middleware/isAuth.js";
+import {
+    validateReferralCode,
+    applyReferralCodeOnOrder,
+    getReferralStats,
+    getAdminReferrals,
+    getAdminStats,
+    exportReferrals,
+    approveReferral,
+    rejectReferral
+} from "../controllers/referralController.js";
 
 const router = express.Router();
 
-// User Routes
+// Customer Endpoints
+router.post("/validate-code", isAuth, validateReferralCode);
+router.post("/apply-code", isAuth, applyReferralCodeOnOrder);
 router.get("/stats", isAuth, getReferralStats);
-router.post("/apply-referral", isAuth, applyReferral);
-router.post("/generate-coupon", isAuth, generateAffiliateCoupon);
-router.get("/affiliate-data", isAuth, getAffiliateData);
-router.post("/unlock-affiliate", isAuth, unlockAffiliateViaSubscription);
 
-// Admin Routes
-router.get("/admin/stats", isAuth, isAdmin, adminGetAffiliateStats);
-router.put("/admin/settings", isAuth, isAdmin, updateAffiliateSettings);
+// Admin Endpoints
+router.get("/admin/all", isAuth, isAdmin, getAdminReferrals);
+router.get("/admin/stats", isAuth, isAdmin, getAdminStats);
+router.get("/admin/export", isAuth, isAdmin, exportReferrals);
+router.put("/admin/approve/:id", isAuth, isAdmin, approveReferral);
+router.put("/admin/reject/:id", isAuth, isAdmin, rejectReferral);
 
 export default router;

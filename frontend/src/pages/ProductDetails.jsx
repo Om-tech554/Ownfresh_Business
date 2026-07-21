@@ -119,7 +119,7 @@ const ProductDetails = () => {
 
   return (
     <>
-      <SEO 
+      <SEO
         title={product.name}
         description={product.shortDesc}
         image={product.image}
@@ -175,8 +175,8 @@ const ProductDetails = () => {
                     key={variant._id}
                     onClick={() => setSelectedVariant(variant)}
                     className={`px-6 py-3 rounded-xl border font-semibold transition ${selectedVariant?._id === variant._id
-                        ? "bg-yellow-500 text-white"
-                        : "bg-white text-slate-900"
+                      ? "bg-yellow-500 text-white"
+                      : "bg-white text-slate-900"
                       }`}
                   >
                     {variant.name}
@@ -192,14 +192,14 @@ const ProductDetails = () => {
             <div className="mt-8">
               <h3 className="font-bold text-lg mb-3">Quantity</h3>
               <div className="flex items-center gap-4">
-                <button 
+                <button
                   onClick={() => setSelectedQty(Math.max(1, selectedQty - 1))}
                   className="px-4 py-2 bg-slate-100 rounded-lg font-bold hover:bg-slate-200"
                 >
                   -
                 </button>
                 <span className="text-xl font-bold">{selectedQty}</span>
-                <button 
+                <button
                   onClick={() => setSelectedQty(selectedQty + 1)}
                   className="px-4 py-2 bg-slate-100 rounded-lg font-bold hover:bg-slate-200"
                 >

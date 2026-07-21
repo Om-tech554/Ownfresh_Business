@@ -12,21 +12,24 @@ import orderRoutes from "./routes/orderRoutes.js";
 import newsletterRoutes from "./routes/newsletterRoutes.js";
 import contactRoutes from "./routes/contactRoutes.js";
 import categoryRoutes from "./routes/categoryRoutes.js";
-import referralRoutes from "./routes/referralRoutes.js";
 import couponRoutes from "./routes/couponRoutes.js";
 import paymentRoutes from "./routes/paymentRoutes.js";
 import walletRoutes from "./routes/walletRoutes.js";
 import galleryRoutes from "./routes/galleryRoutes.js";
 import inventoryRoutes from "./routes/inventoryRoutes.js";
+import fulfillmentRoutes from "./routes/fulfillmentRoutes.js";
 import path from "path";
 import helmet from "helmet";
 import { fileURLToPath } from "url";
 import { initCronJobs } from "./utils/cronJobs.js";
 import { verifyAppCheck } from "./middleware/appCheckMiddleware.js";
+import requestIdMiddleware from "./middleware/requestIdMiddleware.js";
+import referralRoutes from "./routes/referralRoutes.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const app = express()
+app.use(requestIdMiddleware);
 app.set("trust proxy", 1); // Required for secure cookies on Render
 app.use(helmet({
   contentSecurityPolicy: {
@@ -78,12 +81,13 @@ app.use("/api/order", orderRoutes);
 app.use("/api/newsletter", newsletterRoutes);
 app.use("/api/contact", contactRoutes);
 app.use("/api/category", categoryRoutes);
-app.use("/api/referral", referralRoutes);
 app.use("/api/coupon", couponRoutes);
+app.use("/api/referral", referralRoutes);
 app.use("/api/payment", paymentRoutes);
 app.use("/api/wallet", walletRoutes);
 app.use("/api/gallery", galleryRoutes);
 app.use("/api/inventory", inventoryRoutes);
+app.use("/api/fulfillment", fulfillmentRoutes);
 
 // --- STATIC FILES & SPA ROUTING FIX ---
 const __frontendDir = path.join(__dirname, "../frontend/dist");

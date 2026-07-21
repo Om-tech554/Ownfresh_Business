@@ -234,6 +234,8 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import JoditEditor from "jodit-react";
+import toast from "react-hot-toast";
+import { useConfirm } from "../../hooks/ConfirmContext.jsx";
 const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
 import {
@@ -252,6 +254,7 @@ import {
 } from "lucide-react";
 
 const BlogList = () => {
+  const confirm = useConfirm();
   const [blogs, setBlogs] = useState([]);
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("");
@@ -280,12 +283,19 @@ const BlogList = () => {
   }, [page, search, category]);
 
   const deleteBlog = async (id) => {
-    if (!window.confirm("Are you sure you want to delete this post?")) return;
+    const isConfirmed = await confirm({
+      title: "Delete Blog Post?",
+      message: "Are you sure you want to permanently delete this blog post?",
+      type: "danger",
+      confirmText: "Delete"
+    });
+    if (!isConfirmed) return;
     try {
       await axios.delete(`${API_BASE_URL}/api/blog/delete/${id}`);
+      toast.success("Blog post deleted successfully");
       fetchBlogs();
     } catch (err) {
-      alert("Failed to delete blog");
+      toast.error("Failed to delete blog");
     }
   };
 

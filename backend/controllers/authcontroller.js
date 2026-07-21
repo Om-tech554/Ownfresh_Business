@@ -1,16 +1,16 @@
 import User from "../models/usermodel.js"
-import Referral from "../models/referralModel.js"
 import bcrypt from "bcryptjs"
 import genToken from "../utils/token.js"
 import { sendOtpMail } from "../utils/mail.js"
 import Wallet from "../models/walletModel.js"
-import ReferralSettings from "../models/referralSettingsModel.js"
 import adminApp from "../config/firebaseAdmin.js"
 import { getAuth } from "firebase-admin/auth"
+import { generateUniqueCode } from "./referralController.js"
+import ReferralCode from "../models/referralCodeModel.js"
 //--------------signUp----------------//
 export const signUp = async (req, res) => {
     try {
-        const { fullName, email, password, mobile, role, referralCode, deviceFingerprint } = req.body;
+        const { fullName, email, password, mobile, role, deviceFingerprint } = req.body;
 
         if (!fullName || !email || !password || !mobile) {
             return res.status(400).json({ message: "All fields are required" });
@@ -21,12 +21,6 @@ export const signUp = async (req, res) => {
             return res.status(409).json({ message: "Email already exists" });
         }
 
-        // Check for referrer
-        let referrer = null;
-        if (referralCode) {
-            referrer = await User.findOne({ referralCode: referralCode.toUpperCase() });
-        }
-
         const hashedPassword = await bcrypt.hash(password, 10);
 
         const user = await User.create({
@@ -35,7 +29,6 @@ export const signUp = async (req, res) => {
             password: hashedPassword,
             mobile,
             role: role || "user",
-            referredBy: referrer ? referrer._id : null,
             lastIpAddress: req.headers['x-forwarded-for'] || req.ip || req.socket.remoteAddress,
             lastDeviceFingerprint: deviceFingerprint || req.headers['user-agent']
         });
@@ -43,25 +36,11 @@ export const signUp = async (req, res) => {
         // Create wallet for the new user
         await Wallet.create({ userId: user._id, balance: 0, totalEarned: 0, totalRedeemed: 0 });
 
-        if (referrer) {
-            let rewardAmount = 50;
-            const settings = await ReferralSettings.findOne();
-            if (settings) {
-                rewardAmount = settings.referralRewardReferred || 50;
-            }
-
-            const ipAddress = req.headers['x-forwarded-for'] || req.ip || req.socket.remoteAddress;
-
-            await Referral.create({
-                referrerUserId: referrer._id,
-                referredUserId: user._id,
-                referralCode: referralCode.toUpperCase(),
-                status: "PENDING",
-                rewardAmount,
-                deviceFingerprint: deviceFingerprint || req.headers['user-agent'],
-                ipAddress
-            });
-        }
+        // Auto-generate Referral Code
+        const code = await generateUniqueCode(fullName);
+        await new ReferralCode({ userId: user._id, code }).save();
+        user.referralCode = code;
+        await user.save();
 
         return res.status(201).json({
             message: "Account created successfully",
@@ -181,7 +160,7 @@ export const resetPassword = async (req, res) => {
 
 export const googleAuth = async (req, res) => {
     try {
-        const { idToken, mobile, role, referralCode, deviceFingerprint } = req.body;
+        const { idToken, mobile, role, deviceFingerprint } = req.body;
 
         if (!idToken) {
             return res.status(401).json({ message: "Missing Firebase ID Token" });
@@ -200,20 +179,14 @@ export const googleAuth = async (req, res) => {
         let user = await User.findOne({ email });
 
         if (!user) {
-            let referrer = null;
-            if (referralCode) {
-                referrer = await User.findOne({ referralCode: referralCode.toUpperCase() });
-            }
-
             const generatedUserName = email.split('@')[0] + Math.random().toString(36).substring(2, 6);
 
             user = await User.create({
                 fullName,
                 userName: generatedUserName,
                 email,
-                mobile: mobile || "",
+                mobile: mobile || undefined,
                 role: role || "user",
-                referredBy: referrer ? referrer._id : null,
                 lastIpAddress: req.headers['x-forwarded-for'] || req.ip || req.socket.remoteAddress,
                 lastDeviceFingerprint: deviceFingerprint || req.headers['user-agent']
             });
@@ -221,25 +194,11 @@ export const googleAuth = async (req, res) => {
             // Create wallet for the new user
             await Wallet.create({ userId: user._id, balance: 0, totalEarned: 0, totalRedeemed: 0 });
 
-            if (referrer) {
-                let rewardAmount = 50;
-                const settings = await ReferralSettings.findOne();
-                if (settings) {
-                    rewardAmount = settings.referralRewardReferred || 50;
-                }
-
-                const ipAddress = req.headers['x-forwarded-for'] || req.ip || req.socket.remoteAddress;
-
-                await Referral.create({
-                    referrerUserId: referrer._id,
-                    referredUserId: user._id,
-                    referralCode: referralCode.toUpperCase(),
-                    status: "PENDING",
-                    rewardAmount,
-                    deviceFingerprint: deviceFingerprint || req.headers['user-agent'],
-                    ipAddress
-                });
-            }
+            // Auto-generate Referral Code
+            const code = await generateUniqueCode(fullName);
+            await new ReferralCode({ userId: user._id, code }).save();
+            user.referralCode = code;
+            await user.save();
         }
         const token = await genToken(user._id);
 

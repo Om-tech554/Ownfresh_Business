@@ -37,7 +37,7 @@ export const getAllUsers = async (req, res) => {
 export const updateUser = async (req, res) => {
   try {
     const { id } = req.params;
-    const { role, wallet, mobile, referralCode } = req.body;
+    const { role, wallet, mobile } = req.body;
 
     const user = await User.findById(id);
     if (!user) {
@@ -46,17 +46,8 @@ export const updateUser = async (req, res) => {
 
     if (role) user.role = role;
     if (wallet !== undefined) user.wallet = wallet;
-    if (mobile !== undefined) user.mobile = mobile;
-    if (referralCode !== undefined) {
-      if (referralCode.trim() !== "") {
-        const existing = await User.findOne({ referralCode: referralCode.toUpperCase(), _id: { $ne: id } });
-        if (existing) {
-          return res.status(400).json({ success: false, message: "Referral code already in use" });
-        }
-        user.referralCode = referralCode.toUpperCase();
-      } else {
-        user.referralCode = "";
-      }
+    if (mobile !== undefined) {
+      user.mobile = (mobile === null || mobile === "") ? undefined : mobile;
     }
 
     await user.save();
