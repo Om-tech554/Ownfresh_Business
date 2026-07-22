@@ -11,8 +11,11 @@ import {
 } from "lucide-react";
 import toast from "react-hot-toast";
 import ImagePickerModal from "./ImagePickerModal";
+import { AnimatePresence, motion } from "framer-motion";
+import { useConfirm } from "../../hooks/ConfirmContext.jsx";
 
 const CategoryManager = () => {
+    const confirm = useConfirm();
     const [categories, setCategories] = useState([]);
     const [loading, setLoading] = useState(false);
     const [showModal, setShowModal] = useState(false);
@@ -88,7 +91,14 @@ const CategoryManager = () => {
     };
 
     const handleDelete = async (id) => {
-        if (!window.confirm("Are you sure? This may affect products in this category.")) return;
+        const confirmed = await confirm({
+            title: "Delete Category",
+            message: "Are you sure? This may affect products in this category.",
+            type: "danger",
+            confirmText: "Delete",
+            cancelText: "Cancel"
+        });
+        if (!confirmed) return;
         try {
             await axios.delete(`${API_BASE_URL}/api/category/delete/${id}`, { withCredentials: true });
             toast.success("Category deleted");
@@ -202,15 +212,23 @@ const CategoryManager = () => {
             </div>
 
             {/* ADD/EDIT MODAL */}
-            {showModal && (
-                <div
-                    className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[2000] flex items-center justify-center p-4"
-                    onClick={() => setShowModal(false)}
-                >
-                    <div
-                        className="bg-white w-full max-w-lg rounded-3xl overflow-hidden shadow-2xl animate-in fade-in zoom-in duration-200 flex flex-col max-h-[90vh]"
-                        onClick={(e) => e.stopPropagation()}
-                    >
+            <AnimatePresence>
+                {showModal && (
+                    <div className="fixed inset-0 z-[2000] flex items-center justify-center p-4">
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"
+                            onClick={() => setShowModal(false)}
+                        />
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                            transition={{ type: "spring", duration: 0.4 }}
+                            className="bg-white w-full max-w-lg rounded-3xl overflow-hidden shadow-2xl flex flex-col max-h-[90vh] z-10"
+                        >
                         <div className="bg-[#24672E] p-5 md:p-6 text-white flex justify-between items-center shrink-0">
                             <h3 className="text-xl font-bold flex items-center gap-2">
                                 {editMode ? <Edit size={20} /> : <Plus size={20} />}
@@ -291,9 +309,10 @@ const CategoryManager = () => {
                                 {loading ? "Processing..." : (editMode ? "Save Changes" : "Create Category")}
                             </button>
                         </div>
-                    </div>
+                    </motion.div>
                 </div>
             )}
+            </AnimatePresence>
 
             <ImagePickerModal
                 isOpen={showImagePicker}

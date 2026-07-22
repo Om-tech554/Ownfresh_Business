@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import toast from "react-hot-toast";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { ArrowLeft, Loader2, Calendar, Clock, ChevronUp, Share2, BookOpen, Leaf } from "lucide-react";
@@ -21,7 +22,7 @@ const handleShare = (title) => {
     navigator.share({ title, url: window.location.href }).catch(() => { });
   } else {
     navigator.clipboard.writeText(window.location.href);
-    alert("Link copied to clipboard!");
+    toast.success("Link copied to clipboard!");
   }
 };
 

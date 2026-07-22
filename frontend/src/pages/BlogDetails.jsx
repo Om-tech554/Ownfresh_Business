@@ -3,10 +3,13 @@ import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { useSelector } from "react-redux";
 import { ArrowLeft, Loader2, Calendar, Clock, ChevronUp, Edit3, Trash2 } from "lucide-react";
+import toast from "react-hot-toast";
+import { useConfirm } from "../hooks/ConfirmContext.jsx";
 
 const AdminBlogDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const confirm = useConfirm();
   const [blog, setBlog] = useState(null);
   const [loading, setLoading] = useState(true);
   const [showTopBtn, setShowTopBtn] = useState(false);
@@ -39,12 +42,19 @@ const AdminBlogDetails = () => {
   };
 
   const deleteBlog = async () => {
-    if (!window.confirm("Delete this blog permanently?")) return;
+    const confirmed = await confirm({
+      title: "Delete Blog",
+      message: "Are you sure you want to delete this blog permanently?",
+      type: "danger",
+      confirmText: "Delete",
+      cancelText: "Cancel"
+    });
+    if (!confirmed) return;
     try {
       await axios.delete(`${API_BASE_URL}/api/blog/delete/${id}`);
       navigate("/blogs");
     } catch (err) {
-      alert("Failed to delete blog");
+      toast.error("Failed to delete blog");
     }
   };
 

@@ -5,6 +5,7 @@ import {
     Search, Loader2, Users, User, Shield, Edit2, Trash2, X, Save, Phone, Mail, Wallet
 } from "lucide-react";
 import toast from "react-hot-toast";
+import { AnimatePresence, motion } from "framer-motion";
 import { useConfirm } from "../../hooks/ConfirmContext.jsx";
 
 const AdminCustomers = () => {
@@ -225,10 +226,23 @@ const AdminCustomers = () => {
             </div>
 
             {/* ── EDIT CUSTOMER MODAL ── */}
-            {isEditModalOpen && selectedCustomer && (
-                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-                    <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" onClick={() => setIsEditModalOpen(false)}></div>
-                    <div className="bg-white w-full max-w-md rounded-2xl shadow-2xl relative z-10 flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
+            <AnimatePresence>
+                {isEditModalOpen && selectedCustomer && (
+                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm"
+                            onClick={() => setIsEditModalOpen(false)}
+                        />
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                            transition={{ type: "spring", duration: 0.4 }}
+                            className="bg-white w-full max-w-md rounded-2xl shadow-2xl relative z-10 flex flex-col overflow-hidden"
+                        >
                         <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
                             <h3 className="text-sm font-black text-slate-900 uppercase tracking-widest flex items-center gap-2">
                                 <Edit2 size={16} className="text-[#24672E]" /> Edit Customer
@@ -303,9 +317,10 @@ const AdminCustomers = () => {
                                 <Save size={14} /> Save Changes
                             </button>
                         </div>
+                        </motion.div>
                     </div>
-                </div>
-            )}
+                )}
+            </AnimatePresence>
         </div>
     );
 };

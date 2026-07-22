@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { Search, Filter, X, ChevronLeft, ChevronRight, Check } from "lucide-react";
 import toast from "react-hot-toast";
+import { AnimatePresence, motion } from "framer-motion";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
 const CATEGORIES = ["Our Oils", "Extraction", "Ingredients", "Culinary", "Community"];
@@ -40,7 +41,7 @@ const ImagePickerModal = ({ isOpen, onClose, onSelect }) => {
     fetchImages();
   }, [isOpen, page, search, category]);
 
-  if (!isOpen) return null;
+  // Removed early return to allow exit animation
 
   const handleSelect = () => {
     if (!selectedUrl) {
@@ -52,8 +53,23 @@ const ImagePickerModal = ({ isOpen, onClose, onSelect }) => {
   };
 
   return (
-    <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[2100] flex items-center justify-center p-4">
-      <div className="bg-white w-full max-w-4xl rounded-3xl overflow-hidden shadow-2xl flex flex-col max-h-[85vh] animate-in fade-in zoom-in duration-200">
+    <AnimatePresence>
+      {isOpen && (
+        <div className="fixed inset-0 z-[2100] flex items-center justify-center p-4">
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"
+            onClick={onClose}
+          />
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: 20 }}
+            transition={{ type: "spring", duration: 0.4 }}
+            className="bg-white w-full max-w-4xl rounded-3xl overflow-hidden shadow-2xl flex flex-col max-h-[85vh] z-10"
+          >
         
         {/* HEADER */}
         <div className="bg-[#24672E] p-5 text-white flex justify-between items-center">
@@ -201,8 +217,10 @@ const ImagePickerModal = ({ isOpen, onClose, onSelect }) => {
           </div>
         </div>
 
-      </div>
-    </div>
+          </motion.div>
+        </div>
+      )}
+    </AnimatePresence>
   );
 };
 

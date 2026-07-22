@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import toast from "react-hot-toast";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { ShoppingCart } from "lucide-react";
@@ -56,7 +57,7 @@ const ProductDetails = () => {
   /* --- Add To Cart --- */
   const handleAddToCart = () => {
     if (!selectedVariant) {
-      alert("Please select a variant size");
+      toast.error("Please select a variant size");
       return;
     }
     const cartItem = {
@@ -75,7 +76,7 @@ const ProductDetails = () => {
   /* --- Buy Now --- */
   const handleBuyNow = () => {
     if (!selectedVariant) {
-      alert("Please select a variant size");
+      toast.error("Please select a variant size");
       return;
     }
     const cartItem = {

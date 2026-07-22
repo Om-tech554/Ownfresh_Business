@@ -17,6 +17,51 @@ export const signUp = async (req, res) => {
         }
 
         const existingUser = await User.findOne({ email });
+
+        // Enforce OTP verification for company domain
+        if (email.endsWith("@myownfresh.com")) {
+            if (existingUser && existingUser.isOtpVerified) {
+                return res.status(409).json({ message: "Email already exists" });
+            }
+
+            const hashedPassword = await bcrypt.hash(password, 10);
+            let user = existingUser;
+
+            if (user) {
+                user.fullName = fullName;
+                user.password = hashedPassword;
+                user.mobile = mobile;
+                user.role = role || "user";
+                user.lastIpAddress = req.headers['x-forwarded-for'] || req.ip || req.socket.remoteAddress;
+                user.lastDeviceFingerprint = deviceFingerprint || req.headers['user-agent'];
+            } else {
+                user = new User({
+                    fullName,
+                    email,
+                    password: hashedPassword,
+                    mobile,
+                    role: role || "user",
+                    isOtpVerified: false,
+                    lastIpAddress: req.headers['x-forwarded-for'] || req.ip || req.socket.remoteAddress,
+                    lastDeviceFingerprint: deviceFingerprint || req.headers['user-agent']
+                });
+            }
+
+            const otp = Math.floor(100000 + Math.random() * 900000).toString();
+            user.resetOtp = otp;
+            user.otpExpires = Date.now() + 5 * 60 * 1000;
+            await user.save();
+
+            await sendOtpMail(email, otp);
+
+            return res.status(200).json({
+                requiresVerification: true,
+                email,
+                message: "Verification OTP sent to your email"
+            });
+        }
+
+        // Standard Sign Up
         if (existingUser) {
             return res.status(409).json({ message: "Email already exists" });
         }
@@ -29,6 +74,7 @@ export const signUp = async (req, res) => {
             password: hashedPassword,
             mobile,
             role: role || "user",
+            isOtpVerified: true,
             lastIpAddress: req.headers['x-forwarded-for'] || req.ip || req.socket.remoteAddress,
             lastDeviceFingerprint: deviceFingerprint || req.headers['user-agent']
         });
@@ -59,6 +105,10 @@ export const signIn = async (req, res) => {
 
         if (!user) {
             return res.status(400).json({ message: "⚠️ User does not exist." });
+        }
+
+        if (user.email.endsWith("@myownfresh.com") && !user.isOtpVerified) {
+            return res.status(400).json({ message: "⚠️ Email verification is pending. Please sign up again to verify your email." });
         }
 
         const isMatch = await bcrypt.compare(password, user.password);
@@ -216,4 +266,79 @@ export const googleAuth = async (req, res) => {
         return res.status(500).json({ message: "Internal Server Error" });
     }
 };
+
+export const verifySignupOtp = async (req, res) => {
+    try {
+        const { email, otp } = req.body;
+        const user = await User.findOne({ email });
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+        if (user.isOtpVerified) {
+            return res.status(400).json({ message: "Email already verified" });
+        }
+        if (user.resetOtp !== otp || user.otpExpires < Date.now()) {
+            return res.status(400).json({ message: "Invalid or expired OTP" });
+        }
+
+        user.isOtpVerified = true;
+        user.resetOtp = undefined;
+        user.otpExpires = undefined;
+        await user.save();
+
+        // Create wallet for the new user
+        const wallet = await Wallet.findOne({ userId: user._id });
+        if (!wallet) {
+            await Wallet.create({ userId: user._id, balance: 0, totalEarned: 0, totalRedeemed: 0 });
+        }
+
+        // Auto-generate Referral Code
+        let code = user.referralCode;
+        if (!code) {
+            code = await generateUniqueCode(user.fullName);
+            await new ReferralCode({ userId: user._id, code }).save();
+            user.referralCode = code;
+            await user.save();
+        }
+
+        // Sign in immediately
+        const token = await genToken(user._id);
+        res.cookie("token", token, {
+            secure: true,
+            sameSite: "none",
+            maxAge: 7 * 24 * 60 * 60 * 1000,
+            httpOnly: true
+        });
+
+        return res.status(200).json(user);
+    } catch (error) {
+        console.error("Verify signup OTP error:", error);
+        return res.status(500).json({ message: "Verification failed" });
+    }
+};
+
+export const resendSignupOtp = async (req, res) => {
+    try {
+        const { email } = req.body;
+        const user = await User.findOne({ email });
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+        if (user.isOtpVerified) {
+            return res.status(400).json({ message: "Email already verified" });
+        }
+
+        const otp = Math.floor(100000 + Math.random() * 900000).toString();
+        user.resetOtp = otp;
+        user.otpExpires = Date.now() + 5 * 60 * 1000;
+        await user.save();
+
+        await sendOtpMail(email, otp);
+        return res.status(200).json({ message: "OTP sent successfully" });
+    } catch (error) {
+        console.error("Resend signup OTP error:", error);
+        return res.status(500).json({ message: "Failed to resend OTP" });
+    }
+};
+
 

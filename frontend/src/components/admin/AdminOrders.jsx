@@ -8,8 +8,11 @@ import {
     UploadCloud, Send, ShieldAlert
 } from "lucide-react";
 import toast from "react-hot-toast";
+import { AnimatePresence, motion } from "framer-motion";
+import { useConfirm } from "../../hooks/ConfirmContext.jsx";
 
 const AdminOrders = () => {
+    const confirm = useConfirm();
     const [orders, setOrders] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState("");
@@ -252,7 +255,14 @@ const AdminOrders = () => {
     };
 
     const handleDeleteOrder = async (orderId) => {
-        if (!window.confirm("CRITICAL: Permanently delete this order from the database? This action CANNOT be undone.")) return;
+        const confirmed = await confirm({
+            title: "Delete Order",
+            message: "CRITICAL: Permanently delete this order from the database? This action CANNOT be undone.",
+            type: "danger",
+            confirmText: "Delete",
+            cancelText: "Cancel"
+        });
+        if (!confirmed) return;
 
         try {
             const { data } = await axios.delete(`${serverUrl}/api/order/admin-delete/${orderId}`, { withCredentials: true });
@@ -537,10 +547,23 @@ const AdminOrders = () => {
             </div>
 
             {/* ── AMAZON FULFILLMENT MODAL ── */}
-            {selectedOrder && (
-                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-                    <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-md" onClick={() => setSelectedOrder(null)}></div>
-                    <div className="bg-[#f0f2f2] w-full max-w-5xl max-h-[95vh] rounded-2xl shadow-2xl relative z-10 flex flex-col overflow-hidden border-t-8 border-slate-900">
+            <AnimatePresence>
+                {selectedOrder && (
+                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            className="absolute inset-0 bg-slate-900/40 backdrop-blur-md"
+                            onClick={() => setSelectedOrder(null)}
+                        />
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                            transition={{ type: "spring", duration: 0.4 }}
+                            className="bg-[#f0f2f2] w-full max-w-5xl max-h-[95vh] rounded-2xl shadow-2xl relative z-10 flex flex-col overflow-hidden border-t-8 border-slate-900"
+                        >
 
                         {/* Amazon Style Compact Header */}
                         <div className="bg-white px-8 py-5 border-b border-slate-300 flex items-center justify-between">
@@ -1009,15 +1032,29 @@ const AdminOrders = () => {
                             </div>
                         </div>
 
-                    </div>
+                    </motion.div>
                 </div>
-            )}
+                )}
+            </AnimatePresence>
 
             {/* ── INTERACTIVE AUDIT TRAIL MODAL ── */}
-            {showAuditModal && (
-                <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
-                    <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-md" onClick={() => setShowAuditModal(false)}></div>
-                    <div className="bg-[#f0f2f2] w-full max-w-5xl max-h-[90vh] rounded-2xl shadow-2xl relative z-10 flex flex-col overflow-hidden border-t-8 border-[#24672E]">
+            <AnimatePresence>
+                {showAuditModal && (
+                    <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            className="absolute inset-0 bg-slate-900/40 backdrop-blur-md"
+                            onClick={() => setShowAuditModal(false)}
+                        />
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                            transition={{ type: "spring", duration: 0.4 }}
+                            className="bg-[#f0f2f2] w-full max-w-5xl max-h-[90vh] rounded-2xl shadow-2xl relative z-10 flex flex-col overflow-hidden border-t-8 border-[#24672E]"
+                        >
                         {/* Audit Header */}
                         <div className="bg-white px-8 py-5 border-b border-slate-300 flex items-center justify-between">
                             <div className="flex items-center gap-4">
@@ -1087,9 +1124,10 @@ const AdminOrders = () => {
                                 </div>
                             )}
                         </div>
+                        </motion.div>
                     </div>
-                </div>
-            )}
+                )}
+            </AnimatePresence>
         </div>
     );
 };

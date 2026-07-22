@@ -8,6 +8,7 @@ import {
     ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid 
 } from "recharts";
 import toast from "react-hot-toast";
+import { AnimatePresence, motion } from "framer-motion";
 import { serverUrl } from "../../App";
 
 const ReferralManager = () => {
@@ -471,10 +472,23 @@ const ReferralManager = () => {
             {/* MODALS */}
             
             {/* Approve Modal */}
-            {isApproveOpen && selectedReferral && (
-                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-                    <div className="absolute inset-0 bg-slate-950/40 backdrop-blur-sm" onClick={() => setIsApproveOpen(false)}></div>
-                    <div className="bg-white w-full max-w-md rounded-2xl shadow-2xl relative z-10 overflow-hidden animate-in zoom-in-95 duration-200">
+            <AnimatePresence>
+                {isApproveOpen && selectedReferral && (
+                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            className="absolute inset-0 bg-slate-950/40 backdrop-blur-sm"
+                            onClick={() => setIsApproveOpen(false)}
+                        />
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                            transition={{ type: "spring", duration: 0.4 }}
+                            className="bg-white w-full max-w-md rounded-2xl shadow-2xl relative z-10 overflow-hidden"
+                        >
                         <div className="px-6 py-4 border-b border-slate-100 bg-slate-50 flex items-center justify-between">
                             <h3 className="text-xs font-black uppercase text-slate-900 tracking-wider">Approve Referral Reward</h3>
                             <button onClick={() => setIsApproveOpen(false)} className="text-slate-400 hover:text-slate-600"><X size={16} /></button>
@@ -503,15 +517,29 @@ const ReferralManager = () => {
                                 {actionLoading ? "Processing..." : "Approve & Credit"}
                             </button>
                         </div>
+                        </motion.div>
                     </div>
-                </div>
-            )}
+                )}
+            </AnimatePresence>
 
             {/* Reject Modal */}
-            {isRejectOpen && selectedReferral && (
-                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-                    <div className="absolute inset-0 bg-slate-950/40 backdrop-blur-sm" onClick={() => setIsRejectOpen(false)}></div>
-                    <div className="bg-white w-full max-w-md rounded-2xl shadow-2xl relative z-10 overflow-hidden animate-in zoom-in-95 duration-200">
+            <AnimatePresence>
+                {isRejectOpen && selectedReferral && (
+                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            className="absolute inset-0 bg-slate-950/40 backdrop-blur-sm"
+                            onClick={() => setIsRejectOpen(false)}
+                        />
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                            transition={{ type: "spring", duration: 0.4 }}
+                            className="bg-white w-full max-w-md rounded-2xl shadow-2xl relative z-10 overflow-hidden"
+                        >
                         <div className="px-6 py-4 border-b border-slate-100 bg-slate-50 flex items-center justify-between">
                             <h3 className="text-xs font-black uppercase text-slate-900 tracking-wider">Reject Referral Reward</h3>
                             <button onClick={() => setIsRejectOpen(false)} className="text-slate-400 hover:text-slate-600"><X size={16} /></button>
@@ -540,15 +568,29 @@ const ReferralManager = () => {
                                 {actionLoading ? "Processing..." : "Reject Referral"}
                             </button>
                         </div>
+                        </motion.div>
                     </div>
-                </div>
-            )}
+                )}
+            </AnimatePresence>
 
             {/* Detail View Modal */}
-            {isDetailOpen && selectedReferral && (
-                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-                    <div className="absolute inset-0 bg-slate-950/40 backdrop-blur-sm" onClick={() => setIsDetailOpen(false)}></div>
-                    <div className="bg-white w-full max-w-lg rounded-2xl shadow-2xl relative z-10 overflow-hidden animate-in zoom-in-95 duration-200">
+            <AnimatePresence>
+                {isDetailOpen && selectedReferral && (
+                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            className="absolute inset-0 bg-slate-950/40 backdrop-blur-sm"
+                            onClick={() => setIsDetailOpen(false)}
+                        />
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                            transition={{ type: "spring", duration: 0.4 }}
+                            className="bg-white w-full max-w-lg rounded-2xl shadow-2xl relative z-10 overflow-hidden"
+                        >
                         <div className="px-6 py-4 border-b border-slate-100 bg-slate-50 flex items-center justify-between">
                             <h3 className="text-xs font-black uppercase text-slate-900 tracking-wider">Referral Transaction Details</h3>
                             <button onClick={() => setIsDetailOpen(false)} className="text-slate-400 hover:text-slate-600"><X size={16} /></button>
@@ -620,9 +662,10 @@ const ReferralManager = () => {
                         <div className="px-6 py-4 border-t border-slate-100 bg-slate-50 flex justify-end">
                             <button onClick={() => setIsDetailOpen(false)} className="px-5 py-2.5 bg-slate-900 hover:bg-slate-800 text-white rounded-lg text-xs font-black uppercase tracking-wider transition-all cursor-pointer">Close</button>
                         </div>
+                        </motion.div>
                     </div>
-                </div>
-            )}
+                )}
+            </AnimatePresence>
 
         </div>
     );

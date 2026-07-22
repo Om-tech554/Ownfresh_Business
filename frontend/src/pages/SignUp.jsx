@@ -192,6 +192,7 @@ import { getToken } from "firebase/app-check";
 import { auth, appCheck } from "../../firebase";
 import toast from "react-hot-toast";
 import { useDispatch } from "react-redux";
+import { AnimatePresence, motion } from "framer-motion";
 import { setUserData, clearCart } from "../redux/userslice";  // ⭐ ADDED
 const SignUp = () => {
   const navigate = useNavigate();
@@ -208,6 +209,11 @@ const SignUp = () => {
 
   const role = "user";
   const primaryColor = "#FFD700";
+
+  const [showOtpModal, setShowOtpModal] = useState(false);
+  const [otpCode, setOtpCode] = useState("");
+  const [verifying, setVerifying] = useState(false);
+  const [resending, setResending] = useState(false);
 
   // -------------------------
   // NORMAL SIGNUP
@@ -227,19 +233,73 @@ const SignUp = () => {
         { withCredentials: true }
       );
 
-      // ⭐ NEW: Automatically log user in after signup
-      dispatch(setUserData(data));
-      dispatch(clearCart()); // ⭐ NEW: Cart resets to 0 for new user
-      localStorage.setItem("oil_user", JSON.stringify(data));
+      if (data.requiresVerification) {
+        toast.success("Verification OTP sent to your company email!");
+        setShowOtpModal(true);
+      } else {
+        // ⭐ NEW: Automatically log user in after signup
+        dispatch(setUserData(data));
+        dispatch(clearCart()); // ⭐ NEW: Cart resets to 0 for new user
+        localStorage.setItem("oil_user", JSON.stringify(data));
 
-      toast.success("Account created!", { duration: 1500 });
+        toast.success("Account created!", { duration: 1500 });
 
-      setTimeout(() => navigate("/"), 1000);
+        setTimeout(() => navigate("/"), 1000);
+      }
 
     } catch (error) {
       toast.error(error.response?.data?.message || "Signup failed");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleVerifyOtp = async (e) => {
+    e.preventDefault();
+    if (!otpCode || otpCode.trim().length !== 6) {
+      return toast.error("Please enter a valid 6-digit OTP code");
+    }
+
+    setVerifying(true);
+    try {
+      const { data } = await axios.post(
+        `${serverUrl}/api/auth/verify-signup-otp`,
+        { email, otp: otpCode },
+        { withCredentials: true }
+      );
+
+      dispatch(setUserData(data));
+      dispatch(clearCart());
+      localStorage.setItem("oil_user", JSON.stringify(data));
+
+      toast.success("Account verified and created successfully!");
+      setShowOtpModal(false);
+
+      if (data.role === "admin" || data.role === "blogger") {
+        setTimeout(() => navigate("/admin"), 1000);
+      } else {
+        setTimeout(() => navigate("/"), 1000);
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Verification failed");
+    } finally {
+      setVerifying(false);
+    }
+  };
+
+  const handleResendOtp = async () => {
+    setResending(true);
+    try {
+      await axios.post(
+        `${serverUrl}/api/auth/resend-signup-otp`,
+        { email },
+        { withCredentials: true }
+      );
+      toast.success("OTP resent successfully!");
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Failed to resend OTP");
+    } finally {
+      setResending(false);
     }
   };
 
@@ -468,6 +528,82 @@ const SignUp = () => {
 
         </div>
       </div>
+
+      {/* OTP Verification Modal */}
+      <AnimatePresence>
+        {showOtpModal && (
+          <div className="fixed inset-0 z-[2500] flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"
+              onClick={() => setShowOtpModal(false)}
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              transition={{ type: "spring", duration: 0.4 }}
+              className="bg-white w-full max-w-md rounded-3xl overflow-hidden shadow-2xl relative z-10 p-8 border border-gray-100"
+            >
+              <div className="text-center mb-6">
+                <div className="w-16 h-16 bg-yellow-50 rounded-full flex items-center justify-center mx-auto mb-4 border border-yellow-200 shadow-sm">
+                  <Ticket className="text-[#2F5D50]" size={32} />
+                </div>
+                <h3 className="text-2xl font-black text-slate-800 mb-2">Verify Your Email</h3>
+                <p className="text-sm font-semibold text-slate-500 leading-relaxed">
+                  We've sent a 6-digit OTP code to <span className="font-bold text-slate-800">{email}</span>.
+                </p>
+              </div>
+
+              <form onSubmit={handleVerifyOtp} className="space-y-6">
+                <div>
+                  <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2 text-center">
+                    Enter Verification Code
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    maxLength={6}
+                    placeholder="e.g. 123456"
+                    className="w-full text-center tracking-[0.5em] text-2xl font-black p-4 bg-slate-50 border border-slate-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:bg-white transition-all text-slate-800"
+                    value={otpCode}
+                    onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, ""))}
+                  />
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={verifying}
+                  className="w-full py-4 rounded-2xl font-bold text-[#422006] shadow-lg shadow-yellow-200 transition-all active:scale-[0.98] flex items-center justify-center gap-2"
+                  style={{ backgroundColor: primaryColor }}
+                >
+                  {verifying ? <Loader2 className="animate-spin" size={20} /> : "Verify & Complete Signup"}
+                </button>
+
+                <div className="flex items-center justify-between text-xs font-bold pt-2 border-t border-slate-100">
+                  <button
+                    type="button"
+                    onClick={handleResendOtp}
+                    disabled={resending}
+                    className="text-[#2F5D50] hover:text-[#2F5D50]/80 transition-colors uppercase tracking-wider disabled:opacity-50"
+                  >
+                    {resending ? "Sending..." : "Resend OTP"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setShowOtpModal(false)}
+                    className="text-slate-400 hover:text-slate-600 transition-colors uppercase tracking-wider"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </form>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

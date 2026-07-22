@@ -14,6 +14,7 @@ import {
   Coins
 } from "lucide-react";
 import toast from "react-hot-toast";
+import { AnimatePresence, motion } from "framer-motion";
 import { serverUrl } from "../../App";
 import { useConfirm } from "../../hooks/ConfirmContext.jsx";
 
@@ -244,17 +245,31 @@ const CouponManager = () => {
       </div>
 
       {/* CREATE MODAL */}
-      {showAddModal && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[2000] flex items-center justify-center p-4">
-          <div className="bg-white w-full max-w-lg rounded-3xl overflow-hidden shadow-2xl animate-in fade-in zoom-in duration-200">
-            <div className="bg-[#24672E] p-6 text-white flex justify-between items-center">
-              <h3 className="text-xl font-bold flex items-center gap-2">
-                <Plus size={20} /> Create New Promo Code
-              </h3>
-              <button onClick={() => setShowAddModal(false)} className="hover:rotate-90 transition-transform cursor-pointer">
-                <X size={24} />
-              </button>
-            </div>
+      <AnimatePresence>
+        {showAddModal && (
+          <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[2000] flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"
+              onClick={() => setShowAddModal(false)}
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              transition={{ type: "spring", duration: 0.4 }}
+              className="bg-white w-full max-w-lg rounded-3xl overflow-hidden shadow-2xl z-10"
+            >
+              <div className="bg-[#24672E] p-6 text-white flex justify-between items-center">
+                <h3 className="text-xl font-bold flex items-center gap-2">
+                  <Plus size={20} /> Create New Promo Code
+                </h3>
+                <button onClick={() => setShowAddModal(false)} className="hover:rotate-90 transition-transform cursor-pointer">
+                  <X size={24} />
+                </button>
+              </div>
 
             <form onSubmit={handleCreate} className="p-8 space-y-4 max-h-[80vh] overflow-y-auto">
               <div className="grid grid-cols-2 gap-4">
@@ -397,9 +412,10 @@ const CouponManager = () => {
                 {loading ? "Creating..." : "Launch Promo Coupon"}
               </button>
             </form>
+            </motion.div>
           </div>
-        </div>
-      )}
+        )}
+      </AnimatePresence>
     </div>
   );
 };

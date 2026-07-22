@@ -93,13 +93,13 @@ export const ConfirmProvider = ({ children }) => {
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 15 }}
               transition={{ type: "spring", duration: 0.4 }}
-              className="relative bg-white rounded-3xl p-6 max-w-md w-full shadow-2xl border border-gray-100 flex flex-col items-center text-center z-10"
+              className="relative bg-white rounded-3xl p-6 max-w-md w-full shadow-2xl border border-gray-100 flex flex-col items-center text-center z-10 max-h-[90vh] overflow-y-auto custom-scrollbar"
             >
               {/* Close button for non-alert modal */}
               {config.type !== "alert" && (
                 <button
                   onClick={handleCancel}
-                  className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors p-1 rounded-lg hover:bg-gray-50 cursor-pointer"
+                  className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors p-1.5 rounded-xl hover:bg-gray-100 cursor-pointer"
                 >
                   <X size={18} />
                 </button>

@@ -5,9 +5,13 @@ import { serverUrl } from "../App";
 import Navbar from "../components/Navbar";
 import { Package, Clock, CheckCircle2, Truck, X, XCircle, MapPin, ChevronRight, ShoppingBag, Trash2 } from "lucide-react";
 import { Link } from "react-router-dom";
+import toast from "react-hot-toast";
+import { AnimatePresence, motion } from "framer-motion";
+import { useConfirm } from "../hooks/ConfirmContext.jsx";
 
 const MyOrders = () => {
     const user = useSelector((state) => state.user.userData);
+    const confirm = useConfirm();
     const [orders, setOrders] = useState([]);
     const [loading, setLoading] = useState(true);
     const [cancellingOrder, setCancellingOrder] = useState(null);
@@ -36,7 +40,7 @@ const MyOrders = () => {
 
     const handleCancelRequest = async () => {
         if (!cancelReason.trim()) {
-            return alert("Please provide a reason for cancellation");
+            return toast.error("Please provide a reason for cancellation");
         }
         setIsCancelling(true);
         try {
@@ -54,7 +58,14 @@ const MyOrders = () => {
     };
 
     const handleDeleteOrder = async (orderId) => {
-        if (!window.confirm("Move this order to archive? You won't see it in your active history anymore.")) return;
+        const confirmed = await confirm({
+            title: "Archive Order",
+            message: "Move this order to archive? You won't see it in your active history anymore.",
+            type: "danger",
+            confirmText: "Archive",
+            cancelText: "Cancel"
+        });
+        if (!confirmed) return;
 
         try {
             const { data } = await axios.delete(`${serverUrl}/api/order/user-delete/${orderId}`, { withCredentials: true });
@@ -313,62 +324,76 @@ const MyOrders = () => {
             </div>
 
             {/* ── CANCELLATION MODAL ── */}
-            {cancellingOrder && (
-                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-                    <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={() => setCancellingOrder(null)}></div>
-                    <div className="bg-white w-full max-w-md rounded-3xl shadow-2xl relative z-10 p-8 animate-in fade-in zoom-in duration-200">
-                        <button
+            <AnimatePresence>
+                {cancellingOrder && (
+                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"
                             onClick={() => setCancellingOrder(null)}
-                            className="absolute right-6 top-6 w-8 h-8 flex items-center justify-center rounded-full bg-slate-50 text-slate-400 hover:bg-red-50 hover:text-red-600 transition-all border border-slate-100"
+                        />
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                            transition={{ type: "spring", duration: 0.4 }}
+                            className="bg-white w-full max-w-md rounded-3xl shadow-2xl relative z-10 p-8 max-h-[90vh] overflow-y-auto"
                         >
-                            <X size={16} strokeWidth={3} />
-                        </button>
-                        <h3 className="text-xl font-black text-slate-900 uppercase">Cancel Order</h3>
-                        <p className="text-xs font-bold text-slate-500 mt-2">Please tell us why you want to cancel. This help us improve our service.</p>
-
-                        <div className="mt-6 space-y-4">
-                            <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest">Reason for cancellation</label>
-                            <select
-                                className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none font-bold text-xs"
-                                value={cancelReason}
-                                onChange={(e) => setCancelReason(e.target.value)}
-                            >
-                                <option value="">Select a reason</option>
-                                <option value="Price too high">Price is too high</option>
-                                <option value="Bought by mistake">Bought by mistake</option>
-                                <option value="Delivery too slow">Delivery is too slow</option>
-                                <option value="Found better deal">Found a better deal elsewhere</option>
-                                <option value="Others">Others</option>
-                            </select>
-
-                            {cancelReason === "Others" && (
-                                <textarea
-                                    className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none font-bold text-xs h-24 resize-none"
-                                    placeholder="Enter your reason here..."
-                                    value={cancelReason === "Others" ? "" : cancelReason}
-                                    onChange={(e) => setCancelReason(e.target.value)}
-                                ></textarea>
-                            )}
-                        </div>
-
-                        <div className="mt-8 flex gap-4">
                             <button
                                 onClick={() => setCancellingOrder(null)}
-                                className="flex-1 px-6 py-4 bg-slate-100 rounded-2xl text-[10px] font-black uppercase text-slate-500 hover:bg-slate-200 transition-colors"
+                                className="absolute right-6 top-6 w-8 h-8 flex items-center justify-center rounded-full bg-slate-50 text-slate-400 hover:bg-red-50 hover:text-red-600 transition-all border border-slate-100"
                             >
-                                Nevermind
+                                <X size={16} strokeWidth={3} />
                             </button>
-                            <button
-                                disabled={!cancelReason || isCancelling}
-                                onClick={handleCancelRequest}
-                                className="flex-1 px-6 py-4 bg-red-600 text-white rounded-2xl text-[10px] font-black uppercase hover:bg-red-700 transition-colors shadow-lg shadow-red-200 disabled:opacity-50"
-                            >
-                                {isCancelling ? 'Processing...' : 'Confirm Cancel'}
-                            </button>
-                        </div>
+                            <h3 className="text-xl font-black text-slate-900 uppercase">Cancel Order</h3>
+                            <p className="text-xs font-bold text-slate-500 mt-2">Please tell us why you want to cancel. This help us improve our service.</p>
+
+                            <div className="mt-6 space-y-4">
+                                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest">Reason for cancellation</label>
+                                <select
+                                    className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none font-bold text-xs"
+                                    value={cancelReason}
+                                    onChange={(e) => setCancelReason(e.target.value)}
+                                >
+                                    <option value="">Select a reason</option>
+                                    <option value="Price too high">Price is too high</option>
+                                    <option value="Bought by mistake">Bought by mistake</option>
+                                    <option value="Delivery too slow">Delivery is too slow</option>
+                                    <option value="Found better deal">Found a better deal elsewhere</option>
+                                    <option value="Others">Others</option>
+                                </select>
+
+                                {cancelReason === "Others" && (
+                                    <textarea
+                                        className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none font-bold text-xs h-24 resize-none"
+                                        placeholder="Enter your reason here..."
+                                        value={cancelReason === "Others" ? "" : cancelReason}
+                                        onChange={(e) => setCancelReason(e.target.value)}
+                                    ></textarea>
+                                )}
+                            </div>
+
+                            <div className="mt-8 flex gap-4">
+                                <button
+                                    onClick={() => setCancellingOrder(null)}
+                                    className="flex-1 px-6 py-4 bg-slate-100 rounded-2xl text-[10px] font-black uppercase text-slate-500 hover:bg-slate-200 transition-colors"
+                                >
+                                    Nevermind
+                                </button>
+                                <button
+                                    disabled={!cancelReason || isCancelling}
+                                    onClick={handleCancelRequest}
+                                    className="flex-1 px-6 py-4 bg-red-600 text-white rounded-2xl text-[10px] font-black uppercase hover:bg-red-700 transition-colors shadow-lg shadow-red-200 disabled:opacity-50"
+                                >
+                                    {isCancelling ? 'Processing...' : 'Confirm Cancel'}
+                                </button>
+                            </div>
+                        </motion.div>
                     </div>
-                </div>
-            )}
+                )}
+            </AnimatePresence>
         </div>
     );
 };

@@ -4,6 +4,7 @@ import { RxCross2 } from 'react-icons/rx';
 import { FaInstagram, FaChevronLeft, FaChevronRight } from 'react-icons/fa6';
 import { useSearchParams } from 'react-router-dom';
 import axios from 'axios';
+import { AnimatePresence, motion } from 'framer-motion';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
@@ -59,11 +60,19 @@ const Lightbox = ({ images, index, onClose }) => {
   const img = images[current];
 
   return (
-    <div
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.3 }}
       className="fixed inset-0 z-[2000] bg-black/90 flex items-center justify-center p-4"
       onClick={onClose}
     >
-      <div
+      <motion.div
+        initial={{ scale: 0.95, y: 15 }}
+        animate={{ scale: 1, y: 0 }}
+        exit={{ scale: 0.95, y: 15 }}
+        transition={{ type: "spring", duration: 0.4 }}
         className="relative max-w-4xl w-full flex flex-col items-center"
         onClick={(e) => e.stopPropagation()}
       >
@@ -112,8 +121,8 @@ const Lightbox = ({ images, index, onClose }) => {
             />
           ))}
         </div>
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   );
 };
 
@@ -271,13 +280,15 @@ const GalleryPage = () => {
       </section>
 
       {/* Lightbox */}
-      {lightboxIndex !== null && (
-        <Lightbox
-          images={filtered}
-          index={lightboxIndex}
-          onClose={() => setLightboxIndex(null)}
-        />
-      )}
+      <AnimatePresence>
+        {lightboxIndex !== null && (
+          <Lightbox
+            images={filtered}
+            index={lightboxIndex}
+            onClose={() => setLightboxIndex(null)}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 };

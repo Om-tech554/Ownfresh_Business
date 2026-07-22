@@ -17,6 +17,8 @@ import {
   ImageIcon,
 } from "lucide-react";
 import toast from "react-hot-toast";
+import { AnimatePresence, motion } from "framer-motion";
+import { useConfirm } from "../../hooks/ConfirmContext.jsx";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
 const CATEGORIES = ["Our Oils", "Extraction", "Ingredients", "Culinary", "Community"];
@@ -439,25 +441,43 @@ const GalleryManager = () => {
       )}
 
       {/* UPLOAD MODAL */}
-      {showUploadModal && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[2000] flex items-center justify-center p-4">
-          <div className="bg-white w-full max-w-lg rounded-3xl overflow-hidden shadow-2xl animate-in fade-in zoom-in duration-200">
-            <div className="bg-[#24672E] p-6 text-white flex justify-between items-center">
-              <h3 className="text-xl font-bold flex items-center gap-2">
-                <Upload size={20} />
-                Upload New Image
-              </h3>
-              <button
-                onClick={() => {
-                  setShowUploadModal(false);
-                  setUploadFile(null);
-                  setUploadPreview("");
-                }}
-                className="hover:rotate-90 transition-transform"
-              >
-                <X size={24} />
-              </button>
-            </div>
+      <AnimatePresence>
+        {showUploadModal && (
+          <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[2000] flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"
+              onClick={() => {
+                setShowUploadModal(false);
+                setUploadFile(null);
+                setUploadPreview("");
+              }}
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              transition={{ type: "spring", duration: 0.4 }}
+              className="bg-white w-full max-w-lg rounded-3xl overflow-hidden shadow-2xl z-10"
+            >
+              <div className="bg-[#24672E] p-6 text-white flex justify-between items-center">
+                <h3 className="text-xl font-bold flex items-center gap-2">
+                  <Upload size={20} />
+                  Upload New Image
+                </h3>
+                <button
+                  onClick={() => {
+                    setShowUploadModal(false);
+                    setUploadFile(null);
+                    setUploadPreview("");
+                  }}
+                  className="hover:rotate-90 transition-transform"
+                >
+                  <X size={24} />
+                </button>
+              </div>
 
             <form onSubmit={handleUploadSubmit} className="p-8 space-y-4 max-h-[75vh] overflow-y-auto">
               <div>
@@ -579,23 +599,38 @@ const GalleryManager = () => {
                 {loading ? "Uploading image..." : "Upload Image"}
               </button>
             </form>
+            </motion.div>
           </div>
-        </div>
-      )}
+        )}
+      </AnimatePresence>
 
       {/* EDIT MODAL */}
-      {showEditModal && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[2000] flex items-center justify-center p-4">
-          <div className="bg-white w-full max-w-lg rounded-3xl overflow-hidden shadow-2xl animate-in fade-in zoom-in duration-200">
-            <div className="bg-[#24672E] p-6 text-white flex justify-between items-center">
-              <h3 className="text-xl font-bold flex items-center gap-2">
-                <Edit size={20} />
-                Edit Gallery Image Properties
-              </h3>
-              <button onClick={() => setShowEditModal(false)} className="hover:rotate-90 transition-transform">
-                <X size={24} />
-              </button>
-            </div>
+      <AnimatePresence>
+        {showEditModal && (
+          <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[2000] flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"
+              onClick={() => setShowEditModal(false)}
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              transition={{ type: "spring", duration: 0.4 }}
+              className="bg-white w-full max-w-lg rounded-3xl overflow-hidden shadow-2xl z-10"
+            >
+              <div className="bg-[#24672E] p-6 text-white flex justify-between items-center">
+                <h3 className="text-xl font-bold flex items-center gap-2">
+                  <Edit size={20} />
+                  Edit Gallery Image Properties
+                </h3>
+                <button onClick={() => setShowEditModal(false)} className="hover:rotate-90 transition-transform">
+                  <X size={24} />
+                </button>
+              </div>
 
             <form onSubmit={handleEditSubmit} className="p-8 space-y-4">
               <div className="w-full h-32 rounded-xl overflow-hidden border border-slate-200 mb-4 bg-slate-50">
@@ -687,9 +722,10 @@ const GalleryManager = () => {
                 {loading ? "Saving changes..." : "Save Image Properties"}
               </button>
             </form>
+            </motion.div>
           </div>
-        </div>
-      )}
+        )}
+      </AnimatePresence>
     </div>
   );
 };
