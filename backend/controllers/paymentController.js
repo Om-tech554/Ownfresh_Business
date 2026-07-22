@@ -8,6 +8,8 @@ import Transaction from "../models/transactionModel.js";
 import Coupon from "../models/couponModel.js";
 import { sendOrderConfirmationMail } from "../utils/mail.js";
 import { sendOrderConfirmationSms } from "../utils/sms.js";
+import { sendOrderConfirmationWhatsApp } from "../utils/whatsapp.js";
+
 
 // --- PHONEPE CONFIGURATION ---
 const isPlaceholder = (val) => !val || val.includes("your_") || val.includes("placeholder") || val.includes("your-");
@@ -218,6 +220,12 @@ export const phonepeCallback = async (req, res) => {
         console.error("Error sending order confirmation SMS:", err.message);
       }
 
+      try {
+        await sendOrderConfirmationWhatsApp(order);
+      } catch (err) {
+        console.error("Error sending order confirmation WhatsApp:", err.message);
+      }
+
       return res.status(200).json({ success: true, msg: "Payment status updated successfully" });
     } else {
       // Mark payment as failed
@@ -331,6 +339,12 @@ export const checkPhonePeStatus = async (req, res) => {
         await sendOrderConfirmationSms(order);
       } catch (err) {
         console.error("Error sending order confirmation SMS:", err.message);
+      }
+
+      try {
+        await sendOrderConfirmationWhatsApp(order);
+      } catch (err) {
+        console.error("Error sending order confirmation WhatsApp:", err.message);
       }
 
       return res.status(200).json({

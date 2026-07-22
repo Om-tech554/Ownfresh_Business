@@ -6,6 +6,10 @@ import Coupon from "../models/couponModel.js";
 import ReferralCode from "../models/referralCodeModel.js";
 import ReferralUsage from "../models/referralUsageModel.js";
 import crypto from "crypto";
+import { sendOrderConfirmationMail } from "../utils/mail.js";
+import { sendOrderConfirmationSms } from "../utils/sms.js";
+import { sendOrderConfirmationWhatsApp } from "../utils/whatsapp.js";
+
 
 // CREATE ORDER (CHECKOUT)
 export const createOrder = async (req, res) => {
@@ -141,8 +145,16 @@ export const createOrder = async (req, res) => {
       image: item.image
     }));
 
+    // Generate custom sequential order ID (e.g. MOF/206/0035)
+    const year = new Date().getFullYear();
+    const yearCode = `${year.toString().slice(0, 2)}${year.toString().slice(-1)}`;
+    const orderCount = await Order.countDocuments();
+    const sequenceStr = String(orderCount + 1).padStart(4, "0");
+    const customOrderId = `MOF/${yearCode}/${sequenceStr}`;
+
     // 5) Create Order logic
     const order = await Order.create({
+      customOrderId,
       user: userId,
       items: orderItems, 
       PaymentMethod: paymentMethod,
@@ -183,6 +195,32 @@ export const createOrder = async (req, res) => {
       // Mark the user as having redeemed a referral
       user.hasRedeemedReferral = true;
       await user.save();
+    }
+
+    // Send confirmation notifications for COD or zero-amount orders
+    if (isInstantOrder || finalPayableAmount <= 0) {
+      try {
+        const populatedOrder = await Order.findById(order._id).populate("user", "fullName email mobile");
+        if (populatedOrder) {
+          try {
+            await sendOrderConfirmationMail(populatedOrder);
+          } catch (err) {
+            console.error("Error sending order confirmation email for COD/zero-amount order:", err.message);
+          }
+          try {
+            await sendOrderConfirmationSms(populatedOrder);
+          } catch (err) {
+            console.error("Error sending order confirmation SMS for COD/zero-amount order:", err.message);
+          }
+          try {
+            await sendOrderConfirmationWhatsApp(populatedOrder);
+          } catch (err) {
+            console.error("Error sending order confirmation WhatsApp for COD/zero-amount order:", err.message);
+          }
+        }
+      } catch (err) {
+        console.error("Error during COD/zero-amount notifications:", err);
+      }
     }
 
     res.status(201).json({

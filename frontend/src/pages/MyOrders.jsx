@@ -162,7 +162,7 @@ const MyOrders = () => {
                                         </div>
                                     </div>
                                     <div className="text-right space-y-1 ml-auto">
-                                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Order # {order._id.substring(order._id.length - 12).toUpperCase()}</p>
+                                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Order # {order.customOrderId || order._id.substring(order._id.length - 12).toUpperCase()}</p>
                                         <div className="flex items-center justify-end gap-3 divide-x divide-slate-200">
                                             <Link to={`/order-details/${order._id}`} className="text-[10px] font-bold text-blue-600 hover:underline">Order Details</Link>
                                             <button className="text-[10px] font-bold text-blue-600 hover:underline pl-3">Invoice</button>

@@ -90,7 +90,7 @@ const CheckoutFlow = () => {
                       onChange={(e) => setUseWallet(e.target.checked)}
                     />
                     <label htmlFor="use-wallet" className="text-sm font-bold text-purple-900 cursor-pointer select-none">
-                      Use Wallet Balance (Available: ₹{walletBalance})
+                      Should I use your wallet points for this order? (Available: ₹{walletBalance})
                     </label>
                   </div>
                 </div>

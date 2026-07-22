@@ -48,11 +48,10 @@ const walletTransactionSchema = new mongoose.Schema(
 );
 
 // Immunitability helper (pre-save to prevent updates on existing transactions)
-walletTransactionSchema.pre("save", function (next) {
+walletTransactionSchema.pre("save", function () {
     if (!this.isNew) {
-        return next(new Error("Wallet transactions are immutable and cannot be updated."));
+        throw new Error("Wallet transactions are immutable and cannot be updated.");
     }
-    next();
 });
 
 export default mongoose.models.WalletTransaction || mongoose.model("WalletTransaction", walletTransactionSchema);

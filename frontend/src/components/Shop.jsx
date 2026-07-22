@@ -8,6 +8,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { addToCart } from "../redux/userslice";
 import SLink from "./SLink";
 import SEO from "./SEO";
+import ProductCard from "./ProductCard";
 
 const Shop = () => {
   const [products, setProducts] = useState([]);
@@ -77,33 +78,28 @@ const Shop = () => {
     return result;
   }, [products, activeCategory, searchQuery, priceRange]);
 
-  const handleAddToCart = (product) => {
+  const handleAddToCart = (product, selectedVariant) => {
     if (!user) {
       toast.error("Please sign in to add to cart", { duration: 1500 });
       setTimeout(() => navigate("/signin"), 500);
       return;
     }
-    const defaultVariant = product.variants && product.variants.length > 0 ? product.variants[0] : null;
-    if (!defaultVariant) {
+    if (!selectedVariant) {
         toast.error("This product is currently out of stock");
         return;
     }
     const itemToAdd = { 
         ...product, 
-        _id: `${product._id}_${defaultVariant._id}`,
+        _id: `${product._id}_${selectedVariant._id}`,
         productId: product._id,
-        variantId: defaultVariant._id,
-        name: `${product.name} - ${defaultVariant.name}`,
-        variantName: defaultVariant.name,
-        price: defaultVariant.salePrice || defaultVariant.price,
+        variantId: selectedVariant._id,
+        name: `${product.name} - ${selectedVariant.name}`,
+        variantName: selectedVariant.name,
+        price: selectedVariant.salePrice || selectedVariant.price,
         quantity: 1 
     };
     dispatch(addToCart(itemToAdd));
-    setAddedItems((prev) => ({ ...prev, [product._id]: true }));
-    setTimeout(() => {
-      setAddedItems((prev) => ({ ...prev, [product._id]: false }));
-    }, 2000);
-    toast.success(`${product.name} added to cart!`);
+    toast.success(`${product.name} - ${selectedVariant.name} added to cart!`);
   };
 
   const sidebarContent = (
@@ -235,32 +231,12 @@ const Shop = () => {
               <>
                 <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-6 w-full mb-12">
                   {displayedProducts.slice(0, visibleCount).map((p) => (
-                    <SLink
-                      to={`/product/${p._id}`}
+                    <ProductCard
                       key={p._id}
-                      className="group relative bg-[#F8F8F8] border border-transparent rounded-lg p-5 transition-all duration-300 hover:shadow-xl hover:bg-white hover:border-gray-200 flex flex-col items-center text-center cursor-pointer w-full flex-shrink-0"
-                    >
-                      <div className="relative h-48 w-full rounded-md overflow-hidden bg-transparent mb-4 flex items-center justify-center">
-                        <img src={p.image} alt={p.name} className="h-full w-auto object-contain transition-transform duration-500 group-hover:scale-105 mix-blend-multiply" />
-                        {Number(p.price) < 500 && <span className="absolute top-2 left-2 bg-[#FFDD00] text-black text-[10px] font-bold px-2 py-1 uppercase tracking-widest">Sale</span>}
-                      </div>
-
-                      <div className="flex flex-col flex-grow w-full items-center">
-                        <span className="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-1">{p.category?.name || "Eating Oil"}</span>
-                        <h3 className="text-base text-black font-bold leading-tight mb-2 line-clamp-2 uppercase">{p.name}</h3>
-
-                        <div className="mt-auto pt-4 w-full flex flex-col items-center gap-3">
-                          <span className="text-xl font-black text-black">₹{p.price}</span>
-                          <button
-                            onClick={(e) => { e.stopPropagation(); e.preventDefault(); handleAddToCart(p); }}
-                            disabled={addedItems[p._id]}
-                            className={`w-full py-3 rounded-full text-xs font-bold uppercase tracking-widest transition-all duration-300 ${addedItems[p._id] ? "bg-green-500 text-white" : "bg-black text-white hover:bg-[#FFDD00] hover:text-black"}`}
-                          >
-                            {addedItems[p._id] ? "Added to Cart" : "Add to Cart"}
-                          </button>
-                        </div>
-                      </div>
-                    </SLink>
+                      product={p}
+                      user={user}
+                      onAddToCart={handleAddToCart}
+                    />
                   ))}
                 </div>
 

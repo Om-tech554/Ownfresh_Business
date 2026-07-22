@@ -5,12 +5,13 @@ import BlogList from './admin/BlogList';
 import AdminOrders from './admin/AdminOrders';
 import AdminCustomers from './admin/AdminCustomers';
 import { useSelector } from 'react-redux';
-import { Package, BookOpen, Ticket, ShoppingCart, Layers, Users, Image as ImageIcon } from "lucide-react";
+import { Package, BookOpen, Ticket, ShoppingCart, Layers, Users, Image as ImageIcon, Settings } from "lucide-react";
 import CouponManager from './admin/CouponManager';
 import CategoryManager from './admin/CategoryManager';
 import GalleryManager from './admin/GalleryManager';
 import InventoryManager from './admin/InventoryManager';
 import ReferralManager from './admin/ReferralManager';
+import SettingsManager from './admin/SettingsManager';
 
 function AdminDashboard() {
   const userData = useSelector((state) => state.user.userData);
@@ -83,6 +84,17 @@ function AdminDashboard() {
                 <Layers className="w-4 h-4" />
                 Categories
               </button>
+
+              <button
+                onClick={() => setActiveTab("settings")}
+                className={`flex items-center gap-2 px-6 py-2.5 rounded-xl font-bold transition-all whitespace-nowrap ${activeTab === "settings"
+                    ? "bg-[#1E971D] text-white shadow-lg shadow-[#1E971D]/20"
+                    : "text-slate-500 hover:bg-slate-50"
+                  }`}
+              >
+                <Settings className="w-4 h-4" />
+                Settings
+              </button>
             </>
           )}
 
@@ -148,6 +160,7 @@ function AdminDashboard() {
         {activeTab === "orders" && userData?.role === "admin" && <AdminOrders />}
         {activeTab === "customers" && userData?.role === "admin" && <AdminCustomers />}
         {activeTab === "partners" && userData?.role === "admin" && <ReferralManager />}
+        {activeTab === "settings" && userData?.role === "admin" && <SettingsManager />}
       </div>
     </div>
   );

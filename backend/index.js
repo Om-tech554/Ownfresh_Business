@@ -25,6 +25,7 @@ import { initCronJobs } from "./utils/cronJobs.js";
 import { verifyAppCheck } from "./middleware/appCheckMiddleware.js";
 import requestIdMiddleware from "./middleware/requestIdMiddleware.js";
 import referralRoutes from "./routes/referralRoutes.js";
+import settingsRoutes from "./routes/settingsRoutes.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -88,6 +89,7 @@ app.use("/api/wallet", walletRoutes);
 app.use("/api/gallery", galleryRoutes);
 app.use("/api/inventory", inventoryRoutes);
 app.use("/api/fulfillment", fulfillmentRoutes);
+app.use("/api/settings", settingsRoutes);
 
 // --- STATIC FILES & SPA ROUTING FIX ---
 const __frontendDir = path.join(__dirname, "../frontend/dist");

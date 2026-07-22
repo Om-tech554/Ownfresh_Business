@@ -24,6 +24,21 @@ const Navbar = () => {
     const [searchQuery, setSearchQuery] = useState("");
     const [searchResults, setSearchResults] = useState([]);
     const [showDropdown, setShowDropdown] = useState(false);
+    const [announcement, setAnnouncement] = useState("🎉 FREE SHIPPING ON ORDERS ABOVE ₹999 | 100% PURE BOTANIC OILS");
+
+    useEffect(() => {
+        const fetchAnnouncement = async () => {
+            try {
+                const { data } = await axios.get(`${serverUrl}/api/settings/announcement`);
+                if (data.success && data.value) {
+                    setAnnouncement(data.value);
+                }
+            } catch (error) {
+                console.error("Failed to fetch announcement banner", error);
+            }
+        };
+        fetchAnnouncement();
+    }, []);
 
     const searchRefDesktop = useRef(null);
     const searchRefMobile = useRef(null);
@@ -198,8 +213,23 @@ const Navbar = () => {
     return (
         <React.Fragment>
             <div className="sticky top-0 z-[1000] w-full flex flex-col shadow-sm bg-white">
-                <div className="w-full bg-[#FFDD00] text-black py-2.5 text-center text-xs font-bold tracking-[0.1em] uppercase relative px-4">
-                    🎉 FREE SHIPPING ON ORDERS ABOVE ₹999 | 100% PURE BOTANIC OILS
+                <div className="w-full bg-[#FFDD00] text-black py-2.5 text-xs font-bold tracking-[0.1em] uppercase overflow-hidden whitespace-nowrap relative">
+                    <div className="inline-block animate-marquee whitespace-nowrap">
+                        <span className="mx-12">{announcement}</span>
+                        <span className="mx-12">{announcement}</span>
+                        <span className="mx-12">{announcement}</span>
+                        <span className="mx-12">{announcement}</span>
+                    </div>
+                    <style>{`
+                        @keyframes marquee {
+                            0% { transform: translate3d(0, 0, 0); }
+                            100% { transform: translate3d(-25%, 0, 0); }
+                        }
+                        .animate-marquee {
+                            display: inline-block;
+                            animation: marquee 25s linear infinite;
+                        }
+                    `}</style>
                 </div>
 
                 <div className="w-full h-[80px] flex items-center justify-between px-[24px] lg:px-[60px] bg-white border-b border-gray-200">

@@ -234,7 +234,7 @@ const OrderSuccess = () => {
         <div className="bg-gray-50 rounded-2xl p-6 border border-gray-100 mb-6 text-left">
           <div className="flex justify-between items-center border-b border-gray-200 pb-4 mb-4">
             <span className="text-gray-500 font-medium">Order ID</span>
-            <span className="font-bold text-gray-900">#{orderId}</span>
+            <span className="font-bold text-gray-900">#{orderDetails?.customOrderId || orderId}</span>
           </div>
           <div className="flex justify-between items-center border-b border-gray-200 pb-4 mb-4">
             <span className="text-gray-500 font-medium">Payment Mode</span>
@@ -242,7 +242,7 @@ const OrderSuccess = () => {
           </div>
           <div className="flex justify-between items-center">
             <span className="text-gray-500 font-medium">Estimated Delivery</span>
-            <span className="font-bold text-gray-900 text-right">Standard: 3-5 Business Days</span>
+            <span className="font-bold text-gray-900 text-right">Standard: 5-7 Business Days</span>
           </div>
         </div>
 

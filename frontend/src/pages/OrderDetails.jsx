@@ -117,7 +117,7 @@ const OrderDetails = () => {
                         <div className="flex flex-wrap items-center gap-x-6 gap-y-2 mt-2">
                             <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wide">Ordered on {new Date(order.createdAt).toLocaleDateString(undefined, { day: 'numeric', month: 'long', year: 'numeric' })}</p>
                             <div className="w-1.5 h-1.5 bg-slate-300 rounded-full hidden sm:block"></div>
-                            <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wide font-mono">Order# {order._id.toUpperCase()}</p>
+                            <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wide font-mono">Order# {(order.customOrderId || order._id).toUpperCase()}</p>
                         </div>
                     </div>
                     <button onClick={() => window.print()} className="flex items-center gap-2 px-6 py-3 bg-white border border-slate-200 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-[#FFDD00] hover:border-[#FFDD00] transition-all shadow-sm">

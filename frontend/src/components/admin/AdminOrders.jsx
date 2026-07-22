@@ -21,6 +21,9 @@ const AdminOrders = () => {
     const [carriers, setCarriers] = useState([]);
     const [courierPartner, setCourierPartner] = useState("Unknown Carrier");
     const [trackingId, setTrackingId] = useState("");
+    const [isUploading, setIsUploading] = useState(false);
+    const [receiptUrl, setReceiptUrl] = useState("");
+    const [receiptRawText, setReceiptRawText] = useState("");
     const [emailPreview, setEmailPreview] = useState(null);
     const [testEmailAddress, setTestEmailAddress] = useState("");
     const [isPreparingEmail, setIsPreparingEmail] = useState(false);
@@ -39,9 +42,13 @@ const AdminOrders = () => {
         if (selectedOrder) {
             setCourierPartner(selectedOrder.courierPartner || "Unknown Carrier");
             setTrackingId(selectedOrder.trackingId || "");
+            setReceiptUrl(selectedOrder.courierReceiptUrl || "");
+            setReceiptRawText(selectedOrder.courierReceiptRawText || "");
         } else {
             setCourierPartner("Unknown Carrier");
             setTrackingId("");
+            setReceiptUrl("");
+            setReceiptRawText("");
         }
     }, [selectedOrder]);
 
@@ -102,6 +109,44 @@ const AdminOrders = () => {
         }
     };
 
+    const handleReceiptUpload = async (e, orderId) => {
+        const file = e.target.files?.[0] || e.dataTransfer?.files?.[0];
+        if (!file) return;
+
+        const formData = new FormData();
+        formData.append("receipt", file);
+        formData.append("orderId", orderId);
+
+        setIsUploading(true);
+        try {
+            const { data } = await axios.post(
+                `${serverUrl}/api/fulfillment/upload-receipt`,
+                formData,
+                {
+                    headers: { "Content-Type": "multipart/form-data" },
+                    withCredentials: true
+                }
+            );
+            if (data.success) {
+                toast.success("Receipt uploaded & OCR completed!");
+                setReceiptUrl(data.fileUrl || "");
+                setReceiptRawText(data.rawText || "");
+                if (data.courierPartner && data.courierPartner !== "Unknown Carrier") {
+                    setCourierPartner(data.courierPartner);
+                }
+                if (data.trackingId) {
+                    setTrackingId(data.trackingId);
+                }
+            }
+        } catch (error) {
+            console.error("OCR Failed:", error);
+            const errorMsg = error.response?.data?.msg || "OCR scanning failed";
+            toast.error(errorMsg);
+        } finally {
+            setIsUploading(false);
+        }
+    };
+
     const handleConfirmFulfillment = async (orderId) => {
         if (!courierPartner || courierPartner === "Unknown Carrier") {
             return toast.error("Please select a valid Courier Partner");
@@ -115,7 +160,9 @@ const AdminOrders = () => {
                 `${serverUrl}/api/fulfillment/confirm/${orderId}`,
                 {
                     courierPartner,
-                    trackingId
+                    trackingId,
+                    courierReceiptUrl: receiptUrl,
+                    courierReceiptRawText: receiptRawText
                 },
                 { withCredentials: true }
             );
@@ -597,6 +644,51 @@ const AdminOrders = () => {
                                     {selectedOrder.labelPrinted && !selectedOrder.trackingId && (
                                         <div className="mt-8 pt-8 border-t border-slate-100 bg-slate-50 p-6 rounded-2xl border border-slate-200">
                                             <h5 className="text-[10px] font-black text-[#24672E] uppercase tracking-widest mb-4">Enter Courier Details</h5>
+
+                                            {/* Optional Receipt Upload Dropzone */}
+                                            <div className="mb-6">
+                                                <label className="block text-[9px] font-black text-slate-400 uppercase mb-2">Upload Courier Receipt (Optional - auto-fills via OCR)</label>
+                                                {receiptUrl ? (
+                                                    <div className="bg-white border border-slate-200 p-3 rounded-xl flex items-center justify-between">
+                                                        <span className="text-[10px] font-bold text-slate-500 truncate max-w-[250px]">{receiptUrl.split('/').pop()}</span>
+                                                        <div className="flex gap-2">
+                                                            <a href={receiptUrl} target="_blank" rel="noreferrer" className="text-blue-600 text-[10px] font-black uppercase hover:underline">View File ↗</a>
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => { setReceiptUrl(""); setReceiptRawText(""); }}
+                                                                className="text-red-500 text-[10px] font-black uppercase hover:underline hover:text-red-700"
+                                                            >
+                                                                Remove
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                ) : (
+                                                    <div
+                                                        onDragOver={(e) => e.preventDefault()}
+                                                        onDrop={(e) => { e.preventDefault(); handleReceiptUpload(e, selectedOrder._id); }}
+                                                        className="border-2 border-dashed border-slate-300 rounded-2xl p-6 text-center hover:bg-slate-100 hover:border-slate-400 transition-all cursor-pointer relative bg-white"
+                                                    >
+                                                        <input
+                                                            type="file"
+                                                            accept="image/*,application/pdf"
+                                                            onChange={(e) => handleReceiptUpload(e, selectedOrder._id)}
+                                                            className="absolute inset-0 opacity-0 cursor-pointer"
+                                                        />
+                                                        {isUploading ? (
+                                                            <div className="flex flex-col items-center justify-center">
+                                                                <Loader2 className="w-6 h-6 text-[#FFDD00] animate-spin mb-1" />
+                                                                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Running OCR Analysis...</p>
+                                                            </div>
+                                                        ) : (
+                                                            <div className="flex flex-col items-center justify-center">
+                                                                <UploadCloud className="w-6 h-6 text-slate-400 mb-1" />
+                                                                <p className="text-[10px] font-bold text-slate-600">Drag & drop receipt here, or click to browse</p>
+                                                                <p className="text-[8px] font-bold text-slate-400 mt-0.5">Supports PNG, JPG, JPEG, and PDF</p>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                )}
+                                            </div>
 
                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                                                 <div>

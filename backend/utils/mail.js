@@ -134,7 +134,7 @@ export const sendOrderConfirmationMail = async (order) => {
   await transporter.sendMail({
     from: `"OwnFresh Orders" <${process.env.EMAIL}>`,
     to: order.user.email,
-    subject: `Order Confirmed - #${order._id}`,
+    subject: `Order Confirmed - #${order.customOrderId || order._id}`,
     html: `
       <div style="background-color:#F9F9F9;padding:24px;font-family:Arial,sans-serif;">
         <div style="max-width:600px;margin:auto;background:#ffffff;border:1px solid #E5E5E5;border-radius:12px;overflow:hidden;box-shadow:0 4px 10px rgba(0,0,0,0.05);">
@@ -153,7 +153,7 @@ export const sendOrderConfirmationMail = async (order) => {
             </p>
 
             <div style="background:#F5F5F5;padding:15px;border-radius:8px;margin:20px 0;font-size:14px;">
-              <b>Order ID:</b> #${order._id}<br/>
+              <b>Order ID:</b> #${order.customOrderId || order._id}<br/>
               <b>Payment Method:</b> ${order.PaymentMethod.toUpperCase()} (Online / UPI)<br/>
               <b>Delivery Address:</b> ${order.deliveryAddress.text}
             </div>
@@ -240,7 +240,7 @@ export const generateShipmentEmailHtml = (order, trackingUrl) => {
               Hi <b>${customerName}</b>,
             </p>
             <p style="font-size:14px;color:#555;line-height:1.5;">
-              Exciting news! Your order <b>#${order._id.toString().toUpperCase()}</b> has been handed over to our courier partner <b>${order.courierPartner}</b>.
+              Exciting news! Your order <b>#${order.customOrderId || order._id.toString().toUpperCase()}</b> has been handed over to our courier partner <b>${order.courierPartner}</b>.
             </p>
             <!-- Tracking Details -->
             <div style="margin:24px 0;padding:16px;background:#F5F5F5;border-radius:8px;border:1px solid #E5E5E5;">
@@ -263,7 +263,7 @@ export const generateShipmentEmailHtml = (order, trackingUrl) => {
               </div>
             </div>
             <p style="font-size:14px;color:#555;">
-              📅 <b>Expected Delivery:</b> You should receive your items within 3-5 business days.
+              📅 <b>Expected Delivery:</b> You should receive your items within 5-7 business days.
             </p>
             <p style="font-size:13px;color:#777;margin-top:16px;">
               If you have any questions or concerns, contact our support team at <a href="mailto:my1ownfresh@gmail.com" style="color:#24672E;text-decoration:none;">my1ownfresh@gmail.com</a>.

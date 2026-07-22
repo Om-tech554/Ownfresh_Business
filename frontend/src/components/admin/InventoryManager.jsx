@@ -27,6 +27,11 @@ const InventoryManager = () => {
   });
 
   const [bulkData, setBulkData] = useState({ categoryId: "", percentageIncrease: "" });
+  
+  // Search & Filter State
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("All");
+  const [stockStatus, setStockStatus] = useState("All"); // "All", "In Stock", "Low Stock" (1-10), "Out of Stock" (<= 0)
 
   const fetchData = async () => {
     try {
@@ -132,6 +137,72 @@ const InventoryManager = () => {
     }
   };
 
+  // Construct flat list of items to easily search/filter
+  const displayItems = [];
+  products.forEach(p => {
+    const productVariants = variants.filter(v => (v.product?._id || v.product) === p._id);
+    if (productVariants.length === 0) {
+      displayItems.push({
+        type: 'legacy',
+        id: p._id,
+        productId: p._id,
+        productName: p.name,
+        category: p.category?._id || p.category,
+        variantName: 'Standard',
+        sku: p.sku || '-',
+        price: p.price || 0,
+        salePrice: null,
+        stockQuantity: '-',
+        status: p.status || 'Active',
+        originalProduct: p
+      });
+    } else {
+      productVariants.forEach(v => {
+        displayItems.push({
+          type: 'variant',
+          id: v._id,
+          productId: p._id,
+          productName: p.name,
+          category: p.category?._id || p.category,
+          variantName: v.name,
+          sku: v.sku || '-',
+          price: v.price,
+          salePrice: v.salePrice,
+          stockQuantity: v.stockQuantity,
+          status: v.status || 'Active',
+          originalProduct: p,
+          originalVariant: v
+        });
+      });
+    }
+  });
+
+  // Apply Search & Filter Conditions
+  const filteredItems = displayItems.filter(item => {
+    // 1. Search Query Match
+    const matchesSearch = 
+      item.productName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      item.variantName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      item.sku.toLowerCase().includes(searchQuery.toLowerCase());
+
+    // 2. Category Match
+    const matchesCategory = 
+      selectedCategory === "All" || 
+      item.category === selectedCategory;
+
+    // 3. Stock Status Match
+    let matchesStock = true;
+    if (stockStatus === "In Stock") {
+      matchesStock = item.stockQuantity === '-' || item.stockQuantity > 10;
+    } else if (stockStatus === "Low Stock") {
+      matchesStock = item.stockQuantity !== '-' && item.stockQuantity > 0 && item.stockQuantity <= 10;
+    } else if (stockStatus === "Out of Stock") {
+      matchesStock = item.stockQuantity !== '-' && item.stockQuantity <= 0;
+    }
+
+    return matchesSearch && matchesCategory && matchesStock;
+  });
+
   return (
     <div className="w-full">
       <Toaster position="bottom-right" />
@@ -161,6 +232,51 @@ const InventoryManager = () => {
         </div>
       </div>
 
+      {/* Search & Filters Controls */}
+      <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm mb-6 flex flex-wrap items-center gap-4">
+        {/* Search Bar */}
+        <div className="flex-1 min-w-[280px] relative">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
+          <input
+            type="text"
+            placeholder="Search products, variants, SKUs..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-[#1E971D] focus:border-[#1E971D] transition-all text-sm outline-none"
+          />
+        </div>
+
+        {/* Category Filter */}
+        <div className="min-w-[180px]">
+          <select
+            value={selectedCategory}
+            onChange={(e) => setSelectedCategory(e.target.value)}
+            className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:bg-white focus:ring-2 focus:ring-[#1E971D] focus:border-[#1E971D] transition-all outline-none"
+          >
+            <option value="All">All Categories</option>
+            {categories.map((cat) => (
+              <option key={cat._id} value={cat._id}>
+                {cat.name}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {/* Stock Filter */}
+        <div className="min-w-[180px]">
+          <select
+            value={stockStatus}
+            onChange={(e) => setStockStatus(e.target.value)}
+            className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:bg-white focus:ring-2 focus:ring-[#1E971D] focus:border-[#1E971D] transition-all outline-none"
+          >
+            <option value="All">All Stock Levels</option>
+            <option value="In Stock">In Stock (&gt; 10)</option>
+            <option value="Low Stock">Low Stock (1-10)</option>
+            <option value="Out of Stock">Out of Stock (0)</option>
+          </select>
+        </div>
+      </div>
+
       {/* Variants Table */}
       <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
         <div className="overflow-x-auto">
@@ -177,20 +293,18 @@ const InventoryManager = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {products.map(p => {
-                const productVariants = variants.filter(v => (v.product?._id || v.product) === p._id);
-                
-                if (productVariants.length === 0) {
+              {filteredItems.map(item => {
+                if (item.type === 'legacy') {
                   return (
-                    <tr key={p._id} className="hover:bg-slate-50 transition-colors bg-orange-50/30">
-                      <td className="p-4 font-medium text-slate-800">{p.name}</td>
-                      <td className="p-4 text-slate-400 italic">Standard</td>
+                    <tr key={item.id} className="hover:bg-slate-50 transition-colors bg-orange-50/30">
+                      <td className="p-4 font-medium text-slate-800">{item.productName}</td>
+                      <td className="p-4 text-slate-400 italic">{item.variantName}</td>
                       <td className="p-4 text-slate-400">-</td>
-                      <td className="p-4 text-orange-600 font-bold text-sm">₹{p.price || 0} <span className="text-xs font-normal text-slate-400">(Legacy)</span></td>
+                      <td className="p-4 text-orange-600 font-bold text-sm">₹{item.price} <span className="text-xs font-normal text-slate-400">(Legacy)</span></td>
                       <td className="p-4 text-slate-400">-</td>
                       <td className="p-4">
                         <span className="px-2 py-1 rounded text-xs font-bold bg-slate-100 text-slate-600">
-                          {p.status || "Active"}
+                          {item.status}
                         </span>
                       </td>
                       <td className="p-4 text-right">
@@ -198,10 +312,10 @@ const InventoryManager = () => {
                           onClick={() => {
                             setSelectedVariant(null);
                             setFormData({
-                              product: p._id,
+                              product: item.productId,
                               name: "Standard",
-                              sku: p.sku || "",
-                              price: p.price || 0,
+                              sku: item.originalProduct.sku || "",
+                              price: item.price,
                               salePrice: "",
                               stockQuantity: "100",
                               status: "Active"
@@ -217,45 +331,45 @@ const InventoryManager = () => {
                   );
                 }
 
-                return productVariants.map(v => (
-                  <tr key={v._id} className="hover:bg-slate-50 transition-colors">
-                    <td className="p-4 font-medium text-slate-800">{p.name}</td>
-                    <td className="p-4 text-slate-600 font-medium">{v.name}</td>
-                    <td className="p-4 text-slate-500 text-sm">{v.sku || "-"}</td>
+                return (
+                  <tr key={item.id} className="hover:bg-slate-50 transition-colors">
+                    <td className="p-4 font-medium text-slate-800">{item.productName}</td>
+                    <td className="p-4 text-slate-600 font-medium">{item.variantName}</td>
+                    <td className="p-4 text-slate-500 text-sm">{item.sku || "-"}</td>
                     <td className="p-4 font-bold text-slate-800">
-                      {v.salePrice ? (
+                      {item.salePrice ? (
                         <div>
-                          <span className="text-green-600">₹{v.salePrice}</span>
-                          <span className="text-slate-400 line-through text-xs ml-2">₹{v.price}</span>
+                          <span className="text-green-600">₹{item.salePrice}</span>
+                          <span className="text-slate-400 line-through text-xs ml-2">₹{item.price}</span>
                         </div>
                       ) : (
-                        `₹${v.price}`
+                        `₹${item.price}`
                       )}
                     </td>
                     <td className="p-4">
-                      <span className={`px-2 py-1 rounded text-xs font-bold ${v.stockQuantity > 10 ? 'bg-green-100 text-green-700' : v.stockQuantity > 0 ? 'bg-yellow-100 text-yellow-700' : 'bg-red-100 text-red-700'}`}>
-                        {v.stockQuantity}
+                      <span className={`px-2 py-1 rounded text-xs font-bold ${item.stockQuantity > 10 ? 'bg-green-100 text-green-700' : item.stockQuantity > 0 ? 'bg-yellow-100 text-yellow-700' : 'bg-red-100 text-red-700'}`}>
+                        {item.stockQuantity}
                       </span>
                     </td>
                     <td className="p-4">
-                      <span className={`px-2 py-1 rounded text-xs font-bold ${v.status === 'Active' ? 'bg-blue-100 text-blue-700' : 'bg-slate-100 text-slate-600'}`}>
-                        {v.status}
+                      <span className={`px-2 py-1 rounded text-xs font-bold ${item.status === 'Active' ? 'bg-blue-100 text-blue-700' : 'bg-slate-100 text-slate-600'}`}>
+                        {item.status}
                       </span>
                     </td>
                     <td className="p-4 text-right">
-                      <button onClick={() => openModal(v)} className="p-2 text-blue-500 hover:bg-blue-50 rounded-lg mr-2 transition-colors">
+                      <button onClick={() => openModal(item.originalVariant)} className="p-2 text-blue-500 hover:bg-blue-50 rounded-lg mr-2 transition-colors">
                         <Edit3 className="w-4 h-4" />
                       </button>
-                      <button onClick={() => handleDeleteVariant(v._id)} className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors">
+                      <button onClick={() => handleDeleteVariant(item.id)} className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors">
                         <Trash2 className="w-4 h-4" />
                       </button>
                     </td>
                   </tr>
-                ));
+                );
               })}
-              {products.length === 0 && (
+              {filteredItems.length === 0 && (
                 <tr>
-                  <td colSpan="7" className="p-8 text-center text-slate-500">No products found. Add products from the catalog first.</td>
+                  <td colSpan="7" className="p-8 text-center text-slate-500">No products or variants matched your search criteria.</td>
                 </tr>
               )}
             </tbody>

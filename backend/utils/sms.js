@@ -12,7 +12,7 @@ export const sendOrderConfirmationSms = async (order) => {
   try {
     const phoneNumber = order.deliveryAddress.phone || order.user.mobile;
     const customerName = order.user.fullName;
-    const orderId = order._id;
+    const orderId = order.customOrderId || order._id;
     const totalAmount = order.totalAmount.toFixed(2);
 
     if (!phoneNumber) {
