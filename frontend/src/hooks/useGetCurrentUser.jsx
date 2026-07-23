@@ -8,6 +8,11 @@ function useGetCurrentUser() {
   const dispatch = useDispatch();
 
   useEffect(() => {
+    const hasUser = localStorage.getItem("oil_user");
+    if (!hasUser || hasUser === "undefined") {
+      return;
+    }
+
     const fetchUser = async () => {
       // Logic for fetching current user session 
 
