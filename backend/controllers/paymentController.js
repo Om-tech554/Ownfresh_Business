@@ -128,12 +128,17 @@ export const initiatePhonePePayment = async (req, res) => {
         }
       );
     } catch (apiErr) {
-      if (apiErr.response?.status === 404) {
+      const errCode = apiErr.response?.data?.code || "";
+      const errMsg = apiErr.response?.data?.message || apiErr.response?.data?.msg || "";
+      const isKeyNotFound = errCode === "KEY_NOT_FOUND" || errMsg.toLowerCase().includes("key not found");
+      const is404 = apiErr.response?.status === 404;
+
+      if (is404 || isKeyNotFound) {
         const altUrl = initialTargetUrl.includes("api.phonepe.com/apis/hermes")
           ? initialTargetUrl.replace("api.phonepe.com/apis/hermes", "api-preprod.phonepe.com/apis/pg-sandbox")
           : initialTargetUrl.replace("api-preprod.phonepe.com/apis/pg-sandbox", "api.phonepe.com/apis/hermes");
 
-        console.log(`⚠️ PhonePe 404 received on ${initialTargetUrl}. Retrying alternate URL: ${altUrl}`);
+        console.log(`⚠️ PhonePe ${errCode || '404'} on ${initialTargetUrl}. Retrying alternate gateway URL: ${altUrl}`);
         response = await axios.post(
           altUrl,
           { request: base64Payload },
