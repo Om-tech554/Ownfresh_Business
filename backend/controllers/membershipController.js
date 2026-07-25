@@ -170,11 +170,9 @@ export const initiateMembershipPhonePePayment = async (req, res) => {
       );
     } catch (apiErr) {
       if (apiErr.response?.status === 404) {
-        const altUrl = initialTargetUrl.includes("/apis/hermes")
-          ? initialTargetUrl.replace("/apis/hermes", "/apis/pg")
-          : initialTargetUrl.includes("/apis/pg-sandbox")
-          ? initialTargetUrl.replace("/apis/pg-sandbox", "/apis/pg")
-          : initialTargetUrl.replace("/apis/pg", "/apis/hermes");
+        const altUrl = initialTargetUrl.includes("api.phonepe.com/apis/hermes")
+          ? initialTargetUrl.replace("api.phonepe.com/apis/hermes", "api-preprod.phonepe.com/apis/pg-sandbox")
+          : initialTargetUrl.replace("api-preprod.phonepe.com/apis/pg-sandbox", "api.phonepe.com/apis/hermes");
 
         console.log(`⚠️ PhonePe 404 received on ${initialTargetUrl}. Retrying alternate URL: ${altUrl}`);
         response = await axios.post(
@@ -269,11 +267,9 @@ export const checkMembershipPhonePeStatus = async (req, res) => {
       );
     } catch (apiErr) {
       if (apiErr.response?.status === 404) {
-        const altUrl = initialStatusUrl.includes("/apis/hermes")
-          ? initialStatusUrl.replace("/apis/hermes", "/apis/pg")
-          : initialStatusUrl.includes("/apis/pg-sandbox")
-          ? initialStatusUrl.replace("/apis/pg-sandbox", "/apis/pg")
-          : initialStatusUrl.replace("/apis/pg", "/apis/hermes");
+        const altUrl = initialStatusUrl.includes("api.phonepe.com/apis/hermes")
+          ? initialStatusUrl.replace("api.phonepe.com/apis/hermes", "api-preprod.phonepe.com/apis/pg-sandbox")
+          : initialStatusUrl.replace("api-preprod.phonepe.com/apis/pg-sandbox", "api.phonepe.com/apis/hermes");
 
         response = await axios.get(
           altUrl,
