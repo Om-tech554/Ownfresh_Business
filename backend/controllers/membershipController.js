@@ -110,14 +110,17 @@ export const initiateMembershipPhonePePayment = async (req, res) => {
     }
 
     const amountInPaise = Math.round((plan.price || 299) * 100);
-    const merchantTransactionId = `PRIME_${userId}_${Date.now().toString().slice(-6)}`;
-    const merchantUserId = userId.toString();
+    const merchantTransactionId = `PRIME_${Date.now()}_${Math.floor(1000 + Math.random() * 9000)}`;
+    const merchantUserId = userId.toString().replace(/[^a-zA-Z0-9]/g, "");
 
     const backendHost = req.protocol + "://" + req.get("host");
     const callbackUrl = process.env.PHONEPE_CALLBACK_URL || `${backendHost}/api/membership/phonepe-callback`;
 
     const frontendHost = process.env.FRONTEND_URL || backendHost;
     const redirectUrl = `${frontendHost}/membership?payment=success&txnId=${merchantTransactionId}`;
+
+    const rawMobile = user.mobile || "";
+    const cleanMobile = rawMobile.replace(/\D/g, "").slice(-10) || "9999999999";
 
     const payload = {
       merchantId: PHONEPE_MERCHANT_ID,
@@ -127,7 +130,7 @@ export const initiateMembershipPhonePePayment = async (req, res) => {
       redirectUrl,
       redirectMode: "GET",
       callbackUrl,
-      mobileNumber: user.mobile || "9999999999",
+      mobileNumber: cleanMobile,
       paymentInstrument: {
         type: "PAY_PAGE"
       }

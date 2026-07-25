@@ -77,6 +77,9 @@ export const initiatePhonePePayment = async (req, res) => {
     const frontendHost = process.env.FRONTEND_URL || backendHost;
     const redirectUrl = `${frontendHost}/order-success?orderId=${order._id}`;
 
+    const rawMobile = order.deliveryAddress?.phone || order.user?.mobile || "";
+    const cleanMobile = rawMobile.replace(/\D/g, "").slice(-10) || "9999999999";
+
     const payload = {
       merchantId: PHONEPE_MERCHANT_ID,
       merchantTransactionId,
@@ -85,7 +88,7 @@ export const initiatePhonePePayment = async (req, res) => {
       redirectUrl,
       redirectMode: "GET",
       callbackUrl,
-      mobileNumber: order.deliveryAddress?.phone || order.user?.mobile || "9999999999",
+      mobileNumber: cleanMobile,
       paymentInstrument: {
         type: "PAY_PAGE"
       }
