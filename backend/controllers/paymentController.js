@@ -25,8 +25,11 @@ const PHONEPE_SALT_KEY = !isPlaceholder(process.env.PHONEPE_SALT_KEY)
 
 const PHONEPE_SALT_INDEX = process.env.PHONEPE_SALT_INDEX || "1";
 
-const PHONEPE_ENV = process.env.PHONEPE_ENV
-  || (!isPlaceholder(process.env.PHONEPE_MERCHANT_ID) ? "production" : "uat");
+const isTestMerchant = (merchantId) => {
+  if (!merchantId) return true;
+  const m = merchantId.toUpperCase();
+  return m.includes("PGTEST") || m.includes("TEST") || m.includes("UAT");
+};
 
 const getPhonePeBaseUrl = () => {
   if (process.env.PHONEPE_HOST_URL) {
@@ -36,9 +39,10 @@ const getPhonePeBaseUrl = () => {
     }
     return host;
   }
-  return PHONEPE_ENV === "production"
-    ? "https://api.phonepe.com/apis/hermes"
-    : "https://api-preprod.phonepe.com/apis/pg-sandbox";
+  if (process.env.PHONEPE_ENV === "production" && !isTestMerchant(PHONEPE_MERCHANT_ID)) {
+    return "https://api.phonepe.com/apis/hermes";
+  }
+  return "https://api-preprod.phonepe.com/apis/pg-sandbox";
 };
 
 const PHONEPE_BASE_URL = getPhonePeBaseUrl();
