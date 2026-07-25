@@ -104,91 +104,6 @@ const OrderReview = () => {
   };
 
   // ========================================================
-  // --- RAZORPAY CODE COMMENTED OUT AS REQUESTED ---
-  // ========================================================
-  /*
-  const loadRazorpayScript = () => {
-    return new Promise((resolve) => {
-      const script = document.createElement("script");
-      script.src = "https://checkout.razorpay.com/v1/checkout.js";
-      script.onload = () => resolve(true);
-      script.onerror = () => resolve(false);
-      document.body.appendChild(script);
-    });
-  };
-
-  const initiateRazorpayPayment = async () => {
-    setIsProcessing(true);
-    const res = await loadRazorpayScript();
-
-    if (!res) {
-      setIsProcessing(false);
-      return toast.error("Razorpay SDK failed to load. Are you online?");
-    }
-
-    try {
-      const { data } = await axios.post(`${serverUrl}/api/payment/create-order`, {
-        amount: finalAmount
-      }, { withCredentials: true });
-
-      if (!data.success) {
-        setIsProcessing(false);
-        return toast.error("Failed to create payment order");
-      }
-
-      const options = {
-        key: import.meta.env.VITE_RAZORPAY_KEY_ID || "rzp_test_SdpJSZtNnLHmjO",
-        amount: data.order.amount,
-        currency: "INR",
-        name: "OWN FRESH",
-        description: "Order Payment",
-        order_id: data.order.id,
-        handler: async function (response) {
-          try {
-            const verifyRes = await axios.post(`${serverUrl}/api/payment/verify`, {
-              razorpayOrderId: response.razorpay_order_id,
-              razorpayPaymentId: response.razorpay_payment_id,
-              razorpaySignature: response.razorpay_signature,
-            }, { withCredentials: true });
-
-            if (verifyRes.data.success) {
-              await processOrderToDB(response.razorpay_order_id, response.razorpay_payment_id, response.razorpay_signature);
-            } else {
-              toast.error("Payment verification failed");
-              setIsProcessing(false);
-            }
-          } catch (error) {
-            toast.error("Payment verification error");
-            setIsProcessing(false);
-          }
-        },
-        prefill: {
-          name: user.fullName || "",
-          email: user.email || "",
-          contact: shippingDetails.phone || user.mobile || ""
-        },
-        theme: {
-          color: "#EAB308"
-        },
-        modal: {
-          ondismiss: function () {
-            setIsProcessing(false);
-            toast.error("Payment cancelled");
-          }
-        }
-      };
-
-      const paymentObject = new window.Razorpay(options);
-      paymentObject.open();
-    } catch (error) {
-      console.error(error);
-      toast.error("Failed to initiate payment");
-      setIsProcessing(false);
-    }
-  };
-  */
-
-  // ========================================================
   // --- PHONEPE PAYMENT INTEGRATION ---
   // ========================================================
   const initiatePhonePePayment = async () => {
@@ -222,7 +137,7 @@ const OrderReview = () => {
       });
 
       if (data.success && data.redirectUrl) {
-        toast.success("Redirecting to secure UPI payment gateway...");
+        toast.success("Redirecting to secure PhonePe payment gateway...");
         dispatch(clearCart());
         // Redirect to PhonePe payment page
         window.location.href = data.redirectUrl;
@@ -249,7 +164,7 @@ const OrderReview = () => {
     }
   };
 
-  const processOrderToDB = async (razorpayOrderId = null, razorpayPaymentId = null, razorpaySignature = null) => {
+  const processOrderToDB = async () => {
     try {
       // Get App Check Token if available
       let appCheckToken = "";

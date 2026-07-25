@@ -78,3 +78,141 @@ export const deleteUser = async (req, res) => {
     return res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
+
+// Admin: Manually Create a Single Customer Profile
+export const createCustomer = async (req, res) => {
+  try {
+    const { fullName, email, mobile, password, role, wallet } = req.body;
+
+    if (!fullName || (!email && !mobile)) {
+      return res.status(400).json({
+        success: false,
+        message: "Full Name and either Email or Mobile are required"
+      });
+    }
+
+    // Check existing
+    if (email) {
+      const existingEmail = await User.findOne({ email: email.toLowerCase().trim() });
+      if (existingEmail) {
+        return res.status(400).json({ success: false, message: "Customer email already exists" });
+      }
+    }
+
+    if (mobile) {
+      const existingMobile = await User.findOne({ mobile: mobile.trim() });
+      if (existingMobile) {
+        return res.status(400).json({ success: false, message: "Customer mobile number already exists" });
+      }
+    }
+
+    const bcrypt = (await import("bcryptjs")).default;
+    const rawPass = password && password.trim() ? password.trim() : "OwnFresh@123";
+    const hashedPassword = await bcrypt.hash(rawPass, 10);
+
+    const newUser = await User.create({
+      fullName: fullName.trim(),
+      email: email ? email.toLowerCase().trim() : undefined,
+      mobile: mobile ? mobile.trim() : undefined,
+      password: hashedPassword,
+      role: role || "user",
+      wallet: wallet ? Number(wallet) : 0,
+      isMember: false
+    });
+
+    const userObj = newUser.toObject();
+    delete userObj.password;
+
+    return res.status(201).json({
+      success: true,
+      message: "Customer profile created successfully",
+      user: userObj
+    });
+  } catch (error) {
+    console.error("Error creating customer:", error);
+    if (error.code === 11000) {
+      return res.status(400).json({ success: false, message: "Duplicate email or mobile number" });
+    }
+    return res.status(500).json({ success: false, message: "Failed to create customer" });
+  }
+};
+
+// Admin: Bulk Import Customers from CSV/XLS
+export const bulkCreateCustomers = async (req, res) => {
+  try {
+    const { customers } = req.body; // Array of customer objects
+
+    if (!Array.isArray(customers) || customers.length === 0) {
+      return res.status(400).json({ success: false, message: "No customer records provided for import" });
+    }
+
+    const bcrypt = (await import("bcryptjs")).default;
+    const defaultHashedPassword = await bcrypt.hash("OwnFresh@123", 10);
+
+    let createdCount = 0;
+    let skippedCount = 0;
+    const errors = [];
+
+    for (let i = 0; i < customers.length; i++) {
+      const item = customers[i];
+      const fullName = (item.fullName || item.name || item.Name || "").toString().trim();
+      const email = (item.email || item.Email || "").toString().toLowerCase().trim();
+      const mobile = (item.mobile || item.Mobile || item.phone || item.Phone || "").toString().trim();
+
+      if (!fullName) {
+        skippedCount++;
+        errors.push(`Row ${i + 1}: Missing Full Name`);
+        continue;
+      }
+
+      if (!email && !mobile) {
+        skippedCount++;
+        errors.push(`Row ${i + 1} (${fullName}): Needs email or mobile number`);
+        continue;
+      }
+
+      // Check duplicates
+      let isDuplicate = false;
+      if (email) {
+        const existEmail = await User.findOne({ email });
+        if (existEmail) isDuplicate = true;
+      }
+      if (!isDuplicate && mobile) {
+        const existMobile = await User.findOne({ mobile });
+        if (existMobile) isDuplicate = true;
+      }
+
+      if (isDuplicate) {
+        skippedCount++;
+        errors.push(`Row ${i + 1} (${fullName}): Duplicate email or mobile`);
+        continue;
+      }
+
+      const passToUse = item.password && item.password.toString().trim()
+        ? await bcrypt.hash(item.password.toString().trim(), 10)
+        : defaultHashedPassword;
+
+      await User.create({
+        fullName,
+        email: email || undefined,
+        mobile: mobile || undefined,
+        password: passToUse,
+        role: "user",
+        wallet: Number(item.wallet || 0) || 0
+      });
+
+      createdCount++;
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: `Bulk import completed! Successfully imported ${createdCount} customers (${skippedCount} skipped/duplicates).`,
+      createdCount,
+      skippedCount,
+      errors
+    });
+  } catch (error) {
+    console.error("Error bulk creating customers:", error);
+    return res.status(500).json({ success: false, message: "Bulk import failed" });
+  }
+};

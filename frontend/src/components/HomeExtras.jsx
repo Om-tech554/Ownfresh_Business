@@ -145,17 +145,17 @@ export const Gallery = () => {
 export const FAQSection = () => {
     const [openIndex, setOpenIndex] = useState(0);
     const faqs = [
-        { q: "What makes OwnFresh oils different from regular cooking oils?", a: "OwnFresh oils are 100% pure, stone-pressed from whole nuts and seeds. We use traditional cold-pressing techniques to retain the natural nutrients, making our oils healthier and more flavorful. No chemicals or additives are used, ensuring the highest quality." },
+        { q: "What makes OwnFresh oils different from regular cooking oils?", a: "OwnFresh oils are 100% pure, stone-pressed from whole nuts and seeds. We use traditional stone-pressing techniques to retain the natural nutrients, making our oils healthier and more flavorful. No chemicals or additives are used, ensuring the highest quality." },
         { q: "Are OwnFresh oils certified organic?", a: "Yes, all OwnFresh oils are certified organic. We source premium-quality nuts and seeds that are grown without harmful pesticides or chemicals, ensuring that you and your family enjoy healthy, chemical-free cooking." },
-        { q: "How does OwnFresh ensure the freshness and purity of its oils?", a: "We carefully monitor every step, from sourcing raw materials to the cold-pressing process. Each batch of oil is produced in small quantities to maintain freshness, and our packaging is designed to preserve the oil’s natural flavor and nutrients." },
+        { q: "How does OwnFresh ensure the freshness and purity of its oils?", a: "We carefully monitor every step, from sourcing raw materials to the stone-pressing process. Each batch of oil is produced in small quantities to maintain freshness, and our packaging is designed to preserve the oil’s natural flavor and nutrients." },
         { q: "Can this oil be used for deep frying?", a: "Absolutely. Our oils have a high smoke point and maintain molecular integrity perfectly during frying." }
     ];
 
     return (
-        <section className="w-full bg-[#fcfcfc] py-20 px-6 md:px-12 lg:px-24 border-t border-gray-100">
+        <section className="w-full bg-[#fcfcfc] py-20 px-6 md:px-12 lg:px-24 border-t border-gray-100 font-sans">
             <div className="max-w-4xl mx-auto">
                 <div className="text-center mb-16">
-                    <h2 className="text-3xl md:text-5xl font-black text-black tracking-tight uppercase">Got <span className="text-[#FFDD00]">Questions?</span></h2>
+                    <h2 className="text-3xl md:text-5xl font-black text-[#181818] tracking-tight uppercase font-serif">Got <span className="text-[#1E971D]">Questions?</span></h2>
                     <p className="uppercase text-gray-500 font-bold tracking-widest text-xs mt-4">Frequently Asked Questions</p>
                 </div>
                 <div className="flex flex-col gap-4">

@@ -40,7 +40,7 @@ const ShippingPolicy = () => {
                 <b>Registered Address:</b> Ground Floor, Shed No. 1, Vir Maruti Complex, 30/13 Dhayari, Vadgaon Budruk, Pune, Maharashtra – 411041, India
               </p>
               <p><b>Phone:</b> +91 9689889191</p>
-              <p><b>Email:</b> <a href="mailto:my1ownfresh@gmail.com" className="text-yellow-600 hover:underline">my1ownfresh@gmail.com</a></p>
+              <p><b>Email:</b> <a href="mailto:contact@myownfresh.com" className="text-yellow-600 hover:underline">contact@myownfresh.com</a></p>
               <p><b>Website:</b> <a href="https://myownfresh.com/" className="text-yellow-600 hover:underline">https://myownfresh.com/</a></p>
             </div>
           </section>
@@ -101,7 +101,7 @@ const ShippingPolicy = () => {
               <p className="font-semibold text-gray-700">OWNFRESH AGRO INDUSTRIES</p>
               <p>Ground Floor, Shed No. 1, Vir Maruti Complex, 30/13 Dhayari, Vadgaon Budruk, Pune, Maharashtra – 411041, India</p>
               <p className="pt-2"><b>Phone:</b> +91 9689889191</p>
-              <p><b>Email:</b> <a href="mailto:my1ownfresh@gmail.com" className="text-yellow-600 hover:underline">my1ownfresh@gmail.com</a></p>
+              <p><b>Email:</b> <a href="mailto:contact@myownfresh.com" className="text-yellow-600 hover:underline">contact@myownfresh.com</a></p>
               <p><b>Website:</b> <a href="https://myownfresh.com/" className="text-yellow-600 hover:underline">https://myownfresh.com/</a></p>
             </div>
           </section>

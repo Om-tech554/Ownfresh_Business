@@ -24,14 +24,29 @@ const Navbar = () => {
     const [searchQuery, setSearchQuery] = useState("");
     const [searchResults, setSearchResults] = useState([]);
     const [showDropdown, setShowDropdown] = useState(false);
-    const [announcement, setAnnouncement] = useState("🎉 FREE SHIPPING ON ORDERS ABOVE ₹999 | 100% PURE BOTANIC OILS");
+    const [announcement, setAnnouncement] = useState("🎉 FREE SHIPPING ON ORDERS ABOVE ₹999 • 🌿 100% PURE & STONE PRESSED BOTANIC OILS • 👑 JOIN PRIME 1% TO EARN REDEEMABLE COIN COMMISSIONS • 📦 EXPRESS 2-DAY DELIVERY ACROSS INDIA");
 
     useEffect(() => {
         const fetchAnnouncement = async () => {
             try {
-                const { data } = await axios.get(`${serverUrl}/api/settings/announcement`);
-                if (data.success && data.value) {
-                    setAnnouncement(data.value);
+                const keys = ["announcement1", "announcement2", "announcement3", "announcement4"];
+                const results = await Promise.allSettled(
+                    keys.map(k => axios.get(`${serverUrl}/api/settings/${k}`))
+                );
+
+                const lines = [];
+                results.forEach(r => {
+                    if (r.status === "fulfilled" && r.value.data?.success && r.value.data?.value) {
+                        lines.push(r.value.data.value.trim());
+                    }
+                });
+
+                if (lines.length > 0) {
+                    setAnnouncement(lines.join(" • "));
+                } else {
+                    // Fallback to legacy single key
+                    const { data } = await axios.get(`${serverUrl}/api/settings/announcement`);
+                    if (data.success && data.value) setAnnouncement(data.value);
                 }
             } catch (error) {
                 console.error("Failed to fetch announcement banner", error);
@@ -168,14 +183,10 @@ const Navbar = () => {
                 name: cat.name,
                 path: `/shop?category=${cat.name}`,
                 image: cat.image
-            })) : [
-                { name: "Eating Oils", path: "/shop?category=Eating Oil" },
-                { name: "Hair Oils", path: "/shop?category=Hair Oil" },
-                { name: "Shampoos", path: "/shop?category=Shampoo" },
-                { name: "Bodywash", path: "/shop?category=Bodywash" },
-            ]
+            })) : null
         },
         { name: "Blog", path: "/Oilinsights" },
+        { name: "Prime 1%", path: "/membership" },
         { name: "Contact", path: "/contact" },
         ...(userData ? [{ name: "Refer & Earn", path: "/referral", special: true }] : [])
     ];
@@ -213,7 +224,7 @@ const Navbar = () => {
     return (
         <React.Fragment>
             <div className="sticky top-0 z-[1000] w-full flex flex-col shadow-sm bg-white">
-                <div className="w-full bg-[#FFDD00] text-black py-2.5 text-xs font-bold tracking-[0.1em] uppercase overflow-hidden whitespace-nowrap relative">
+                <div className="w-full bg-[#F9DD19] text-[#181818] py-2.5 text-xs font-extrabold tracking-[0.1em] uppercase overflow-hidden whitespace-nowrap relative">
                     <div className="inline-block animate-marquee whitespace-nowrap">
                         <span className="mx-12">{announcement}</span>
                         <span className="mx-12">{announcement}</span>
@@ -252,7 +263,7 @@ const Navbar = () => {
                                 >
                                     <SLink
                                         to={link.path}
-                                        className={`text-[13px] font-bold uppercase tracking-widest hover:underline underline-offset-8 decoration-2 transition-all whitespace-nowrap ${link.special ? 'text-[#FFDD00] bg-black px-4 py-2 rounded-full hover:no-underline hover:scale-105' : 'text-[#24672E]'}`}
+                                        className={`text-[13px] font-bold uppercase tracking-widest hover:underline underline-offset-8 decoration-2 transition-all whitespace-nowrap ${link.special ? 'text-[#F9DD19] bg-[#181818] px-4 py-2 rounded-full hover:no-underline hover:scale-105' : 'text-[#1E971D]'}`}
                                     >
                                         {link.name}
                                     </SLink>
@@ -376,7 +387,14 @@ const Navbar = () => {
                                         <div className='text-xs font-bold text-gray-500 pb-2 border-b border-gray-100 truncate mb-2 uppercase tracking-wide'>
                                             {userData.fullName}
                                         </div>
-                                        {userData.role === "user" && <SLink to="/my-orders" onClick={() => setShowInfo(false)} className='text-sm text-black font-bold block py-1.5 hover:text-[#FFDD00] transition-colors'>My Orders</SLink>}
+                                        {userData.role === "user" && (
+                                            <>
+                                                <SLink to="/my-orders" onClick={() => setShowInfo(false)} className='text-sm text-black font-bold block py-1.5 hover:text-[#24672E] transition-colors'>My Orders</SLink>
+                                                <SLink to="/membership" onClick={() => setShowInfo(false)} className='text-sm text-[#24672E] font-bold block py-1.5 hover:text-black transition-colors flex items-center gap-1.5'>
+                                                    👑 Membership & 1% Coins
+                                                </SLink>
+                                            </>
+                                        )}
                                         <div className='text-sm text-red-600 font-bold cursor-pointer block py-1.5 hover:text-black transition-colors' onClick={handleLogOut}>Log Out</div>
                                     </div>
                                 )}

@@ -205,7 +205,7 @@ const InventoryManager = () => {
   });
 
   return (
-    <div className="w-full">
+    <div className="max-w-7xl mx-auto px-6 py-6 font-sans">
       <Toaster position="bottom-right" />
       
       {/* Header */}

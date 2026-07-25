@@ -43,7 +43,7 @@ const PrivacyPolicy = () => {
                 <b>Registered Address:</b> Ground Floor, Shed No. 1, Vir Maruti Complex, 30/13 Dhayari, Vadgaon Budruk, Pune, Maharashtra – 411041, India
               </p>
               <p><b>Phone:</b> +91 9689889191</p>
-              <p><b>Email:</b> <a href="mailto:my1ownfresh@gmail.com" className="text-yellow-600 hover:underline">my1ownfresh@gmail.com</a></p>
+              <p><b>Email:</b> <a href="mailto:contact@myownfresh.com" className="text-yellow-600 hover:underline">contact@myownfresh.com</a></p>
               <p><b>Website:</b> <a href="https://myownfresh.com/" className="text-yellow-600 hover:underline">https://myownfresh.com/</a></p>
             </div>
           </section>
@@ -118,8 +118,8 @@ const PrivacyPolicy = () => {
             <h2 className="text-xl font-bold text-black mb-3">9. Your Rights</h2>
             <p>
               Subject to applicable law, you may request access to, correction of, or deletion of your personal information by contacting us at{" "}
-              <a href="mailto:my1ownfresh@gmail.com" className="text-yellow-600 hover:underline">
-                my1ownfresh@gmail.com
+              <a href="mailto:contact@myownfresh.com" className="text-yellow-600 hover:underline">
+                contact@myownfresh.com
               </a>.
             </p>
           </section>
@@ -138,7 +138,7 @@ const PrivacyPolicy = () => {
               <p className="font-semibold text-gray-700">OWNFRESH AGRO INDUSTRIES</p>
               <p>Ground Floor, Shed No. 1, Vir Maruti Complex, 30/13 Dhayari, Vadgaon Budruk, Pune, Maharashtra – 411041, India</p>
               <p className="pt-2"><b>Phone:</b> +91 9689889191</p>
-              <p><b>Email:</b> <a href="mailto:my1ownfresh@gmail.com" className="text-yellow-600 hover:underline">my1ownfresh@gmail.com</a></p>
+              <p><b>Email:</b> <a href="mailto:contact@myownfresh.com" className="text-yellow-600 hover:underline">contact@myownfresh.com</a></p>
               <p><b>Website:</b> <a href="https://myownfresh.com/" className="text-yellow-600 hover:underline">https://myownfresh.com/</a></p>
             </div>
           </section>

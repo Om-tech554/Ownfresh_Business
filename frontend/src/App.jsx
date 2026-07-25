@@ -36,6 +36,7 @@ import PrivacyPolicy from './pages/PrivacyPolicy';
 import TermsAndConditions from './pages/TermsAndConditions';
 import RefundPolicy from './pages/RefundPolicy';
 import ShippingPolicy from './pages/ShippingPolicy';
+import MembershipPage from './pages/MembershipPage';
 
 export const serverUrl = import.meta.env.VITE_API_URL || "http://localhost:10000"
 
@@ -134,6 +135,7 @@ const App = () => {
         <Route path="/my-orders" element={<MyOrders />} />
         <Route path="/order-details/:id" element={<OrderDetails />} />
         <Route path="/referral" element={<ReferralDashboard />} />
+        <Route path="/membership" element={<MembershipPage />} />
         <Route path="/privacy-policy" element={<PrivacyPolicy />} />
         <Route path="/terms-and-conditions" element={<TermsAndConditions />} />
         <Route path="/refund-policy" element={<RefundPolicy />} />

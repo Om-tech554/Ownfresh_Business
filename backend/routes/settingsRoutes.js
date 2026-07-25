@@ -6,7 +6,11 @@ const router = express.Router();
 
 // Default values fallback
 const DEFAULTS = {
-  announcement: "🎉 FREE SHIPPING ON ORDERS ABOVE ₹999 | 100% PURE BOTANIC OILS"
+  announcement: "🎉 FREE SHIPPING ON ORDERS ABOVE ₹999 | 100% PURE BOTANIC OILS",
+  announcement1: "🎉 FREE SHIPPING ON ORDERS ABOVE ₹999",
+  announcement2: "🌿 100% PURE & STONE PRESSED BOTANIC OILS",
+  announcement3: "👑 JOIN PRIME 1% TO EARN REDEEMABLE COIN COMMISSIONS",
+  announcement4: "📦 EXPRESS 2-DAY DELIVERY ACROSS INDIA"
 };
 
 // GET setting by key

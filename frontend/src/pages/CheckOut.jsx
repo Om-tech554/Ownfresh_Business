@@ -13,12 +13,22 @@ import axios from 'axios';
 import { serverUrl } from '../App';
 
 const CheckoutFlow = () => {
-  const { currentStep, setUseWallet } = useCheckout();
+  const {
+    currentStep,
+    setUseWallet,
+    useCommissionCoins,
+    setUseCommissionCoins,
+    setCommissionCoinsBalance,
+    setCanRedeemCoins,
+    commissionCoinsBalance,
+    canRedeemCoins
+  } = useCheckout();
   const user = useSelector((state) => state.user.userData);
   const cartItems = useSelector((state) => state.user.cartItems);
   const navigate = useNavigate();
 
   const [walletBalance, setWalletBalance] = useState(0);
+  const [membershipInfo, setMembershipInfo] = useState(null);
 
   useEffect(() => {
     if (!user) {
@@ -27,19 +37,25 @@ const CheckoutFlow = () => {
   }, [user, navigate]);
 
   useEffect(() => {
-    const fetchWallet = async () => {
+    const fetchWalletAndCommission = async () => {
       if (!user) return;
       try {
-        const { data } = await axios.get(`${serverUrl}/api/wallet/my-wallet`, { withCredentials: true });
-        if (data.success && data.balance > 0) {
-          setWalletBalance(data.balance);
-          // Auto apply wallet logic or give option via context. Handled mostly in summary or review step if needed
+        const { data: wData } = await axios.get(`${serverUrl}/api/wallet/my-wallet`, { withCredentials: true });
+        if (wData.success && wData.balance > 0) {
+          setWalletBalance(wData.balance);
+        }
+
+        const { data: mData } = await axios.get(`${serverUrl}/api/membership/my-status`, { withCredentials: true });
+        if (mData.success) {
+          setMembershipInfo(mData);
+          setCommissionCoinsBalance(mData.commissionCoins);
+          setCanRedeemCoins(mData.canRedeem);
         }
       } catch (err) {
-        console.error("Failed to fetch wallet", err);
+        console.error("Failed to fetch wallet or membership info", err);
       }
     };
-    fetchWallet();
+    fetchWalletAndCommission();
   }, [user]);
 
   if (!user || cartItems.length === 0) {
@@ -78,10 +94,64 @@ const CheckoutFlow = () => {
           </div>
 
           {/* Sticky Order Summary */}
-          <div className="lg:col-span-4 relative">
+          <div className="lg:col-span-4 relative space-y-4">
              <OrderSummary />
+
+             {/* Commission Credit Coins Widget */}
+             {membershipInfo && (
+               <div className="bg-gradient-to-br from-amber-500/10 via-yellow-50 to-amber-100 p-5 rounded-2xl border border-amber-200 shadow-xs space-y-3">
+                 <div className="flex items-center justify-between">
+                   <div className="flex items-center gap-2">
+                     <span className="text-lg">🪙</span>
+                     <div>
+                       <h4 className="text-xs font-black uppercase text-amber-900 tracking-wider">
+                         Commission Credit Coins
+                       </h4>
+                       <p className="text-[10px] text-amber-800 font-medium">
+                         Balance: <strong>{membershipInfo.commissionCoins} Coins</strong> (₹{membershipInfo.commissionCoins})
+                       </p>
+                     </div>
+                   </div>
+                   <span className="text-[9px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-amber-200 text-amber-900">
+                     45-Day Reset
+                   </span>
+                 </div>
+
+                 {membershipInfo.canRedeem ? (
+                   <div className="bg-white/80 p-3 rounded-xl border border-amber-300/60 flex items-center gap-3">
+                     <input
+                       type="checkbox"
+                       id="use-commission-coins"
+                       checked={useCommissionCoins}
+                       className="w-5 h-5 accent-amber-600 cursor-pointer rounded-md"
+                       onChange={(e) => setUseCommissionCoins(e.target.checked)}
+                     />
+                     <label htmlFor="use-commission-coins" className="text-xs font-bold text-slate-900 cursor-pointer select-none">
+                       Apply {membershipInfo.commissionCoins} Commission Coins (Save ₹{membershipInfo.commissionCoins})
+                     </label>
+                   </div>
+                 ) : (
+                   <div className="bg-amber-50/80 p-3 rounded-xl border border-amber-200 space-y-1.5">
+                     <div className="flex justify-between text-[11px] font-bold text-amber-900">
+                       <span>Redemption Threshold</span>
+                       <span>{membershipInfo.commissionCoins} / 150 Coins</span>
+                     </div>
+                     <div className="w-full bg-amber-200/60 h-2 rounded-full overflow-hidden">
+                       <div
+                         className="bg-amber-500 h-full rounded-full transition-all"
+                         style={{ width: `${membershipInfo.progressPercentage}%` }}
+                       />
+                     </div>
+                     <p className="text-[10px] text-amber-800 leading-tight">
+                       🔒 Earn {membershipInfo.coinsNeededToRedeem} more coins to reach the 150 coins threshold and unlock redemption at checkout!
+                     </p>
+                   </div>
+                 )}
+               </div>
+             )}
+
              {walletBalance > 0 && currentStep === 4 && (
-                <div className="mt-4 bg-purple-50 p-4 rounded-xl border border-purple-200">
+                <div className="bg-purple-50 p-4 rounded-xl border border-purple-200">
                   <div className="flex items-center gap-2">
                     <input 
                       type="checkbox" 

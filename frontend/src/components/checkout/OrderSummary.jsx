@@ -3,23 +3,21 @@ import { useCheckout } from './CheckoutContext';
 import { useSelector } from 'react-redux';
 
 const OrderSummary = () => {
-  const { deliveryMethod, couponDetails, useWallet } = useCheckout();
+  const { deliveryMethod, couponDetails, useWallet, useCommissionCoins, commissionCoinsBalance, canRedeemCoins } = useCheckout();
   const cartItems = useSelector((state) => state.user.cartItems);
-  
-  // Need to get wallet balance from Redux if it's there or pass it via context if we fetch it in CheckoutLayout.
-  // For now, let's assume we can calculate totals here.
-  // The actual wallet balance is fetched in the layout and we can display it.
   
   const subtotal = cartItems.reduce((acc, item) => acc + (item.price * item.quantity), 0);
   const shippingCost = deliveryMethod?.cost || 0;
   const discount = couponDetails?.discount || 0;
   
-  const taxableAmount = Math.max(0, subtotal - discount);
+  const coinDiscount = (useCommissionCoins && canRedeemCoins) ? Math.min(subtotal, commissionCoinsBalance) : 0;
+
+  const taxableAmount = Math.max(0, subtotal - discount - coinDiscount);
   const cgst = taxableAmount * 0.025;
   const sgst = taxableAmount * 0.025;
   const totalTax = cgst + sgst;
   
-  const total = taxableAmount + totalTax + shippingCost;
+  const total = Math.max(0, taxableAmount + totalTax + shippingCost);
 
   if (cartItems.length === 0) {
     return (
@@ -69,8 +67,15 @@ const OrderSummary = () => {
 
         {discount > 0 && (
           <div className="flex justify-between text-green-600 text-sm font-medium">
-            <span>Discount</span>
+            <span>Coupon Discount</span>
             <span className="font-bold">-₹{discount.toFixed(2)}</span>
+          </div>
+        )}
+
+        {coinDiscount > 0 && (
+          <div className="flex justify-between text-amber-700 text-sm font-bold bg-amber-50 px-2 py-1 rounded-lg border border-amber-200">
+            <span>🪙 Commission Coins</span>
+            <span>-₹{coinDiscount.toFixed(2)}</span>
           </div>
         )}
 

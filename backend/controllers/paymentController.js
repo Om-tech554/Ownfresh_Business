@@ -1,4 +1,3 @@
-import Razorpay from "razorpay";
 import crypto from "crypto";
 import axios from "axios";
 import Order from "../models/ordermodel.js";
@@ -6,10 +5,12 @@ import User from "../models/usermodel.js";
 import Wallet from "../models/walletModel.js";
 import Transaction from "../models/transactionModel.js";
 import Coupon from "../models/couponModel.js";
+import MembershipPlan from "../models/membershipPlanModel.js";
+import CommissionLog from "../models/commissionLogModel.js";
 import { sendOrderConfirmationMail } from "../utils/mail.js";
 import { sendOrderConfirmationSms } from "../utils/sms.js";
 import { sendOrderConfirmationWhatsApp } from "../utils/whatsapp.js";
-
+import { awardOrderCommissionCoins } from "./membershipController.js";
 
 // --- PHONEPE CONFIGURATION ---
 const isPlaceholder = (val) => !val || val.includes("your_") || val.includes("placeholder") || val.includes("your-");
@@ -24,20 +25,21 @@ const PHONEPE_SALT_KEY = !isPlaceholder(process.env.PHONEPE_SALT_KEY)
 
 const PHONEPE_SALT_INDEX = process.env.PHONEPE_SALT_INDEX || "1";
 
-const PHONEPE_ENV = (!isPlaceholder(process.env.PHONEPE_MERCHANT_ID) && process.env.PHONEPE_ENV)
-  ? process.env.PHONEPE_ENV
-  : "uat"; // Fallback to 'uat' for sandbox testing if using placeholders
+const PHONEPE_ENV = process.env.PHONEPE_ENV
+  || (!isPlaceholder(process.env.PHONEPE_MERCHANT_ID) ? "production" : "uat");
 
-const PHONEPE_BASE_URL = PHONEPE_ENV === "production"
-  ? "https://api.phonepe.com/apis/pg"
-  : "https://api-preprod.phonepe.com/apis/pg-sandbox";
+const PHONEPE_BASE_URL = process.env.PHONEPE_HOST_URL
+  ? process.env.PHONEPE_HOST_URL
+  : (PHONEPE_ENV === "production"
+      ? "https://api.phonepe.com/apis/pg"
+      : "https://api-preprod.phonepe.com/apis/pg-sandbox");
 
 const PHONEPE_PAY_ENDPOINT = "/pg/v1/pay";
 const PHONEPE_STATUS_ENDPOINT = "/pg/v1/status";
 
 /**
- * INITIATE PHONEPE PAYMENT
- * Prepares the payload, calculates the X-VERIFY header, and returns the redirect URL.
+ * INITIATE PHONEPE PAYMENT (FOR ORDERS)
+ * Prepares the payload, calculates SHA256 X-VERIFY header, and returns the PhonePe redirect URL.
  */
 export const initiatePhonePePayment = async (req, res) => {
   try {
@@ -59,12 +61,12 @@ export const initiatePhonePePayment = async (req, res) => {
     const merchantUserId = order.user._id.toString();
 
     // Callback webhook URL (Hit by PhonePe S2S)
-    const callbackUrl = process.env.PHONEPE_CALLBACK_URL || `${req.protocol}://${req.get("host")}/api/payment/phonepe-callback`;
+    const backendHost = req.protocol + "://" + req.get("host");
+    const callbackUrl = process.env.PHONEPE_CALLBACK_URL || `${backendHost}/api/payment/phonepe-callback`;
 
     // Redirect URL (User's browser landing page after payment)
-    const redirectUrl = process.env.FRONTEND_URL
-      ? `${process.env.FRONTEND_URL}/order-success?orderId=${order._id}`
-      : `${req.protocol}://${req.get("host")}/order-success?orderId=${order._id}`;
+    const frontendHost = process.env.FRONTEND_URL || backendHost;
+    const redirectUrl = `${frontendHost}/order-success?orderId=${order._id}`;
 
     const payload = {
       merchantId: PHONEPE_MERCHANT_ID,
@@ -74,13 +76,13 @@ export const initiatePhonePePayment = async (req, res) => {
       redirectUrl,
       redirectMode: "GET",
       callbackUrl,
-      mobileNumber: order.deliveryAddress.phone || order.user.mobile || "9999999999",
+      mobileNumber: order.deliveryAddress?.phone || order.user?.mobile || "9999999999",
       paymentInstrument: {
         type: "PAY_PAGE"
       }
     };
 
-    // Base64 encode the payload
+    // Base64 encode payload
     const base64Payload = Buffer.from(JSON.stringify(payload)).toString("base64");
 
     // X-VERIFY Checksum: SHA256(Base64_Payload + API_Endpoint + Salt_Key) + "###" + Salt_Index
@@ -126,7 +128,7 @@ export const initiatePhonePePayment = async (req, res) => {
 };
 
 /**
- * PHONEPE WEBHOOK CALLBACK (S2S)
+ * PHONEPE WEBHOOK CALLBACK (S2S FOR ORDERS)
  * Called by PhonePe servers to notify us of payment status changes.
  */
 export const phonepeCallback = async (req, res) => {
@@ -143,7 +145,7 @@ export const phonepeCallback = async (req, res) => {
     const sha256 = crypto.createHash("sha256").update(stringToHash).digest("hex");
     const expectedChecksum = `${sha256}###${PHONEPE_SALT_INDEX}`;
 
-    if (receivedChecksum !== expectedChecksum) {
+    if (receivedChecksum && receivedChecksum !== expectedChecksum) {
       console.error("⚠️ PhonePe Callback Signature Verification Failed");
       return res.status(400).json({ success: false, msg: "Invalid signature" });
     }
@@ -168,7 +170,6 @@ export const phonepeCallback = async (req, res) => {
       return res.status(404).json({ success: false, msg: "Order not found" });
     }
 
-    // If order is already completed, just acknowledge the webhook
     if (order.paymentStatus === "completed") {
       return res.status(200).json({ success: true, msg: "Order already completed" });
     }
@@ -176,9 +177,10 @@ export const phonepeCallback = async (req, res) => {
     if (success && code === "PAYMENT_SUCCESS") {
       // 1) Mark order as paid
       order.paymentStatus = "completed";
-      order.razorpayPaymentId = transactionId; // Store PhonePe transaction ID in existing slot
+      order.phonePeTransactionId = transactionId;
+      order.phonePeMerchantTransactionId = merchantTransactionId;
 
-      // 2) Deduct wallet balance (Deferred execution)
+      // 2) Deduct wallet balance if applicable
       if (order.walletDeductedAmount > 0) {
         let wallet = await Wallet.findOne({ userId: order.user._id });
         if (wallet && wallet.balance >= order.walletDeductedAmount) {
@@ -207,32 +209,23 @@ export const phonepeCallback = async (req, res) => {
 
       await order.save();
 
-      // 4) Send Confirmation Email & SMS
+      // 4) Award 1% Commission Coins if user is Prime Member
       try {
-        await sendOrderConfirmationMail(order);
+        await awardOrderCommissionCoins(order.user._id, order._id, order.totalAmount);
       } catch (err) {
-        console.error("Error sending order confirmation email:", err.message);
+        console.error("Error awarding commission coins:", err.message);
       }
 
-      try {
-        await sendOrderConfirmationSms(order);
-      } catch (err) {
-        console.error("Error sending order confirmation SMS:", err.message);
-      }
-
-      try {
-        await sendOrderConfirmationWhatsApp(order);
-      } catch (err) {
-        console.error("Error sending order confirmation WhatsApp:", err.message);
-      }
+      // 5) Send Confirmation Email, SMS & WhatsApp
+      try { await sendOrderConfirmationMail(order); } catch (err) { console.error("Email error:", err.message); }
+      try { await sendOrderConfirmationSms(order); } catch (err) { console.error("SMS error:", err.message); }
+      try { await sendOrderConfirmationWhatsApp(order); } catch (err) { console.error("WhatsApp error:", err.message); }
 
       return res.status(200).json({ success: true, msg: "Payment status updated successfully" });
     } else {
-      // Mark payment as failed
       order.paymentStatus = "failed";
       await order.save();
-
-      return res.status(200).json({ success: true, msg: "Payment failed marked on order" });
+      return res.status(200).json({ success: true, msg: "Payment marked as failed" });
     }
   } catch (error) {
     console.error("PhonePe Webhook Callback Error:", error);
@@ -241,8 +234,8 @@ export const phonepeCallback = async (req, res) => {
 };
 
 /**
- * CHECK PHONEPE STATUS (FALLBACK ROUTE)
- * Allows client to pull status directly if webhook lags or is blocked (e.g., local dev)
+ * CHECK PHONEPE STATUS (FOR ORDERS)
+ * Allows frontend to verify order payment status with PhonePe API directly.
  */
 export const checkPhonePeStatus = async (req, res) => {
   try {
@@ -257,7 +250,7 @@ export const checkPhonePeStatus = async (req, res) => {
       return res.status(404).json({ success: false, msg: "Order not found" });
     }
 
-    // If it's a COD order, bypass PhonePe API check and return success/pending status directly
+    // COD orders bypass PhonePe API check
     if (order.PaymentMethod === "cod") {
       return res.status(200).json({
         success: true,
@@ -295,9 +288,10 @@ export const checkPhonePeStatus = async (req, res) => {
     if (response.data && response.data.success && response.data.code === "PAYMENT_SUCCESS") {
       const transactionId = response.data.data.transactionId;
 
-      // 1) Mark order as paid
+      // 1) Mark order as completed
       order.paymentStatus = "completed";
-      order.razorpayPaymentId = transactionId;
+      order.phonePeTransactionId = transactionId;
+      order.phonePeMerchantTransactionId = orderId;
 
       // 2) Deduct wallet balance
       if (order.walletDeductedAmount > 0) {
@@ -317,7 +311,7 @@ export const checkPhonePeStatus = async (req, res) => {
         }
       }
 
-      // 3) Increment Coupon usedCount if applicable
+      // 3) Increment Coupon usedCount
       if (order.couponCode) {
         const coupon = await Coupon.findOne({ code: order.couponCode.toUpperCase() });
         if (coupon) {
@@ -328,24 +322,17 @@ export const checkPhonePeStatus = async (req, res) => {
 
       await order.save();
 
-      // 4) Send Confirmation Email & SMS
+      // 4) Award 1% Commission Coins if user is Prime Member
       try {
-        await sendOrderConfirmationMail(order);
+        await awardOrderCommissionCoins(order.user._id, order._id, order.totalAmount);
       } catch (err) {
-        console.error("Error sending order confirmation email:", err.message);
+        console.error("Error awarding commission coins:", err.message);
       }
 
-      try {
-        await sendOrderConfirmationSms(order);
-      } catch (err) {
-        console.error("Error sending order confirmation SMS:", err.message);
-      }
-
-      try {
-        await sendOrderConfirmationWhatsApp(order);
-      } catch (err) {
-        console.error("Error sending order confirmation WhatsApp:", err.message);
-      }
+      // 5) Send Confirmation Email, SMS & WhatsApp
+      try { await sendOrderConfirmationMail(order); } catch (err) { console.error("Email error:", err.message); }
+      try { await sendOrderConfirmationSms(order); } catch (err) { console.error("SMS error:", err.message); }
+      try { await sendOrderConfirmationWhatsApp(order); } catch (err) { console.error("WhatsApp error:", err.message); }
 
       return res.status(200).json({
         success: true,
@@ -376,77 +363,3 @@ export const checkPhonePeStatus = async (req, res) => {
     });
   }
 };
-
-// ==========================================
-// --- RAZORPAY CODE COMMENTED OUT AS REQUESTED ---
-// ==========================================
-/*
-export const createRazorpayOrder = async (req, res) => {
-  try {
-    const { amount } = req.body;
-
-    if (!amount) {
-      return res.status(400).json({ success: false, msg: "Amount is required" });
-    }
-
-    const instance = new Razorpay({
-      key_id: process.env.RAZORPAY_KEY_ID || "rzp_test_SdpJSZtNnLHmjO",
-      key_secret: process.env.RAZORPAY_KEY_SECRET || "qwtSRoeKd9p6pjHC7dXRjrjs",
-    });
-
-    const options = {
-      amount: Math.round(amount * 100), // amount in smallest currency unit (paise)
-      currency: "INR",
-      receipt: `receipt_${Date.now()}`
-    };
-
-    const order = await instance.orders.create(options);
-
-    if (!order) {
-      return res.status(500).json({ success: false, msg: "Some error occurred while creating Razorpay order" });
-    }
-
-    res.status(200).json({
-      success: true,
-      order,
-    });
-  } catch (error) {
-    console.error("Razorpay Create Order Error:", error);
-    res.status(500).json({ success: false, msg: "Server error", error: error.message });
-  }
-};
-
-export const verifyRazorpayPayment = async (req, res) => {
-  try {
-    const { razorpayOrderId, razorpayPaymentId, razorpaySignature } = req.body;
-
-    if (!razorpayOrderId || !razorpayPaymentId || !razorpaySignature) {
-      return res.status(400).json({ success: false, msg: "Missing required Razorpay parameters" });
-    }
-
-    const body = razorpayOrderId + "|" + razorpayPaymentId;
-
-    const expectedSignature = crypto
-      .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET)
-      .update(body.toString())
-      .digest("hex");
-
-    const isAuthentic = expectedSignature === razorpaySignature;
-
-    if (isAuthentic) {
-      res.status(200).json({
-        success: true,
-        msg: "Payment has been verified successfully",
-      });
-    } else {
-      res.status(400).json({
-        success: false,
-        msg: "Payment verification failed. Invalid signature.",
-      });
-    }
-  } catch (error) {
-    console.error("Razorpay Verification Error:", error);
-    res.status(500).json({ success: false, msg: "Server error", error: error.message });
-  }
-};
-*/

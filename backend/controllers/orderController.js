@@ -1,5 +1,7 @@
 import mongoose from "mongoose";
 import Order from "../models/ordermodel.js";
+import User from "../models/usermodel.js";
+import ProductVariant from "../models/productVariantModel.js";
 
 // GET USER ORDERS
 export const getUserOrders = async (req, res) => {
@@ -201,5 +203,143 @@ export const adminDeleteOrder = async (req, res) => {
     });
   } catch (error) {
     res.status(500).json({ msg: "Server error" });
+  }
+};
+
+// CREATE MANUAL ORDER (ADMIN)
+export const createManualOrder = async (req, res) => {
+  try {
+    const {
+      customerDetails,
+      deliveryAddress,
+      items,
+      paymentMethod,
+      paymentStatus,
+      status,
+      orderDate,
+      discountAmount = 0,
+      taxAmount = 0,
+      cgst = 0,
+      sgst = 0,
+      couponCode = "",
+      adminNotes = "",
+      transactionId = "",
+      deductStock = true
+    } = req.body;
+
+    if (!customerDetails?.fullName || (!customerDetails?.mobile && !customerDetails?.email)) {
+      return res.status(400).json({ success: false, msg: "Customer Name and Mobile or Email are required" });
+    }
+
+    if (!items || !Array.isArray(items) || items.length === 0) {
+      return res.status(400).json({ success: false, msg: "At least one item is required in the order" });
+    }
+
+    // 1. Find existing customer or create a new user profile
+    let user = null;
+    if (customerDetails.email && customerDetails.email.trim()) {
+      user = await User.findOne({ email: customerDetails.email.toLowerCase().trim() });
+    }
+    if (!user && customerDetails.mobile && customerDetails.mobile.trim()) {
+      user = await User.findOne({ mobile: customerDetails.mobile.trim() });
+    }
+
+    if (!user) {
+      const tempEmail = (customerDetails.email && customerDetails.email.trim())
+        ? customerDetails.email.toLowerCase().trim()
+        : `offline_${Date.now()}@ownfresh.com`;
+      const tempMobile = (customerDetails.mobile && customerDetails.mobile.trim())
+        ? customerDetails.mobile.trim()
+        : `OFF${Date.now()}`;
+
+      user = await User.create({
+        fullName: customerDetails.fullName.trim(),
+        email: tempEmail,
+        mobile: tempMobile,
+        password: "ManualOrderPassword123!",
+        role: "user",
+        isOtpVerified: true
+      });
+    }
+
+    // 2. Compute Total Amount
+    const itemsSubtotal = items.reduce((acc, item) => acc + (Number(item.price) || 0) * (Number(item.quantity) || 1), 0);
+    const finalTotalAmount = Math.max(0, itemsSubtotal - Number(discountAmount || 0) + Number(taxAmount || 0));
+
+    // 3. Generate Sequential Custom Order ID (e.g. MOF/206/0036)
+    const orderDateObj = orderDate ? new Date(orderDate) : new Date();
+    const year = orderDateObj.getFullYear();
+    const yearCode = `${year.toString().slice(0, 2)}${year.toString().slice(-1)}`;
+    const orderCount = await Order.countDocuments();
+    const sequenceStr = String(orderCount + 1).padStart(4, "0");
+    const customOrderId = `MOF/${yearCode}/${sequenceStr}`;
+
+    // Map Order Items
+    const orderItems = items.map((item) => ({
+      productId: item.productId || null,
+      variantId: item.variantId || null,
+      name: item.name || "Product Item",
+      variantName: item.variantName || "",
+      price: Number(item.price) || 0,
+      quantity: Number(item.quantity) || 1,
+      image: item.image || "https://res.cloudinary.com/dkhq2wlwg/image/upload/v1/blogs/default_placeholder"
+    }));
+
+    // 4. Create Order document
+    const newOrderData = {
+      customOrderId,
+      user: user._id,
+      items: orderItems,
+      PaymentMethod: paymentMethod || "cod",
+      paymentStatus: paymentStatus || "completed",
+      status: status || "processing",
+      deliveryAddress: {
+        roomNumber: deliveryAddress?.roomNumber || "",
+        areaName: deliveryAddress?.areaName || "",
+        text: deliveryAddress?.text || `${customerDetails.fullName}, ${customerDetails.mobile || ""}`,
+        phone: deliveryAddress?.phone || customerDetails.mobile || ""
+      },
+      totalAmount: finalTotalAmount,
+      discountAmount: Number(discountAmount) || 0,
+      taxAmount: Number(taxAmount) || 0,
+      cgst: Number(cgst) || 0,
+      sgst: Number(sgst) || 0,
+      couponCode: couponCode || "",
+      adminNotes: adminNotes || "Manual Entry for Offline/WhatsApp Order",
+      transactionId: transactionId || undefined,
+      createdAt: orderDateObj,
+      updatedAt: orderDateObj
+    };
+
+    const order = await Order.create(newOrderData);
+
+    // 5. Deduct Variant Stock if enabled
+    if (deductStock) {
+      for (const item of items) {
+        if (item.variantId) {
+          try {
+            await ProductVariant.findByIdAndUpdate(item.variantId, {
+              $inc: { stockQuantity: -Math.abs(Number(item.quantity) || 1) }
+            });
+          } catch (err) {
+            console.error(`Failed to update stock for variant ${item.variantId}:`, err);
+          }
+        }
+      }
+    }
+
+    const populatedOrder = await Order.findById(order._id)
+      .populate("user", "fullName email mobile")
+      .populate("items.productId", "name image");
+
+    return res.status(201).json({
+      success: true,
+      msg: "Manual order created successfully",
+      order: populatedOrder
+    });
+
+  } catch (error) {
+    console.error("CREATE MANUAL ORDER EXCEPTION:", error);
+    return res.status(500).json({ success: false, msg: "Failed to create manual order: " + error.message });
   }
 };

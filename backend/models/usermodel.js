@@ -63,6 +63,23 @@ const userSchema = new mongoose.Schema({
         type: Boolean,
         default: false
     },
+    // Membership & 1% Commission System fields
+    isMember: {
+        type: Boolean,
+        default: false
+    },
+    membershipExpiresAt: {
+        type: Date,
+        default: null
+    },
+    membershipPlanName: {
+        type: String,
+        default: ""
+    },
+    commissionCoins: {
+        type: Number,
+        default: 0
+    },
     resetOtp: {
         type: String,
     },

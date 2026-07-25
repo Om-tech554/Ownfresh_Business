@@ -40,11 +40,11 @@ const ContactSection = () => {
                 Reach out to us directly. We are here to help you choose the best stone-pressed oils for your health.
               </p>
               
-              <a href="mailto:my1ownfresh@gmail.com" className="flex items-center gap-4 text-sm font-bold text-gray-300 hover:text-white transition-colors">
+              <a href="mailto:contact@myownfresh.com" className="flex items-center gap-4 text-sm font-bold text-gray-300 hover:text-white transition-colors">
                 <div className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center">
                   <Mail className="w-4 h-4 text-[#FFDD00]" />
                 </div>
-                my1ownfresh@gmail.com
+                contact@myownfresh.com
               </a>
             </div>
           </div>

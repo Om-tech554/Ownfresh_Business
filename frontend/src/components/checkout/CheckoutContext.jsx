@@ -39,6 +39,11 @@ export const CheckoutProvider = ({ children }) => {
   const [referralCode, setReferralCode] = useState('');
   const [referralApplied, setReferralApplied] = useState(false);
 
+  // Commission Coins State
+  const [useCommissionCoins, setUseCommissionCoins] = useState(false);
+  const [commissionCoinsBalance, setCommissionCoinsBalance] = useState(0);
+  const [canRedeemCoins, setCanRedeemCoins] = useState(false);
+
   const nextStep = () => setCurrentStep((prev) => Math.min(prev + 1, 4));
   const prevStep = () => setCurrentStep((prev) => Math.max(prev - 1, 1));
   const goToStep = (step) => setCurrentStep(step);
@@ -61,7 +66,13 @@ export const CheckoutProvider = ({ children }) => {
     referralCode,
     setReferralCode,
     referralApplied,
-    setReferralApplied
+    setReferralApplied,
+    useCommissionCoins,
+    setUseCommissionCoins,
+    commissionCoinsBalance,
+    setCommissionCoinsBalance,
+    canRedeemCoins,
+    setCanRedeemCoins
   };
 
   return (

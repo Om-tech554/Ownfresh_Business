@@ -1,24 +1,26 @@
 import React, { useState } from 'react';
 import Navbar from './Navbar';
+import BusinessIntelligenceDashboard from './admin/BusinessIntelligenceDashboard';
 import ProductList from "./admin/ProductList";
 import BlogList from './admin/BlogList';
 import AdminOrders from './admin/AdminOrders';
 import AdminCustomers from './admin/AdminCustomers';
 import { useSelector } from 'react-redux';
-import { Package, BookOpen, Ticket, ShoppingCart, Layers, Users, Image as ImageIcon, Settings } from "lucide-react";
+import { Package, BookOpen, Ticket, ShoppingCart, Layers, Users, Image as ImageIcon, Settings, BarChart3, Crown } from "lucide-react";
 import CouponManager from './admin/CouponManager';
 import CategoryManager from './admin/CategoryManager';
 import GalleryManager from './admin/GalleryManager';
 import InventoryManager from './admin/InventoryManager';
 import ReferralManager from './admin/ReferralManager';
 import SettingsManager from './admin/SettingsManager';
+import PrimeMembershipManager from './admin/PrimeMembershipManager';
 
 function AdminDashboard() {
   const userData = useSelector((state) => state.user.userData);
 
-  // Default to Blogs if they are only a blogger
+  // Default to Blogs if they are only a blogger, otherwise default to Business Intelligence Dashboard
   const [activeTab, setActiveTab] = useState(
-    userData?.role === "blogger" ? "blogs" : "products"
+    userData?.role === "blogger" ? "blogs" : "dashboard"
   );
 
   return (
@@ -31,9 +33,20 @@ function AdminDashboard() {
           {userData?.role === "admin" && (
             <>
               <button
+                onClick={() => setActiveTab("dashboard")}
+                className={`flex items-center gap-2 px-6 py-2.5 rounded-xl font-bold transition-all whitespace-nowrap ${activeTab === "dashboard"
+                    ? "bg-[#1E971D] text-white shadow-lg shadow-[#1E971D]/20 font-extrabold"
+                    : "text-slate-500 hover:bg-slate-50"
+                  }`}
+              >
+                <BarChart3 className="w-4 h-4 text-[#F9DD19]" />
+                Dashboard
+              </button>
+
+              <button
                 onClick={() => setActiveTab("products")}
                 className={`flex items-center gap-2 px-6 py-2.5 rounded-xl font-bold transition-all whitespace-nowrap ${activeTab === "products"
-                    ? "bg-[#1E971D] text-white shadow-lg shadow-[#1E971D]/20"
+                    ? "bg-[#1E971D] text-white shadow-lg shadow-[#1E971D]/20 font-extrabold"
                     : "text-slate-500 hover:bg-slate-50"
                   }`}
               >
@@ -137,6 +150,19 @@ function AdminDashboard() {
 
           {userData?.role === "admin" && (
             <button
+              onClick={() => setActiveTab("prime")}
+              className={`flex items-center gap-2 px-6 py-2.5 rounded-xl font-bold transition-all whitespace-nowrap ${activeTab === "prime"
+                  ? "bg-[#1E971D] text-white shadow-lg shadow-[#1E971D]/20"
+                  : "text-slate-500 hover:bg-slate-50"
+                }`}
+            >
+              <Crown className="w-4 h-4 text-[#F9DD19]" />
+              Prime 1%
+            </button>
+          )}
+
+          {userData?.role === "admin" && (
+            <button
               onClick={() => setActiveTab("partners")}
               className={`flex items-center gap-2 px-6 py-2.5 rounded-xl font-bold transition-all whitespace-nowrap ${activeTab === "partners"
                   ? "bg-[#1E971D] text-white shadow-lg shadow-[#1E971D]/20"
@@ -151,6 +177,7 @@ function AdminDashboard() {
       </div>
 
       <div className="mt-6">
+        {activeTab === "dashboard" && userData?.role === "admin" && <BusinessIntelligenceDashboard />}
         {activeTab === "products" && userData?.role === "admin" && <ProductList />}
         {activeTab === "inventory" && userData?.role === "admin" && <InventoryManager />}
         {activeTab === "blogs" && (userData?.role === "admin" || userData?.role === "blogger") && <BlogList />}
@@ -159,6 +186,7 @@ function AdminDashboard() {
         {activeTab === "categories" && userData?.role === "admin" && <CategoryManager />}
         {activeTab === "orders" && userData?.role === "admin" && <AdminOrders />}
         {activeTab === "customers" && userData?.role === "admin" && <AdminCustomers />}
+        {activeTab === "prime" && userData?.role === "admin" && <PrimeMembershipManager />}
         {activeTab === "partners" && userData?.role === "admin" && <ReferralManager />}
         {activeTab === "settings" && userData?.role === "admin" && <SettingsManager />}
       </div>

@@ -75,7 +75,7 @@ export const sendOtpMail = async (to, otp) => {
 export const sendContactMail = async (name, email, message) => {
   await transporter.sendMail({
     from: `"OwnFresh Contact Form" <${process.env.EMAIL}>`,
-    to: "my1ownfresh@gmail.com",
+    to: "contact@myownfresh.com",
     subject: `New Message from ${name} via Contact Form`,
     html: `
       <div style="background-color:#F9F9F9;padding:24px;font-family:Arial,sans-serif;">
@@ -266,7 +266,7 @@ export const generateShipmentEmailHtml = (order, trackingUrl) => {
               📅 <b>Expected Delivery:</b> You should receive your items within 5-7 business days.
             </p>
             <p style="font-size:13px;color:#777;margin-top:16px;">
-              If you have any questions or concerns, contact our support team at <a href="mailto:my1ownfresh@gmail.com" style="color:#24672E;text-decoration:none;">my1ownfresh@gmail.com</a>.
+              If you have any questions or concerns, contact our support team at <a href="mailto:contact@myownfresh.com" style="color:#24672E;text-decoration:none;">contact@myownfresh.com</a>.
             </p>
           </div>
           <!-- Footer -->

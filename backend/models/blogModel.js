@@ -36,6 +36,10 @@ const blogSchema = new mongoose.Schema(
       type: String,
       default: "OTHER",
     },
+
+    // RankMath SEO fields
+    focusKeyword: { type: String, default: "" },
+    slug: { type: String, default: "" },
   },
   { timestamps: true }
 );

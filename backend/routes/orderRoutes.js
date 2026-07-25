@@ -7,7 +7,8 @@ import {
   requestOrderCancellation, 
   handleCancellationReview, 
   deleteUserOrder, 
-  adminDeleteOrder 
+  adminDeleteOrder,
+  createManualOrder
 } from "../controllers/orderController.js";
 import isAuth, { isAdmin } from "../middleware/isAuth.js";
 import upload from "../middleware/multer.js";
@@ -28,6 +29,7 @@ router.delete("/user-delete/:id", isAuth, deleteUserOrder);
 
 // Admin Order Routes
 router.get("/admin/all", isAuth, isAdmin, getAllOrders);
+router.post("/admin/create-manual", isAuth, isAdmin, createManualOrder);
 router.put("/status/:id", isAuth, isAdmin, updateOrderStatus);
 router.put("/cancel-review/:id", isAuth, isAdmin, handleCancellationReview);
 router.delete("/admin-delete/:id", isAuth, isAdmin, adminDeleteOrder);

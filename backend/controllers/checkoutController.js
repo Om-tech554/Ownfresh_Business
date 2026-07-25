@@ -9,6 +9,7 @@ import crypto from "crypto";
 import { sendOrderConfirmationMail } from "../utils/mail.js";
 import { sendOrderConfirmationSms } from "../utils/sms.js";
 import { sendOrderConfirmationWhatsApp } from "../utils/whatsapp.js";
+import { awardOrderCommissionCoins } from "./membershipController.js";
 
 
 // CREATE ORDER (CHECKOUT)
@@ -27,9 +28,7 @@ export const createOrder = async (req, res) => {
       cgst,
       sgst,
       taxAmount,
-      razorpayOrderId,
-      razorpayPaymentId,
-      razorpaySignature
+      phonePeTransactionId
     } = req.body;
 
     // 1) Validate
@@ -170,10 +169,7 @@ export const createOrder = async (req, res) => {
       cgst: cgst || 0,
       sgst: sgst || 0,
       taxAmount: taxAmount || 0,
-      transactionId: razorpayPaymentId || undefined,
-      razorpayOrderId: razorpayOrderId || undefined,
-      razorpayPaymentId: razorpayPaymentId || undefined,
-      razorpaySignature: razorpaySignature || undefined,
+      phonePeTransactionId: phonePeTransactionId || undefined,
       walletDeductedAmount: walletDeducted
     });
 
@@ -195,6 +191,14 @@ export const createOrder = async (req, res) => {
       // Mark the user as having redeemed a referral
       user.hasRedeemedReferral = true;
       await user.save();
+    }
+
+    // Award 1% Commission Credit Coins to member (if active member)
+    try {
+      const grossAmount = items.reduce((acc, item) => acc + (Number(item.price) || 0) * (Number(item.quantity) || 1), 0);
+      await awardOrderCommissionCoins(userId, order._id, finalPayableAmount > 0 ? finalPayableAmount : grossAmount);
+    } catch (commErr) {
+      console.error("Failed to award membership commission coins:", commErr);
     }
 
     // Send confirmation notifications for COD or zero-amount orders

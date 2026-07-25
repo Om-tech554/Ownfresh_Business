@@ -4,7 +4,7 @@ import { bloggerService } from "../utils/bloggerService.js";
 // ===================== ADD BLOG =====================
 export const addBlog = async (req, res) => {
   try {
-    const { title, description, category, labels, status, searchDescription, location, author, publishedAt } = req.body;
+    const { title, description, category, labels, status, searchDescription, location, author, publishedAt, focusKeyword, slug } = req.body;
     
     // Parse labels if sent as a string
     let labelsArray = [];
@@ -49,7 +49,9 @@ export const addBlog = async (req, res) => {
       status: status || "LIVE",
       searchDescription,
       location,
-      author: author || "Own Fresh Blogs"
+      author: author || "Own Fresh Blogs",
+      focusKeyword: focusKeyword || "",
+      slug: slug || ""
     });
 
     return res.status(201).json({
@@ -150,7 +152,7 @@ export const deleteBlog = async (req, res) => {
 // ===================== UPDATE BLOG =====================
 export const updateBlog = async (req, res) => {
   try {
-    const { title, description, category, labels, status, searchDescription, location, author, publishedAt } = req.body;
+    const { title, description, category, labels, status, searchDescription, location, author, publishedAt, focusKeyword, slug } = req.body;
     
     let labelsArray = [];
     if (labels) {
@@ -171,7 +173,9 @@ export const updateBlog = async (req, res) => {
       status: status || "LIVE",
       searchDescription,
       location,
-      author: author || "Own Fresh Blogs"
+      author: author || "Own Fresh Blogs",
+      focusKeyword: focusKeyword || "",
+      slug: slug || ""
     };
 
     if (req.files) {

@@ -1,31 +1,46 @@
 @import "tailwindcss";
 
 @theme {
-  --color-brand-yellow: #FFDD00;
+  --color-brand-green: #1E971D;
+  --color-brand-yellow: #F9DD19;
+  --color-brand-black: #181818;
   --color-brand-dark: #181818;
   --color-brand-bg: #ffffff;
-  --font-sans: "Poppins", sans-serif;
+  --font-serif: "Playfair Display", serif;
+  --font-sans: "Poppins", "Montserrat", sans-serif;
   --font-playfair: "Playfair Display", serif;
-  --font-montserrat: "Montserrat", sans-serif;
-  --font-poppins: "Poppins", sans-serif;
+  --font-[#1E971D]: #1E971D;
 }
 
 html, body {
-  font-family: var(--font-sans);
+  font-family: "Poppins", "Montserrat", sans-serif;
+  color: #181818;
 }
 
-/* Base custom utility for the new UI */
+h1, h2, h3, .font-serif, .logo-title {
+  font-family: "Playfair Display", serif;
+}
+
+p, button, input, select, textarea, label, span, table, .font-sans {
+  font-family: "Poppins", "Montserrat", sans-serif;
+}
+
+/* Base custom utilities for consistent brand UI */
 @utility btn-primary {
-  @apply bg-[#FFDD00] text-black font-bold uppercase tracking-widest px-8 py-3 rounded-full transition-all duration-300 hover:bg-[#181818] hover:text-white cursor-pointer;
+  @apply bg-[#F9DD19] text-[#181818] font-black uppercase tracking-widest px-8 py-3 rounded-full transition-all duration-300 hover:bg-[#1E971D] hover:text-white cursor-pointer;
 }
 
 @utility btn-secondary {
-  @apply bg-[#181818] text-white font-bold uppercase tracking-widest px-8 py-3 rounded-full transition-all duration-300 hover:bg-[#FFDD00] hover:text-black cursor-pointer;
+  @apply bg-[#181818] text-white font-black uppercase tracking-widest px-8 py-3 rounded-full transition-all duration-300 hover:bg-[#F9DD19] hover:text-[#181818] cursor-pointer;
+}
+
+@utility btn-brand-green {
+  @apply bg-[#1E971D] text-white font-black uppercase tracking-widest px-8 py-3 rounded-full transition-all duration-300 hover:bg-[#181818] cursor-pointer;
 }
 
 /* Typography refinements */
 @utility heading-premium {
-  @apply text-black font-bold tracking-tight leading-tight uppercase;
+  @apply text-[#181818] font-bold tracking-tight leading-tight uppercase font-serif;
 }
 
 /* 🔥 Remove browser password eye (Chrome / Edge) */
@@ -38,12 +53,12 @@ input[type="password"]::-webkit-textfield-decoration-container {
   display: none;
 }
 
-/* Custom styling for Admin Panel */
+/* Global styling for Admin Panel */
 .admin-panel,
 .admin-panel *,
 .admin-panel select,
 .admin-panel input,
 .admin-panel button,
 .admin-panel textarea {
-  font-family: "Poppins", sans-serif !important;
+  font-family: "Poppins", "Montserrat", sans-serif;
 }

@@ -26,6 +26,9 @@ import { verifyAppCheck } from "./middleware/appCheckMiddleware.js";
 import requestIdMiddleware from "./middleware/requestIdMiddleware.js";
 import referralRoutes from "./routes/referralRoutes.js";
 import settingsRoutes from "./routes/settingsRoutes.js";
+import membershipRoutes from "./routes/membershipRoutes.js";
+
+import { deactivateAllExistingMembers } from "./controllers/membershipController.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -36,10 +39,10 @@ app.use(helmet({
   contentSecurityPolicy: {
     directives: {
       defaultSrc: ["'self'"],
-      scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'", "https://checkout.razorpay.com", "https://apis.google.com", "https://www.gstatic.com"],
-      frameSrc: ["'self'", "https://api.razorpay.com", "https://checkout.razorpay.com", "https://own-fresh.firebaseapp.com", "https://www.google.com"],
-      connectSrc: ["'self'", "https://api.geoapify.com", "https://api.razorpay.com", "https://*.onrender.com", "https://identitytoolkit.googleapis.com", "https://securetoken.googleapis.com", "https://firebaseinstallations.googleapis.com", "https://content-firebaseappcheck.googleapis.com"],
-      imgSrc: ["'self'", "data:", "https://res.cloudinary.com", "https://*.tile.openstreetmap.org", "https://lh3.googleusercontent.com"],
+      scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'", "https://apis.google.com", "https://www.gstatic.com"],
+      frameSrc: ["'self'", "https://api.phonepe.com", "https://api-preprod.phonepe.com", "https://mercury.phonepe.com", "https://mercury-t2.phonepe.com", "https://own-fresh.firebaseapp.com", "https://www.google.com"],
+      connectSrc: ["'self'", "https://api.phonepe.com", "https://api-preprod.phonepe.com", "https://mercury.phonepe.com", "https://api.geoapify.com", "https://*.onrender.com", "https://identitytoolkit.googleapis.com", "https://securetoken.googleapis.com", "https://firebaseinstallations.googleapis.com", "https://content-firebaseappcheck.googleapis.com"],
+      imgSrc: ["'self'", "data:", "https://res.cloudinary.com", "https://api.qrserver.com", "https://*.tile.openstreetmap.org", "https://lh3.googleusercontent.com"],
     },
   },
   crossOriginEmbedderPolicy: false,
@@ -90,6 +93,7 @@ app.use("/api/gallery", galleryRoutes);
 app.use("/api/inventory", inventoryRoutes);
 app.use("/api/fulfillment", fulfillmentRoutes);
 app.use("/api/settings", settingsRoutes);
+app.use("/api/membership", membershipRoutes);
 
 // --- STATIC FILES & SPA ROUTING FIX ---
 const __frontendDir = path.join(__dirname, "../frontend/dist");
@@ -104,8 +108,9 @@ app.use((req, res) => {
     res.sendFile(path.join(__frontendDir, "index.html"));
 });
 
-app.listen(port, () => {
-    connectDB()
+app.listen(port, async () => {
+    await connectDB()
     initCronJobs() // 🚀 Initialize Background Sync
+    await deactivateAllExistingMembers(); // 🚀 Deactivate all existing members so everyone pays via PhonePe
     console.log(`🚀 Server running on port ${port}`);
 })

@@ -5,11 +5,12 @@ import {
     Search, Loader2, Package, User, Clock, CheckCircle2, Truck, X, XCircle,
     MapPin, ExternalLink, Calendar, CreditCard, ChevronDown, Printer,
     MoreHorizontal, Filter, ArrowUpRight, Copy, Save, AlertCircle, Trash2,
-    UploadCloud, Send, ShieldAlert
+    UploadCloud, Send, ShieldAlert, Plus
 } from "lucide-react";
 import toast from "react-hot-toast";
 import { AnimatePresence, motion } from "framer-motion";
 import { useConfirm } from "../../hooks/ConfirmContext.jsx";
+import CreateManualOrderModal from "./CreateManualOrderModal.jsx";
 
 const AdminOrders = () => {
     const confirm = useConfirm();
@@ -19,6 +20,7 @@ const AdminOrders = () => {
     const [activeTab, setActiveTab] = useState("unshipped"); // Amazon style: start with work to do
     const [selectedOrder, setSelectedOrder] = useState(null);
     const [updatingId, setUpdatingId] = useState(null);
+    const [isManualOrderModalOpen, setIsManualOrderModalOpen] = useState(false);
 
     // New Fulfillment workflow states
     const [carriers, setCarriers] = useState([]);
@@ -293,34 +295,442 @@ const AdminOrders = () => {
 
     const printPackingSlip = (order) => {
         const printWindow = window.open('', '_blank');
+        const subtotal = order.items.reduce((sum, i) => sum + (i.price * i.quantity), 0);
+        const discount = order.discountAmount || 0;
+        const deliveryCharge = order.deliveryCharge || 0;
+        const total = order.totalAmount || (subtotal - discount + deliveryCharge);
+        const paymentMethodStr = String(order.PaymentMethod || order.paymentMethod || '').toUpperCase();
+        const isCOD = paymentMethodStr === 'COD';
+
         printWindow.document.write(`
+            <!DOCTYPE html>
             <html>
-                <head><title>Packing Slip #${order._id.toUpperCase()}</title>
+            <head>
+                <title>Packing Slip — ${order._id?.toUpperCase?.() || order.orderId || ''}</title>
+                <meta charset="UTF-8"/>
                 <style>
-                    body { font-family: sans-serif; padding: 40px; }
-                    .header { border-bottom: 2px solid #000; padding-bottom: 20px; display: flex; justify-content: space-between; }
-                    .details { margin: 20px 0; display: grid; grid-template-columns: 1fr 1fr; }
-                    table { width: 100%; border-collapse: collapse; margin-top: 30px; }
-                    th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
-                    th { bg-color: #f8f8f8; }
+                    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+                    * { margin: 0; padding: 0; box-sizing: border-box; }
+                    body {
+                        font-family: 'Inter', sans-serif;
+                        background: #fff;
+                        color: #1a1a2e;
+                        padding: 32px;
+                        font-size: 12px;
+                        line-height: 1.5;
+                    }
+                    /* ── TOP HEADER ── */
+                    .top-header {
+                        display: flex;
+                        justify-content: space-between;
+                        align-items: flex-start;
+                        border-bottom: 3px solid #1a1a2e;
+                        padding-bottom: 20px;
+                        margin-bottom: 20px;
+                    }
+                    .brand-name {
+                        font-size: 28px;
+                        font-weight: 900;
+                        letter-spacing: -1px;
+                        color: #1a1a2e;
+                        line-height: 1;
+                    }
+                    .brand-name span { color: #16a34a; }
+                    .brand-tagline { font-size: 10px; color: #6b7280; margin-top: 3px; letter-spacing: 1px; text-transform: uppercase; }
+                    .slip-label {
+                        text-align: right;
+                    }
+                    .slip-title {
+                        font-size: 22px;
+                        font-weight: 900;
+                        letter-spacing: 2px;
+                        color: #1a1a2e;
+                        text-transform: uppercase;
+                    }
+                    .slip-meta { font-size: 10px; color: #6b7280; margin-top: 4px; }
+                    .slip-meta strong { color: #1a1a2e; }
+
+                    /* ── INFO GRID ── */
+                    .info-grid {
+                        display: grid;
+                        grid-template-columns: 1fr 1fr 1fr;
+                        gap: 16px;
+                        margin-bottom: 20px;
+                    }
+                    .info-box {
+                        background: #f9fafb;
+                        border: 1px solid #e5e7eb;
+                        border-radius: 8px;
+                        padding: 12px 14px;
+                    }
+                    .info-box-label {
+                        font-size: 9px;
+                        font-weight: 700;
+                        text-transform: uppercase;
+                        letter-spacing: 1px;
+                        color: #9ca3af;
+                        margin-bottom: 4px;
+                    }
+                    .info-box-value {
+                        font-size: 12px;
+                        font-weight: 600;
+                        color: #1a1a2e;
+                    }
+                    .info-box-value.small { font-size: 11px; font-weight: 500; }
+
+                    /* ── ADDRESS SECTION ── */
+                    .address-section {
+                        display: grid;
+                        grid-template-columns: 1fr 1fr;
+                        gap: 16px;
+                        margin-bottom: 20px;
+                    }
+                    .address-box {
+                        border: 1.5px solid #e5e7eb;
+                        border-radius: 8px;
+                        padding: 14px;
+                    }
+                    .address-box.highlight { border-color: #16a34a; background: #f0fdf4; }
+                    .address-box-title {
+                        font-size: 9px;
+                        font-weight: 800;
+                        text-transform: uppercase;
+                        letter-spacing: 1.5px;
+                        color: #16a34a;
+                        margin-bottom: 8px;
+                    }
+                    .address-name { font-size: 13px; font-weight: 700; color: #1a1a2e; margin-bottom: 3px; }
+                    .address-line { font-size: 11px; color: #4b5563; }
+
+                    /* ── ITEMS TABLE ── */
+                    .section-title {
+                        font-size: 10px;
+                        font-weight: 800;
+                        text-transform: uppercase;
+                        letter-spacing: 1.5px;
+                        color: #6b7280;
+                        margin-bottom: 8px;
+                    }
+                    table { width: 100%; border-collapse: collapse; margin-bottom: 16px; }
+                    thead tr { background: #1a1a2e; }
+                    thead th {
+                        padding: 10px 12px;
+                        font-size: 10px;
+                        font-weight: 700;
+                        text-transform: uppercase;
+                        letter-spacing: 1px;
+                        color: #fff;
+                        text-align: left;
+                    }
+                    thead th:last-child, thead th:nth-child(3), thead th:nth-child(4) { text-align: right; }
+                    tbody tr { border-bottom: 1px solid #f3f4f6; }
+                    tbody tr:nth-child(even) { background: #f9fafb; }
+                    tbody td { padding: 10px 12px; font-size: 11px; color: #374151; }
+                    tbody td:last-child, tbody td:nth-child(3), tbody td:nth-child(4) { text-align: right; }
+                    .item-name { font-weight: 600; color: #1a1a2e; }
+                    .item-variant { font-size: 10px; color: #9ca3af; margin-top: 1px; }
+
+                    /* ── TOTALS ── */
+                    .totals-row {
+                        display: flex;
+                        justify-content: flex-end;
+                        margin-bottom: 20px;
+                    }
+                    .totals-box {
+                        width: 280px;
+                        border: 1px solid #e5e7eb;
+                        border-radius: 8px;
+                        overflow: hidden;
+                    }
+                    .totals-line {
+                        display: flex;
+                        justify-content: space-between;
+                        padding: 8px 14px;
+                        font-size: 11px;
+                        border-bottom: 1px solid #f3f4f6;
+                    }
+                    .totals-line:last-child { border-bottom: none; }
+                    .totals-line.grand {
+                        background: #1a1a2e;
+                        color: #fff;
+                        font-size: 13px;
+                        font-weight: 800;
+                        padding: 11px 14px;
+                    }
+                    .totals-line .label { color: #6b7280; }
+                    .totals-line.grand .label { color: #d1d5db; }
+                    .discount-val { color: #16a34a; font-weight: 600; }
+
+                    /* ── BANK DETAILS ── */
+                    .bottom-section {
+                        display: grid;
+                        grid-template-columns: 1fr 1fr;
+                        gap: 16px;
+                        margin-top: 4px;
+                    }
+                    .bank-box {
+                        border: 1.5px solid #1d4ed8;
+                        border-radius: 8px;
+                        padding: 14px;
+                        background: #eff6ff;
+                    }
+                    .bank-title {
+                        font-size: 10px;
+                        font-weight: 800;
+                        text-transform: uppercase;
+                        letter-spacing: 1.5px;
+                        color: #1d4ed8;
+                        margin-bottom: 10px;
+                    }
+                    .bank-row {
+                        display: flex;
+                        justify-content: space-between;
+                        font-size: 11px;
+                        margin-bottom: 5px;
+                        padding-bottom: 5px;
+                        border-bottom: 1px dashed #bfdbfe;
+                    }
+                    .bank-row:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+                    .bank-key { color: #6b7280; font-weight: 500; }
+                    .bank-val { color: #1e40af; font-weight: 700; }
+
+                    /* ── NOTES BOX ── */
+                    .notes-box {
+                        border: 1.5px solid #e5e7eb;
+                        border-radius: 8px;
+                        padding: 14px;
+                        background: #fafafa;
+                    }
+                    .notes-title {
+                        font-size: 10px;
+                        font-weight: 800;
+                        text-transform: uppercase;
+                        letter-spacing: 1.5px;
+                        color: #9ca3af;
+                        margin-bottom: 8px;
+                    }
+                    .notes-text { font-size: 11px; color: #6b7280; line-height: 1.6; }
+
+                    /* ── FOOTER ── */
+                    .footer {
+                        border-top: 2px solid #e5e7eb;
+                        margin-top: 20px;
+                        padding-top: 12px;
+                        display: flex;
+                        justify-content: space-between;
+                        align-items: center;
+                    }
+                    .footer-brand { font-size: 10px; color: #9ca3af; }
+                    .footer-brand strong { color: #1a1a2e; }
+                    .footer-note { font-size: 10px; color: #9ca3af; font-style: italic; }
+
+                    /* ── BADGE ── */
+                    .badge {
+                        display: inline-block;
+                        padding: 2px 8px;
+                        border-radius: 20px;
+                        font-size: 9px;
+                        font-weight: 700;
+                        text-transform: uppercase;
+                        letter-spacing: 0.5px;
+                    }
+                    .badge-cod { background: #fef9c3; color: #854d0e; }
+                    .badge-online { background: #dcfce7; color: #166534; }
+                    .badge-pending { background: #fee2e2; color: #991b1b; }
+
+                    @media print {
+                        body { padding: 20px; }
+                        @page { margin: 0.5cm; size: A4; }
+                    }
                 </style>
-                </head>
-                <body>
-                    <div class="header">
-                        <div><h1>OWN FRESH</h1><p>Natural Oils & Wellness</p></div>
-                        <div style="text-align: right"><h2>PACKING SLIP</h2><p>Order ID: ${order._id.toUpperCase()}</p></div>
+            </head>
+            <body>
+
+                <!-- TOP HEADER -->
+                <div class="top-header">
+                    <div>
+                        <div class="brand-name">OWN<span>FRESH</span></div>
+                        <div class="brand-tagline">Natural Oils &amp; Wellness</div>
+                        <div style="margin-top:8px;font-size:10px;color:#6b7280;">
+                            contact@myownfresh.com &nbsp;|&nbsp; www.myownfresh.com
+                        </div>
                     </div>
-                    <div class="details">
-                        <div><h3>Ship To:</h3><p>${order.user?.fullName}<br/>${order.deliveryAddress?.roomNumber}, ${order.deliveryAddress?.areaName}<br/>${order.deliveryAddress?.text}</p></div>
-                        <div><h3>Order Date:</h3><p>${new Date(order.createdAt).toLocaleDateString()}</p><h3>Payment:</h3><p>${order.PaymentMethod}</p></div>
+                    <div class="slip-label">
+                        <div class="slip-title">Packing Slip</div>
+                        <div class="slip-meta">Order ID: <strong>${order._id?.toUpperCase?.() || order.orderId || 'N/A'}</strong></div>
+                        <div class="slip-meta">Date: <strong>${new Date(order.createdAt).toLocaleDateString('en-IN', { day:'2-digit', month:'short', year:'numeric' })}</strong></div>
+                        <div class="slip-meta" style="margin-top:6px;">
+                            <span class="badge ${isCOD ? 'badge-cod' : 'badge-online'}">
+                                ${order.PaymentMethod || order.paymentMethod || 'N/A'}
+                            </span>
+                        </div>
                     </div>
-                    <table>
-                        <thead><tr><th>Item Description</th><th>Qty</th></tr></thead>
-                        <tbody>
-                            ${order.items.map(i => `<tr><td>${i.name}</td><td>${i.quantity}</td></tr>`).join('')}
-                        </tbody>
-                    </table>
-                </body>
+                </div>
+
+                <!-- INFO GRID -->
+                <div class="info-grid">
+                    <div class="info-box">
+                        <div class="info-box-label">Order Status</div>
+                        <div class="info-box-value">${(order.status || 'pending').charAt(0).toUpperCase() + (order.status || 'pending').slice(1)}</div>
+                    </div>
+                    <div class="info-box">
+                        <div class="info-box-label">Items in Order</div>
+                        <div class="info-box-value">${order.items?.length || 0} item${(order.items?.length || 0) !== 1 ? 's' : ''}</div>
+                    </div>
+                    <div class="info-box">
+                        <div class="info-box-label">Order Total</div>
+                        <div class="info-box-value">₹${total?.toLocaleString('en-IN') || '0'}</div>
+                    </div>
+                </div>
+
+                <!-- ADDRESS SECTION -->
+                <div class="address-section">
+                    <div class="address-box highlight">
+                        <div class="address-box-title">📦 Ship To</div>
+                        <div class="address-name">${order.user?.fullName || order.deliveryAddress?.name || 'N/A'}</div>
+                        <div class="address-line">${order.deliveryAddress?.phone || order.user?.phone || ''}</div>
+                        <div class="address-line" style="margin-top:4px;">
+                            ${[
+                                order.deliveryAddress?.roomNumber,
+                                order.deliveryAddress?.areaName,
+                                order.deliveryAddress?.text,
+                                order.deliveryAddress?.pinCode
+                            ].filter(Boolean).join(', ')}
+                        </div>
+                    </div>
+                    <div class="address-box">
+                        <div class="address-box-title" style="color:#6b7280;">🏭 Shipped From</div>
+                        <div class="address-name">OwnFresh Agro Industries</div>
+                        <div class="address-line">Pune, Maharashtra</div>
+                        <div class="address-line">GSTIN: —</div>
+                        <div class="address-line" style="margin-top:4px;">contact@myownfresh.com</div>
+                    </div>
+                </div>
+
+                <!-- ITEMS TABLE -->
+                <div class="section-title">Order Items</div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="width:40%">Product</th>
+                            <th>Variant</th>
+                            <th>Unit Price</th>
+                            <th>Qty</th>
+                            <th>Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${order.items?.map((item, idx) => `
+                            <tr>
+                                <td>
+                                    <div class="item-name">${item.name || 'Product'}</div>
+                                </td>
+                                <td><div class="item-variant">${item.selectedVariant || item.variant || '—'}</div></td>
+                                <td>₹${(item.price || 0).toLocaleString('en-IN')}</td>
+                                <td><strong>${item.quantity}</strong></td>
+                                <td>₹${((item.price || 0) * item.quantity).toLocaleString('en-IN')}</td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+
+                <!-- TOTALS -->
+                <div class="totals-row">
+                    <div class="totals-box">
+                        <div class="totals-line">
+                            <span class="label">Subtotal</span>
+                            <span>₹${subtotal.toLocaleString('en-IN')}</span>
+                        </div>
+                        ${discount > 0 ? `
+                        <div class="totals-line">
+                            <span class="label">Discount</span>
+                            <span class="discount-val">− ₹${discount.toLocaleString('en-IN')}</span>
+                        </div>` : ''}
+                        <div class="totals-line">
+                            <span class="label">Delivery</span>
+                            <span>${deliveryCharge === 0 ? '<span style="color:#16a34a;font-weight:600;">FREE</span>' : '₹' + deliveryCharge.toLocaleString('en-IN')}</span>
+                        </div>
+                        <div class="totals-line grand">
+                            <span class="label">Grand Total</span>
+                            <span>₹${total.toLocaleString('en-IN')}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- BANK DETAILS + NOTES (COD = show bank, Online = show paid confirmation) -->
+                <div class="bottom-section" style="grid-template-columns: ${isCOD ? '1fr 1fr' : '1fr'};">
+
+                    ${isCOD ? `
+                    <div class="bank-box">
+                        <div class="bank-title">🏦 Bank Details — Please Pay on Delivery</div>
+                        <div style="display:flex;gap:14px;align-items:flex-start;">
+                            <div style="flex:1;">
+                                <div class="bank-row">
+                                    <span class="bank-key">Beneficiary</span>
+                                    <span class="bank-val">M/s. OWNFRESH AGRO INDUSTRIES</span>
+                                </div>
+                                <div class="bank-row">
+                                    <span class="bank-key">Bank</span>
+                                    <span class="bank-val">Bank of Maharashtra</span>
+                                </div>
+                                <div class="bank-row">
+                                    <span class="bank-key">Branch</span>
+                                    <span class="bank-val">Pune Mayur Colony</span>
+                                </div>
+                                <div class="bank-row">
+                                    <span class="bank-key">Account No.</span>
+                                    <span class="bank-val">603398389380</span>
+                                </div>
+                                <div class="bank-row">
+                                    <span class="bank-key">IFSC Code</span>
+                                    <span class="bank-val">MAHB0000852</span>
+                                </div>
+                            </div>
+                            <div style="display:flex;flex-direction:column;align-items:center;flex-shrink:0;">
+                                <img
+                                    src="https://api.qrserver.com/v1/create-qr-code/?size=110x110&ecc=M&data=Account%3A%20M%2Fs.%20OWNFRESH%20AGRO%20INDUSTRIES%20%7C%20Bank%3A%20Bank%20of%20Maharashtra%20%7C%20Branch%3A%20Pune%20Mayur%20Colony%20%7C%20AC%20No%3A%20603398389380%20%7C%20IFSC%3A%20MAHB0000852"
+                                    alt="Bank QR Code"
+                                    width="110"
+                                    height="110"
+                                    style="border:3px solid #1d4ed8;border-radius:6px;display:block;"
+                                />
+                                <div style="font-size:8px;color:#6b7280;margin-top:4px;text-align:center;font-weight:600;letter-spacing:0.5px;">SCAN TO PAY</div>
+                            </div>
+                        </div>
+                    </div>
+                    ` : `
+                    <div style="border:1.5px solid #16a34a;border-radius:8px;padding:14px;background:#f0fdf4;display:flex;align-items:center;gap:14px;">
+                        <div style="width:44px;height:44px;background:#16a34a;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:22px;">✓</div>
+                        <div>
+                            <div style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:#16a34a;margin-bottom:3px;">✅ Payment Already Received</div>
+                            <div style="font-size:11px;color:#374151;">This order was paid online. No cash collection required at the time of delivery.</div>
+                            <div style="font-size:10px;color:#6b7280;margin-top:4px;">Payment Method: <strong style="color:#1a1a2e;">${order.PaymentMethod || order.paymentMethod}</strong></div>
+                        </div>
+                    </div>
+                    `}
+
+                    <div class="notes-box">
+                        <div class="notes-title">📝 Notes & Instructions</div>
+                        <div class="notes-text">
+                            • Please verify the product and quantity at the time of delivery.<br/>
+                            • For any issues, contact us at <strong>contact@myownfresh.com</strong><br/>
+                            • This is a computer-generated packing slip and does not require a signature.<br/>
+                            • Returns accepted within 7 days of delivery per our refund policy.
+                        </div>
+                        ${order.notes ? `<div style="margin-top:10px;padding:8px;background:#fff3cd;border-radius:6px;font-size:11px;color:#856404;"><strong>Order Notes:</strong> ${order.notes}</div>` : ''}
+                    </div>
+                </div>
+
+
+                <!-- FOOTER -->
+                <div class="footer">
+                    <div class="footer-brand">
+                        <strong>OwnFresh</strong> — Natural Oils &amp; Wellness &nbsp;|&nbsp; www.myownfresh.com
+                    </div>
+                    <div class="footer-note">Thank you for your order! 🌿</div>
+                </div>
+
+            </body>
             </html>
         `);
         printWindow.document.close();
@@ -417,6 +827,12 @@ const AdminOrders = () => {
                         </div>
                         <button className="p-2.5 bg-white border border-slate-200 rounded-xl text-slate-400 hover:bg-slate-50 transition-all">
                             <Filter size={16} />
+                        </button>
+                        <button
+                            onClick={() => setIsManualOrderModalOpen(true)}
+                            className="bg-[#EFDB27] text-black font-black uppercase text-[10px] tracking-widest px-5 py-2.5 rounded-2xl hover:bg-slate-900 hover:text-white transition-all shadow-xs flex items-center gap-1.5 shrink-0 cursor-pointer"
+                        >
+                            <Plus size={14} /> Create Manual Order
                         </button>
                     </div>
                 </div>
@@ -906,28 +1322,32 @@ const AdminOrders = () => {
                                     </div>
                                 </div>
 
-                                {/* Online Payment Details */}
-                                {selectedOrder.razorpayPaymentId && (
+                                {/* PhonePe / Online Payment Details */}
+                                {(selectedOrder.phonePeTransactionId || selectedOrder.phonePeMerchantTransactionId || selectedOrder.razorpayPaymentId) && (
                                     <div className="bg-white p-6 rounded-xl border border-slate-300 shadow-sm">
                                         <div className="flex items-center gap-3 mb-4">
                                             <div className="p-2 bg-emerald-100 rounded-lg"><CreditCard className="text-emerald-600 w-4 h-4" /></div>
-                                            <h4 className="text-[11px] font-black text-slate-900 uppercase tracking-widest">Online Payment Details</h4>
+                                            <h4 className="text-[11px] font-black text-slate-900 uppercase tracking-widest">PhonePe Payment Details</h4>
                                         </div>
                                         <div className="space-y-3">
-                                            <div>
-                                                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">Razorpay Payment ID</p>
-                                                <p className="text-[11px] font-bold text-slate-900 font-mono flex items-center gap-2">
-                                                    {selectedOrder.razorpayPaymentId}
-                                                    <button onClick={() => { navigator.clipboard.writeText(selectedOrder.razorpayPaymentId); toast.success("Payment ID Copied!"); }} className="text-slate-400 hover:text-blue-500 transition-colors"><Copy size={12} /></button>
-                                                </p>
-                                            </div>
-                                            <div>
-                                                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">Razorpay Order ID</p>
-                                                <p className="text-[11px] font-bold text-slate-900 font-mono flex items-center gap-2">
-                                                    {selectedOrder.razorpayOrderId}
-                                                    <button onClick={() => { navigator.clipboard.writeText(selectedOrder.razorpayOrderId); toast.success("Order ID Copied!"); }} className="text-slate-400 hover:text-blue-500 transition-colors"><Copy size={12} /></button>
-                                                </p>
-                                            </div>
+                                            {selectedOrder.phonePeTransactionId && (
+                                                <div>
+                                                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">PhonePe Transaction ID</p>
+                                                    <p className="text-[11px] font-bold text-slate-900 font-mono flex items-center gap-2">
+                                                        {selectedOrder.phonePeTransactionId}
+                                                        <button onClick={() => { navigator.clipboard.writeText(selectedOrder.phonePeTransactionId); toast.success("Transaction ID Copied!"); }} className="text-slate-400 hover:text-blue-500 transition-colors"><Copy size={12} /></button>
+                                                    </p>
+                                                </div>
+                                            )}
+                                            {(selectedOrder.phonePeMerchantTransactionId || selectedOrder._id) && (
+                                                <div>
+                                                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">Merchant Order Ref</p>
+                                                    <p className="text-[11px] font-bold text-slate-900 font-mono flex items-center gap-2">
+                                                        {selectedOrder.phonePeMerchantTransactionId || selectedOrder._id}
+                                                        <button onClick={() => { navigator.clipboard.writeText(selectedOrder.phonePeMerchantTransactionId || selectedOrder._id); toast.success("Order Ref Copied!"); }} className="text-slate-400 hover:text-blue-500 transition-colors"><Copy size={12} /></button>
+                                                    </p>
+                                                </div>
+                                            )}
                                         </div>
                                     </div>
                                 )}
@@ -1128,6 +1548,13 @@ const AdminOrders = () => {
                     </div>
                 )}
             </AnimatePresence>
+
+            {/* Manual Order Creation Modal */}
+            <CreateManualOrderModal
+                isOpen={isManualOrderModalOpen}
+                onClose={() => setIsManualOrderModalOpen(false)}
+                onSuccess={fetchOrders}
+            />
         </div>
     );
 };

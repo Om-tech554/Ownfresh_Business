@@ -20,6 +20,15 @@ const orderSchema = new mongoose.Schema({
     enum: ['cod', 'online'],
     required: true
   },
+  phonePeTransactionId: {
+    type: String
+  },
+  phonePeMerchantTransactionId: {
+    type: String
+  },
+  paymentTransactionId: {
+    type: String
+  },
   razorpayOrderId: {
     type: String
   },

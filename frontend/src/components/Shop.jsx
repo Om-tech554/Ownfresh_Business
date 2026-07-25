@@ -50,7 +50,7 @@ const Shop = () => {
   }, [searchParams]);
 
   const categoriesMap = products.reduce((acc, curr) => {
-    const cat = curr.category?.name || 'Eating Oil';
+    const cat = curr.category?.name || 'General';
     acc[cat] = (acc[cat] || 0) + 1;
     return acc;
   }, {});
@@ -60,7 +60,7 @@ const Shop = () => {
 
     // Category Filter
     if (activeCategory !== "All") {
-      result = result.filter(p => (p.category?.name || 'Eating Oil') === activeCategory);
+      result = result.filter(p => (p.category?.name || 'General') === activeCategory);
     }
 
     // Search Box Filter
