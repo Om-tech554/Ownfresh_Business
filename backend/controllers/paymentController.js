@@ -154,17 +154,18 @@ export const initiatePhonePePayment = async (req, res) => {
       });
     } else {
       console.error("PhonePe API Error Response:", response.data);
-      return res.status(500).json({
+      return res.status(400).json({
         success: false,
-        msg: "Failed to initiate payment with PhonePe",
+        msg: response.data?.message || response.data?.msg || "Failed to initiate payment with PhonePe",
         error: response.data
       });
     }
   } catch (error) {
     console.error("PhonePe Payment Initiation Error:", error.message, error.response?.data);
-    res.status(500).json({
+    const detailMsg = error.response?.data?.message || error.response?.data?.msg || error.message;
+    res.status(400).json({
       success: false,
-      msg: "Server error during payment initiation",
+      msg: `Payment initiation failed: ${detailMsg}`,
       error: error.message
     });
   }

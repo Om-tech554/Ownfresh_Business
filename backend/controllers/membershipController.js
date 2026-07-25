@@ -192,7 +192,7 @@ export const initiateMembershipPhonePePayment = async (req, res) => {
       });
     } else {
       console.error("PhonePe Membership API Error Response:", response.data);
-      return res.status(500).json({
+      return res.status(400).json({
         success: false,
         msg: response.data?.message || response.data?.msg || "Failed to initiate membership payment with PhonePe",
         error: response.data
@@ -202,7 +202,7 @@ export const initiateMembershipPhonePePayment = async (req, res) => {
   } catch (error) {
     console.error("Initiate membership PhonePe payment error:", error.message, error.response?.data);
     const detailMsg = error.response?.data?.message || error.response?.data?.msg || error.message;
-    res.status(500).json({
+    return res.status(400).json({
       success: false,
       msg: `PhonePe initiation failed: ${detailMsg}`,
       error: error.message,
