@@ -39,7 +39,8 @@ const getPhonePeBaseUrl = () => {
     }
     return host;
   }
-  if (process.env.PHONEPE_ENV === "production" && !isTestMerchant(PHONEPE_MERCHANT_ID)) {
+  const env = (process.env.PHONEPE_ENV || "").toLowerCase();
+  if (env === "production" && !isTestMerchant(PHONEPE_MERCHANT_ID)) {
     return "https://api.phonepe.com/apis/hermes";
   }
   return "https://api-preprod.phonepe.com/apis/pg-sandbox";
