@@ -74,16 +74,22 @@ export const initiatePhonePePayment = async (req, res) => {
     const merchantTransactionId = order._id.toString();
     const merchantUserId = order.user._id.toString();
 
-    // Callback webhook URL (Hit by PhonePe S2S)
-    const backendHost = req.protocol + "://" + req.get("host");
+    const host = req.get("host") || "";
+    const isLocal = host.includes("localhost") || host.includes("127.0.0.1");
+    const protocol = isLocal ? "http" : "https";
+
+    const backendHost = `${protocol}://${host}`;
     const callbackUrl = process.env.PHONEPE_CALLBACK_URL || `${backendHost}/api/payment/phonepe-callback`;
 
-    // Redirect URL (User's browser landing page after payment)
-    const frontendHost = process.env.FRONTEND_URL || backendHost;
+    let frontendHost = process.env.FRONTEND_URL || backendHost;
+    if (!isLocal && frontendHost.startsWith("http://")) {
+      frontendHost = frontendHost.replace("http://", "https://");
+    }
     const redirectUrl = `${frontendHost}/order-success?orderId=${order._id}`;
 
     const rawMobile = order.deliveryAddress?.phone || order.user?.mobile || "";
-    const cleanMobile = rawMobile.replace(/\D/g, "").slice(-10) || "9999999999";
+    const digitsOnly = rawMobile.replace(/\D/g, "");
+    const cleanMobile = (digitsOnly.length >= 10) ? digitsOnly.slice(-10) : "9999999999";
 
     const payload = {
       merchantId: PHONEPE_MERCHANT_ID,

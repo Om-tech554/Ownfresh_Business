@@ -119,14 +119,22 @@ export const initiateMembershipPhonePePayment = async (req, res) => {
     const merchantTransactionId = `PRIME_${Date.now()}_${Math.floor(1000 + Math.random() * 9000)}`;
     const merchantUserId = userId.toString().replace(/[^a-zA-Z0-9]/g, "");
 
-    const backendHost = req.protocol + "://" + req.get("host");
+    const host = req.get("host") || "";
+    const isLocal = host.includes("localhost") || host.includes("127.0.0.1");
+    const protocol = isLocal ? "http" : "https";
+
+    const backendHost = `${protocol}://${host}`;
     const callbackUrl = process.env.PHONEPE_CALLBACK_URL || `${backendHost}/api/membership/phonepe-callback`;
 
-    const frontendHost = process.env.FRONTEND_URL || backendHost;
+    let frontendHost = process.env.FRONTEND_URL || backendHost;
+    if (!isLocal && frontendHost.startsWith("http://")) {
+      frontendHost = frontendHost.replace("http://", "https://");
+    }
     const redirectUrl = `${frontendHost}/membership?payment=success&txnId=${merchantTransactionId}`;
 
     const rawMobile = user.mobile || "";
-    const cleanMobile = rawMobile.replace(/\D/g, "").slice(-10) || "9999999999";
+    const digitsOnly = rawMobile.replace(/\D/g, "");
+    const cleanMobile = (digitsOnly.length >= 10) ? digitsOnly.slice(-10) : "9999999999";
 
     const payload = {
       merchantId: PHONEPE_MERCHANT_ID,
