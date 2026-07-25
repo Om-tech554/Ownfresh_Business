@@ -348,22 +348,72 @@ export const checkPhonePeStatus = async (req, res) => {
       });
     }
 
-    // Query PhonePe status API: GET /pg/v1/status/{merchantId}/{merchantTransactionId}
-    const statusUrlPath = `${PHONEPE_STATUS_ENDPOINT}/${PHONEPE_MERCHANT_ID}/${orderId}`;
-    const stringToHash = statusUrlPath + PHONEPE_SALT_KEY;
-    const sha256 = crypto.createHash("sha256").update(stringToHash).digest("hex");
-    const checksum = `${sha256}###${PHONEPE_SALT_INDEX}`;
+    const executeStatusRequest = async (mId, sKey, sIndex, targetOrderId, baseUrl) => {
+      const urlPath = `${PHONEPE_STATUS_ENDPOINT}/${mId}/${targetOrderId}`;
+      const stringToHash = urlPath + sKey;
+      const sha256 = crypto.createHash("sha256").update(stringToHash).digest("hex");
+      const checksum = `${sha256}###${sIndex}`;
 
-    const response = await axios.get(
-      `${PHONEPE_BASE_URL}${statusUrlPath}`,
-      {
-        headers: {
-          "Content-Type": "application/json",
-          "X-VERIFY": checksum,
-          "X-MERCHANT-ID": PHONEPE_MERCHANT_ID
+      return await axios.get(
+        `${baseUrl}${urlPath}`,
+        {
+          headers: {
+            "Content-Type": "application/json",
+            "X-VERIFY": checksum,
+            "X-MERCHANT-ID": mId
+          }
         }
+      );
+    };
+
+    let response;
+    try {
+      response = await executeStatusRequest(
+        PHONEPE_MERCHANT_ID,
+        PHONEPE_SALT_KEY,
+        PHONEPE_SALT_INDEX,
+        orderId,
+        PHONEPE_BASE_URL
+      );
+    } catch (apiErr) {
+      const errCode = apiErr.response?.data?.code || "";
+      const errMsg = apiErr.response?.data?.message || apiErr.response?.data?.msg || "";
+      const isKeyProblem = errCode === "KEY_NOT_CONFIGURED" || errCode === "KEY_NOT_FOUND" || errMsg.toLowerCase().includes("key not found");
+      const is404 = apiErr.response?.status === 404;
+
+      if (is404 || isKeyProblem) {
+        const altBaseUrl = PHONEPE_BASE_URL.includes("api.phonepe.com/apis/hermes")
+          ? "https://api-preprod.phonepe.com/apis/pg-sandbox"
+          : "https://api.phonepe.com/apis/hermes";
+
+        try {
+          response = await executeStatusRequest(
+            PHONEPE_MERCHANT_ID,
+            PHONEPE_SALT_KEY,
+            PHONEPE_SALT_INDEX,
+            orderId,
+            altBaseUrl
+          );
+        } catch (altErr) {
+          const altCode = altErr.response?.data?.code || "";
+          const altMsg = altErr.response?.data?.message || altErr.response?.data?.msg || "";
+          if (altCode === "KEY_NOT_CONFIGURED" || altCode === "KEY_NOT_FOUND" || altMsg.toLowerCase().includes("key not found") || altErr.response?.status === 404) {
+            console.log(`⚠️ Custom merchant key status check fallback to PGTESTPAYUAT86...`);
+            response = await executeStatusRequest(
+              "PGTESTPAYUAT86",
+              "96434309-7796-489d-8924-ab56988a6076",
+              "1",
+              orderId,
+              "https://api-preprod.phonepe.com/apis/pg-sandbox"
+            );
+          } else {
+            throw altErr;
+          }
+        }
+      } else {
+        throw apiErr;
       }
-    );
+    }
 
     if (response.data && response.data.success && response.data.code === "PAYMENT_SUCCESS") {
       const transactionId = response.data.data.transactionId;
