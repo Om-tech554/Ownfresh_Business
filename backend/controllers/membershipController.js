@@ -146,16 +146,42 @@ export const initiateMembershipPhonePePayment = async (req, res) => {
     const sha256 = crypto.createHash("sha256").update(stringToHash).digest("hex");
     const checksum = `${sha256}###${PHONEPE_SALT_INDEX}`;
 
-    const response = await axios.post(
-      `${PHONEPE_BASE_URL}${PHONEPE_PAY_ENDPOINT}`,
-      { request: base64Payload },
-      {
-        headers: {
-          "Content-Type": "application/json",
-          "X-VERIFY": checksum
+    let response;
+    const initialTargetUrl = `${PHONEPE_BASE_URL}${PHONEPE_PAY_ENDPOINT}`;
+    try {
+      response = await axios.post(
+        initialTargetUrl,
+        { request: base64Payload },
+        {
+          headers: {
+            "Content-Type": "application/json",
+            "X-VERIFY": checksum
+          }
         }
+      );
+    } catch (apiErr) {
+      if (apiErr.response?.status === 404) {
+        const altUrl = initialTargetUrl.includes("/apis/hermes")
+          ? initialTargetUrl.replace("/apis/hermes", "/apis/pg")
+          : initialTargetUrl.includes("/apis/pg-sandbox")
+          ? initialTargetUrl.replace("/apis/pg-sandbox", "/apis/pg")
+          : initialTargetUrl.replace("/apis/pg", "/apis/hermes");
+
+        console.log(`⚠️ PhonePe 404 received on ${initialTargetUrl}. Retrying alternate URL: ${altUrl}`);
+        response = await axios.post(
+          altUrl,
+          { request: base64Payload },
+          {
+            headers: {
+              "Content-Type": "application/json",
+              "X-VERIFY": checksum
+            }
+          }
+        );
+      } else {
+        throw apiErr;
       }
-    );
+    }
 
     if (response.data && response.data.success) {
       const redirectUrlFromPhonePe = response.data.data.instrumentResponse.redirectInfo.url;
@@ -219,16 +245,41 @@ export const checkMembershipPhonePeStatus = async (req, res) => {
     const sha256 = crypto.createHash("sha256").update(stringToHash).digest("hex");
     const checksum = `${sha256}###${PHONEPE_SALT_INDEX}`;
 
-    const response = await axios.get(
-      `${PHONEPE_BASE_URL}${statusUrlPath}`,
-      {
-        headers: {
-          "Content-Type": "application/json",
-          "X-VERIFY": checksum,
-          "X-MERCHANT-ID": PHONEPE_MERCHANT_ID
+    let response;
+    const initialStatusUrl = `${PHONEPE_BASE_URL}${statusUrlPath}`;
+    try {
+      response = await axios.get(
+        initialStatusUrl,
+        {
+          headers: {
+            "Content-Type": "application/json",
+            "X-VERIFY": checksum,
+            "X-MERCHANT-ID": PHONEPE_MERCHANT_ID
+          }
         }
+      );
+    } catch (apiErr) {
+      if (apiErr.response?.status === 404) {
+        const altUrl = initialStatusUrl.includes("/apis/hermes")
+          ? initialStatusUrl.replace("/apis/hermes", "/apis/pg")
+          : initialStatusUrl.includes("/apis/pg-sandbox")
+          ? initialStatusUrl.replace("/apis/pg-sandbox", "/apis/pg")
+          : initialStatusUrl.replace("/apis/pg", "/apis/hermes");
+
+        response = await axios.get(
+          altUrl,
+          {
+            headers: {
+              "Content-Type": "application/json",
+              "X-VERIFY": checksum,
+              "X-MERCHANT-ID": PHONEPE_MERCHANT_ID
+            }
+          }
+        );
+      } else {
+        throw apiErr;
       }
-    );
+    }
 
     if (response.data && response.data.success && response.data.code === "PAYMENT_SUCCESS") {
       let plan = await MembershipPlan.findOne({ status: "Active" });
