@@ -1,5 +1,6 @@
 import crypto from "crypto";
 import axios from "axios";
+import mongoose from "mongoose";
 import User from "../models/usermodel.js";
 import MembershipPlan from "../models/membershipPlanModel.js";
 
@@ -19,11 +20,20 @@ const PHONEPE_SALT_INDEX = process.env.PHONEPE_SALT_INDEX || "1";
 const PHONEPE_ENV = process.env.PHONEPE_ENV
   || (!isPlaceholder(process.env.PHONEPE_MERCHANT_ID) ? "production" : "uat");
 
-const PHONEPE_BASE_URL = process.env.PHONEPE_HOST_URL
-  ? process.env.PHONEPE_HOST_URL
-  : (PHONEPE_ENV === "production"
-      ? "https://api.phonepe.com/apis/pg"
-      : "https://api-preprod.phonepe.com/apis/pg-sandbox");
+const getPhonePeBaseUrl = () => {
+  if (process.env.PHONEPE_HOST_URL) {
+    let host = process.env.PHONEPE_HOST_URL.trim().replace(/\/+$/, "");
+    if (host.endsWith("/pg")) {
+      host = host.slice(0, -3);
+    }
+    return host;
+  }
+  return PHONEPE_ENV === "production"
+    ? "https://api.phonepe.com/apis/hermes"
+    : "https://api-preprod.phonepe.com/apis/pg-sandbox";
+};
+
+const PHONEPE_BASE_URL = getPhonePeBaseUrl();
 
 const PHONEPE_PAY_ENDPOINT = "/pg/v1/pay";
 const PHONEPE_STATUS_ENDPOINT = "/pg/v1/status";
@@ -70,15 +80,28 @@ export const initiateMembershipPhonePePayment = async (req, res) => {
     const userId = req.user._id;
 
     let plan = null;
-    if (planId) {
+    if (planId && mongoose.Types.ObjectId.isValid(planId)) {
       plan = await MembershipPlan.findById(planId);
     }
     if (!plan) {
       plan = await MembershipPlan.findOne({ status: "Active" });
     }
-
     if (!plan) {
-      return res.status(404).json({ success: false, msg: "Membership plan not found" });
+      // Auto-create default Prime Plan if none exists in DB yet
+      plan = await MembershipPlan.create({
+        name: "OwnFresh Prime Membership",
+        price: 299,
+        durationDays: 365,
+        commissionRatePercentage: 1,
+        description: "Join OwnFresh Prime to earn 1% Commission Coins on every transaction.",
+        features: [
+          "Earn 1% Commission Credit Coins on all orders",
+          "Redeem coins directly at checkout (150 threshold)",
+          "Coins reset after 45 days of earning",
+          "Exclusive Prime member offers & priority support"
+        ],
+        status: "Active"
+      });
     }
 
     const user = await User.findById(userId);
@@ -137,14 +160,20 @@ export const initiateMembershipPhonePePayment = async (req, res) => {
       console.error("PhonePe Membership API Error Response:", response.data);
       return res.status(500).json({
         success: false,
-        msg: "Failed to initiate membership payment with PhonePe",
+        msg: response.data?.message || response.data?.msg || "Failed to initiate membership payment with PhonePe",
         error: response.data
       });
     }
 
   } catch (error) {
     console.error("Initiate membership PhonePe payment error:", error.message, error.response?.data);
-    res.status(500).json({ success: false, msg: "Failed to initiate membership payment", error: error.message });
+    const detailMsg = error.response?.data?.message || error.response?.data?.msg || error.message;
+    res.status(500).json({
+      success: false,
+      msg: `PhonePe initiation failed: ${detailMsg}`,
+      error: error.message,
+      details: error.response?.data
+    });
   }
 };
 

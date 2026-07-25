@@ -28,11 +28,20 @@ const PHONEPE_SALT_INDEX = process.env.PHONEPE_SALT_INDEX || "1";
 const PHONEPE_ENV = process.env.PHONEPE_ENV
   || (!isPlaceholder(process.env.PHONEPE_MERCHANT_ID) ? "production" : "uat");
 
-const PHONEPE_BASE_URL = process.env.PHONEPE_HOST_URL
-  ? process.env.PHONEPE_HOST_URL
-  : (PHONEPE_ENV === "production"
-      ? "https://api.phonepe.com/apis/pg"
-      : "https://api-preprod.phonepe.com/apis/pg-sandbox");
+const getPhonePeBaseUrl = () => {
+  if (process.env.PHONEPE_HOST_URL) {
+    let host = process.env.PHONEPE_HOST_URL.trim().replace(/\/+$/, "");
+    if (host.endsWith("/pg")) {
+      host = host.slice(0, -3);
+    }
+    return host;
+  }
+  return PHONEPE_ENV === "production"
+    ? "https://api.phonepe.com/apis/hermes"
+    : "https://api-preprod.phonepe.com/apis/pg-sandbox";
+};
+
+const PHONEPE_BASE_URL = getPhonePeBaseUrl();
 
 const PHONEPE_PAY_ENDPOINT = "/pg/v1/pay";
 const PHONEPE_STATUS_ENDPOINT = "/pg/v1/status";
