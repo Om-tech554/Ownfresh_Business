@@ -2,7 +2,7 @@
   "name": "ownfresh",
   "version": "1.0.0",
   "scripts": {
-    "build": "cd backend && npm install && cd ../frontend && npm install && npm run build",
+    "build": "cd backend && npm install --include=dev && cd ../frontend && npm install --include=dev && npm run build",
     "start": "node backend/index.js"
   }
 }
