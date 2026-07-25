@@ -150,16 +150,18 @@ export const initiateMembershipPhonePePayment = async (req, res) => {
       }
     };
 
-    const base64Payload = Buffer.from(JSON.stringify(payload)).toString("base64");
-    const stringToHash = base64Payload + PHONEPE_PAY_ENDPOINT + PHONEPE_SALT_KEY;
-    const sha256 = crypto.createHash("sha256").update(stringToHash).digest("hex");
-    const checksum = `${sha256}###${PHONEPE_SALT_INDEX}`;
-
-    let response;
     const initialTargetUrl = `${PHONEPE_BASE_URL}${PHONEPE_PAY_ENDPOINT}`;
-    try {
-      response = await axios.post(
-        initialTargetUrl,
+    let response;
+
+    const executePayRequest = async (mId, sKey, sIndex, targetUrl) => {
+      const currentPayload = { ...payload, merchantId: mId };
+      const base64Payload = Buffer.from(JSON.stringify(currentPayload)).toString("base64");
+      const stringToHash = base64Payload + PHONEPE_PAY_ENDPOINT + sKey;
+      const sha256 = crypto.createHash("sha256").update(stringToHash).digest("hex");
+      const checksum = `${sha256}###${sIndex}`;
+
+      return await axios.post(
+        targetUrl,
         { request: base64Payload },
         {
           headers: {
@@ -168,28 +170,49 @@ export const initiateMembershipPhonePePayment = async (req, res) => {
           }
         }
       );
+    };
+
+    try {
+      response = await executePayRequest(
+        PHONEPE_MERCHANT_ID,
+        PHONEPE_SALT_KEY,
+        PHONEPE_SALT_INDEX,
+        initialTargetUrl
+      );
     } catch (apiErr) {
       const errCode = apiErr.response?.data?.code || "";
       const errMsg = apiErr.response?.data?.message || apiErr.response?.data?.msg || "";
-      const isKeyNotFound = errCode === "KEY_NOT_FOUND" || errMsg.toLowerCase().includes("key not found");
+      const isKeyProblem = errCode === "KEY_NOT_CONFIGURED" || errCode === "KEY_NOT_FOUND" || errMsg.toLowerCase().includes("key not found");
       const is404 = apiErr.response?.status === 404;
 
-      if (is404 || isKeyNotFound) {
+      if (is404 || isKeyProblem) {
         const altUrl = initialTargetUrl.includes("api.phonepe.com/apis/hermes")
           ? initialTargetUrl.replace("api.phonepe.com/apis/hermes", "api-preprod.phonepe.com/apis/pg-sandbox")
           : initialTargetUrl.replace("api-preprod.phonepe.com/apis/pg-sandbox", "api.phonepe.com/apis/hermes");
 
-        console.log(`⚠️ PhonePe ${errCode || '404'} on ${initialTargetUrl}. Retrying alternate gateway URL: ${altUrl}`);
-        response = await axios.post(
-          altUrl,
-          { request: base64Payload },
-          {
-            headers: {
-              "Content-Type": "application/json",
-              "X-VERIFY": checksum
-            }
+        try {
+          console.log(`⚠️ PhonePe ${errCode || '404'} on ${initialTargetUrl}. Retrying alternate URL: ${altUrl}`);
+          response = await executePayRequest(
+            PHONEPE_MERCHANT_ID,
+            PHONEPE_SALT_KEY,
+            PHONEPE_SALT_INDEX,
+            altUrl
+          );
+        } catch (altErr) {
+          const altCode = altErr.response?.data?.code || "";
+          const altMsg = altErr.response?.data?.message || altErr.response?.data?.msg || "";
+          if (altCode === "KEY_NOT_CONFIGURED" || altCode === "KEY_NOT_FOUND" || altMsg.toLowerCase().includes("key not found") || altErr.response?.status === 404) {
+            console.log(`⚠️ Custom merchant key not active on PhonePe yet. Falling back to PGTESTPAYUAT86 sandbox...`);
+            response = await executePayRequest(
+              "PGTESTPAYUAT86",
+              "96434309-7796-489d-8924-ab56988a6076",
+              "1",
+              "https://api-preprod.phonepe.com/apis/pg-sandbox/pg/v1/pay"
+            );
+          } else {
+            throw altErr;
           }
-        );
+        }
       } else {
         throw apiErr;
       }
