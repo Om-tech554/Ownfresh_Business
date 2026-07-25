@@ -3,6 +3,7 @@ import axios from "axios";
 import mongoose from "mongoose";
 import User from "../models/usermodel.js";
 import MembershipPlan from "../models/membershipPlanModel.js";
+import CommissionLog from "../models/commissionLogModel.js";
 
 // --- PHONEPE CONFIGURATION FOR MEMBERSHIP ---
 const isPlaceholder = (val) => !val || val.includes("your_") || val.includes("placeholder") || val.includes("your-");
