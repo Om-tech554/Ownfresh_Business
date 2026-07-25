@@ -91,7 +91,7 @@ export const initiatePhonePePayment = async (req, res) => {
       merchantUserId,
       amount: amountInPaise,
       redirectUrl,
-      redirectMode: "GET",
+      redirectMode: "REDIRECT",
       callbackUrl,
       mobileNumber: cleanMobile,
       paymentInstrument: {
