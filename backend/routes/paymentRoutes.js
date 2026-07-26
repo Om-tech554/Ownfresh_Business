@@ -21,7 +21,7 @@ const paymentLimiter = rateLimit({
 // --- PhonePe Routes ---
 router.post("/phonepe-initiate", isAuth, paymentLimiter, initiatePhonePePayment);
 router.post("/phonepe-callback", phonepeCallback); // S2S webhook, must be open (no isAuth)
-router.get("/phonepe-status/:orderId", isAuth, checkPhonePeStatus); // Status check fallback
+router.get("/phonepe-status/:orderId", checkPhonePeStatus); // Status check fallback (open for mobile redirects)
 
 // --- Razorpay Routes (Commented Out as requested) ---
 /*
