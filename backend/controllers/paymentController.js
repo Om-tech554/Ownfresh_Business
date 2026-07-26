@@ -172,7 +172,13 @@ export const initiatePhonePePayment = async (req, res) => {
       const isKeyProblem = errCode === "KEY_NOT_CONFIGURED" || errCode === "KEY_NOT_FOUND" || errMsg.toLowerCase().includes("key not found");
       const is404 = apiErr.response?.status === 404;
 
+      const isStrictProd = (process.env.PHONEPE_ENV || "").toLowerCase() === "production";
       if (is404 || isKeyProblem) {
+        if (isStrictProd) {
+          // In strict production mode, do not auto-fallback to test sandbox.
+          throw apiErr;
+        }
+
         const altUrl = initialTargetUrl.includes("api.phonepe.com/apis/hermes")
           ? initialTargetUrl.replace("api.phonepe.com/apis/hermes", "api-preprod.phonepe.com/apis/pg-sandbox")
           : initialTargetUrl.replace("api-preprod.phonepe.com/apis/pg-sandbox", "api.phonepe.com/apis/hermes");
@@ -405,7 +411,11 @@ export const checkPhonePeStatus = async (req, res) => {
       const isKeyProblem = errCode === "KEY_NOT_CONFIGURED" || errCode === "KEY_NOT_FOUND" || errMsg.toLowerCase().includes("key not found");
       const is404 = apiErr.response?.status === 404;
 
+      const isStrictProd = (process.env.PHONEPE_ENV || "").toLowerCase() === "production";
       if (is404 || isKeyProblem) {
+        if (isStrictProd) {
+          throw apiErr;
+        }
         const altBaseUrl = PHONEPE_BASE_URL.includes("api.phonepe.com/apis/hermes")
           ? "https://api-preprod.phonepe.com/apis/pg-sandbox"
           : "https://api.phonepe.com/apis/hermes";
