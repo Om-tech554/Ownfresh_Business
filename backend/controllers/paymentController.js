@@ -287,10 +287,16 @@ export const initiatePhonePePayment = async (req, res) => {
   } catch (error) {
     console.error("PhonePe Payment Initiation Error:", error.message, error.response?.data);
     const detailMsg = error.response?.data?.message || error.response?.data?.msg || error.message;
+    const isPendingKey = detailMsg.toLowerCase().includes("key_not_configured") || detailMsg.toLowerCase().includes("key not found") || error.response?.status === 400;
+    
+    const userMsg = isPendingKey 
+      ? `PhonePe Account Status is Pending Activation. PhonePe will enable live payments once account review completes. (Details: ${detailMsg})`
+      : `Payment initiation failed: ${detailMsg}`;
+
     res.status(400).json({
       success: false,
-      msg: `Payment initiation failed: ${detailMsg}`,
-      error: error.message
+      msg: userMsg,
+      error: error.response?.data || error.message
     });
   }
 };
