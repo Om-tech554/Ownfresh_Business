@@ -45,22 +45,42 @@ const isTestMerchant = (merchantId) => {
   return m.includes("PGTEST") || m.includes("TEST") || m.includes("UAT");
 };
 
-const getPhonePeBaseUrl = () => {
-  if (process.env.PHONEPE_HOST_URL) {
-    let host = process.env.PHONEPE_HOST_URL.trim().replace(/\/+$/, "");
-    if (host.endsWith("/pg")) {
-      host = host.slice(0, -3);
-    }
-    return host;
-  }
-  const env = (process.env.PHONEPE_ENV || "").toLowerCase();
-  if (env === "production" && !isTestMerchant(PHONEPE_MERCHANT_ID)) {
-    return "https://api.phonepe.com/apis/hermes";
-  }
-  return "https://api-preprod.phonepe.com/apis/pg-sandbox";
-};
+// PhonePe V2 OAuth & V1 Dual Client Helpers
+const PHONEPE_CLIENT_ID = process.env.PHONEPE_CLIENT_ID || process.env.PHONEPE_MERCHANT_ID || "SU2607231511279645375609";
+const PHONEPE_CLIENT_SECRET = process.env.PHONEPE_CLIENT_SECRET || process.env.PHONEPE_SALT_KEY || "f6728113-19a1-4cbc-8054-8bb8ab6d5377";
 
-const PHONEPE_BASE_URL = getPhonePeBaseUrl();
+let cachedOAuthToken = null;
+let oAuthTokenExpiry = 0;
+
+const getPhonePeV2AuthToken = async (clientId, clientSecret, isProd) => {
+  const now = Date.now();
+  if (cachedOAuthToken && oAuthTokenExpiry > now + 60000) {
+    return cachedOAuthToken;
+  }
+
+  const authHost = isProd
+    ? "https://api.phonepe.com/apis/identity-manager/v1/oauth/token"
+    : "https://api-preprod.phonepe.com/apis/identity-manager/v1/oauth/token";
+
+  const params = new URLSearchParams();
+  params.append("client_id", clientId);
+  params.append("client_secret", clientSecret);
+  params.append("client_version", "1");
+  params.append("grant_type", "client_credentials");
+
+  const response = await axios.post(authHost, params, {
+    headers: { "Content-Type": "application/x-www-form-urlencoded" }
+  });
+
+  if (response.data && (response.data.access_token || response.data.token)) {
+    const token = response.data.access_token || response.data.token;
+    const expiresIn = response.data.expires_in || 3600;
+    cachedOAuthToken = token;
+    oAuthTokenExpiry = now + (expiresIn * 1000);
+    return token;
+  }
+  throw new Error(response.data?.message || response.data?.msg || "Failed to obtain PhonePe OAuth Token");
+};
 
 const PHONEPE_PAY_ENDPOINT = "/pg/v1/pay";
 const PHONEPE_STATUS_ENDPOINT = "/pg/v1/status";
@@ -173,37 +193,75 @@ export const initiatePhonePePayment = async (req, res) => {
       const is404 = apiErr.response?.status === 404;
 
       const isStrictProd = (process.env.PHONEPE_ENV || "").toLowerCase() === "production";
-      if (is404 || isKeyProblem) {
-        if (isStrictProd) {
-          // In strict production mode, do not auto-fallback to test sandbox.
-          throw apiErr;
-        }
-
-        const altUrl = initialTargetUrl.includes("api.phonepe.com/apis/hermes")
-          ? initialTargetUrl.replace("api.phonepe.com/apis/hermes", "api-preprod.phonepe.com/apis/pg-sandbox")
-          : initialTargetUrl.replace("api-preprod.phonepe.com/apis/pg-sandbox", "api.phonepe.com/apis/hermes");
-
+      if (is404 || isKeyProblem || apiErr.response?.status === 400) {
+        // Try PhonePe V2 OAuth + Standard Checkout API using Client ID & Client Secret
         try {
-          console.log(`⚠️ PhonePe ${errCode || '404'} on ${initialTargetUrl}. Retrying alternate URL: ${altUrl}`);
-          response = await executePayRequest(
-            PHONEPE_MERCHANT_ID,
-            PHONEPE_SALT_KEY,
-            PHONEPE_SALT_INDEX,
-            altUrl
-          );
-        } catch (altErr) {
-          const altCode = altErr.response?.data?.code || "";
-          const altMsg = altErr.response?.data?.message || altErr.response?.data?.msg || "";
-          if (altCode === "KEY_NOT_CONFIGURED" || altCode === "KEY_NOT_FOUND" || altMsg.toLowerCase().includes("key not found") || altErr.response?.status === 404) {
-            console.log(`⚠️ Custom merchant key not active on PhonePe yet. Falling back to PGTESTPAYUAT86 sandbox...`);
+          console.log(`⚠️ Trying PhonePe V2 OAuth Standard Checkout API...`);
+          const token = await getPhonePeV2AuthToken(PHONEPE_CLIENT_ID, PHONEPE_CLIENT_SECRET, isStrictProd);
+          const v2PayUrl = isStrictProd
+            ? "https://api.phonepe.com/apis/pg/v1/pay"
+            : "https://api-preprod.phonepe.com/apis/pg-sandbox/v1/pay";
+
+          const v2Payload = {
+            merchantOrderId,
+            amount: amountInPaise,
+            expireAfter: 1800,
+            paymentFlow: {
+              type: "PG_CHECKOUT",
+              redirectUrl
+            }
+          };
+
+          const v2Res = await axios.post(v2PayUrl, v2Payload, {
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": `Bearer ${token}`
+            }
+          });
+
+          const v2RedirectUrl = v2Res.data?.redirectUrl || v2Res.data?.data?.redirectUrl || v2Res.data?.data?.instrumentResponse?.redirectInfo?.url;
+          if (v2Res.data && (v2Res.data.success || v2RedirectUrl)) {
+            response = {
+              data: {
+                success: true,
+                data: {
+                  instrumentResponse: {
+                    redirectInfo: {
+                      url: v2RedirectUrl
+                    }
+                  }
+                }
+              }
+            };
+          } else {
+            throw new Error(v2Res.data?.message || "V2 initiation failed");
+          }
+        } catch (v2Err) {
+          console.error("V2 OAuth Pay Error:", v2Err.message, v2Err.response?.data);
+          if (isStrictProd) {
+            throw apiErr;
+          }
+
+          const altUrl = initialTargetUrl.includes("api.phonepe.com/apis/hermes")
+            ? initialTargetUrl.replace("api.phonepe.com/apis/hermes", "api-preprod.phonepe.com/apis/pg-sandbox")
+            : initialTargetUrl.replace("api-preprod.phonepe.com/apis/pg-sandbox", "api.phonepe.com/apis/hermes");
+
+          try {
+            console.log(`⚠️ Retrying alternate URL: ${altUrl}`);
+            response = await executePayRequest(
+              PHONEPE_MERCHANT_ID,
+              PHONEPE_SALT_KEY,
+              PHONEPE_SALT_INDEX,
+              altUrl
+            );
+          } catch (altErr) {
+            console.log(`⚠️ Falling back to PGTESTPAYUAT86 sandbox...`);
             response = await executePayRequest(
               "PGTESTPAYUAT86",
               "96434309-7796-489d-8924-ab56988a6076",
               "1",
               "https://api-preprod.phonepe.com/apis/pg-sandbox/pg/v1/pay"
             );
-          } else {
-            throw altErr;
           }
         }
       } else {
