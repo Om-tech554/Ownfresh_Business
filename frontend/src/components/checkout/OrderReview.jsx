@@ -197,9 +197,6 @@ const OrderReview = () => {
         cgst,
         sgst,
         taxAmount: totalTax,
-        razorpayOrderId,
-        razorpayPaymentId,
-        razorpaySignature,
         useWallet: useWallet
       }, { 
         headers,

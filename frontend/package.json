@@ -23,6 +23,7 @@
     "jodit-react": "^5.3.21",
     "leaflet": "^1.9.4",
     "lucide-react": "^0.562.0",
+    "ownfresh": "file:..",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "react-helmet-async": "^3.0.0",

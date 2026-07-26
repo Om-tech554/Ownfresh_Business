@@ -19,9 +19,23 @@ const PHONEPE_MERCHANT_ID = !isPlaceholder(process.env.PHONEPE_MERCHANT_ID)
   ? process.env.PHONEPE_MERCHANT_ID
   : "PGTESTPAYUAT86";
 
-const PHONEPE_SALT_KEY = !isPlaceholder(process.env.PHONEPE_SALT_KEY)
+const rawSaltKey = !isPlaceholder(process.env.PHONEPE_SALT_KEY)
   ? process.env.PHONEPE_SALT_KEY
   : "96434309-7796-489d-8924-ab56988a6076";
+
+const decodeIfBase64 = (str) => {
+  if (!str) return str;
+  const trimmed = str.trim();
+  if (trimmed.length > 40 && !trimmed.includes("-")) {
+    try {
+      const decoded = Buffer.from(trimmed, "base64").toString("utf-8");
+      if (decoded.includes("-")) return decoded;
+    } catch (e) {}
+  }
+  return trimmed;
+};
+
+const PHONEPE_SALT_KEY = decodeIfBase64(rawSaltKey);
 
 const PHONEPE_SALT_INDEX = process.env.PHONEPE_SALT_INDEX || "1";
 
@@ -81,8 +95,18 @@ export const initiatePhonePePayment = async (req, res) => {
     const backendHost = `${protocol}://${host}`;
     const callbackUrl = process.env.PHONEPE_CALLBACK_URL || `${backendHost}/api/payment/phonepe-callback`;
 
-    let frontendHost = process.env.FRONTEND_URL || backendHost;
-    if (!isLocal && frontendHost.startsWith("http://")) {
+    const origin = req.get("origin") || req.get("referer") || "";
+    const isClientLocal = isLocal || origin.includes("localhost") || origin.includes("127.0.0.1");
+
+    let frontendHost;
+    if (isClientLocal && (origin.includes("localhost") || origin.includes("127.0.0.1"))) {
+      const match = origin.match(/(https?:\/\/[^\/]+)/);
+      frontendHost = match ? match[1] : "http://localhost:5173";
+    } else {
+      frontendHost = process.env.FRONTEND_URL || backendHost;
+    }
+
+    if (!isClientLocal && frontendHost.startsWith("http://")) {
       frontendHost = frontendHost.replace("http://", "https://");
     }
     const redirectUrl = `${frontendHost}/order-success?orderId=${order._id}`;
