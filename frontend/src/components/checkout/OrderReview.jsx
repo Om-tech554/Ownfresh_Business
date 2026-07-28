@@ -139,8 +139,10 @@ const OrderReview = () => {
       if (data.success && data.redirectUrl) {
         toast.success("Redirecting to secure PhonePe payment gateway...");
         dispatch(clearCart());
-        // Redirect to PhonePe payment page
-        window.location.href = data.redirectUrl;
+        // Redirect to PhonePe payment page (compatible with mobile Safari & Chrome)
+        setTimeout(() => {
+          window.location.replace(data.redirectUrl);
+        }, 100);
       } else {
         toast.error(data.msg || "Failed to initiate payment. Please try again.");
         setIsProcessing(false);
