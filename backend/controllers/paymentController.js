@@ -249,103 +249,128 @@ export const initiatePhonePePayment = async (req, res) => {
 };
 
 /**
- * PHONEPE WEBHOOK CALLBACK (S2S FOR ORDERS)
- * Called by PhonePe servers to notify us of payment status changes.
+ * PHONEPE WEBHOOK CALLBACK (S2S FOR ORDERS) - V2 Format
+ * PhonePe V2 sends JSON: { event, payload: { merchantOrderId, state, ... } }
+ * Event types: checkout.order.completed | checkout.order.failed
  */
 export const phonepeCallback = async (req, res) => {
   try {
-    const { response } = req.body;
+    const body = req.body;
 
-    if (!response) {
-      return res.status(400).json({ success: false, msg: "Missing response payload" });
+    if (!body) {
+      return res.status(400).json({ success: false, msg: "Missing webhook payload" });
     }
 
-    // Verify Checksum: SHA256(Response_Base64 + Salt_Key) + "###" + Salt_Index
-    const receivedChecksum = req.headers["x-verify"];
-    const stringToHash = response + PHONEPE_SALT_KEY;
-    const sha256 = crypto.createHash("sha256").update(stringToHash).digest("hex");
-    const expectedChecksum = `${sha256}###${PHONEPE_SALT_INDEX}`;
+    console.log("PhonePe V2 Webhook received:", JSON.stringify(body));
 
-    if (receivedChecksum && receivedChecksum !== expectedChecksum) {
-      console.error("⚠️ PhonePe Callback Signature Verification Failed");
-      return res.status(400).json({ success: false, msg: "Invalid signature" });
-    }
+    // --- PhonePe V2 JSON Webhook Format ---
+    if (body.event && body.payload) {
+      const { event, payload } = body;
+      const merchantOrderId = payload?.merchantOrderId || payload?.orderId;
+      const state = payload?.state;
 
-    // Decode Base64 Payload
-    const decodedPayloadString = Buffer.from(response, "base64").toString("utf-8");
-    const callbackData = JSON.parse(decodedPayloadString);
+      if (!merchantOrderId) {
+        return res.status(400).json({ success: false, msg: "Missing merchantOrderId in webhook" });
+      }
 
-    console.log("PhonePe S2S Callback Data received:", callbackData);
+      const order = await Order.findById(merchantOrderId).populate("user", "fullName email mobile");
+      if (!order) {
+        console.error(`Order not found for merchantOrderId: ${merchantOrderId}`);
+        return res.status(404).json({ success: false, msg: "Order not found" });
+      }
 
-    const { success, code, data } = callbackData;
-    const { merchantTransactionId, transactionId } = data || {};
+      if (order.paymentStatus === "completed") {
+        return res.status(200).json({ success: true, msg: "Order already completed" });
+      }
 
-    if (!merchantTransactionId) {
-      return res.status(400).json({ success: false, msg: "Missing transaction ID" });
-    }
+      if (event === "checkout.order.completed" && state === "COMPLETED") {
+        order.paymentStatus = "completed";
+        order.phonePeTransactionId = payload?.transactionId || payload?.paymentDetails?.[0]?.transactionId;
+        order.phonePeMerchantTransactionId = merchantOrderId;
+        await order.save();
 
-    // Find the corresponding order
-    const order = await Order.findById(merchantTransactionId).populate("user", "fullName email mobile");
-    if (!order) {
-      console.error(`Order not found for transaction ID: ${merchantTransactionId}`);
-      return res.status(404).json({ success: false, msg: "Order not found" });
-    }
-
-    if (order.paymentStatus === "completed") {
-      return res.status(200).json({ success: true, msg: "Order already completed" });
-    }
-
-    if (success && code === "PAYMENT_SUCCESS") {
-      order.paymentStatus = "completed";
-      order.phonePeTransactionId = transactionId;
-      order.phonePeMerchantTransactionId = merchantTransactionId;
-      await order.save();
-
-      // Deduct wallet balance if applicable
-      if (order.walletDeductedAmount > 0) {
-        let wallet = await Wallet.findOne({ userId: order.user._id });
-        if (wallet && wallet.balance >= order.walletDeductedAmount) {
-          wallet.balance -= order.walletDeductedAmount;
-          wallet.totalRedeemed += order.walletDeductedAmount;
-          await wallet.save();
-
-          await Transaction.create({
-            userId: order.user._id,
-            type: "REDEEM",
-            amount: order.walletDeductedAmount,
-            description: `Paid for order #${order._id} using wallet balance`,
-            status: "SUCCESS"
-          });
+        // Deduct wallet balance if applicable
+        if (order.walletDeductedAmount > 0) {
+          let wallet = await Wallet.findOne({ userId: order.user._id });
+          if (wallet && wallet.balance >= order.walletDeductedAmount) {
+            wallet.balance -= order.walletDeductedAmount;
+            wallet.totalRedeemed += order.walletDeductedAmount;
+            await wallet.save();
+            await Transaction.create({
+              userId: order.user._id,
+              type: "REDEEM",
+              amount: order.walletDeductedAmount,
+              description: `Paid for order #${order._id} using wallet balance`,
+              status: "SUCCESS"
+            });
+          }
         }
-      }
 
-      // Increment Coupon usedCount if applicable
-      if (order.couponCode) {
-        const coupon = await Coupon.findOne({ code: order.couponCode.toUpperCase() });
-        if (coupon) {
-          coupon.usedCount += 1;
-          await coupon.save();
+        // Increment Coupon usedCount if applicable
+        if (order.couponCode) {
+          const coupon = await Coupon.findOne({ code: order.couponCode.toUpperCase() });
+          if (coupon) { coupon.usedCount += 1; await coupon.save(); }
         }
+
+        // Award Commission Coins
+        try { await awardOrderCommissionCoins(order.user._id, order._id, order.totalAmount); }
+        catch (err) { console.error("Error awarding commission coins:", err.message); }
+
+        // Send notifications
+        try { await sendOrderConfirmationMail(order); } catch (err) { console.error("Email error:", err.message); }
+        try { await sendOrderConfirmationSms(order); } catch (err) { console.error("SMS error:", err.message); }
+        try { await sendOrderConfirmationWhatsApp(order); } catch (err) { console.error("WhatsApp error:", err.message); }
+
+        return res.status(200).json({ success: true, msg: "Payment completed successfully" });
+      } else {
+        order.paymentStatus = "failed";
+        await order.save();
+        return res.status(200).json({ success: true, msg: `Payment ${state || "failed"}` });
       }
-
-      // Award 1% Commission Coins if user is Prime Member
-      try {
-        await awardOrderCommissionCoins(order.user._id, order._id, order.totalAmount);
-      } catch (err) {
-        console.error("Error awarding commission coins:", err.message);
-      }
-
-      // Send Confirmation Email, SMS & WhatsApp
-      try { await sendOrderConfirmationMail(order); } catch (err) { console.error("Email error:", err.message); }
-      try { await sendOrderConfirmationSms(order); } catch (err) { console.error("SMS error:", err.message); }
-      try { await sendOrderConfirmationWhatsApp(order); } catch (err) { console.error("WhatsApp error:", err.message); }
-
-      return res.status(200).json({ success: true, msg: "Payment status updated successfully" });
-    } else {
-      order.paymentStatus = "failed";
-      await order.save();
-      return res.status(200).json({ success: true, msg: "Payment marked as failed" });
     }
+
+    // --- PhonePe V1 Legacy Webhook Format (base64 response field) ---
+    const { response } = body;
+    if (response) {
+      const receivedChecksum = req.headers["x-verify"];
+      const stringToHash = response + PHONEPE_SALT_KEY;
+      const sha256 = crypto.createHash("sha256").update(stringToHash).digest("hex");
+      const expectedChecksum = `${sha256}###${PHONEPE_SALT_INDEX}`;
+
+      if (receivedChecksum && receivedChecksum !== expectedChecksum) {
+        console.error("⚠️ PhonePe V1 Callback Signature Verification Failed");
+        return res.status(400).json({ success: false, msg: "Invalid signature" });
+      }
+
+      const callbackData = JSON.parse(Buffer.from(response, "base64").toString("utf-8"));
+      console.log("PhonePe V1 Callback Data:", callbackData);
+      const { success: v1Success, code, data } = callbackData;
+      const { merchantTransactionId, transactionId } = data || {};
+
+      if (!merchantTransactionId) {
+        return res.status(400).json({ success: false, msg: "Missing transaction ID" });
+      }
+
+      const order = await Order.findById(merchantTransactionId).populate("user", "fullName email mobile");
+      if (!order) return res.status(404).json({ success: false, msg: "Order not found" });
+      if (order.paymentStatus === "completed") return res.status(200).json({ success: true, msg: "Already completed" });
+
+      if (v1Success && code === "PAYMENT_SUCCESS") {
+        order.paymentStatus = "completed";
+        order.phonePeTransactionId = transactionId;
+        await order.save();
+        try { await sendOrderConfirmationMail(order); } catch (e) {}
+        try { await sendOrderConfirmationSms(order); } catch (e) {}
+        try { await sendOrderConfirmationWhatsApp(order); } catch (e) {}
+        return res.status(200).json({ success: true, msg: "Payment completed" });
+      } else {
+        order.paymentStatus = "failed";
+        await order.save();
+        return res.status(200).json({ success: true, msg: "Payment failed" });
+      }
+    }
+
+    return res.status(400).json({ success: false, msg: "Unrecognized webhook format" });
   } catch (error) {
     console.error("PhonePe Webhook Callback Error:", error);
     res.status(500).json({ success: false, msg: "Webhook processing error", error: error.message });
@@ -402,15 +427,17 @@ export const checkPhonePeStatus = async (req, res) => {
       const v2Res = await axios.get(v2StatusUrl, {
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`
+          "Authorization": `O-Bearer ${token}`
         }
       });
 
       rawStatusData = v2Res.data;
       console.log("PhonePe V2 Status Response:", rawStatusData);
 
-      const state = rawStatusData?.payload?.state || rawStatusData?.state || rawStatusData?.code;
-      if (state === "COMPLETED" || state === "PAYMENT_SUCCESS" || state === "SUCCESS") {
+      // V2 status response: { orderId, state, expireAt, ... }
+      // Use payload.state if present, fallback to root state
+      const state = rawStatusData?.payload?.state || rawStatusData?.state;
+      if (state === "COMPLETED") {
         isPaymentSuccess = true;
       }
     } catch (v2StatusErr) {
