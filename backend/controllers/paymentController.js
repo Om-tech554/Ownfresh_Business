@@ -135,28 +135,6 @@ export const initiatePhonePePayment = async (req, res) => {
     const digitsOnly = rawMobile.replace(/\D/g, "");
     const cleanMobile = (digitsOnly.length >= 10) ? digitsOnly.slice(-10) : "9999999999";
 
-    const payload = {
-      merchantId: PHONEPE_MERCHANT_ID,
-      merchantTransactionId,
-      merchantUserId,
-      amount: amountInPaise,
-      redirectUrl,
-      redirectMode: "REDIRECT",
-      callbackUrl,
-      mobileNumber: cleanMobile,
-      paymentInstrument: {
-        type: "PAY_PAGE"
-      }
-    };
-
-    // Base64 encode payload
-    const base64Payload = Buffer.from(JSON.stringify(payload)).toString("base64");
-
-    // X-VERIFY Checksum: SHA256(Base64_Payload + API_Endpoint + Salt_Key) + "###" + Salt_Index
-    const stringToHash = base64Payload + PHONEPE_PAY_ENDPOINT + PHONEPE_SALT_KEY;
-    const sha256 = crypto.createHash("sha256").update(stringToHash).digest("hex");
-    const checksum = `${sha256}###${PHONEPE_SALT_INDEX}`;
-
     // PhonePe V2 Standard Checkout API (Official V2 Flow as per PhonePe Support)
     const isProd = (process.env.PHONEPE_ENV || "").toLowerCase() === "production";
     const v2PayUrl = isProd
@@ -164,7 +142,7 @@ export const initiatePhonePePayment = async (req, res) => {
       : "https://api-preprod.phonepe.com/apis/pg-sandbox/checkout/v2/pay";
 
     const v2Payload = {
-      merchantOrderId,
+      merchantOrderId: merchantTransactionId,
       amount: amountInPaise,
       expireAfter: 1800,
       paymentFlow: {
