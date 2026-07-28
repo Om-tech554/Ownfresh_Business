@@ -147,7 +147,9 @@ export const initiatePhonePePayment = async (req, res) => {
       expireAfter: 1800,
       paymentFlow: {
         type: "PG_CHECKOUT",
-        redirectUrl
+        merchantUrls: {
+          redirectUrl
+        }
       }
     };
 
@@ -161,7 +163,7 @@ export const initiatePhonePePayment = async (req, res) => {
       const v2Res = await axios.post(v2PayUrl, v2Payload, {
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`
+          "Authorization": `O-Bearer ${token}`
         }
       });
 
