@@ -265,8 +265,28 @@ export const phonepeCallback = async (req, res) => {
 
     // --- PhonePe V2 JSON Webhook Format ---
     if (body.event && body.payload) {
+      // --- HMAC Signature Verification (per official docs) ---
+      // PhonePe sends: x-phonepe-checksum-key-id and x-phonepe-checksum-signature headers
+      const webhookSecret = process.env.PHONEPE_WEBHOOK_SECRET;
+      const checksumKeyId = req.headers["x-phonepe-checksum-key-id"];
+      const checksumSignature = req.headers["x-phonepe-checksum-signature"];
+
+      if (webhookSecret && checksumSignature) {
+        // Verify: HMAC-SHA256(rawBody, secret) must match x-phonepe-checksum-signature
+        const rawBody = JSON.stringify(body);
+        const expectedSig = crypto.createHmac("sha256", webhookSecret).update(rawBody).digest("base64");
+        if (expectedSig !== checksumSignature) {
+          console.error("⚠️ PhonePe V2 Webhook HMAC Verification Failed!");
+          return res.status(401).json({ success: false, msg: "Invalid webhook signature" });
+        }
+      } else {
+        console.log("⚠️ Webhook HMAC not verified - PHONEPE_WEBHOOK_SECRET not set or no signature header");
+      }
+
       const { event, payload } = body;
       const merchantOrderId = payload?.merchantOrderId || payload?.orderId;
+      // Per docs: transactionId is inside payload.paymentDetails[0].transactionId
+      const transactionId = payload?.paymentDetails?.[0]?.transactionId;
       const state = payload?.state;
 
       if (!merchantOrderId) {
@@ -285,7 +305,8 @@ export const phonepeCallback = async (req, res) => {
 
       if (event === "checkout.order.completed" && state === "COMPLETED") {
         order.paymentStatus = "completed";
-        order.phonePeTransactionId = payload?.transactionId || payload?.paymentDetails?.[0]?.transactionId;
+        // Per docs: transactionId is in paymentDetails[0].transactionId
+        order.phonePeTransactionId = transactionId;
         order.phonePeMerchantTransactionId = merchantOrderId;
         await order.save();
 
@@ -420,8 +441,8 @@ export const checkPhonePeStatus = async (req, res) => {
     try {
       const token = await getPhonePeV2AuthToken(PHONEPE_CLIENT_ID, PHONEPE_CLIENT_SECRET, isProd);
       const v2StatusUrl = isProd
-        ? `https://api.phonepe.com/apis/pg/checkout/v2/order/${orderId}/status`
-        : `https://api-preprod.phonepe.com/apis/pg-sandbox/checkout/v2/order/${orderId}/status`;
+        ? `https://api.phonepe.com/apis/pg/checkout/v2/order/${orderId}/status?details=true`
+        : `https://api-preprod.phonepe.com/apis/pg-sandbox/checkout/v2/order/${orderId}/status?details=true`;
 
       console.log(`🔍 Checking PhonePe V2 Status on ${v2StatusUrl}...`);
       const v2Res = await axios.get(v2StatusUrl, {
@@ -434,11 +455,26 @@ export const checkPhonePeStatus = async (req, res) => {
       rawStatusData = v2Res.data;
       console.log("PhonePe V2 Status Response:", rawStatusData);
 
-      // V2 status response: { orderId, state, expireAt, ... }
-      // Use payload.state if present, fallback to root state
-      const state = rawStatusData?.payload?.state || rawStatusData?.state;
+      // V2 status response (per official docs): state is at ROOT level
+      // { orderId, state, amount, expireAt, paymentDetails: [...] }
+      const state = rawStatusData?.state;
+      const txnId = rawStatusData?.paymentDetails?.[0]?.transactionId;
+
       if (state === "COMPLETED") {
         isPaymentSuccess = true;
+        // Save the PhonePe transaction ID from paymentDetails
+        if (txnId) {
+          order.phonePeTransactionId = txnId;
+        }
+      } else if (state === "FAILED") {
+        order.paymentStatus = "failed";
+        await order.save();
+        return res.status(200).json({
+          success: false,
+          paymentStatus: "failed",
+          msg: rawStatusData?.errorCode || "Payment failed",
+          statusDetails: rawStatusData
+        });
       }
     } catch (v2StatusErr) {
       console.error("⚠️ V2 Status API Error:", v2StatusErr.message, v2StatusErr.response?.data);
