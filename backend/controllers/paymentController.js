@@ -157,131 +157,98 @@ export const initiatePhonePePayment = async (req, res) => {
     const sha256 = crypto.createHash("sha256").update(stringToHash).digest("hex");
     const checksum = `${sha256}###${PHONEPE_SALT_INDEX}`;
 
-    const initialTargetUrl = `${PHONEPE_BASE_URL}${PHONEPE_PAY_ENDPOINT}`;
-    let response;
+    // PhonePe V2 Standard Checkout API (Official V2 Flow as per PhonePe Support)
+    const isProd = (process.env.PHONEPE_ENV || "").toLowerCase() === "production";
+    const v2PayUrl = isProd
+      ? "https://api.phonepe.com/apis/pg/checkout/v2/pay"
+      : "https://api-preprod.phonepe.com/apis/pg-sandbox/checkout/v2/pay";
 
-    const executePayRequest = async (mId, sKey, sIndex, targetUrl) => {
-      const currentPayload = { ...payload, merchantId: mId };
-      const base64Payload = Buffer.from(JSON.stringify(currentPayload)).toString("base64");
-      const stringToHash = base64Payload + PHONEPE_PAY_ENDPOINT + sKey;
-      const sha256 = crypto.createHash("sha256").update(stringToHash).digest("hex");
-      const checksum = `${sha256}###${sIndex}`;
-
-      return await axios.post(
-        targetUrl,
-        { request: base64Payload },
-        {
-          headers: {
-            "Content-Type": "application/json",
-            "X-VERIFY": checksum
-          }
-        }
-      );
+    const v2Payload = {
+      merchantOrderId,
+      amount: amountInPaise,
+      expireAfter: 1800,
+      paymentFlow: {
+        type: "PG_CHECKOUT",
+        redirectUrl
+      }
     };
 
+    let redirectUrlFromPhonePe = null;
+    let v2Success = false;
+
     try {
-      response = await executePayRequest(
-        PHONEPE_MERCHANT_ID,
-        PHONEPE_SALT_KEY,
-        PHONEPE_SALT_INDEX,
-        initialTargetUrl
-      );
-    } catch (apiErr) {
-      const errCode = apiErr.response?.data?.code || "";
-      const errMsg = apiErr.response?.data?.message || apiErr.response?.data?.msg || "";
-      const isKeyProblem = errCode === "KEY_NOT_CONFIGURED" || errCode === "KEY_NOT_FOUND" || errMsg.toLowerCase().includes("key not found");
-      const is404 = apiErr.response?.status === 404;
-
-      const isStrictProd = (process.env.PHONEPE_ENV || "").toLowerCase() === "production";
-      if (is404 || isKeyProblem || apiErr.response?.status === 400) {
-        // Try PhonePe V2 OAuth + Standard Checkout API using Client ID & Client Secret
-        try {
-          console.log(`⚠️ Trying PhonePe V2 OAuth Standard Checkout API...`);
-          const token = await getPhonePeV2AuthToken(PHONEPE_CLIENT_ID, PHONEPE_CLIENT_SECRET, isStrictProd);
-          const v2PayUrl = isStrictProd
-            ? "https://api.phonepe.com/apis/pg/v1/pay"
-            : "https://api-preprod.phonepe.com/apis/pg-sandbox/v1/pay";
-
-          const v2Payload = {
-            merchantOrderId,
-            amount: amountInPaise,
-            expireAfter: 1800,
-            paymentFlow: {
-              type: "PG_CHECKOUT",
-              redirectUrl
-            }
-          };
-
-          const v2Res = await axios.post(v2PayUrl, v2Payload, {
-            headers: {
-              "Content-Type": "application/json",
-              "Authorization": `Bearer ${token}`
-            }
-          });
-
-          const v2RedirectUrl = v2Res.data?.redirectUrl || v2Res.data?.data?.redirectUrl || v2Res.data?.data?.instrumentResponse?.redirectInfo?.url;
-          if (v2Res.data && (v2Res.data.success || v2RedirectUrl)) {
-            response = {
-              data: {
-                success: true,
-                data: {
-                  instrumentResponse: {
-                    redirectInfo: {
-                      url: v2RedirectUrl
-                    }
-                  }
-                }
-              }
-            };
-          } else {
-            throw new Error(v2Res.data?.message || "V2 initiation failed");
-          }
-        } catch (v2Err) {
-          console.error("V2 OAuth Pay Error:", v2Err.message, v2Err.response?.data);
-          if (isStrictProd) {
-            throw apiErr;
-          }
-
-          const altUrl = initialTargetUrl.includes("api.phonepe.com/apis/hermes")
-            ? initialTargetUrl.replace("api.phonepe.com/apis/hermes", "api-preprod.phonepe.com/apis/pg-sandbox")
-            : initialTargetUrl.replace("api-preprod.phonepe.com/apis/pg-sandbox", "api.phonepe.com/apis/hermes");
-
-          try {
-            console.log(`⚠️ Retrying alternate URL: ${altUrl}`);
-            response = await executePayRequest(
-              PHONEPE_MERCHANT_ID,
-              PHONEPE_SALT_KEY,
-              PHONEPE_SALT_INDEX,
-              altUrl
-            );
-          } catch (altErr) {
-            console.log(`⚠️ Falling back to PGTESTPAYUAT86 sandbox...`);
-            response = await executePayRequest(
-              "PGTESTPAYUAT86",
-              "96434309-7796-489d-8924-ab56988a6076",
-              "1",
-              "https://api-preprod.phonepe.com/apis/pg-sandbox/pg/v1/pay"
-            );
-          }
+      console.log(`🚀 Initiating PhonePe V2 Payment on ${v2PayUrl}...`);
+      const token = await getPhonePeV2AuthToken(PHONEPE_CLIENT_ID, PHONEPE_CLIENT_SECRET, isProd);
+      
+      const v2Res = await axios.post(v2PayUrl, v2Payload, {
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
         }
-      } else {
-        throw apiErr;
+      });
+
+      console.log("PhonePe V2 Response Data:", v2Res.data);
+
+      redirectUrlFromPhonePe = v2Res.data?.redirectUrl || 
+                               v2Res.data?.data?.redirectUrl || 
+                               v2Res.data?.data?.instrumentResponse?.redirectInfo?.url ||
+                               v2Res.data?.payload?.redirectUrl;
+
+      if (v2Res.data && (v2Res.data.state === "PENDING" || v2Res.data.success || redirectUrlFromPhonePe)) {
+        v2Success = true;
+      }
+    } catch (v2Error) {
+      console.error("⚠️ PhonePe V2 API Call Error:", v2Error.message, v2Error.response?.data);
+      // If V2 returns error, attempt V1 legacy fallback
+      try {
+        console.log(`⚠️ Trying V1 Legacy fallback...`);
+        const legacyTargetUrl = isProd
+          ? "https://api.phonepe.com/apis/hermes/pg/v1/pay"
+          : "https://api-preprod.phonepe.com/apis/pg-sandbox/pg/v1/pay";
+
+        const legacyPayload = {
+          merchantId: PHONEPE_MERCHANT_ID,
+          merchantTransactionId,
+          merchantUserId,
+          amount: amountInPaise,
+          redirectUrl,
+          redirectMode: "REDIRECT",
+          callbackUrl,
+          mobileNumber: cleanMobile,
+          paymentInstrument: { type: "PAY_PAGE" }
+        };
+
+        const base64Payload = Buffer.from(JSON.stringify(legacyPayload)).toString("base64");
+        const stringToHash = base64Payload + "/pg/v1/pay" + PHONEPE_SALT_KEY;
+        const sha256 = crypto.createHash("sha256").update(stringToHash).digest("hex");
+        const checksum = `${sha256}###${PHONEPE_SALT_INDEX}`;
+
+        const v1Res = await axios.post(
+          legacyTargetUrl,
+          { request: base64Payload },
+          { headers: { "Content-Type": "application/json", "X-VERIFY": checksum } }
+        );
+
+        if (v1Res.data && v1Res.data.success) {
+          redirectUrlFromPhonePe = v1Res.data.data.instrumentResponse.redirectInfo.url;
+          v2Success = true;
+        }
+      } catch (v1Err) {
+        console.error("⚠️ V1 Legacy fallback also failed:", v1Err.message, v1Err.response?.data);
+        throw v2Error; // Re-throw primary V2 error for detailed message
       }
     }
 
-    if (response.data && response.data.success) {
-      const redirectUrlFromPhonePe = response.data.data.instrumentResponse.redirectInfo.url;
+    if (v2Success && redirectUrlFromPhonePe) {
       return res.status(200).json({
         success: true,
         redirectUrl: redirectUrlFromPhonePe,
         merchantTransactionId
       });
     } else {
-      console.error("PhonePe API Error Response:", response.data);
       return res.status(400).json({
         success: false,
-        msg: response.data?.message || response.data?.msg || "Failed to initiate payment with PhonePe",
-        error: response.data
+        msg: "Failed to obtain checkout URL from PhonePe",
       });
     }
   } catch (error) {
@@ -349,12 +316,12 @@ export const phonepeCallback = async (req, res) => {
     }
 
     if (success && code === "PAYMENT_SUCCESS") {
-      // 1) Mark order as paid
       order.paymentStatus = "completed";
       order.phonePeTransactionId = transactionId;
       order.phonePeMerchantTransactionId = merchantTransactionId;
+      await order.save();
 
-      // 2) Deduct wallet balance if applicable
+      // Deduct wallet balance if applicable
       if (order.walletDeductedAmount > 0) {
         let wallet = await Wallet.findOne({ userId: order.user._id });
         if (wallet && wallet.balance >= order.walletDeductedAmount) {
@@ -372,7 +339,7 @@ export const phonepeCallback = async (req, res) => {
         }
       }
 
-      // 3) Increment Coupon usedCount if applicable
+      // Increment Coupon usedCount if applicable
       if (order.couponCode) {
         const coupon = await Coupon.findOne({ code: order.couponCode.toUpperCase() });
         if (coupon) {
@@ -381,16 +348,14 @@ export const phonepeCallback = async (req, res) => {
         }
       }
 
-      await order.save();
-
-      // 4) Award 1% Commission Coins if user is Prime Member
+      // Award 1% Commission Coins if user is Prime Member
       try {
         await awardOrderCommissionCoins(order.user._id, order._id, order.totalAmount);
       } catch (err) {
         console.error("Error awarding commission coins:", err.message);
       }
 
-      // 5) Send Confirmation Email, SMS & WhatsApp
+      // Send Confirmation Email, SMS & WhatsApp
       try { await sendOrderConfirmationMail(order); } catch (err) { console.error("Email error:", err.message); }
       try { await sendOrderConfirmationSms(order); } catch (err) { console.error("SMS error:", err.message); }
       try { await sendOrderConfirmationWhatsApp(order); } catch (err) { console.error("WhatsApp error:", err.message); }
@@ -409,7 +374,7 @@ export const phonepeCallback = async (req, res) => {
 
 /**
  * CHECK PHONEPE STATUS (FOR ORDERS)
- * Allows frontend to verify order payment status with PhonePe API directly.
+ * Uses PhonePe V2 Order Status API (checkout/v2/order/{merchantOrderId}/status) with OAuth Bearer Token.
  */
 export const checkPhonePeStatus = async (req, res) => {
   try {
@@ -442,125 +407,63 @@ export const checkPhonePeStatus = async (req, res) => {
       });
     }
 
-    const executeStatusRequest = async (mId, sKey, sIndex, targetOrderId, baseUrl) => {
-      const urlPath = `${PHONEPE_STATUS_ENDPOINT}/${mId}/${targetOrderId}`;
-      const stringToHash = urlPath + sKey;
-      const sha256 = crypto.createHash("sha256").update(stringToHash).digest("hex");
-      const checksum = `${sha256}###${sIndex}`;
+    const isProd = (process.env.PHONEPE_ENV || "").toLowerCase() === "production";
+    let isPaymentSuccess = false;
+    let rawStatusData = null;
 
-      return await axios.get(
-        `${baseUrl}${urlPath}`,
-        {
+    // 1) Try V2 Order Status API
+    try {
+      const token = await getPhonePeV2AuthToken(PHONEPE_CLIENT_ID, PHONEPE_CLIENT_SECRET, isProd);
+      const v2StatusUrl = isProd
+        ? `https://api.phonepe.com/apis/pg/checkout/v2/order/${orderId}/status`
+        : `https://api-preprod.phonepe.com/apis/pg-sandbox/checkout/v2/order/${orderId}/status`;
+
+      console.log(`🔍 Checking PhonePe V2 Status on ${v2StatusUrl}...`);
+      const v2Res = await axios.get(v2StatusUrl, {
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        }
+      });
+
+      rawStatusData = v2Res.data;
+      console.log("PhonePe V2 Status Response:", rawStatusData);
+
+      const state = rawStatusData?.payload?.state || rawStatusData?.state || rawStatusData?.code;
+      if (state === "COMPLETED" || state === "PAYMENT_SUCCESS" || state === "SUCCESS") {
+        isPaymentSuccess = true;
+      }
+    } catch (v2StatusErr) {
+      console.error("⚠️ V2 Status API Error:", v2StatusErr.message, v2StatusErr.response?.data);
+
+      // Fallback: Try V1 Status Check
+      try {
+        const urlPath = `/pg/v1/status/${PHONEPE_MERCHANT_ID}/${orderId}`;
+        const stringToHash = urlPath + PHONEPE_SALT_KEY;
+        const sha256 = crypto.createHash("sha256").update(stringToHash).digest("hex");
+        const checksum = `${sha256}###${PHONEPE_SALT_INDEX}`;
+
+        const legacyBaseUrl = isProd ? "https://api.phonepe.com/apis/hermes" : "https://api-preprod.phonepe.com/apis/pg-sandbox";
+        const v1Res = await axios.get(`${legacyBaseUrl}${urlPath}`, {
           headers: {
             "Content-Type": "application/json",
             "X-VERIFY": checksum,
-            "X-MERCHANT-ID": mId
+            "X-MERCHANT-ID": PHONEPE_MERCHANT_ID
           }
-        }
-      );
-    };
+        });
 
-    let response;
-    try {
-      response = await executeStatusRequest(
-        PHONEPE_MERCHANT_ID,
-        PHONEPE_SALT_KEY,
-        PHONEPE_SALT_INDEX,
-        orderId,
-        PHONEPE_BASE_URL
-      );
-    } catch (apiErr) {
-      const errCode = apiErr.response?.data?.code || "";
-      const errMsg = apiErr.response?.data?.message || apiErr.response?.data?.msg || "";
-      const isKeyProblem = errCode === "KEY_NOT_CONFIGURED" || errCode === "KEY_NOT_FOUND" || errMsg.toLowerCase().includes("key not found");
-      const is404 = apiErr.response?.status === 404;
-
-      const isStrictProd = (process.env.PHONEPE_ENV || "").toLowerCase() === "production";
-      if (is404 || isKeyProblem) {
-        if (isStrictProd) {
-          throw apiErr;
+        rawStatusData = v1Res.data;
+        if (v1Res.data && v1Res.data.success && v1Res.data.code === "PAYMENT_SUCCESS") {
+          isPaymentSuccess = true;
         }
-        const altBaseUrl = PHONEPE_BASE_URL.includes("api.phonepe.com/apis/hermes")
-          ? "https://api-preprod.phonepe.com/apis/pg-sandbox"
-          : "https://api.phonepe.com/apis/hermes";
-
-        try {
-          response = await executeStatusRequest(
-            PHONEPE_MERCHANT_ID,
-            PHONEPE_SALT_KEY,
-            PHONEPE_SALT_INDEX,
-            orderId,
-            altBaseUrl
-          );
-        } catch (altErr) {
-          const altCode = altErr.response?.data?.code || "";
-          const altMsg = altErr.response?.data?.message || altErr.response?.data?.msg || "";
-          if (altCode === "KEY_NOT_CONFIGURED" || altCode === "KEY_NOT_FOUND" || altMsg.toLowerCase().includes("key not found") || altErr.response?.status === 404) {
-            console.log(`⚠️ Custom merchant key status check fallback to PGTESTPAYUAT86...`);
-            response = await executeStatusRequest(
-              "PGTESTPAYUAT86",
-              "96434309-7796-489d-8924-ab56988a6076",
-              "1",
-              orderId,
-              "https://api-preprod.phonepe.com/apis/pg-sandbox"
-            );
-          } else {
-            throw altErr;
-          }
-        }
-      } else {
-        throw apiErr;
+      } catch (v1StatusErr) {
+        console.error("⚠️ V1 Status Fallback also failed:", v1StatusErr.message);
       }
     }
 
-    if (response.data && response.data.success && response.data.code === "PAYMENT_SUCCESS") {
-      const transactionId = response.data.data.transactionId;
-
-      // 1) Mark order as completed
+    if (isPaymentSuccess) {
       order.paymentStatus = "completed";
-      order.phonePeTransactionId = transactionId;
-      order.phonePeMerchantTransactionId = orderId;
-
-      // 2) Deduct wallet balance
-      if (order.walletDeductedAmount > 0) {
-        let wallet = await Wallet.findOne({ userId: order.user._id });
-        if (wallet && wallet.balance >= order.walletDeductedAmount) {
-          wallet.balance -= order.walletDeductedAmount;
-          wallet.totalRedeemed += order.walletDeductedAmount;
-          await wallet.save();
-
-          await Transaction.create({
-            userId: order.user._id,
-            type: "REDEEM",
-            amount: order.walletDeductedAmount,
-            description: `Paid for order #${order._id} using wallet balance`,
-            status: "SUCCESS"
-          });
-        }
-      }
-
-      // 3) Increment Coupon usedCount
-      if (order.couponCode) {
-        const coupon = await Coupon.findOne({ code: order.couponCode.toUpperCase() });
-        if (coupon) {
-          coupon.usedCount += 1;
-          await coupon.save();
-        }
-      }
-
       await order.save();
-
-      // 4) Award 1% Commission Coins if user is Prime Member
-      try {
-        await awardOrderCommissionCoins(order.user._id, order._id, order.totalAmount);
-      } catch (err) {
-        console.error("Error awarding commission coins:", err.message);
-      }
-
-      // 5) Send Confirmation Email, SMS & WhatsApp
-      try { await sendOrderConfirmationMail(order); } catch (err) { console.error("Email error:", err.message); }
-      try { await sendOrderConfirmationSms(order); } catch (err) { console.error("SMS error:", err.message); }
-      try { await sendOrderConfirmationWhatsApp(order); } catch (err) { console.error("WhatsApp error:", err.message); }
 
       return res.status(200).json({
         success: true,
@@ -568,26 +471,15 @@ export const checkPhonePeStatus = async (req, res) => {
         order
       });
     } else {
-      const currentPhonePeStatus = response.data?.code || "PENDING";
-
-      if (["PAYMENT_ERROR", "PAYMENT_DECLINED", "TIMED_OUT"].includes(currentPhonePeStatus)) {
-        order.paymentStatus = "failed";
-        await order.save();
-      }
-
       return res.status(200).json({
         success: false,
         paymentStatus: order.paymentStatus,
-        phonePeCode: currentPhonePeStatus,
-        msg: response.data?.message || "Payment is pending or failed"
+        msg: rawStatusData?.message || rawStatusData?.msg || "Payment is pending or failed",
+        statusDetails: rawStatusData
       });
     }
   } catch (error) {
-    console.error("PhonePe Fallback Status Check Error:", error.message, error.response?.data);
-    res.status(500).json({
-      success: false,
-      msg: "Server error during status check",
-      error: error.message
-    });
+    console.error("Error in checkPhonePeStatus:", error.message);
+    res.status(500).json({ success: false, msg: "Failed to check PhonePe status", error: error.message });
   }
 };
