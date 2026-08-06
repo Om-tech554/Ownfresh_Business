@@ -41,6 +41,9 @@ const SignIn = () => {
       // ⭐ FIX: UPDATE REDUX & LOCAL STORAGE
       dispatch(setUserData(result.data));
       localStorage.setItem("oil_user", JSON.stringify(result.data));
+      if (result.data?.token) {
+        localStorage.setItem("oil_token", result.data.token);
+      }
 
       toast.success("Logged in successfully!");
       navigate("/"); // Redirect
@@ -93,6 +96,9 @@ const SignIn = () => {
 
       dispatch(setUserData(data));
       localStorage.setItem("oil_user", JSON.stringify(data));
+      if (data?.token) {
+        localStorage.setItem("oil_token", data.token);
+      }
       
       // Remove query params from browser history for security
       window.history.replaceState({}, document.title, window.location.pathname);

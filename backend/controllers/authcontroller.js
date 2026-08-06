@@ -123,12 +123,15 @@ export const signIn = async (req, res) => {
         await user.save();
 
         res.cookie("token", token, {
-            secure: true, // Always true for HTTPS/Render
-            sameSite: "none", // Required for cross-domain auth
+            secure: true,
+            sameSite: "none",
             maxAge: 7 * 24 * 60 * 60 * 1000,
             httpOnly: true
-        })
-        return res.status(200).json(user)
+        });
+
+        const userObj = user.toObject ? user.toObject() : { ...user };
+        userObj.token = token;
+        return res.status(200).json(userObj);
     } catch (error) {
         console.error("SIGN_IN_ERROR:", error.message);
         return res.status(500).json({ message: "Internal Server Error" })
@@ -259,7 +262,10 @@ export const googleAuth = async (req, res) => {
             httpOnly: true
         });
 
-        return res.status(200).json(user);
+        const userObj = user.toObject ? user.toObject() : { ...user };
+        userObj.token = token;
+
+        return res.status(200).json(userObj);
 
     } catch (error) {
         console.error("GOOGLE_AUTH_ERROR:", error.message);
@@ -310,7 +316,10 @@ export const verifySignupOtp = async (req, res) => {
             httpOnly: true
         });
 
-        return res.status(200).json(user);
+        const userObj = user.toObject ? user.toObject() : { ...user };
+        userObj.token = token;
+
+        return res.status(200).json(userObj);
     } catch (error) {
         console.error("Verify signup OTP error:", error);
         return res.status(500).json({ message: "Verification failed" });

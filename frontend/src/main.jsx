@@ -7,6 +7,18 @@ import { Provider } from 'react-redux'
 import { store } from './redux/store.js'
 import { HelmetProvider } from 'react-helmet-async'
 import { ConfirmProvider } from './hooks/ConfirmContext.jsx'
+import axios from 'axios'
+
+// Global Axios Interceptor for Cross-Domain Authentication (myownfresh.com -> onrender.com)
+axios.interceptors.request.use((config) => {
+  const token = localStorage.getItem("oil_token");
+  if (token && !config.headers.Authorization) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+}, (error) => {
+  return Promise.reject(error);
+});
 
 // Custom Error Boundary to display runtime errors on screen
 class ErrorBoundary extends React.Component {

@@ -17,9 +17,18 @@ function useGetCurrentUser() {
       // Logic for fetching current user session 
 
       try {
+        const token = localStorage.getItem("oil_token");
+        const headers = {};
+        if (token) {
+          headers["Authorization"] = `Bearer ${token}`;
+        }
+
         const result = await axios.get(
           `${serverUrl}/api/user/current`,
-          { withCredentials: true }
+          { 
+            withCredentials: true,
+            headers
+          }
         );
 
         if (result.data) {
