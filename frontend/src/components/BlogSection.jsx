@@ -61,6 +61,10 @@ const BlogSection = ({ limit = null }) => {
                   <img
                     src={blog.image}
                     alt={blog.title}
+                    onError={(e) => {
+                      e.target.onerror = null;
+                      e.target.src = "https://res.cloudinary.com/dkhq2wlwg/image/upload/v1786009742/products/banner.png";
+                    }}
                     className="w-full h-full object-contain p-2 transition-transform duration-500 group-hover:scale-105"
                   />
                   <div className="absolute top-4 left-4 bg-yellow-400 text-gray-900 text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-widest shadow-sm">

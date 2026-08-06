@@ -186,6 +186,10 @@ const UserBlogDetails = () => {
             <img
               src={blog.image}
               alt={cleanTitle}
+              onError={(e) => {
+                e.target.onerror = null;
+                e.target.src = "https://res.cloudinary.com/dkhq2wlwg/image/upload/v1786009742/products/banner.png";
+              }}
               className="w-full max-h-[70vh] object-contain block"
               style={{ display: "block" }}
             />

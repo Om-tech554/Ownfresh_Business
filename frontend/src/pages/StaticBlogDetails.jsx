@@ -13,7 +13,7 @@ const staticBlogs = [
     subtitle:
       "Stone-pressed oils retain nutrients, antioxidants & natural flavor without heat or chemicals.",
     image:
-      "https://myownfresh.com/wp-content/uploads/2025/06/Groundnut-1-600x600.png",
+      "https://res.cloudinary.com/dkhq2wlwg/image/upload/v1786011514/static_site/Groundnut-1-600x600.png",
     category: "Health",
     date: "January 2026",
     content: `
@@ -47,7 +47,7 @@ Switching to stone-pressed oils is an easy and powerful lifestyle upgrade that y
     title: "Top 5 Healthy Oils for Daily Cooking",
     subtitle: "Choose oils that bring flavor, nutrition, and cooking performance.",
     image:
-      "https://myownfresh.com/wp-content/uploads/2024/10/272d6f3f69f4e2e81051b6a17124b504.png",
+      "https://res.cloudinary.com/dkhq2wlwg/image/upload/v1786011520/static_site/272d6f3f69f4e2e81051b6a17124b504.png",
     category: "Nutrition",
     date: "January 2026",
     content: `
@@ -70,7 +70,7 @@ Always choose **stone-pressed** oils to avoid chemicals and retain nutrients.
     title: "How Mustard Oil Improves Digestion Naturally",
     subtitle: "Mustard oil stimulates digestion and supports a healthy gut.",
     image:
-      "https://argan-oil.ma/wp-content/uploads/2025/02/DALL%C2%B7E-2025-02-17-16.44.57-A-realistic-digital-illustration-of-traditional-stone-pressed-argan-oil-extraction-using-a-stone-mill.-The-scene-features-a-rustic-stone-grinder-crushi.webp",
+      "https://res.cloudinary.com/dkhq2wlwg/image/upload/v1776670786/products/ktayxxopabq5idmxisgf.jpg",
     category: "Wellness",
     date: "February 2026",
 

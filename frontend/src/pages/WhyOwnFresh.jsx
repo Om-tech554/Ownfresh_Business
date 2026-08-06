@@ -105,7 +105,7 @@ const WhyOwnFresh = () => {
                 <div className="w-full h-full bg-white rounded-[2rem] overflow-hidden border border-gray-100 shadow-2xl p-4 flex items-center justify-center transform transition-transform duration-500 hover:scale-[1.02]">
                   <img
                     className="w-full h-full object-cover rounded-[1.5rem]"
-                    src="https://myownfresh.com/wp-content/uploads/2024/12/OUR-HERITAGE-1024x658.png"
+                    src="https://res.cloudinary.com/dkhq2wlwg/image/upload/v1786011497/static_site/OUR-HERITAGE-1024x658.png"
                     alt="Our Heritage & Artisan Cooking Oils"
                     loading="eager"
                   />
@@ -163,7 +163,7 @@ const WhyOwnFresh = () => {
                 <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent z-10 opacity-60 group-hover:opacity-80 transition-opacity duration-300" />
                 <img
                   className="w-full h-full object-cover transform scale-100 group-hover:scale-105 transition-transform duration-700"
-                  src="https://myownfresh.com/wp-content/uploads/2024/12/ligin.png"
+                  src="https://res.cloudinary.com/dkhq2wlwg/image/upload/v1786011499/static_site/ligin.png"
                   alt="OwnFresh Pure Seed Stone Pressing"
                   loading="lazy"
                 />
@@ -263,7 +263,7 @@ const WhyOwnFresh = () => {
           <div className="absolute inset-0 bg-black/60 z-10" />
           <img
             className="w-full h-full object-cover object-center"
-            src="https://myownfresh.com/wp-content/uploads/2025/05/DSC08274-scaled.jpg"
+            src="https://res.cloudinary.com/dkhq2wlwg/image/upload/v1786011501/static_site/DSC08274-scaled.jpg"
             alt="Artisan food and premium cooking oils background"
             loading="lazy"
           />
@@ -383,7 +383,7 @@ const WhyOwnFresh = () => {
                 <div className="w-full h-full bg-white rounded-[2rem] overflow-hidden border border-gray-100 shadow-2xl p-4 flex items-center justify-center">
                   <img
                     className="w-full h-full object-cover rounded-[1.5rem]"
-                    src="https://myownfresh.com/wp-content/uploads/2025/05/DSC08279-1024x683.jpg"
+                    src="https://res.cloudinary.com/dkhq2wlwg/image/upload/v1786011504/static_site/DSC08279-1024x683.jpg"
                     alt="OwnFresh Cooking Oil Mission"
                     loading="lazy"
                   />
@@ -444,7 +444,7 @@ const WhyOwnFresh = () => {
               >
                 <div className="overflow-hidden rounded-2xl flex-1 bg-gray-50 flex items-center justify-center p-2">
                   <img
-                    src="https://myownfresh.com/wp-content/uploads/2024/12/WhatsApp-Image-2024-12-21-at-19.48.42_6ecba840-719x1024.jpg"
+                    src="https://res.cloudinary.com/dkhq2wlwg/image/upload/v1786011506/static_site/WhatsApp-Image-2024-12-21-at-19.48.42_6ecba840-719x1024.jpg"
                     alt="ACoHI Culinary ID Certificate Page 1"
                     className="w-full max-h-[380px] object-contain rounded-xl transform scale-100 group-hover:scale-[1.03] transition-transform duration-500"
                     loading="lazy"
@@ -465,7 +465,7 @@ const WhyOwnFresh = () => {
               >
                 <div className="overflow-hidden rounded-2xl flex-1 bg-gray-50 flex items-center justify-center p-2">
                   <img
-                    src="https://myownfresh.com/wp-content/uploads/2024/12/WhatsApp-Image-2024-12-21-at-19.55.12_17bcfa25-rotated.jpg"
+                    src="https://res.cloudinary.com/dkhq2wlwg/image/upload/v1786011508/static_site/WhatsApp-Image-2024-12-21-at-19.55.12_17bcfa25-rotated.jpg"
                     alt="ACoHI Culinary ID Certificate Page 2"
                     className="w-full max-h-[380px] object-contain rounded-xl transform scale-100 group-hover:scale-[1.03] transition-transform duration-500"
                     loading="lazy"

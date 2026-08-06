@@ -74,6 +74,10 @@ const ProductCard = ({ product, user, onAddToCart }) => {
         <img
           src={product.image}
           alt={product.name}
+          onError={(e) => {
+            e.target.onerror = null;
+            e.target.src = "https://res.cloudinary.com/dkhq2wlwg/image/upload/v1786009742/products/banner.png";
+          }}
           className="h-full w-auto object-contain transition-transform duration-500 group-hover:scale-105 mix-blend-multiply"
         />
         

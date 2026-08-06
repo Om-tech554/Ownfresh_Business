@@ -138,6 +138,10 @@ const ProductDetails = () => {
             <img
               src={product.image}
               alt={product.name}
+              onError={(e) => {
+                e.target.onerror = null;
+                e.target.src = "https://res.cloudinary.com/dkhq2wlwg/image/upload/v1786009742/products/banner.png";
+              }}
               className="w-full max-w-lg object-contain rounded-2xl"
             />
           </div>
