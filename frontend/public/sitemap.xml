@@ -2,35 +2,35 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <!-- Homepage -->
   <url>
-    <loc>https://frontend-ownfresh.onrender.com/</loc>
+    <loc>https://myownfresh.com/</loc>
     <lastmod>2026-07-13</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
   </url>
   <!-- Shop Page -->
   <url>
-    <loc>https://frontend-ownfresh.onrender.com/shop</loc>
+    <loc>https://myownfresh.com/shop</loc>
     <lastmod>2026-07-13</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.9</priority>
   </url>
   <!-- Why Own Fresh -->
   <url>
-    <loc>https://frontend-ownfresh.onrender.com/whyownfresh</loc>
+    <loc>https://myownfresh.com/whyownfresh</loc>
     <lastmod>2026-07-13</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <!-- Contact -->
   <url>
-    <loc>https://frontend-ownfresh.onrender.com/contact</loc>
+    <loc>https://myownfresh.com/contact</loc>
     <lastmod>2026-07-13</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <!-- Gallery -->
   <url>
-    <loc>https://frontend-ownfresh.onrender.com/gallery</loc>
+    <loc>https://myownfresh.com/gallery</loc>
     <lastmod>2026-07-13</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>

@@ -17,7 +17,7 @@ const SEO = ({
   
   // Default image (Use the one from your public folder or Cloudinary)
   const metaImage = image || "https://res.cloudinary.com/dkhq2wlwg/image/upload/v1774962822/ownfresh_media/ndxvmcpisomjzsghrfjs.png";
-  const metaUrl = url ? `https://frontend-ownfresh.onrender.com${url}` : "https://frontend-ownfresh.onrender.com";
+  const metaUrl = url ? `https://myownfresh.com${url}` : "https://myownfresh.com";
 
   return (
     <Helmet>
