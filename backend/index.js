@@ -52,6 +52,8 @@ const port = process.env.PORT || 10000
 
 const allowedOrigins = [
     process.env.FRONTEND_URL,
+    "https://myownfresh.com",
+    "https://www.myownfresh.com",
     "http://localhost:5173",
     "http://localhost:3000"
 ].filter(Boolean);
@@ -59,12 +61,12 @@ const allowedOrigins = [
 app.use(cors({
     origin: (origin, callback) => {
         if (!origin) return callback(null, true);
-        if (allowedOrigins.includes(origin)) {
+        const cleanOrigin = origin.replace(/\/+$/, "");
+        if (allowedOrigins.some(o => o && o.replace(/\/+$/, "") === cleanOrigin)) {
             return callback(null, true);
         }
-        // Very strict - only allow if exactly in allowedOrigins (for prod)
-        if (origin.endsWith(".onrender.com")) {
-           return callback(null, true);
+        if (cleanOrigin.endsWith("myownfresh.com") || cleanOrigin.endsWith(".onrender.com")) {
+            return callback(null, true);
         }
         return callback(new Error(`CORS blocked: unauthorized origin ${origin}`));
     },
