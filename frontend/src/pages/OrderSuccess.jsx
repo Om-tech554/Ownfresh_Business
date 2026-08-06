@@ -154,7 +154,7 @@ const OrderSuccess = () => {
   if (status === 'failed' || status === 'error') {
     return (
       <div className="min-h-[80vh] bg-gray-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-        <motion.div 
+        <motion.div
           initial={{ scale: 0.9, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           className="max-w-xl w-full space-y-8 bg-white p-10 rounded-3xl shadow-xl border border-gray-100 text-center"
@@ -162,7 +162,7 @@ const OrderSuccess = () => {
           <div className="flex justify-center">
             <FaExclamationCircle className="text-8xl text-red-500" />
           </div>
-          
+
           <div>
             <h2 className="mt-6 text-3xl font-black text-gray-900">Payment Failed</h2>
             <p className="mt-2 text-sm text-gray-600">
@@ -208,7 +208,7 @@ const OrderSuccess = () => {
   // --- 3) SUCCESS/CONFIRMED STATE ---
   return (
     <div className="min-h-[80vh] bg-gray-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-      <motion.div 
+      <motion.div
         initial={{ scale: 0.9, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         transition={{ type: 'spring', bounce: 0.5, duration: 0.8 }}
@@ -216,21 +216,21 @@ const OrderSuccess = () => {
       >
         <div className="flex justify-center">
           <motion.div
-             initial={{ scale: 0 }}
-             animate={{ scale: 1 }}
-             transition={{ delay: 0.3, type: 'spring', stiffness: 200 }}
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            transition={{ delay: 0.3, type: 'spring', stiffness: 200 }}
           >
-             <FaCheckCircle className="text-8xl text-green-500" />
+            <FaCheckCircle className="text-8xl text-green-500" />
           </motion.div>
         </div>
-        
+
         <div>
           <h2 className="mt-6 text-3xl font-black text-gray-900">Order Confirmed!</h2>
           <p className="mt-2 text-sm text-gray-600">
             Thank you for your purchase. We have received your order and payment, and are getting it ready for shipment.
           </p>
         </div>
-        
+
         <div className="bg-gray-50 rounded-2xl p-6 border border-gray-100 mb-6 text-left">
           <div className="flex justify-between items-center border-b border-gray-200 pb-4 mb-4">
             <span className="text-gray-500 font-medium">Order ID</span>

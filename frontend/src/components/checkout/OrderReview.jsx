@@ -214,7 +214,8 @@ const OrderReview = () => {
         return data.order;
       }
     } catch (error) {
-      toast.error(error.response?.data?.msg || "Order placement failed");
+      console.error("Order placement error:", error);
+      toast.error(error.response?.data?.msg || error.message || "Order placement failed");
       return null;
     } finally {
       if (paymentMethod !== "online") {
