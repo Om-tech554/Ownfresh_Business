@@ -61,11 +61,11 @@ const Footer = () => {
 
           <p className="mb-4 leading-relaxed">
             Founded in Dhayari Pune, OwnFresh is committed to producing
-            100% pure, stone-pressed oils from whole nuts and seeds.
+            Premium Grade Pure Oil, stone-pressed oils from whole nuts and seeds.
           </p>
 
           <p className="leading-relaxed">
-            OwnFresh champions 100% Botanic purity while empowering women.
+            OwnFresh champions Premium Grade Pure Oil Botanic purity while empowering women.
           </p>
 
           <div className="flex gap-6 mt-6 text-black">

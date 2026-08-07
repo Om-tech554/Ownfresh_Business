@@ -192,13 +192,13 @@ const GalleryPage = () => {
         </p>
       </section>
 
-      {/* ── Featured Banner (Clean & Visible) ── */}
-      <section className="w-full px-4 md:px-10 max-w-7xl mx-auto mb-16">
-        <div className="rounded-2xl md:rounded-[40px] overflow-hidden shadow-2xl border border-gray-100 bg-gray-50">
+      {/* ── Featured Banner (Fully Mobile Responsive) ── */}
+      <section className="w-full px-3 sm:px-6 md:px-10 max-w-7xl mx-auto mb-10 md:mb-16">
+        <div className="rounded-2xl md:rounded-[40px] overflow-hidden shadow-xl border border-gray-100 bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center p-1 sm:p-2">
           <img
-            src="//res.cloudinary.com/dkhq2wlwg/image/upload/v1775113294/ownfresh_media/ci9yurjbwfpag9kth97u.png"
+            src="https://res.cloudinary.com/dkhq2wlwg/image/upload/v1775113294/ownfresh_media/ci9yurjbwfpag9kth97u.png"
             alt="OwnFresh Series Banner"
-            className="w-full h-auto object-cover min-h-[180px] md:min-h-[300px]"
+            className="w-full h-auto object-contain max-h-[220px] sm:max-h-[360px] md:max-h-[500px] rounded-xl md:rounded-[36px]"
           />
         </div>
       </section>

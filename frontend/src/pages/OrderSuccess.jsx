@@ -1,11 +1,10 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useLocation, useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { FaCheckCircle, FaExclamationCircle, FaDownload, FaShoppingBag, FaSpinner, FaPhone } from 'react-icons/fa';
 import axios from 'axios';
 import { appCheck } from '../../firebase';
 import { getToken } from 'firebase/app-check';
-import toast from 'react-hot-toast';
 
 const serverUrl = import.meta.env.VITE_API_URL || "http://localhost:10000";
 
@@ -13,55 +12,44 @@ const OrderSuccess = () => {
   const location = useLocation();
   const navigate = useNavigate();
 
-  // Extract orderId from state or URL query parameters (PhonePe redirect appends it to query)
   const getOrderId = () => {
     if (location.state?.orderId) return location.state.orderId;
     const params = new URLSearchParams(location.search);
     return params.get('orderId') || params.get('id') || null;
   };
 
-  const [orderId, setOrderId] = useState(getOrderId());
+  const orderId = getOrderId();
   const [loading, setLoading] = useState(true);
   const [status, setStatus] = useState('pending'); // 'pending', 'completed', 'failed', 'error'
   const [orderDetails, setOrderDetails] = useState(null);
   const [errorMsg, setErrorMsg] = useState('');
-  const [checkCount, setCheckCount] = useState(0);
+  const [attemptCount, setAttemptCount] = useState(1);
+  const checkCountRef = useRef(1);
 
   useEffect(() => {
-    // Re-check order ID on location change
-    const currentId = getOrderId();
-    if (currentId) {
-      setOrderId(currentId);
-    } else {
-      // If no order ID, redirect to home
+    if (!orderId) {
       const timeout = setTimeout(() => {
         navigate('/');
       }, 3000);
       return () => clearTimeout(timeout);
     }
-  }, [location]);
-
-  useEffect(() => {
-    if (!orderId) return;
 
     let isMounted = true;
-    let pollInterval;
+    let pollInterval = null;
 
     const verifyPaymentStatus = async () => {
       try {
-        // Retrieve App Check token if active
         let appCheckToken = "";
         if (appCheck) {
           try {
             const tokenResponse = await getToken(appCheck, false);
             appCheckToken = tokenResponse.token;
           } catch (err) {
-            console.error("AppCheck Token Error:", err);
+            console.warn("AppCheck Token Error:", err.message);
           }
         }
         const headers = appCheckToken ? { 'X-Firebase-AppCheck': appCheckToken } : {};
 
-        // Query our backend fallback status API
         const { data } = await axios.get(`${serverUrl}/api/payment/phonepe-status/${orderId}`, {
           headers,
           withCredentials: true
@@ -74,50 +62,39 @@ const OrderSuccess = () => {
           setOrderDetails(data.order);
           setLoading(false);
           if (pollInterval) clearInterval(pollInterval);
+        } else if (data.paymentStatus === 'failed') {
+          setStatus('failed');
+          setErrorMsg(data.msg || 'Payment failed or was declined by bank.');
+          setLoading(false);
+          if (pollInterval) clearInterval(pollInterval);
         } else {
-          // If payment failed explicitly
-          if (data.paymentStatus === 'failed') {
-            setStatus('failed');
-            setErrorMsg(data.msg || 'Payment failed or was declined.');
+          checkCountRef.current += 1;
+          setAttemptCount(checkCountRef.current);
+          if (checkCountRef.current >= 5) {
+            setStatus('pending');
+            setErrorMsg('Payment verification is taking longer than expected. Please check your Orders page shortly.');
             setLoading(false);
             if (pollInterval) clearInterval(pollInterval);
-          } else {
-            // Keep checking if it's still pending (up to 5 checks, 3 seconds apart)
-            setCheckCount(prev => {
-              if (prev >= 5) {
-                setStatus('pending');
-                setErrorMsg('Payment verification is taking longer than expected. Please check your Orders page shortly.');
-                setLoading(false);
-                if (pollInterval) clearInterval(pollInterval);
-              }
-              return prev + 1;
-            });
           }
         }
       } catch (error) {
+        if (!isMounted) return;
         console.error("Payment verification status error:", error);
-        if (isMounted) {
-          setErrorMsg('Error communicating with the payment server.');
-          setStatus('error');
-          setLoading(false);
-          if (pollInterval) clearInterval(pollInterval);
-        }
+        setErrorMsg('Error communicating with the payment server.');
+        setStatus('error');
+        setLoading(false);
+        if (pollInterval) clearInterval(pollInterval);
       }
     };
 
-    // Initial check
     verifyPaymentStatus();
-
-    // Setup polling every 3 seconds to handle S2S webhook lag or slow bank responses
-    pollInterval = setInterval(() => {
-      verifyPaymentStatus();
-    }, 3000);
+    pollInterval = setInterval(verifyPaymentStatus, 3000);
 
     return () => {
       isMounted = false;
       if (pollInterval) clearInterval(pollInterval);
     };
-  }, [orderId]);
+  }, [orderId, navigate]);
 
   if (!orderId) {
     return (
@@ -143,7 +120,7 @@ const OrderSuccess = () => {
             </p>
           </div>
           <div className="bg-gray-50 rounded-2xl p-4 border border-gray-100 text-sm text-gray-500 text-left">
-            Checking status (attempt {checkCount} of 5)...
+            Checking status (attempt {attemptCount} of 5)...
           </div>
         </div>
       </div>
@@ -164,7 +141,7 @@ const OrderSuccess = () => {
           </div>
 
           <div>
-            <h2 className="mt-6 text-3xl font-black text-gray-900">Payment Failed</h2>
+            <h2 className="mt-6 text-3xl font-black text-gray-900">Payment Unsuccessful</h2>
             <p className="mt-2 text-sm text-gray-600">
               {errorMsg || 'We were unable to verify your payment. If money was deducted, it will be refunded automatically by your bank within 3-5 business days.'}
             </p>

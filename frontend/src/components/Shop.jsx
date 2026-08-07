@@ -176,7 +176,7 @@ const Shop = () => {
     <>
       <SEO 
         title="Shop Stone Pressed Oils"
-        description="Browse our collection of premium stone-pressed oils. Buy 100% natural and organic oils online at the best prices."
+        description="Browse our collection of premium stone-pressed oils. Buy Premium Grade Pure Oil natural and organic oils online at the best prices."
         keywords="shop stone pressed oil, buy organic oil online, stone pressed cooking oil"
         url="/shop"
       />
@@ -190,7 +190,7 @@ const Shop = () => {
             OwnFresh <span className="text-[#FFDD00]">Shop</span>
           </h1>
           <p className="text-gray-500 mt-4 text-sm uppercase tracking-widest font-bold">
-            Explore our premium collection of 100% natural, stone-pressed botanic purity.
+            Explore our collection of Premium Grade Pure Oil natural, stone-pressed botanic purity.
           </p>
         </div>
 

@@ -44,9 +44,18 @@ export const CheckoutProvider = ({ children }) => {
   const [commissionCoinsBalance, setCommissionCoinsBalance] = useState(0);
   const [canRedeemCoins, setCanRedeemCoins] = useState(false);
 
-  const nextStep = () => setCurrentStep((prev) => Math.min(prev + 1, 4));
-  const prevStep = () => setCurrentStep((prev) => Math.max(prev - 1, 1));
-  const goToStep = (step) => setCurrentStep(step);
+  const nextStep = () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    setCurrentStep((prev) => Math.min(prev + 1, 4));
+  };
+  const prevStep = () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    setCurrentStep((prev) => Math.max(prev - 1, 1));
+  };
+  const goToStep = (step) => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    setCurrentStep(step);
+  };
 
   const value = {
     currentStep,

@@ -1,19 +1,15 @@
-
-
-import React, { useEffect } from "react";
+import React, { Suspense, lazy } from "react";
 import { useSelector } from "react-redux";
-import { useNavigate } from "react-router-dom";
 import UserDashboard from "../components/UserDashboard";
-import AdminDashboard from "../components/AdminDashboard";
+
+const AdminDashboard = lazy(() => import("../components/AdminDashboard"));
 
 function Home() {
-  const navigate = useNavigate();
   const { userData, loading } = useSelector((state) => state.user);
 
-  // ⏳ While fetching session
   if (loading) {
     return (
-      <div className="w-full h-screen flex items-center justify-center">
+      <div className="w-full h-screen flex items-center justify-center font-bold text-gray-500">
         Loading...
       </div>
     );
@@ -21,18 +17,15 @@ function Home() {
 
   return (
     <>
-      {/* 🔥 Not logged in → show normal public homepage */}
-      {!userData && <UserDashboard />}
+      {(!userData || userData?.role === "user") && <UserDashboard />}
 
-      {/* 🔥 Logged-in normal user */}
-      {userData?.role === "user" && <UserDashboard />}
-
-      {/* 🔥 Logged-in admin or blogger (but NO redirect) */}
-      {(userData?.role === "admin" || userData?.role === "blogger") && <AdminDashboard />}
+      {(userData?.role === "admin" || userData?.role === "blogger") && (
+        <Suspense fallback={<div className="p-10 text-center font-bold text-gray-500">Loading Admin Dashboard...</div>}>
+          <AdminDashboard />
+        </Suspense>
+      )}
     </>
   );
 }
 
 export default Home;
-
-

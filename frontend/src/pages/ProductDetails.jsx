@@ -157,12 +157,16 @@ const ProductDetails = () => {
 
             <div className="mt-4">
               <span className="text-5xl font-extrabold text-yellow-600">
-                ₹{selectedVariant ? ((selectedVariant.salePrice || selectedVariant.price) * finalQuantity) : 0}
+                ₹{selectedVariant ? ((selectedVariant.salePrice || selectedVariant.price) * finalQuantity) : ((product.price || 0) * finalQuantity)}
               </span>
 
-              {selectedVariant && (
+              {selectedVariant ? (
                 <p className="text-sm mt-1 text-gray-500">
                   {selectedVariant.name} (x{finalQuantity})
+                </p>
+              ) : (
+                <p className="text-sm mt-1 text-gray-500">
+                  Standard Packaging (x{finalQuantity})
                 </p>
               )}
             </div>

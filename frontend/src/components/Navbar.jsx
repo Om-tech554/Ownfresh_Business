@@ -7,7 +7,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import { serverUrl } from '../App';
 import { clearUser } from '../redux/userslice';
-import { Layers, Package } from 'lucide-react';
+import { Layers, Package, ChevronDown, ChevronUp } from 'lucide-react';
 import toast from 'react-hot-toast';
 import SLink from './SLink';
 
@@ -18,13 +18,14 @@ const Navbar = () => {
     const [showSearch, setShowSearch] = useState(false);
     const [showMobileNav, setShowMobileNav] = useState(false);
     const [showShopDropdown, setShowShopDropdown] = useState(false);
+    const [mobileShopOpen, setMobileShopOpen] = useState(false);
 
     const [searchableItems, setSearchableItems] = useState([]);
     const [categories, setCategories] = useState([]);
     const [searchQuery, setSearchQuery] = useState("");
     const [searchResults, setSearchResults] = useState([]);
     const [showDropdown, setShowDropdown] = useState(false);
-    const [announcement, setAnnouncement] = useState("🎉 FREE SHIPPING ON ORDERS ABOVE ₹999 • 🌿 100% PURE & STONE PRESSED BOTANIC OILS • 👑 JOIN PRIME 1% TO EARN REDEEMABLE COIN COMMISSIONS • 📦 EXPRESS 2-DAY DELIVERY ACROSS INDIA");
+    const [announcement, setAnnouncement] = useState("🎉 FREE SHIPPING ON ORDERS ABOVE ₹999 • 🌿 PREMIUM GRADE PURE OIL & STONE PRESSED BOTANIC OILS • 👑 JOIN PRIME 1% TO EARN REDEEMABLE COIN COMMISSIONS • 📦 EXPRESS 2-DAY DELIVERY ACROSS INDIA");
 
     useEffect(() => {
         const fetchAnnouncement = async () => {
@@ -253,23 +254,23 @@ const Navbar = () => {
                     </SLink>
 
                     {userData?.role !== "admin" && (
-                        <div className='hidden lg:flex items-center gap-8 mx-auto absolute left-1/2 -translate-x-1/2'>
+                        <div className='hidden lg:flex items-center justify-center flex-1 gap-3 xl:gap-7 px-4 min-w-0'>
                             {navLinks.map((link) => (
                                 <div
                                     key={link.name}
-                                    className="relative group"
+                                    className="relative group flex-shrink-0"
                                     onMouseEnter={() => link.dropdown && setShowShopDropdown(true)}
                                     onMouseLeave={() => link.dropdown && setShowShopDropdown(false)}
                                 >
                                     <SLink
                                         to={link.path}
-                                        className={`text-[13px] font-bold uppercase tracking-widest hover:underline underline-offset-8 decoration-2 transition-all whitespace-nowrap ${link.special ? 'text-[#F9DD19] bg-[#181818] px-4 py-2 rounded-full hover:no-underline hover:scale-105' : 'text-[#1E971D]'}`}
+                                        className={`text-[12px] xl:text-[13px] font-bold uppercase tracking-widest hover:underline underline-offset-8 decoration-2 transition-all whitespace-nowrap ${link.special ? 'text-[#F9DD19] bg-[#181818] px-3.5 py-1.5 rounded-full hover:no-underline hover:scale-105 shadow-sm' : 'text-[#1E971D]'}`}
                                     >
                                         {link.name}
                                     </SLink>
 
                                     {link.dropdown && showShopDropdown && (
-                                        <div className="absolute top-[100%] left-0 pt-4 w-[220px] animate-in fade-in slide-in-from-top-2 duration-200">
+                                        <div className="absolute top-[100%] left-0 pt-4 w-[220px] animate-in fade-in slide-in-from-top-2 duration-200 z-[1002]">
                                             <div className="bg-white border border-gray-100 shadow-2xl p-2 rounded-2xl overflow-hidden">
                                                 {link.dropdown.map((sub) => (
                                                     <SLink
@@ -291,59 +292,57 @@ const Navbar = () => {
                         </div>
                     )}
 
-                    <div className='flex items-center gap-5 ml-auto'>
+                    <div className='flex items-center gap-4 xl:gap-5 ml-auto flex-shrink-0'>
                         <RxHamburgerMenu size={28} className='text-black lg:hidden cursor-pointer hover:text-[#FFDD00] transition-colors' onClick={() => setShowMobileNav(true)} />
 
                         {userData?.role !== "admin" && (
-                            <div className="relative" ref={searchRefDesktop}>
+                            <div className="relative flex-shrink-0" ref={searchRefDesktop}>
                                 {showSearch ? (
-                                    <div className='hidden md:flex items-center bg-gray-100 px-3 py-1.5 rounded-full outline outline-1 outline-gray-200 divide-x divide-gray-300'>
-                                        {/* GEOLOCATION INJECTED HERE */}
-                                        <div className='flex items-center gap-2 pr-3'>
-                                            <FaLocationDot size={14} className='text-[#FFDD00]' />
-                                            <div className='text-[11px] font-bold text-black uppercase tracking-wider truncate max-w-[80px]'>
+                                    <div className='hidden md:flex items-center bg-gray-100 px-3 py-1.5 rounded-full outline outline-1 outline-gray-200 divide-x divide-gray-300 transition-all duration-300 max-w-[230px] xl:max-w-[290px] shadow-sm'>
+                                        {/* GEOLOCATION */}
+                                        <div className='flex items-center gap-1.5 pr-2.5 flex-shrink-0'>
+                                            <FaLocationDot size={13} className='text-[#FFDD00]' />
+                                            <div className='text-[10px] xl:text-[11px] font-bold text-black uppercase tracking-wider truncate max-w-[60px] xl:max-w-[80px]'>
                                                 {city || "Select City"}
                                             </div>
                                         </div>
-                                        <div className="flex items-center pl-3">
+                                        <div className="flex items-center pl-2.5 flex-1 min-w-0">
                                             <input
                                                 type="text"
                                                 placeholder='Search...'
                                                 value={searchQuery}
                                                 onChange={(e) => setSearchQuery(e.target.value)}
                                                 onClick={handleSearchClick}
-                                                className='bg-transparent outline-none text-sm w-[150px] text-black'
+                                                className='bg-transparent outline-none text-xs xl:text-sm w-full text-black'
                                                 autoFocus
                                             />
-                                            <RxCross2 size={18} className='text-gray-500 cursor-pointer hover:text-black ml-2' onClick={() => { setShowSearch(false); setShowDropdown(false); }} />
+                                            <RxCross2 size={16} className='text-gray-500 cursor-pointer hover:text-black ml-1.5 flex-shrink-0' onClick={() => { setShowSearch(false); setShowDropdown(false); }} />
                                         </div>
                                         <SearchDropdownUI />
                                     </div>
                                 ) : (
-                                    <FaSearchengin size={22} className='text-black cursor-pointer hover:text-[#FFDD00] transition-colors' onClick={() => setShowSearch(true)} />
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowSearch(true)}
+                                        className="p-1.5 rounded-full hover:bg-gray-100 transition-colors flex items-center justify-center cursor-pointer"
+                                        title="Search"
+                                    >
+                                        <FaSearchengin size={22} className='text-black hover:text-[#FFDD00] transition-colors' />
+                                    </button>
                                 )}
                             </div>
                         )}
 
                         {userData?.role !== "admin" && (
-                            <div
-                                onClick={() => {
-                                    if (!userData) {
-                                        toast.error("Please Sign In or Sign Up to view your cart", {
-                                            icon: "🛒",
-                                            style: { borderRadius: "10px", background: "#333", color: "#fff" }
-                                        });
-                                    } else {
-                                        navigate("/cart");
-                                    }
-                                }}
+                            <SLink
+                                to="/cart"
                                 className='relative transition-colors block cursor-pointer group'
                             >
                                 <FaCartShopping size={22} className='text-black group-hover:text-[#FFDD00] transition-colors' />
                                 <span className='absolute -right-2 -top-2 text-[10px] font-bold text-black bg-[#FFDD00] rounded-full h-5 w-5 flex items-center justify-center border-2 border-white'>
                                     {cartItems.reduce((acc, item) => acc + (item.quantity || 0), 0)}
                                 </span>
-                            </div>
+                            </SLink>
                         )}
 
                         {userData?.role === "admin" && (
@@ -438,29 +437,57 @@ const Navbar = () => {
                             <div className="flex flex-col gap-4">
                                 {navLinks.map((link) => (
                                     <React.Fragment key={link.name}>
-                                        <SLink
-                                            to={link.path}
-                                            onClick={() => setShowMobileNav(false)}
-                                            className={`text-[15px] font-bold uppercase tracking-widest underline-offset-8 decoration-2 transition-all block ${link.special ? 'text-[#FFDD00] bg-black p-3 rounded-xl text-center' : 'text-[#24672E] hover:underline'}`}
-                                        >
-                                            {link.name}
-                                        </SLink>
-                                        {link.dropdown && (
-                                            <div className="flex flex-col gap-3 pl-4 -mt-2 mb-2">
-                                                {link.dropdown.map((sub) => (
+                                        {link.dropdown ? (
+                                            <div className="flex flex-col">
+                                                <div
+                                                    className="flex items-center justify-between py-1 cursor-pointer group"
+                                                    onClick={() => setMobileShopOpen(prev => !prev)}
+                                                >
                                                     <SLink
-                                                        key={sub.name}
-                                                        to={sub.path}
+                                                        to={link.path}
                                                         onClick={() => setShowMobileNav(false)}
-                                                        className="flex items-center gap-3 text-[12px] font-bold uppercase tracking-widest text-gray-500 py-1 hover:text-[#24672E]"
+                                                        className="text-[15px] font-bold uppercase tracking-widest text-[#24672E] hover:underline"
                                                     >
-                                                        {sub.image && (
-                                                            <img src={sub.image} alt={sub.name} className="w-6 h-6 object-cover rounded-md" />
-                                                        )}
-                                                        {sub.name}
+                                                        {link.name}
                                                     </SLink>
-                                                ))}
+                                                    <button
+                                                        type="button"
+                                                        onClick={(e) => { e.stopPropagation(); setMobileShopOpen(prev => !prev); }}
+                                                        className="p-2 text-[#24672E] hover:text-[#FFDD00] transition-colors"
+                                                    >
+                                                        {mobileShopOpen ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+                                                    </button>
+                                                </div>
+
+                                                {mobileShopOpen && (
+                                                    <div className="flex flex-col gap-2.5 pl-4 py-2 bg-gray-50/90 rounded-xl my-1 border border-gray-100 animate-in fade-in duration-200">
+                                                        {link.dropdown.map((sub) => (
+                                                            <SLink
+                                                                key={sub.name}
+                                                                to={sub.path}
+                                                                onClick={() => {
+                                                                    setShowMobileNav(false);
+                                                                    setMobileShopOpen(false);
+                                                                }}
+                                                                className="flex items-center gap-3 text-[12px] font-bold uppercase tracking-widest text-gray-700 py-1.5 hover:text-[#24672E]"
+                                                            >
+                                                                {sub.image && (
+                                                                    <img src={sub.image} alt={sub.name} className="w-6 h-6 object-cover rounded-md border border-gray-200" />
+                                                                )}
+                                                                {sub.name}
+                                                            </SLink>
+                                                        ))}
+                                                    </div>
+                                                )}
                                             </div>
+                                        ) : (
+                                            <SLink
+                                                to={link.path}
+                                                onClick={() => setShowMobileNav(false)}
+                                                className={`text-[15px] font-bold uppercase tracking-widest underline-offset-8 decoration-2 transition-all block ${link.special ? 'text-[#FFDD00] bg-black p-3 rounded-xl text-center' : 'text-[#24672E] hover:underline'}`}
+                                            >
+                                                {link.name}
+                                            </SLink>
                                         )}
                                     </React.Fragment>
                                 ))}

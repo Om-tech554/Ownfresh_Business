@@ -38,9 +38,18 @@ const AdminOrders = () => {
     const [auditLogs, setAuditLogs] = useState([]);
     const [isLoadingAudit, setIsLoadingAudit] = useState(false);
 
+    const prevOrdersMapRef = React.useRef(null);
+
     useEffect(() => {
-        fetchOrders();
+        fetchOrders(false);
         fetchCarriers();
+
+        // 🔄 Real-time polling for new orders & payment completions every 8 seconds
+        const pollInterval = setInterval(() => {
+            fetchOrders(true);
+        }, 8000);
+
+        return () => clearInterval(pollInterval);
     }, []);
 
     useEffect(() => {
@@ -68,17 +77,64 @@ const AdminOrders = () => {
         }
     };
 
-    const fetchOrders = async () => {
+    const fetchOrders = async (isPolling = false) => {
         try {
             const { data } = await axios.get(`${serverUrl}/api/order/admin/all`, { withCredentials: true });
             if (data.success) {
-                setOrders(data.orders);
+                const newOrders = data.orders || [];
+
+                if (isPolling && prevOrdersMapRef.current) {
+                    newOrders.forEach(o => {
+                        const prev = prevOrdersMapRef.current[o._id];
+                        const orderNum = `#${o._id.substring(o._id.length - 6).toUpperCase()}`;
+                        
+                        if (!prev) {
+                            // New order created!
+                            if (o.PaymentMethod === 'online' && o.paymentStatus === 'completed') {
+                                toast.success(`💳 ONLINE PAYMENT CASHED! Order ${orderNum} (₹${o.totalAmount}) paid & verified via PhonePe!`, {
+                                    duration: 8000,
+                                    style: { borderRadius: "14px", background: "#064e3b", color: "#ecfdf5", border: "1px solid #10b981" }
+                                });
+                            } else if (o.PaymentMethod === 'cod') {
+                                toast.success(`💵 NEW COD ORDER! Order ${orderNum} (₹${o.totalAmount}) placed - Collect Cash on Delivery`, {
+                                    duration: 8000,
+                                    style: { borderRadius: "14px", background: "#78350f", color: "#fef3c7", border: "1px solid #f59e0b" }
+                                });
+                            }
+                        } else if (prev.paymentStatus !== 'completed' && o.paymentStatus === 'completed') {
+                            // Payment transitioned to completed
+                            toast.success(`💳 PAYMENT VERIFIED! Order ${orderNum} (₹${o.totalAmount}) payment status updated to COMPLETED!`, {
+                                duration: 8000,
+                                style: { borderRadius: "14px", background: "#064e3b", color: "#ecfdf5", border: "1px solid #10b981" }
+                            });
+                        }
+                    });
+                }
+
+                const newMap = {};
+                newOrders.forEach(o => { newMap[o._id] = o; });
+                prevOrdersMapRef.current = newMap;
+                setOrders(newOrders);
             }
         } catch (error) {
-            toast.error("Failed to load orders");
+            if (!isPolling) toast.error("Failed to load orders");
         } finally {
             setLoading(false);
         }
+    };
+
+    const handleMarkCodCashReceived = async (orderId, totalAmount) => {
+        const confirmed = await confirm({
+            title: "Confirm Cash Collection",
+            message: `Confirm that ₹${totalAmount} cash has been received for this Cash on Delivery order? This will mark payment status as COMPLETED.`,
+            type: "info",
+            confirmText: "Mark Cash Received 💵",
+            cancelText: "Cancel"
+        });
+        if (!confirmed) return;
+
+        await handleUpdateField(orderId, { paymentStatus: "completed" });
+        toast.success("Payment status updated: COD Cash Received 💵");
     };
 
     const handleUpdateField = async (orderId, updates) => {
@@ -739,6 +795,9 @@ const AdminOrders = () => {
 
     const tabs = [
         { id: "unshipped", label: "Unshipped", count: orders.filter(o => ['pending', 'processing'].includes(o.status)).length },
+        { id: "online_paid", label: "Online Paid 💳", count: orders.filter(o => (o.PaymentMethod === 'online' || o.paymentMethod === 'online') && o.paymentStatus === 'completed').length },
+        { id: "cod_orders", label: "COD Orders 💵", count: orders.filter(o => (o.PaymentMethod === 'cod' || o.paymentMethod === 'cod')).length },
+        { id: "payment_pending", label: "Payment Pending ⏳", count: orders.filter(o => o.paymentStatus === 'pending').length },
         { id: "shipped", label: "Shipped", count: orders.filter(o => o.status === 'shipped').length },
         { id: "delivered", label: "Delivered", count: orders.filter(o => o.status === 'delivered').length },
         { id: "cancelled", label: "Cancelled", count: orders.filter(o => ['cancelled', 'cancellation_requested'].includes(o.status)).length },
@@ -748,6 +807,9 @@ const AdminOrders = () => {
     const getTabFilteredOrders = () => {
         let filtered = orders;
         if (activeTab === "unshipped") filtered = orders.filter(o => ['pending', 'processing'].includes(o.status));
+        else if (activeTab === "online_paid") filtered = orders.filter(o => (o.PaymentMethod === 'online' || o.paymentMethod === 'online') && o.paymentStatus === 'completed');
+        else if (activeTab === "cod_orders") filtered = orders.filter(o => (o.PaymentMethod === 'cod' || o.paymentMethod === 'cod'));
+        else if (activeTab === "payment_pending") filtered = orders.filter(o => o.paymentStatus === 'pending');
         else if (activeTab === "shipped") filtered = orders.filter(o => o.status === 'shipped');
         else if (activeTab === "delivered") filtered = orders.filter(o => o.status === 'delivered');
         else if (activeTab === "cancelled") filtered = orders.filter(o => ['cancelled', 'cancellation_requested'].includes(o.status));
@@ -895,18 +957,42 @@ const AdminOrders = () => {
                                     <td className="px-8 py-6">
                                         <div className="flex flex-col gap-1.5">
                                             <span className="text-xs font-black text-slate-900 font-mono">₹{order.totalAmount}</span>
-                                            <div className="flex flex-wrap gap-2">
-                                                <span className="text-[9px] font-black text-[#24672E] uppercase bg-emerald-50 px-2 py-0.5 rounded border border-emerald-100">
-                                                    {order.items.length} ITEM{order.items.length > 1 ? 'S' : ''}
-                                                </span>
-                                                {order.PaymentMethod === 'cod' ? (
-                                                    <span className="text-[9px] font-black text-orange-700 uppercase bg-orange-100 px-2 py-0.5 rounded border border-orange-200 shadow-sm">
-                                                        💵 COD
+                                            <div className="flex flex-col gap-1">
+                                                <div className="flex flex-wrap gap-1.5 items-center">
+                                                    <span className="text-[9px] font-black text-[#24672E] uppercase bg-emerald-50 px-2 py-0.5 rounded border border-emerald-100">
+                                                        {order.items.length} ITEM{order.items.length > 1 ? 'S' : ''}
                                                     </span>
-                                                ) : (
-                                                    <span className="text-[9px] font-black text-blue-700 uppercase bg-blue-100 px-2 py-0.5 rounded border border-blue-200 shadow-sm">
-                                                        💳 ONLINE
-                                                    </span>
+                                                    {order.PaymentMethod === 'cod' || order.paymentMethod === 'cod' ? (
+                                                        order.paymentStatus === 'completed' ? (
+                                                            <span className="text-[9px] font-black text-emerald-800 uppercase bg-emerald-100 px-2.5 py-0.5 rounded border border-emerald-300 shadow-xs flex items-center gap-1">
+                                                                <CheckCircle2 size={10} /> 💵 COD CASH RECEIVED
+                                                            </span>
+                                                        ) : (
+                                                            <span className="text-[9px] font-black text-amber-800 uppercase bg-amber-100 px-2.5 py-0.5 rounded border border-amber-300 shadow-xs flex items-center gap-1">
+                                                                <Clock size={10} /> 💵 COD PENDING
+                                                            </span>
+                                                        )
+                                                    ) : (
+                                                        order.paymentStatus === 'completed' ? (
+                                                            <span className="text-[9px] font-black text-emerald-800 uppercase bg-emerald-100 px-2.5 py-0.5 rounded border border-emerald-300 shadow-xs flex items-center gap-1">
+                                                                <CheckCircle2 size={10} /> 💳 ONLINE PAID (PhonePe)
+                                                            </span>
+                                                        ) : (
+                                                            <span className="text-[9px] font-black text-amber-800 uppercase bg-amber-100 px-2.5 py-0.5 rounded border border-amber-300 shadow-xs flex items-center gap-1">
+                                                                <Clock size={10} /> 💳 ONLINE PENDING
+                                                            </span>
+                                                        )
+                                                    )}
+                                                </div>
+
+                                                {(order.PaymentMethod === 'cod' || order.paymentMethod === 'cod') && order.paymentStatus !== 'completed' && (
+                                                    <button
+                                                        onClick={() => handleMarkCodCashReceived(order._id, order.totalAmount)}
+                                                        className="mt-1 text-[8px] font-black uppercase tracking-wider px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg shadow-sm transition-colors cursor-pointer w-max"
+                                                        title="Mark Cash Received for COD order"
+                                                    >
+                                                        Mark Cash Received 💵
+                                                    </button>
                                                 )}
                                             </div>
                                         </div>

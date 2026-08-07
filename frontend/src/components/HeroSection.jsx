@@ -11,7 +11,7 @@ const slides = [
     image: "https://res.cloudinary.com/dkhq2wlwg/image/upload/v1774199707/ownfresh_media/caqc2ep5nmgdf9cnknlu.png",
     subtitle: "By Ancient Method",
     title: "STONE PRESSED <br/> <span class='text-[#24672E]'>WHOLE NUT</span> OIL",
-    description: "We produce the integral part of cooking, the Oils'<br/>These Oils are Natural, Real, and of 100% Botanic Purity obtained from the first pressing<br/>We strive to remain loyal to your Tastes and to your Health<br/>After all, Food is Culture, Creation and Craving.",
+    description: "We produce the integral part of cooking, the Oils'<br/>These Oils are Natural, Real, and of Premium Grade Pure Oil Botanic Purity obtained from the first pressing<br/>We strive to remain loyal to your Tastes and to your Health<br/>After all, Food is Culture, Creation and Craving.",
     cta1: "Shop Now",
     cta2: "Learn More"
   },
@@ -21,7 +21,7 @@ const slides = [
     bgColor: "bg-gray-100",
     image: "https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?q=80&w=2000&auto=format&fit=crop",
     subtitle: "Welcome to OwnFresh",
-    title: "100% PURE <br/> <span class='text-[#FFDD00]'>BOTANIC</span> OIL",
+    title: "PREMIUM GRADE PURE OIL <br/> <span class='text-[#FFDD00]'>BOTANIC</span> OIL",
     description: "Natural, Real, and extracted from the earliest pressing. Rooted in tradition, prioritizing your health and taste.",
     cta1: "Explore Range",
     cta2: "Our Story"

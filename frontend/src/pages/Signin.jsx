@@ -45,8 +45,15 @@ const SignIn = () => {
         localStorage.setItem("oil_token", result.data.token);
       }
 
+      const searchParams = new URLSearchParams(window.location.search);
+      const redirectPath = searchParams.get("redirect") || "/";
+
       toast.success("Logged in successfully!");
-      navigate("/"); // Redirect
+      if (result.data?.role === "admin") {
+        navigate("/admin");
+      } else {
+        navigate(redirectPath);
+      }
     } catch (error) {
       const msg = error.response?.data?.message || "Invalid credentials!";
       if (msg.includes("does not exist")) {
@@ -66,6 +73,8 @@ const SignIn = () => {
   // GOOGLE LOGIN
   // -----------------------------------------
   const handleGoogleAuth = async () => {
+    const searchParams = new URLSearchParams(window.location.search);
+    const redirectPath = searchParams.get("redirect") || "/";
     const provider = new GoogleAuthProvider();
 
     try {
@@ -104,10 +113,10 @@ const SignIn = () => {
       window.history.replaceState({}, document.title, window.location.pathname);
       
       toast.success("Logged in with Google!", { duration: 1500 });
-      if (data.role === "admin") {
+      if (data?.role === "admin") {
         navigate("/admin");
       } else {
-        navigate("/");
+        navigate(redirectPath);
       }
     } catch (error) {
       console.error("Google Sign-In Error:", error);

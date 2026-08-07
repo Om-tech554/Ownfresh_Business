@@ -14,7 +14,7 @@ const UserDashboard = () => {
     <div className="w-full">
       <SEO 
         title="Premium Stone Pressed Oils & Organic Products"
-        description="Shop the best 100% natural, stone-pressed oils and organic products at Own Fresh. Pure, healthy, and delivered fresh to your doorstep."
+        description="Shop the best Premium Grade Pure Oil natural, stone-pressed oils and organic products at Own Fresh. Pure, healthy, and delivered fresh to your doorstep."
         keywords="stone pressed oil, pure organic oil, fresh natural oil, healthy cooking oil, buy stone pressed oil online"
         url="/"
       />

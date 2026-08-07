@@ -85,7 +85,7 @@ const SettingsManager = () => {
   return (
     <div className="max-w-4xl mx-auto px-6 py-8 font-sans">
       <Toaster position="bottom-right" />
-      
+
       {/* Header */}
       <div className="flex items-center gap-3 mb-8">
         <div className="w-12 h-12 rounded-2xl bg-[#24672E] text-white flex items-center justify-center shadow-md">

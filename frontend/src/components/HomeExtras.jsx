@@ -20,7 +20,7 @@ export const OurStorySnippet = () => {
                     </h2>
                     <h3 className="text-2xl md:text-3xl font-semibold text-black uppercase mb-6 leading-tight">Pure...Natural...Truly Fresh 😍</h3>
                     <p className="text-gray-700 leading-relaxed mb-6 font-medium text-lg">
-                        Discover the essence of health and taste with our 100% pure, stone-pressed oils. Crafted from the finest soil-grown nuts and seeds, our oils are natural, nutrient-rich, and made to elevate every recipe.
+                        Discover the essence of health and taste with our Premium Grade Pure Oil, stone-pressed oils. Crafted from the finest soil-grown nuts and seeds, our oils are natural, nutrient-rich, and made to elevate every recipe.
 
                         At OwnFresh, we bring you the perfect blend of tradition, purity, and care straight from our heritage to your kitchen.
                     </p>
@@ -62,7 +62,7 @@ export const Gallery = () => {
 
                         <p className="text-gray-700 text-base leading-relaxed mb-6 max-w-lg">
                             Explore our journey, from selecting the finest soil nuts and seeds to
-                            crafting <strong>100% pure, stone-pressed oils</strong>. Witness the
+                            crafting <strong>Premium Grade Pure Oil, stone-pressed oils</strong>. Witness the
                             passion behind our process, the richness of our oils, and the people
                             who make it all possible.
                         </p>
@@ -145,7 +145,7 @@ export const Gallery = () => {
 export const FAQSection = () => {
     const [openIndex, setOpenIndex] = useState(0);
     const faqs = [
-        { q: "What makes OwnFresh oils different from regular cooking oils?", a: "OwnFresh oils are 100% pure, stone-pressed from whole nuts and seeds. We use traditional stone-pressing techniques to retain the natural nutrients, making our oils healthier and more flavorful. No chemicals or additives are used, ensuring the highest quality." },
+        { q: "What makes OwnFresh oils different from regular cooking oils?", a: "OwnFresh oils are Premium Grade Pure Oil, stone-pressed from whole nuts and seeds. We use traditional stone-pressing techniques to retain the natural nutrients, making our oils healthier and more flavorful. No chemicals or additives are used, ensuring the highest quality." },
         { q: "Are OwnFresh oils certified organic?", a: "Yes, all OwnFresh oils are certified organic. We source premium-quality nuts and seeds that are grown without harmful pesticides or chemicals, ensuring that you and your family enjoy healthy, chemical-free cooking." },
         { q: "How does OwnFresh ensure the freshness and purity of its oils?", a: "We carefully monitor every step, from sourcing raw materials to the stone-pressing process. Each batch of oil is produced in small quantities to maintain freshness, and our packaging is designed to preserve the oil’s natural flavor and nutrients." },
         { q: "Can this oil be used for deep frying?", a: "Absolutely. Our oils have a high smoke point and maintain molecular integrity perfectly during frying." }

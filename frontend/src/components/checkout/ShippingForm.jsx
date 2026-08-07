@@ -29,11 +29,11 @@ const schema = z.object({
   fullName: z.string().min(2, 'Full name is required'),
   companyName: z.string().optional(),
   email: z.string().email('Invalid email address'),
-  phone: z.string().min(10, 'Phone number must be at least 10 digits'),
+  phone: z.string().regex(/^[6-9]\d{9}$/, 'Please enter a valid 10-digit mobile number'),
   country: z.string().min(2, 'Country is required'),
   state: z.string().min(2, 'State is required'),
   city: z.string().min(2, 'City is required'),
-  zipCode: z.string().min(4, 'ZIP code is required'),
+  zipCode: z.string().regex(/^[1-9][0-9]{5}$/, 'Please enter a valid 6-digit PIN code'),
   flatNo: z.string().min(1, 'Flat / House / Building No. is required'),
   address: z.string().min(5, 'Street Address is required'),
   landmark: z.string().min(2, 'Landmark / Area is required'),
@@ -79,60 +79,120 @@ const ShippingForm = () => {
   const onSubmit = (data) => {
     const finalPhone = data.phone.startsWith("+") ? data.phone : countryCode + data.phone;
     setShippingDetails({ ...data, phone: finalPhone, latitude: lat, longitude: lon });
+    toast.success("Shipping address & coordinates saved! 🪔 Proceeding to delivery...", {
+      icon: "📍",
+      style: { borderRadius: "14px", background: "#181818", color: "#FFDD00", border: "1px solid #FFDD00" }
+    });
     nextStep();
   };
 
   const fetchAddressFromCoords = async (latitude, longitude) => {
-    try {
-      const res = await axios.get(
-        `https://api.geoapify.com/v1/geocode/reverse?lat=${latitude}&lon=${longitude}&format=json&apiKey=${apiKey}`
-      );
-      const data = res.data.results[0];
-      if (data) {
-        setValue('address', data.address_line1 || data.street || '');
-        setValue('city', data.city || data.county || '');
-        setValue('state', data.state || '');
-        setValue('zipCode', data.postcode || '');
-        setValue('country', data.country || 'India');
+    let success = false;
+    if (apiKey) {
+      try {
+        const res = await axios.get(
+          `https://api.geoapify.com/v1/geocode/reverse?lat=${latitude}&lon=${longitude}&format=json&apiKey=${apiKey}`
+        );
+        const data = res.data.results?.[0];
+        if (data) {
+          setValue('address', data.address_line1 || data.street || data.formatted || '');
+          setValue('city', data.city || data.county || '');
+          setValue('state', data.state || '');
+          setValue('zipCode', data.postcode || '');
+          setValue('country', data.country || 'India');
+          success = true;
+        }
+      } catch (err) {
+        console.warn('Geoapify reverse geocode failed, using fallback...', err.message);
       }
-    } catch (err) {
-      console.error('Reverse geocode error', err);
+    }
+
+    if (!success) {
+      try {
+        const res = await axios.get(
+          `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`
+        );
+        const addr = res.data.address;
+        if (addr) {
+          setValue('address', res.data.display_name?.split(',')[0] || addr.road || addr.suburb || '');
+          setValue('city', addr.city || addr.town || addr.village || addr.county || '');
+          setValue('state', addr.state || '');
+          setValue('zipCode', addr.postcode || '');
+          setValue('country', addr.country || 'India');
+        }
+      } catch (err) {
+        console.error('Reverse geocode error', err);
+      }
     }
   };
 
   const searchLocation = async () => {
     if (!watchAddress?.trim()) return toast.error('Enter an address to search');
-    try {
-      const res = await axios.get(
-        `https://api.geoapify.com/v1/geocode/search?text=${encodeURIComponent(watchAddress)}&format=json&apiKey=${apiKey}`
-      );
-      const results = res.data.results || res.data.features;
-      if (!results || results.length === 0) return toast.error('Location not found');
+    let found = false;
 
-      const place = results[0];
-      const latitude = place.lat || place.geometry?.coordinates?.[1];
-      const longitude = place.lon || place.geometry?.coordinates?.[0];
-
-      if (latitude && longitude) {
-        setLat(latitude);
-        setLon(longitude);
-        toast.success('Location found!');
+    if (apiKey) {
+      try {
+        const res = await axios.get(
+          `https://api.geoapify.com/v1/geocode/search?text=${encodeURIComponent(watchAddress)}&format=json&apiKey=${apiKey}`
+        );
+        const results = res.data.results || res.data.features;
+        if (results && results.length > 0) {
+          const place = results[0];
+          const latitude = place.lat || place.geometry?.coordinates?.[1];
+          const longitude = place.lon || place.geometry?.coordinates?.[0];
+          if (latitude && longitude) {
+            setLat(latitude);
+            setLon(longitude);
+            if (place.city || place.state) {
+              setValue('city', place.city || place.county || '');
+              setValue('state', place.state || '');
+              setValue('zipCode', place.postcode || '');
+              setValue('country', place.country || 'India');
+            }
+            toast.success('Location found on map!');
+            found = true;
+          }
+        }
+      } catch (err) {
+        console.warn('Geoapify search failed, using fallback...', err.message);
       }
-    } catch (err) {
-      toast.error('Search failed');
+    }
+
+    if (!found) {
+      try {
+        const res = await axios.get(
+          `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(watchAddress)}`
+        );
+        if (res.data && res.data.length > 0) {
+          const place = res.data[0];
+          const latitude = parseFloat(place.lat);
+          const longitude = parseFloat(place.lon);
+          setLat(latitude);
+          setLon(longitude);
+          toast.success('Location found on map!');
+          found = true;
+        } else {
+          toast.error('Location not found on map');
+        }
+      } catch (err) {
+        toast.error('Search failed. Please try again.');
+      }
     }
   };
 
   const getCurrentLocation = () => {
     if (!navigator.geolocation) return toast.error('Geolocation not supported');
+    toast.loading('Fetching your location...', { id: 'geo-toast' });
     navigator.geolocation.getCurrentPosition(
       async (pos) => {
-        setLat(pos.coords.latitude);
-        setLon(pos.coords.longitude);
-        await fetchAddressFromCoords(pos.coords.latitude, pos.coords.longitude);
-        toast.success('Location updated!');
+        const newLat = pos.coords.latitude;
+        const newLon = pos.coords.longitude;
+        setLat(newLat);
+        setLon(newLon);
+        await fetchAddressFromCoords(newLat, newLon);
+        toast.success('Location updated to your current position!', { id: 'geo-toast' });
       },
-      () => toast.error('Unable to get location'),
+      () => toast.error('Unable to retrieve your location', { id: 'geo-toast' }),
       { enableHighAccuracy: true }
     );
   };
@@ -334,9 +394,10 @@ const ShippingForm = () => {
         <div className="pt-4 flex justify-end">
           <button
             type="submit"
-            className="px-8 py-4 bg-gray-900 text-white rounded-xl font-black hover:bg-yellow-500 hover:text-black transition-colors shadow-lg flex items-center gap-2"
+            className="w-full sm:w-auto px-10 py-4 bg-gradient-to-r from-amber-500 via-[#FFDD00] to-amber-600 text-slate-950 rounded-xl font-black text-sm uppercase tracking-wider hover:from-yellow-400 hover:to-amber-500 transition-all shadow-lg hover:shadow-yellow-500/30 flex items-center justify-center gap-3 active:scale-95 cursor-pointer"
           >
-            Continue to Delivery
+            <span>Continue to Delivery</span>
+            <span className="text-lg">🪔</span>
           </button>
         </div>
       </form>
