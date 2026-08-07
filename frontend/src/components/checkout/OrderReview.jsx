@@ -133,7 +133,8 @@ const OrderReview = () => {
         orderId: order._id
       }, { 
         headers,
-        withCredentials: true 
+        withCredentials: true,
+        timeout: 45000
       });
 
       if (data.success && data.redirectUrl) {
@@ -166,7 +167,7 @@ const OrderReview = () => {
     }
   };
 
-  const processOrderToDB = async () => {
+  const processOrderToDB = async (retryCount = 0) => {
     try {
       // Get App Check Token if available
       let appCheckToken = "";
@@ -180,7 +181,7 @@ const OrderReview = () => {
       }
       const headers = appCheckToken ? { 'X-Firebase-AppCheck': appCheckToken } : {};
 
-      const { data } = await axios.post(`${serverUrl}/api/order/create`, {
+      const payload = {
         userId: user._id,
         items: cartItems,
         paymentMethod,
@@ -200,9 +201,12 @@ const OrderReview = () => {
         sgst,
         taxAmount: totalTax,
         useWallet: useWallet
-      }, { 
+      };
+
+      const { data } = await axios.post(`${serverUrl}/api/order/create`, payload, { 
         headers,
-        withCredentials: true 
+        withCredentials: true,
+        timeout: 45000 // 45s timeout for Render cold start
       });
 
       if (data.success) {
@@ -214,7 +218,17 @@ const OrderReview = () => {
         return data.order;
       }
     } catch (error) {
-      console.error("Order placement error:", error);
+      console.error(`Order placement error (attempt ${retryCount + 1}):`, error);
+      
+      const isNetworkErr = error.code === 'ECONNABORTED' || error.message.includes('timeout') || error.message.includes('Network Error') || !error.response;
+      
+      if (isNetworkErr && retryCount < 1) {
+        toast.loading("Connecting to server, retrying order placement...", { id: "order-retry" });
+        await new Promise(r => setTimeout(r, 1500));
+        toast.dismiss("order-retry");
+        return await processOrderToDB(retryCount + 1);
+      }
+
       toast.error(error.response?.data?.msg || error.message || "Order placement failed");
       return null;
     } finally {

@@ -237,37 +237,28 @@ export const createOrder = async (req, res) => {
       console.error("Failed to award membership commission coins:", commErr);
     }
 
-    // Send confirmation notifications for COD or zero-amount orders
-    if (isInstantOrder || finalPayableAmount <= 0) {
-      try {
-        const populatedOrder = await Order.findById(order._id).populate("user", "fullName email mobile");
-        if (populatedOrder) {
-          try {
-            await sendOrderConfirmationMail(populatedOrder);
-          } catch (err) {
-            console.error("Error sending order confirmation email for COD/zero-amount order:", err.message);
-          }
-          try {
-            await sendOrderConfirmationSms(populatedOrder);
-          } catch (err) {
-            console.error("Error sending order confirmation SMS for COD/zero-amount order:", err.message);
-          }
-          try {
-            await sendOrderConfirmationWhatsApp(populatedOrder);
-          } catch (err) {
-            console.error("Error sending order confirmation WhatsApp for COD/zero-amount order:", err.message);
-          }
-        }
-      } catch (err) {
-        console.error("Error during COD/zero-amount notifications:", err);
-      }
-    }
-
+    // Respond immediately to client to prevent Render 30-second gateway timeouts & ERR_CONNECTION_RESET
     res.status(201).json({
       success: true,
       msg: "Order placed successfully",
       order,
     });
+
+    // Send confirmation notifications asynchronously in background
+    if (isInstantOrder || finalPayableAmount <= 0) {
+      setImmediate(async () => {
+        try {
+          const populatedOrder = await Order.findById(order._id).populate("user", "fullName email mobile");
+          if (populatedOrder) {
+            sendOrderConfirmationMail(populatedOrder).catch(err => console.error("Error sending order confirmation email:", err.message));
+            sendOrderConfirmationSms(populatedOrder).catch(err => console.error("Error sending order confirmation SMS:", err.message));
+            sendOrderConfirmationWhatsApp(populatedOrder).catch(err => console.error("Error sending order confirmation WhatsApp:", err.message));
+          }
+        } catch (err) {
+          console.error("Error during COD/zero-amount background notifications:", err.message);
+        }
+      });
+    }
 
   } catch (error) {
     console.error("Order creation error details:", error);

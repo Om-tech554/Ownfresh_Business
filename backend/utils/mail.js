@@ -7,6 +7,9 @@ const transporter = nodemailer.createTransport({
   host: "smtp.gmail.com",
   port: 465,
   secure: true,
+  connectionTimeout: 8000, // 8s connection timeout
+  socketTimeout: 8000,     // 8s socket timeout
+  greetingTimeout: 8000,   // 8s greeting timeout
   auth: {
     user: process.env.EMAIL,
     pass: process.env.PASS,
