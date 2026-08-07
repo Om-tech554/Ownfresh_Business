@@ -41,7 +41,7 @@ app.use(helmet({
       defaultSrc: ["'self'"],
       scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'", "https://apis.google.com", "https://www.gstatic.com"],
       frameSrc: ["'self'", "https://api.phonepe.com", "https://api-preprod.phonepe.com", "https://mercury.phonepe.com", "https://mercury-t2.phonepe.com", "https://own-fresh.firebaseapp.com", "https://www.google.com", "https://myownfresh.com", "https://www.myownfresh.com"],
-      connectSrc: ["'self'", "https://api.phonepe.com", "https://api-preprod.phonepe.com", "https://mercury.phonepe.com", "https://api.geoapify.com", "https://*.onrender.com", "https://myownfresh.com", "https://www.myownfresh.com", "https://identitytoolkit.googleapis.com", "https://securetoken.googleapis.com", "https://firebaseinstallations.googleapis.com", "https://content-firebaseappcheck.googleapis.com"],
+      connectSrc: ["'self'", "https://api.phonepe.com", "https://api-preprod.phonepe.com", "https://mercury.phonepe.com", "https://api.geoapify.com", "https://nominatim.openstreetmap.org", "https://api.bigdatacloud.net", "https://ipapi.co", "https://ip-api.com", "https://*.onrender.com", "https://myownfresh.com", "https://www.myownfresh.com", "https://identitytoolkit.googleapis.com", "https://securetoken.googleapis.com", "https://firebaseinstallations.googleapis.com", "https://content-firebaseappcheck.googleapis.com"],
       imgSrc: ["'self'", "data:", "https://res.cloudinary.com", "https://api.qrserver.com", "https://*.tile.openstreetmap.org", "https://lh3.googleusercontent.com"],
     },
   },

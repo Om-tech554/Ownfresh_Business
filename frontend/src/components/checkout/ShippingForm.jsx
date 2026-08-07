@@ -103,7 +103,7 @@ const ShippingForm = () => {
           success = true;
         }
       } catch (err) {
-        console.warn('Geoapify reverse geocode failed, using fallback...', err.message);
+        console.warn('Geoapify reverse geocode failed, using OpenStreetMap fallback...', err.message);
       }
     }
 
@@ -119,9 +119,29 @@ const ShippingForm = () => {
           setValue('state', addr.state || '');
           setValue('zipCode', addr.postcode || '');
           setValue('country', addr.country || 'India');
+          success = true;
         }
       } catch (err) {
-        console.error('Reverse geocode error', err);
+        console.warn('OpenStreetMap reverse geocode error, trying BigDataCloud fallback...', err.message);
+      }
+    }
+
+    if (!success) {
+      try {
+        const res = await axios.get(
+          `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=en`
+        );
+        const data = res.data;
+        if (data) {
+          setValue('address', data.locality || data.city || '');
+          setValue('city', data.city || data.locality || data.principalSubdivision || '');
+          setValue('state', data.principalSubdivision || '');
+          setValue('country', data.countryName || 'India');
+          setValue('zipCode', data.postcode || '');
+          success = true;
+        }
+      } catch (err) {
+        console.error('All reverse geocode services failed', err.message);
       }
     }
   };

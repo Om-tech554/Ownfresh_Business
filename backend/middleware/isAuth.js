@@ -28,7 +28,8 @@ const isAuth = async (req, res, next) => {
     req.userId = user._id;
     next();
   } catch (error) {
-    return res.status(500).json({ message: "Auth error" });
+    console.error("isAuth verification error:", error?.message || error);
+    return res.status(401).json({ message: "Session expired or invalid token. Please log in again.", error: error?.message });
   }
 };
 
