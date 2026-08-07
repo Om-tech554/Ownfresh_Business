@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import Order from "../models/ordermodel.js";
 import User from "../models/usermodel.js";
 import Wallet from "../models/walletModel.js";
@@ -268,6 +269,6 @@ export const createOrder = async (req, res) => {
     if (error.code === 11000) {
       return res.status(400).json({ msg: "Duplicate order ID detected. Please try placing your order again.", error: error.message });
     }
-    res.status(500).json({ msg: "Failed to create order on server", error: error.message });
+    res.status(500).json({ msg: `Failed to create order: ${error.message || "Server Error"}`, error: error.message });
   }
 };
