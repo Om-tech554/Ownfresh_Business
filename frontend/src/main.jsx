@@ -12,7 +12,8 @@ import axios from 'axios'
 // Global Axios Interceptor for Cross-Domain Authentication (myownfresh.com -> onrender.com)
 axios.interceptors.request.use((config) => {
   const token = localStorage.getItem("oil_token");
-  if (token && !config.headers.Authorization) {
+  const isExternalUrl = config.url && (config.url.startsWith("http://") || config.url.startsWith("https://")) && !config.url.includes("onrender.com") && !config.url.includes("localhost") && !config.url.includes(window.location.hostname);
+  if (token && !config.headers.Authorization && !isExternalUrl) {
     config.headers.Authorization = `Bearer ${token}`;
   }
   return config;

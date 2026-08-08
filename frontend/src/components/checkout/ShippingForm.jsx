@@ -90,17 +90,20 @@ const ShippingForm = () => {
     let success = false;
     if (apiKey) {
       try {
-        const res = await axios.get(
+        const res = await fetch(
           `https://api.geoapify.com/v1/geocode/reverse?lat=${latitude}&lon=${longitude}&format=json&apiKey=${apiKey}`
         );
-        const data = res.data.results?.[0];
-        if (data) {
-          setValue('address', data.address_line1 || data.street || data.formatted || '');
-          setValue('city', data.city || data.county || '');
-          setValue('state', data.state || '');
-          setValue('zipCode', data.postcode || '');
-          setValue('country', data.country || 'India');
-          success = true;
+        if (res.ok) {
+          const json = await res.json();
+          const data = json.results?.[0];
+          if (data) {
+            setValue('address', data.address_line1 || data.street || data.formatted || '');
+            setValue('city', data.city || data.county || '');
+            setValue('state', data.state || '');
+            setValue('zipCode', data.postcode || '');
+            setValue('country', data.country || 'India');
+            success = true;
+          }
         }
       } catch (err) {
         console.warn('Geoapify reverse geocode failed, using OpenStreetMap fallback...', err.message);
@@ -109,17 +112,20 @@ const ShippingForm = () => {
 
     if (!success) {
       try {
-        const res = await axios.get(
+        const res = await fetch(
           `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`
         );
-        const addr = res.data.address;
-        if (addr) {
-          setValue('address', res.data.display_name?.split(',')[0] || addr.road || addr.suburb || '');
-          setValue('city', addr.city || addr.town || addr.village || addr.county || '');
-          setValue('state', addr.state || '');
-          setValue('zipCode', addr.postcode || '');
-          setValue('country', addr.country || 'India');
-          success = true;
+        if (res.ok) {
+          const json = await res.json();
+          const addr = json.address;
+          if (addr) {
+            setValue('address', json.display_name?.split(',')[0] || addr.road || addr.suburb || '');
+            setValue('city', addr.city || addr.town || addr.village || addr.county || '');
+            setValue('state', addr.state || '');
+            setValue('zipCode', addr.postcode || '');
+            setValue('country', addr.country || 'India');
+            success = true;
+          }
         }
       } catch (err) {
         console.warn('OpenStreetMap reverse geocode error, trying BigDataCloud fallback...', err.message);
@@ -128,17 +134,19 @@ const ShippingForm = () => {
 
     if (!success) {
       try {
-        const res = await axios.get(
+        const res = await fetch(
           `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=en`
         );
-        const data = res.data;
-        if (data) {
-          setValue('address', data.locality || data.city || '');
-          setValue('city', data.city || data.locality || data.principalSubdivision || '');
-          setValue('state', data.principalSubdivision || '');
-          setValue('country', data.countryName || 'India');
-          setValue('zipCode', data.postcode || '');
-          success = true;
+        if (res.ok) {
+          const data = await res.json();
+          if (data) {
+            setValue('address', data.locality || data.city || '');
+            setValue('city', data.city || data.locality || data.principalSubdivision || '');
+            setValue('state', data.principalSubdivision || '');
+            setValue('country', data.countryName || 'India');
+            setValue('zipCode', data.postcode || '');
+            success = true;
+          }
         }
       } catch (err) {
         console.error('All reverse geocode services failed', err.message);
@@ -148,29 +156,33 @@ const ShippingForm = () => {
 
   const searchLocation = async () => {
     if (!watchAddress?.trim()) return toast.error('Enter an address to search');
+    const toastId = toast.loading('Searching location on map...');
     let found = false;
 
     if (apiKey) {
       try {
-        const res = await axios.get(
+        const res = await fetch(
           `https://api.geoapify.com/v1/geocode/search?text=${encodeURIComponent(watchAddress)}&format=json&apiKey=${apiKey}`
         );
-        const results = res.data.results || res.data.features;
-        if (results && results.length > 0) {
-          const place = results[0];
-          const latitude = place.lat || place.geometry?.coordinates?.[1];
-          const longitude = place.lon || place.geometry?.coordinates?.[0];
-          if (latitude && longitude) {
-            setLat(latitude);
-            setLon(longitude);
-            if (place.city || place.state) {
-              setValue('city', place.city || place.county || '');
-              setValue('state', place.state || '');
-              setValue('zipCode', place.postcode || '');
-              setValue('country', place.country || 'India');
+        if (res.ok) {
+          const json = await res.json();
+          const results = json.results || json.features;
+          if (results && results.length > 0) {
+            const place = results[0];
+            const latitude = place.lat || place.geometry?.coordinates?.[1];
+            const longitude = place.lon || place.geometry?.coordinates?.[0];
+            if (latitude && longitude) {
+              setLat(latitude);
+              setLon(longitude);
+              if (place.city || place.state) {
+                setValue('city', place.city || place.county || '');
+                setValue('state', place.state || '');
+                setValue('zipCode', place.postcode || '');
+                setValue('country', place.country || 'India');
+              }
+              toast.success('Location found on map!', { id: toastId });
+              found = true;
             }
-            toast.success('Location found on map!');
-            found = true;
           }
         }
       } catch (err) {
@@ -180,40 +192,52 @@ const ShippingForm = () => {
 
     if (!found) {
       try {
-        const res = await axios.get(
+        const res = await fetch(
           `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(watchAddress)}`
         );
-        if (res.data && res.data.length > 0) {
-          const place = res.data[0];
-          const latitude = parseFloat(place.lat);
-          const longitude = parseFloat(place.lon);
-          setLat(latitude);
-          setLon(longitude);
-          toast.success('Location found on map!');
-          found = true;
+        if (res.ok) {
+          const data = await res.json();
+          if (data && data.length > 0) {
+            const place = data[0];
+            const latitude = parseFloat(place.lat);
+            const longitude = parseFloat(place.lon);
+            setLat(latitude);
+            setLon(longitude);
+            toast.success('Location found on map!', { id: toastId });
+            found = true;
+          } else {
+            toast.error('Location not found on map', { id: toastId });
+          }
         } else {
-          toast.error('Location not found on map');
+          toast.error('Search failed. Please try again.', { id: toastId });
         }
       } catch (err) {
-        toast.error('Search failed. Please try again.');
+        toast.error('Search failed. Please try again.', { id: toastId });
       }
     }
   };
 
   const getCurrentLocation = () => {
-    if (!navigator.geolocation) return toast.error('Geolocation not supported');
-    toast.loading('Fetching your location...', { id: 'geo-toast' });
+    if (!navigator.geolocation) return toast.error('Geolocation not supported by your browser');
+    const toastId = toast.loading('Fetching your location...');
     navigator.geolocation.getCurrentPosition(
       async (pos) => {
-        const newLat = pos.coords.latitude;
-        const newLon = pos.coords.longitude;
-        setLat(newLat);
-        setLon(newLon);
-        await fetchAddressFromCoords(newLat, newLon);
-        toast.success('Location updated to your current position!', { id: 'geo-toast' });
+        try {
+          const newLat = pos.coords.latitude;
+          const newLon = pos.coords.longitude;
+          setLat(newLat);
+          setLon(newLon);
+          await fetchAddressFromCoords(newLat, newLon);
+          toast.success('Location updated to your current position!', { id: toastId });
+        } catch (err) {
+          toast.success('Location set to your current coordinates!', { id: toastId });
+        }
       },
-      () => toast.error('Unable to retrieve your location', { id: 'geo-toast' }),
-      { enableHighAccuracy: true }
+      (err) => {
+        console.warn('Geolocation Error:', err);
+        toast.error('Unable to retrieve location. Please check browser location permissions.', { id: toastId });
+      },
+      { enableHighAccuracy: false, timeout: 10000, maximumAge: 60000 }
     );
   };
 
@@ -225,13 +249,19 @@ const ShippingForm = () => {
         ref={markerRef}
         position={[lat, lon]}
         eventHandlers={{
-          dragend() {
+          async dragend() {
             const m = markerRef.current;
             if (m) {
               const newPos = m.getLatLng();
               setLat(newPos.lat);
               setLon(newPos.lng);
-              fetchAddressFromCoords(newPos.lat, newPos.lng);
+              const toastId = toast.loading('Updating address from map pin...');
+              try {
+                await fetchAddressFromCoords(newPos.lat, newPos.lng);
+                toast.success('Pin location updated!', { id: toastId });
+              } catch (err) {
+                toast.success('Pin location updated!', { id: toastId });
+              }
             }
           },
         }}

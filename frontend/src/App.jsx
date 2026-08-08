@@ -73,12 +73,33 @@ const App = () => {
       <Toaster
         position="top-center"
         reverseOrder={false}
+        gutter={8}
         toastOptions={{
+          duration: 3500,
+          style: {
+            background: '#181818',
+            color: '#ffffff',
+            borderRadius: '12px',
+            fontSize: '13px',
+            fontWeight: '600',
+            padding: '12px 18px',
+            boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.4)',
+            border: '1px solid rgba(255, 221, 0, 0.3)',
+            zIndex: 99999,
+          },
           success: {
             duration: 3000,
+            iconTheme: {
+              primary: '#FFDD00',
+              secondary: '#000000',
+            },
           },
           error: {
             duration: 4000,
+            iconTheme: {
+              primary: '#ef4444',
+              secondary: '#ffffff',
+            },
           },
         }}
       />

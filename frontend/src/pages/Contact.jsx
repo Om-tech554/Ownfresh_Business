@@ -1,12 +1,26 @@
 import React, { useEffect, useState } from 'react';
 import Navbar from '../components/Navbar';
-import { Phone, Mail, MapPin, Share2 } from 'lucide-react';
+import { Phone, Mail, MapPin, Share2, QrCode, Download } from 'lucide-react';
 import { FaInstagram, FaFacebookF, FaXTwitter, FaYoutube, FaLinkedinIn } from "react-icons/fa6";
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import toast, { Toaster } from 'react-hot-toast';
 import SLink from '../components/SLink';
 import { serverUrl } from '../App';
+import { QRCodeSVG } from 'qrcode.react';
+
+const vCardData = [
+    "BEGIN:VCARD",
+    "VERSION:3.0",
+    "N:Salagare;Monali;;;",
+    "FN:Monali Salagare",
+    "ORG:OWNFRESH AGRO INDUSTRIES",
+    "TEL;TYPE=CELL,VOICE:+918999773438",
+    "EMAIL;TYPE=INTERNET,WORK:ownfresh@ghanioils.com",
+    "URL:https://www.ghanioils.com",
+    "ADR;TYPE=WORK:;;1, Vir Maruti Complex, 30/13 Dhayari;Pune;Maharashtra;411041;India",
+    "END:VCARD"
+].join("\r\n");
 
 const Contact = () => {
     const navigate = useNavigate();
@@ -29,6 +43,19 @@ const Contact = () => {
         } finally {
             setLoading(false);
         }
+    };
+
+    const handleDownloadVCard = () => {
+        const blob = new Blob([vCardData], { type: 'text/vcard;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.setAttribute('download', 'Monali_Salagare_OwnFresh.vcf');
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+        toast.success("Contact card (.vcf) downloaded!");
     };
 
     return (
@@ -68,7 +95,7 @@ const Contact = () => {
                             <Mail className="w-6 h-6 text-[#FFDD00]" />
                         </div>
                         <h3 className="text-sm font-black uppercase tracking-widest text-black mb-2">Email Us</h3>
-                        <a href="mailto:contact@myownfresh.com" className="text-gray-500 font-bold hover:text-black transition-colors cursor-pointer">contact@myownfresh.com</a>
+                        <a href="mailto:ownfresh@ghanioils.com" className="text-gray-500 font-bold hover:text-black transition-colors cursor-pointer">ownfresh@ghanioils.com</a>
                     </div>
 
                     {/* Address block */}
@@ -78,7 +105,7 @@ const Contact = () => {
                         </div>
                         <h3 className="text-sm font-black uppercase tracking-widest text-black mb-2">Location</h3>
                         <p className="text-gray-500 font-bold leading-relaxed text-sm">
-                            Survey No. 30/13, Shed No. 1, Vir Maruti Complex, Dhayari – Narhe Road, Pune.
+                            1, Vir Maruti Complex, 30/13 Dhayari, Pune 411 041. Maharashtra, India.
                         </p>
                     </div>
 
@@ -107,6 +134,68 @@ const Contact = () => {
                         </div>
                     </div>
 
+                </div>
+            </section>
+
+            {/* 3. QR CODE CONTACT CARD SECTION */}
+            <section className="w-full bg-[#FAFAFA] py-16 px-6 md:px-12 border-b border-gray-100">
+                <div className="max-w-4xl mx-auto bg-white border border-gray-200 rounded-3xl p-8 md:p-12 shadow-xl flex flex-col md:flex-row items-center gap-8 md:gap-12">
+                    {/* Left: QR Code Display with frame */}
+                    <div className="flex flex-col items-center shrink-0">
+                        <div className="p-4 bg-white rounded-2xl border-4 border-[#FFDD00] shadow-lg flex items-center justify-center relative group">
+                            <QRCodeSVG 
+                                value={vCardData} 
+                                size={240} 
+                                level="L"
+                                marginSize={2}
+                            />
+                        </div>
+                        <span className="text-[10px] font-black uppercase tracking-widest text-gray-400 mt-3 flex items-center gap-1">
+                            <QrCode className="w-3.5 h-3.5 text-black" /> Scan with Phone Camera
+                        </span>
+                    </div>
+
+                    {/* Right: Contact details summary & Call to Action */}
+                    <div className="flex flex-col text-center md:text-left items-center md:items-start flex-1 w-full">
+                        <div className="flex flex-wrap items-center justify-center md:justify-start gap-2 mb-3">
+                            <span className="bg-black text-[#FFDD00] text-[10px] font-black uppercase tracking-[0.2em] px-3 py-1 rounded-full inline-block">
+                                Digital Business Card
+                            </span>
+                            <span className="text-xs font-black text-black bg-[#FFDD00] px-2.5 py-1 rounded tracking-widest uppercase inline-block">
+                                OWNFRESH AGRO INDUSTRIES
+                            </span>
+                        </div>
+
+                        {/* Team Leadership List */}
+                        <div className="w-full bg-gray-50 border border-gray-100 rounded-2xl p-4 my-2 flex flex-col gap-2.5 text-left">
+                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 border-b border-gray-200/80 pb-2">
+                                <span className="text-sm font-black text-black">Shrikishan Agarwal</span>
+                                <span className="text-[11px] font-bold text-gray-700 bg-white px-2.5 py-0.5 rounded border border-gray-200 w-fit">Head - Research & Development</span>
+                            </div>
+                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 border-b border-gray-200/80 pb-2">
+                                <span className="text-sm font-black text-black">Monali Salagare</span>
+                                <span className="text-[11px] font-bold text-gray-700 bg-white px-2.5 py-0.5 rounded border border-gray-200 w-fit">Head - Food & Quality</span>
+                            </div>
+                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+                                <span className="text-sm font-black text-black">Omkar Chandra</span>
+                                <span className="text-[11px] font-bold text-gray-700 bg-white px-2.5 py-0.5 rounded border border-gray-200 w-fit">Head - Technology</span>
+                            </div>
+                        </div>
+
+                        <p className="text-gray-500 text-xs font-medium leading-relaxed my-2">
+                            Scan this QR code with your smartphone camera to instantly save our official contact details, location, and website straight into your phone's address book.
+                        </p>
+                        
+                        <div className="flex flex-wrap gap-4 items-center justify-center md:justify-start mt-2">
+                            <button
+                                onClick={handleDownloadVCard}
+                                className="inline-flex items-center gap-2 bg-black text-white hover:bg-[#FFDD00] hover:text-black font-black uppercase tracking-wider text-xs px-6 py-3.5 rounded-xl transition-all duration-300 shadow-md hover:scale-[1.02] cursor-pointer"
+                            >
+                                <Download className="w-4 h-4" />
+                                Save Contact (.vcf)
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </section>
 
