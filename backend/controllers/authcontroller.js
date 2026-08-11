@@ -7,6 +7,7 @@ import adminApp from "../config/firebaseAdmin.js"
 import { getAuth } from "firebase-admin/auth"
 import { generateUniqueCode } from "./referralController.js"
 import ReferralCode from "../models/referralCodeModel.js"
+
 //--------------signUp----------------//
 export const signUp = async (req, res) => {
     try {
@@ -16,10 +17,11 @@ export const signUp = async (req, res) => {
             return res.status(400).json({ message: "All fields are required" });
         }
 
-        const existingUser = await User.findOne({ email });
+        const normalizedEmail = email.toLowerCase().trim();
+        const existingUser = await User.findOne({ email: normalizedEmail });
 
         // Enforce OTP verification for company domain
-        if (email.endsWith("@myownfresh.com")) {
+        if (normalizedEmail.endsWith("@myownfresh.com")) {
             if (existingUser && existingUser.isOtpVerified) {
                 return res.status(409).json({ message: "Email already exists" });
             }
@@ -31,16 +33,16 @@ export const signUp = async (req, res) => {
                 user.fullName = fullName;
                 user.password = hashedPassword;
                 user.mobile = mobile;
-                user.role = role || "user";
+                user.role = "user";
                 user.lastIpAddress = req.headers['x-forwarded-for'] || req.ip || req.socket.remoteAddress;
                 user.lastDeviceFingerprint = deviceFingerprint || req.headers['user-agent'];
             } else {
                 user = new User({
                     fullName,
-                    email,
+                    email: normalizedEmail,
                     password: hashedPassword,
                     mobile,
-                    role: role || "user",
+                    role: "user",
                     isOtpVerified: false,
                     lastIpAddress: req.headers['x-forwarded-for'] || req.ip || req.socket.remoteAddress,
                     lastDeviceFingerprint: deviceFingerprint || req.headers['user-agent']
@@ -52,11 +54,11 @@ export const signUp = async (req, res) => {
             user.otpExpires = Date.now() + 5 * 60 * 1000;
             await user.save();
 
-            await sendOtpMail(email, otp);
+            await sendOtpMail(normalizedEmail, otp);
 
             return res.status(200).json({
                 requiresVerification: true,
-                email,
+                email: normalizedEmail,
                 message: "Verification OTP sent to your email"
             });
         }
@@ -70,10 +72,10 @@ export const signUp = async (req, res) => {
 
         const user = await User.create({
             fullName,
-            email,
+            email: normalizedEmail,
             password: hashedPassword,
             mobile,
-            role: role || "user",
+            role: "user", // Default role
             isOtpVerified: true,
             lastIpAddress: req.headers['x-forwarded-for'] || req.ip || req.socket.remoteAddress,
             lastDeviceFingerprint: deviceFingerprint || req.headers['user-agent']
@@ -88,34 +90,48 @@ export const signUp = async (req, res) => {
         user.referralCode = code;
         await user.save();
 
-        return res.status(201).json({
-            message: "Account created successfully",
-            user,
+        const token = await genToken(user._id);
+
+        res.cookie("token", token, {
+            secure: true,
+            sameSite: "none",
+            maxAge: 7 * 24 * 60 * 60 * 1000,
+            httpOnly: true
         });
+
+        const userObj = user.toObject ? user.toObject() : { ...user };
+        userObj.token = token;
+        return res.status(201).json(userObj);
     } catch (error) {
         console.error("Signup error:", error);
         return res.status(500).json({ message: "Signup failed" });
     }
 };
+
 //--------------signIn------------------//
 export const signIn = async (req, res) => {
     try {
         const { email, password } = req.body;
-        const user = await User.findOne({ email });
+        if (!email || !password) {
+            return res.status(400).json({ message: "Email and password are required" });
+        }
+
+        const normalizedEmail = email.toLowerCase().trim();
+        const user = await User.findOne({ email: normalizedEmail });
 
         if (!user) {
-            return res.status(400).json({ message: "⚠️ User does not exist." });
+            return res.status(400).json({ message: "User does not exist. Please sign up." });
         }
 
         if (user.email.endsWith("@myownfresh.com") && !user.isOtpVerified) {
-            return res.status(400).json({ message: "⚠️ Email verification is pending. Please sign up again to verify your email." });
+            return res.status(400).json({ message: "Email verification is pending. Please verify your email." });
         }
 
         const isMatch = await bcrypt.compare(password, user.password);
         if (!isMatch) {
-            return res.status(400).json({ message: "⚠️ incorrect password." });
+            return res.status(400).json({ message: "Incorrect password. Please try again." });
         }
-        const token = await genToken(user._id)
+        const token = await genToken(user._id);
 
         // Update tracking info
         user.lastIpAddress = req.headers['x-forwarded-for'] || req.ip || req.socket.remoteAddress;
@@ -134,9 +150,9 @@ export const signIn = async (req, res) => {
         return res.status(200).json(userObj);
     } catch (error) {
         console.error("SIGN_IN_ERROR:", error.message);
-        return res.status(500).json({ message: "Internal Server Error" })
+        return res.status(500).json({ message: "Internal Server Error" });
     }
-}
+};
 
 //--------------signOut----------------//
 export const signOut = async (req, res) => {
@@ -146,70 +162,85 @@ export const signOut = async (req, res) => {
             sameSite: "none",
             httpOnly: true,
             path: "/"
-        })
-        return res.status(200).json({ message: "signout successfully" })
+        });
+        return res.status(200).json({ message: "Signed out successfully" });
     } catch (error) {
         console.error("SIGN_OUT_ERROR:", error.message);
-        return res.status(500).json({ message: "Internal Server Error" })
+        return res.status(500).json({ message: "Internal Server Error" });
     }
-}
+};
+
 //--------------sendOtp----------------//
 export const sendOtp = async (req, res) => {
     try {
-        const { email } = req.body
-        const user = await User.findOne({ email })
+        const { email } = req.body;
+        if (!email) {
+            return res.status(400).json({ message: "Email is required" });
+        }
+        const normalizedEmail = email.toLowerCase().trim();
+        const user = await User.findOne({ email: normalizedEmail });
         if (!user) {
-            return res.status(400).json({ message: "⚠️ User does not exists." })
+            return res.status(400).json({ message: "User with this email does not exist." });
         }
         const otp = Math.floor(100000 + Math.random() * 900000).toString();
-        user.resetOtp = otp
-        user.otpExpires = Date.now() + 5 * 60 * 1000
-        user.isOtpVerified = false
-        await user.save()
-        await sendOtpMail(email, otp)
-        return res.status(200).json({ message: "Otp sent successfully" })
+        user.resetOtp = otp;
+        user.otpExpires = Date.now() + 5 * 60 * 1000;
+        user.isOtpVerified = false;
+        await user.save();
+        await sendOtpMail(normalizedEmail, otp);
+        return res.status(200).json({ message: "OTP sent successfully to your email" });
     } catch (error) {
         console.error("SEND_OTP_ERROR:", error.message);
-        return res.status(500).json({ message: "Internal Server Error" })
+        return res.status(500).json({ message: "Internal Server Error" });
     }
-}
+};
+
 //--------------VerifyOtp-------------//
 export const verifyOtp = async (req, res) => {
     try {
-        const { email, otp } = req.body
-        const user = await User.findOne({ email })
-        if (!user || user.resetOtp != otp || user.otpExpires < Date.now()) {
-            return res.status(400).json({ message: "invalid Otp/expired Otp" })
+        const { email, otp } = req.body;
+        if (!email || !otp) {
+            return res.status(400).json({ message: "Email and OTP are required" });
         }
-        user.isOtpVerified = true
-        user.resetOtp = undefined
-        user.otpExpires = undefined
-        await user.save()
-        return res.status(200).json({ message: "Otp verfied successfully" })
+        const normalizedEmail = email.toLowerCase().trim();
+        const user = await User.findOne({ email: normalizedEmail });
+        if (!user || user.resetOtp !== otp || user.otpExpires < Date.now()) {
+            return res.status(400).json({ message: "Invalid or expired OTP" });
+        }
+        user.isOtpVerified = true;
+        user.resetOtp = undefined;
+        user.otpExpires = undefined;
+        await user.save();
+        return res.status(200).json({ message: "OTP verified successfully" });
     } catch (error) {
         console.error("VERIFY_OTP_ERROR:", error.message);
-        return res.status(500).json({ message: "Internal Server Error" })
+        return res.status(500).json({ message: "Internal Server Error" });
     }
-}
-//--------------restPassword---------//
+};
+
+//--------------resetPassword---------//
 export const resetPassword = async (req, res) => {
     try {
-        const { email, password } = req.body
-        const user = await User.findOne({ email })
-        if (!user || !user.isOtpVerified) {
-            return res.status(400).json({ message: "⚠️ Otp verification required..." })
+        const { email, password } = req.body;
+        if (!email || !password) {
+            return res.status(400).json({ message: "Email and new password are required" });
         }
-        const hashedPassword = await bcrypt.hash(password, 10)
-        user.password = hashedPassword
-        user.isOtpVerified = false
-        await user.save()
-        return res.status(200).json({ message: "Password reset successfully" })
+        const normalizedEmail = email.toLowerCase().trim();
+        const user = await User.findOne({ email: normalizedEmail });
+        if (!user || !user.isOtpVerified) {
+            return res.status(400).json({ message: "OTP verification is required before resetting password" });
+        }
+        const hashedPassword = await bcrypt.hash(password, 10);
+        user.password = hashedPassword;
+        user.isOtpVerified = false;
+        await user.save();
+        return res.status(200).json({ message: "Password reset successfully" });
 
     } catch (error) {
         console.error("RESET_PASSWORD_ERROR:", error.message);
-        return res.status(500).json({ message: "Internal Server Error" })
+        return res.status(500).json({ message: "Internal Server Error" });
     }
-}
+};
 
 export const googleAuth = async (req, res) => {
     try {
@@ -228,18 +259,19 @@ export const googleAuth = async (req, res) => {
         }
 
         const { email, name: fullName } = decodedToken;
+        const normalizedEmail = email.toLowerCase().trim();
 
-        let user = await User.findOne({ email });
+        let user = await User.findOne({ email: normalizedEmail });
 
         if (!user) {
-            const generatedUserName = email.split('@')[0] + Math.random().toString(36).substring(2, 6);
+            const generatedUserName = normalizedEmail.split('@')[0] + Math.random().toString(36).substring(2, 6);
 
             user = await User.create({
-                fullName,
+                fullName: fullName || "Google User",
                 userName: generatedUserName,
-                email,
+                email: normalizedEmail,
                 mobile: mobile || undefined,
-                role: role || "user",
+                role: "user",
                 lastIpAddress: req.headers['x-forwarded-for'] || req.ip || req.socket.remoteAddress,
                 lastDeviceFingerprint: deviceFingerprint || req.headers['user-agent']
             });
@@ -248,7 +280,7 @@ export const googleAuth = async (req, res) => {
             await Wallet.create({ userId: user._id, balance: 0, totalEarned: 0, totalRedeemed: 0 });
 
             // Auto-generate Referral Code
-            const code = await generateUniqueCode(fullName);
+            const code = await generateUniqueCode(fullName || normalizedEmail.split('@')[0]);
             await new ReferralCode({ userId: user._id, code }).save();
             user.referralCode = code;
             await user.save();
@@ -276,7 +308,11 @@ export const googleAuth = async (req, res) => {
 export const verifySignupOtp = async (req, res) => {
     try {
         const { email, otp } = req.body;
-        const user = await User.findOne({ email });
+        if (!email || !otp) {
+            return res.status(400).json({ message: "Email and OTP are required" });
+        }
+        const normalizedEmail = email.toLowerCase().trim();
+        const user = await User.findOne({ email: normalizedEmail });
         if (!user) {
             return res.status(404).json({ message: "User not found" });
         }
@@ -329,7 +365,11 @@ export const verifySignupOtp = async (req, res) => {
 export const resendSignupOtp = async (req, res) => {
     try {
         const { email } = req.body;
-        const user = await User.findOne({ email });
+        if (!email) {
+            return res.status(400).json({ message: "Email is required" });
+        }
+        const normalizedEmail = email.toLowerCase().trim();
+        const user = await User.findOne({ email: normalizedEmail });
         if (!user) {
             return res.status(404).json({ message: "User not found" });
         }
@@ -342,12 +382,10 @@ export const resendSignupOtp = async (req, res) => {
         user.otpExpires = Date.now() + 5 * 60 * 1000;
         await user.save();
 
-        await sendOtpMail(email, otp);
+        await sendOtpMail(normalizedEmail, otp);
         return res.status(200).json({ message: "OTP sent successfully" });
     } catch (error) {
         console.error("Resend signup OTP error:", error);
         return res.status(500).json({ message: "Failed to resend OTP" });
     }
 };
-
-

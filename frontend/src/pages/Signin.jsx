@@ -56,14 +56,7 @@ const SignIn = () => {
       }
     } catch (error) {
       const msg = error.response?.data?.message || "Invalid credentials!";
-      if (msg.includes("does not exist")) {
-        toast.error("Account does not exist. Redirecting to sign up...");
-        setTimeout(() => {
-          navigate("/signup");
-        }, 1500);
-      } else {
-        toast.error(msg);
-      }
+      toast.error(msg);
     } finally {
       setLoading(false);
     }
