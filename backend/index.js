@@ -27,6 +27,7 @@ import requestIdMiddleware from "./middleware/requestIdMiddleware.js";
 import referralRoutes from "./routes/referralRoutes.js";
 import settingsRoutes from "./routes/settingsRoutes.js";
 import membershipRoutes from "./routes/membershipRoutes.js";
+import sitemapRoutes from "./routes/sitemapRoutes.js";
 
 import { deactivateAllExistingMembers } from "./controllers/membershipController.js";
 
@@ -96,6 +97,7 @@ app.use("/api/inventory", inventoryRoutes);
 app.use("/api/fulfillment", fulfillmentRoutes);
 app.use("/api/settings", settingsRoutes);
 app.use("/api/membership", membershipRoutes);
+app.use("/", sitemapRoutes);
 
 // --- STATIC FILES & SPA ROUTING FIX ---
 const __frontendDir = path.join(__dirname, "../frontend/dist");
