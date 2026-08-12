@@ -7,6 +7,7 @@ import { OurStorySnippet, Gallery, FAQSection } from './HomeExtras';
 import PartnersSection from './PartnersSection';
 import FeaturesHighlights from './FeaturesHighlights';
 import ContactSection from './ContactSection';
+import Testimonials from './Testimonials';
 import SEO from './SEO';
 
 const UserDashboard = () => {
@@ -26,6 +27,7 @@ const UserDashboard = () => {
 
       {/* Inserted Homepage Extras replicating myownfresh.com */}
       <OurStorySnippet />
+      <Testimonials />
       <Gallery />
       <FAQSection />
 

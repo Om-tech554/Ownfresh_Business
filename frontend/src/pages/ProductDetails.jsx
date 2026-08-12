@@ -8,6 +8,7 @@ import { addToCart } from "../redux/userslice";
 import Navbar from "../components/Navbar";
 import SLink from "../components/SLink";
 import SEO from "../components/SEO";
+import ProductReviews from "../components/ProductReviews";
 
 const ProductDetails = () => {
   const { id } = useParams();
@@ -239,8 +240,13 @@ const ProductDetails = () => {
           </div>
         </div>
 
+        {/* PRODUCT REVIEWS SECTION */}
+        <div className="mt-16">
+          <ProductReviews productId={product._id} productName={product.name} />
+        </div>
+
         {/* RECENT PRODUCTS */}
-        <div className="mt-24">
+        <div className="mt-20">
           <h2 className="text-3xl font-bold mb-8 text-slate-900">
             Recently Added Oils
           </h2>

@@ -6,7 +6,7 @@ import BlogList from './admin/BlogList';
 import AdminOrders from './admin/AdminOrders';
 import AdminCustomers from './admin/AdminCustomers';
 import { useSelector } from 'react-redux';
-import { Package, BookOpen, Ticket, ShoppingCart, Layers, Users, Image as ImageIcon, Settings, BarChart3, Crown } from "lucide-react";
+import { Package, BookOpen, Ticket, ShoppingCart, Layers, Users, Image as ImageIcon, Settings, BarChart3, Crown, Star } from "lucide-react";
 import CouponManager from './admin/CouponManager';
 import CategoryManager from './admin/CategoryManager';
 import GalleryManager from './admin/GalleryManager';
@@ -14,6 +14,7 @@ import InventoryManager from './admin/InventoryManager';
 import ReferralManager from './admin/ReferralManager';
 import SettingsManager from './admin/SettingsManager';
 import PrimeMembershipManager from './admin/PrimeMembershipManager';
+import ReviewManager from './admin/ReviewManager';
 
 function AdminDashboard() {
   const userData = useSelector((state) => state.user.userData);
@@ -163,6 +164,19 @@ function AdminDashboard() {
 
           {userData?.role === "admin" && (
             <button
+              onClick={() => setActiveTab("reviews")}
+              className={`flex items-center gap-2 px-6 py-2.5 rounded-xl font-bold transition-all whitespace-nowrap ${activeTab === "reviews"
+                  ? "bg-[#1E971D] text-white shadow-lg shadow-[#1E971D]/20"
+                  : "text-slate-500 hover:bg-slate-50"
+                }`}
+            >
+              <Star className="w-4 h-4 text-[#F9DD19]" />
+              Reviews
+            </button>
+          )}
+
+          {userData?.role === "admin" && (
+            <button
               onClick={() => setActiveTab("partners")}
               className={`flex items-center gap-2 px-6 py-2.5 rounded-xl font-bold transition-all whitespace-nowrap ${activeTab === "partners"
                   ? "bg-[#1E971D] text-white shadow-lg shadow-[#1E971D]/20"
@@ -188,6 +202,7 @@ function AdminDashboard() {
         {activeTab === "customers" && userData?.role === "admin" && <AdminCustomers />}
         {activeTab === "prime" && userData?.role === "admin" && <PrimeMembershipManager />}
         {activeTab === "partners" && userData?.role === "admin" && <ReferralManager />}
+        {activeTab === "reviews" && userData?.role === "admin" && <ReviewManager />}
         {activeTab === "settings" && userData?.role === "admin" && <SettingsManager />}
       </div>
     </div>

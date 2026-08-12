@@ -28,6 +28,7 @@ import referralRoutes from "./routes/referralRoutes.js";
 import settingsRoutes from "./routes/settingsRoutes.js";
 import membershipRoutes from "./routes/membershipRoutes.js";
 import sitemapRoutes from "./routes/sitemapRoutes.js";
+import reviewRoutes from "./routes/reviewRoutes.js";
 
 import { deactivateAllExistingMembers } from "./controllers/membershipController.js";
 
@@ -97,6 +98,7 @@ app.use("/api/inventory", inventoryRoutes);
 app.use("/api/fulfillment", fulfillmentRoutes);
 app.use("/api/settings", settingsRoutes);
 app.use("/api/membership", membershipRoutes);
+app.use("/api/review", reviewRoutes);
 app.use("/", sitemapRoutes);
 
 // --- STATIC FILES & SPA ROUTING FIX ---
@@ -113,8 +115,19 @@ app.use((req, res) => {
 });
 
 app.listen(port, async () => {
-    await connectDB()
-    initCronJobs() // 🚀 Initialize Background Sync
-    // await deactivateAllExistingMembers(); // 🚀 Commented out to prevent deactivating members on every server restart
+    await connectDB();
+    initCronJobs(); // 🚀 Initialize Background Sync
+
+    // ⚡ Keep-Alive Ping to Prevent Render Cold Start Sleep
+    const pingTarget = process.env.BACKEND_URL || "https://myownfresh.com/api/category/all";
+    setInterval(async () => {
+        try {
+            await axios.get(pingTarget);
+            console.log("⚡ Keep-alive ping executed to prevent Render cold start");
+        } catch (e) {
+            // Keep alive fail silent
+        }
+    }, 9 * 60 * 1000); // Self-ping every 9 minutes
+
     console.log(`🚀 Server running on port ${port}`);
 })
