@@ -37,7 +37,7 @@ export const getAllUsers = async (req, res) => {
 export const updateUser = async (req, res) => {
   try {
     const { id } = req.params;
-    const { role, wallet, mobile } = req.body;
+    const { role, wallet, mobile, clientType } = req.body;
 
     const user = await User.findById(id);
     if (!user) {
@@ -49,6 +49,7 @@ export const updateUser = async (req, res) => {
     if (mobile !== undefined) {
       user.mobile = (mobile === null || mobile === "") ? undefined : mobile;
     }
+    if (clientType) user.clientType = clientType;
 
     await user.save();
 
@@ -82,7 +83,7 @@ export const deleteUser = async (req, res) => {
 // Admin: Manually Create a Single Customer Profile
 export const createCustomer = async (req, res) => {
   try {
-    const { fullName, email, mobile, password, role, wallet } = req.body;
+    const { fullName, email, mobile, password, role, wallet, clientType } = req.body;
 
     if (!fullName || (!email && !mobile)) {
       return res.status(400).json({
@@ -117,7 +118,8 @@ export const createCustomer = async (req, res) => {
       password: hashedPassword,
       role: role || "user",
       wallet: wallet ? Number(wallet) : 0,
-      isMember: false
+      isMember: false,
+      clientType: clientType || "Non-GST"
     });
 
     const userObj = newUser.toObject();

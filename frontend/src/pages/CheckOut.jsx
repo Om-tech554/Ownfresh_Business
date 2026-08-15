@@ -78,6 +78,18 @@ const CheckoutFlow = () => {
   return (
     <div className="min-h-screen bg-gray-50 py-10 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
+        
+        {/* LOGO */}
+        <div className="flex justify-center mb-6">
+          <a href="/">
+            <img
+              src="https://res.cloudinary.com/dkhq2wlwg/image/upload/v1774962822/ownfresh_media/ndxvmcpisomjzsghrfjs.png"
+              alt="OwnFresh Logo"
+              className="h-10 md:h-12 w-auto object-contain cursor-pointer transition-transform duration-300 hover:scale-105"
+            />
+          </a>
+        </div>
+
         <h1 className="text-3xl md:text-4xl font-black text-center text-gray-900 uppercase tracking-tight mb-2">Secure Checkout</h1>
         <div className="w-16 h-1.5 bg-yellow-500 mx-auto rounded-full mb-10" />
 

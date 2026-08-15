@@ -224,7 +224,8 @@ export const createManualOrder = async (req, res) => {
       couponCode = "",
       adminNotes = "",
       transactionId = "",
-      deductStock = true
+      deductStock = true,
+      clientType = "Non-GST"
     } = req.body;
 
     if (!customerDetails?.fullName || (!customerDetails?.mobile && !customerDetails?.email)) {
@@ -258,21 +259,53 @@ export const createManualOrder = async (req, res) => {
         mobile: tempMobile,
         password: "ManualOrderPassword123!",
         role: "user",
-        isOtpVerified: true
+        isOtpVerified: true,
+        clientType: clientType || "Non-GST"
       });
+    } else {
+      // Sync clientType if mismatch
+      if (clientType && user.clientType !== clientType) {
+        user.clientType = clientType;
+        await user.save();
+      }
     }
 
     // 2. Compute Total Amount
     const itemsSubtotal = items.reduce((acc, item) => acc + (Number(item.price) || 0) * (Number(item.quantity) || 1), 0);
-    const finalTotalAmount = Math.max(0, itemsSubtotal - Number(discountAmount || 0) + Number(taxAmount || 0));
+    
+    // Tax / GST calculation
+    const isGST = clientType === "GST";
+    let finalCgst = Number(cgst) || 0;
+    let finalSgst = Number(sgst) || 0;
+    let finalTaxAmount = Number(taxAmount) || 0;
 
-    // 3. Generate Sequential Custom Order ID (e.g. MOF/206/0036)
+    if (isGST) {
+      // Compute standard 5% tax (2.5% CGST + 2.5% SGST) from items subtotal minus discount if not provided
+      const taxable = Math.max(0, itemsSubtotal - Number(discountAmount || 0));
+      if (finalCgst === 0 && finalSgst === 0) {
+        finalCgst = taxable * 0.025;
+        finalSgst = taxable * 0.025;
+        finalTaxAmount = finalCgst + finalSgst;
+      }
+    }
+
+    const finalTotalAmount = Math.max(0, itemsSubtotal - Number(discountAmount || 0) + Number(finalTaxAmount || 0));
+
+    // 3. Generate Sequential Custom Order ID (GST/ or MOF/ based on clientType)
     const orderDateObj = orderDate ? new Date(orderDate) : new Date();
     const year = orderDateObj.getFullYear();
     const yearCode = `${year.toString().slice(0, 2)}${year.toString().slice(-1)}`;
-    const orderCount = await Order.countDocuments();
+    const prefix = isGST ? "GST" : "MOF";
+    const orderCount = await Order.countDocuments({ customOrderId: new RegExp(`^${prefix}/`) });
     const sequenceStr = String(orderCount + 1).padStart(4, "0");
-    const customOrderId = `MOF/${yearCode}/${sequenceStr}`;
+    let customOrderId = `${prefix}/${yearCode}/${sequenceStr}`;
+
+    let attempts = 0;
+    while ((await Order.exists({ customOrderId })) && attempts < 50) {
+      const nextSeqStr = String(orderCount + 1 + attempts + 1).padStart(4, "0");
+      customOrderId = `${prefix}/${yearCode}/${nextSeqStr}`;
+      attempts += 1;
+    }
 
     // Map Order Items
     const orderItems = items.map((item) => ({
@@ -301,12 +334,13 @@ export const createManualOrder = async (req, res) => {
       },
       totalAmount: finalTotalAmount,
       discountAmount: Number(discountAmount) || 0,
-      taxAmount: Number(taxAmount) || 0,
-      cgst: Number(cgst) || 0,
-      sgst: Number(sgst) || 0,
+      taxAmount: finalTaxAmount,
+      cgst: finalCgst,
+      sgst: finalSgst,
       couponCode: couponCode || "",
       adminNotes: adminNotes || "Manual Entry for Offline/WhatsApp Order",
       transactionId: transactionId || undefined,
+      clientType: clientType || "Non-GST",
       createdAt: orderDateObj,
       updatedAt: orderDateObj
     };

@@ -148,6 +148,11 @@ const orderSchema = new mongoose.Schema({
   deletedByUser: {
     type: Boolean,
     default: false
+  },
+  clientType: {
+    type: String,
+    enum: ["GST", "Non-GST"],
+    default: "Non-GST"
   }
 }, { timestamps: true });
 

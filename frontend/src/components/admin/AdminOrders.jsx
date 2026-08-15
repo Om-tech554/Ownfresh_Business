@@ -612,8 +612,8 @@ const AdminOrders = () => {
                         </div>
                     </div>
                     <div class="slip-label">
-                        <div class="slip-title">Packing Slip</div>
-                        <div class="slip-meta">Order ID: <strong>${order._id?.toUpperCase?.() || order.orderId || 'N/A'}</strong></div>
+                        <div class="slip-title">${order.clientType === "GST" ? "Tax Invoice" : "Packing Slip"}</div>
+                        <div class="slip-meta">Order ID: <strong>${order.customOrderId || order._id?.toUpperCase?.() || 'N/A'}</strong></div>
                         <div class="slip-meta">Date: <strong>${new Date(order.createdAt).toLocaleDateString('en-IN', { day:'2-digit', month:'short', year:'numeric' })}</strong></div>
                         <div class="slip-meta" style="margin-top:6px;">
                             <span class="badge ${isCOD ? 'badge-cod' : 'badge-online'}">
@@ -658,7 +658,7 @@ const AdminOrders = () => {
                         <div class="address-box-title" style="color:#6b7280;">🏭 Shipped From</div>
                         <div class="address-name">OwnFresh Agro Industries</div>
                         <div class="address-line">Pune, Maharashtra</div>
-                        <div class="address-line">GSTIN: —</div>
+                        <div class="address-line">${order.clientType === "GST" ? "GSTIN: 27AAFCO4581C1ZX" : "GSTIN: —"}</div>
                         <div class="address-line" style="margin-top:4px;">contact@myownfresh.com</div>
                     </div>
                 </div>
@@ -702,8 +702,18 @@ const AdminOrders = () => {
                             <span class="label">Discount</span>
                             <span class="discount-val">− ₹${discount.toLocaleString('en-IN')}</span>
                         </div>` : ''}
+                        ${order.clientType === "GST" ? `
                         <div class="totals-line">
-                            <span class="label">Delivery</span>
+                            <span class="label">CGST (2.5%)</span>
+                            <span>₹${(order.cgst || ((subtotal - discount) * 0.025)).toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
+                        </div>
+                        <div class="totals-line">
+                            <span class="label">SGST (2.5%)</span>
+                            <span>₹${(order.sgst || ((subtotal - discount) * 0.025)).toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
+                        </div>
+                        ` : ''}
+                        <div class="totals-line">
+                            <span class="label">Delivery / Extra</span>
                             <span>${deliveryCharge === 0 ? '<span style="color:#16a34a;font-weight:600;">FREE</span>' : '₹' + deliveryCharge.toLocaleString('en-IN')}</span>
                         </div>
                         <div class="totals-line grand">
@@ -892,9 +902,10 @@ const AdminOrders = () => {
                         </button>
                         <button
                             onClick={() => setIsManualOrderModalOpen(true)}
-                            className="bg-[#EFDB27] text-black font-black uppercase text-[10px] tracking-widest px-5 py-2.5 rounded-2xl hover:bg-slate-900 hover:text-white transition-all shadow-xs flex items-center gap-1.5 shrink-0 cursor-pointer"
+                            className="bg-[#EFDB27] text-black font-black uppercase text-[10px] tracking-widest px-4 py-2.5 sm:px-5 sm:py-2.5 rounded-2xl hover:bg-slate-900 hover:text-white transition-all shadow-xs flex items-center gap-1.5 shrink-0 cursor-pointer"
+                            title="Create Manual Order"
                         >
-                            <Plus size={14} /> Create Manual Order
+                            <Plus size={14} /> <span className="hidden sm:inline">Create Manual Order</span>
                         </button>
                     </div>
                 </div>

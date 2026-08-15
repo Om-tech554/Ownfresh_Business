@@ -15,22 +15,23 @@ import CommissionLog from "../models/commissionLogModel.js";
 
 
 // Helper function to generate unique custom order ID without duplicate key collisions
-const generateUniqueCustomOrderId = async () => {
+const generateUniqueCustomOrderId = async (clientType = "Non-GST") => {
   const year = new Date().getFullYear();
   const yearCode = `${year.toString().slice(0, 2)}${year.toString().slice(-1)}`;
-  let count = await Order.countDocuments();
+  const prefix = clientType === "GST" ? "GST" : "MOF";
+  let count = await Order.countDocuments({ customOrderId: new RegExp(`^${prefix}/`) });
   let sequence = count + 1;
-  let customId = `MOF/${yearCode}/${String(sequence).padStart(4, "0")}`;
+  let customId = `${prefix}/${yearCode}/${String(sequence).padStart(4, "0")}`;
   
   let attempts = 0;
   while ((await Order.exists({ customOrderId: customId })) && attempts < 50) {
     sequence += 1;
-    customId = `MOF/${yearCode}/${String(sequence).padStart(4, "0")}`;
+    customId = `${prefix}/${yearCode}/${String(sequence).padStart(4, "0")}`;
     attempts += 1;
   }
   
   if (attempts >= 50) {
-    customId = `MOF/${yearCode}/${Date.now().toString().slice(-6)}`;
+    customId = `${prefix}/${yearCode}/${Date.now().toString().slice(-6)}`;
   }
   return customId;
 };
@@ -234,7 +235,7 @@ export const createOrder = async (req, res) => {
     });
 
     // Generate unique custom order ID without collisions
-    const customOrderId = await generateUniqueCustomOrderId();
+    const customOrderId = await generateUniqueCustomOrderId(user?.clientType || "Non-GST");
 
     // 5) Create Order logic
     const order = await Order.create({
@@ -256,7 +257,8 @@ export const createOrder = async (req, res) => {
       taxAmount: Number(taxAmount) || 0,
       phonePeTransactionId: phonePeTransactionId || undefined,
       walletDeductedAmount: walletDeducted,
-      commissionCoinsDeductedAmount: coinsDeducted
+      commissionCoinsDeductedAmount: coinsDeducted,
+      clientType: user?.clientType || "Non-GST"
     });
 
     // Create Referral Usage record and update User if referral code is applied

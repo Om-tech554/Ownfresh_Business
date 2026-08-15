@@ -26,7 +26,8 @@ const AdminCustomers = () => {
         mobile: "",
         password: "OwnFresh@123",
         role: "user",
-        wallet: 0
+        wallet: 0,
+        clientType: "Non-GST"
     });
     const [csvParsedRecords, setCsvParsedRecords] = useState([]);
     const [csvFileName, setCsvFileName] = useState("");
@@ -67,7 +68,7 @@ const AdminCustomers = () => {
                 toast.success("Customer profile created successfully");
                 setCustomers([data.user, ...customers]);
                 setIsAddModalOpen(false);
-                setAddForm({ fullName: "", email: "", mobile: "", password: "OwnFresh@123", role: "user", wallet: 0 });
+                setAddForm({ fullName: "", email: "", mobile: "", password: "OwnFresh@123", role: "user", wallet: 0, clientType: "Non-GST" });
             }
         } catch (error) {
             toast.error(error.response?.data?.message || "Failed to create customer");
@@ -178,7 +179,8 @@ const AdminCustomers = () => {
             role: customer.role || "user",
             wallet: customer.wallet || 0,
             mobile: customer.mobile || "",
-            referralCode: customer.referralCode || "N/A"
+            referralCode: customer.referralCode || "N/A",
+            clientType: customer.clientType || "Non-GST"
         });
         setIsEditModalOpen(true);
     };
@@ -322,7 +324,12 @@ const AdminCustomers = () => {
                                             <div>
                                                 <p className="text-xs font-black text-slate-900 uppercase">{customer.fullName || "N/A"}</p>
                                                 <p className="text-[10px] font-bold text-slate-400 font-mono mt-1">ID: {customer._id.substring(18)}</p>
-                                                <p className="text-[10px] font-bold text-[#24672E] font-mono mt-1">REF: {customer.referralCode || "N/A"}</p>
+                                                <div className="flex flex-wrap items-center gap-1.5 mt-1 font-mono text-[9px] font-bold">
+                                                    <span className={`px-1.5 py-0.5 rounded text-[8px] font-black uppercase ${customer.clientType === "GST" ? "bg-purple-100 text-purple-700 border border-purple-200" : "bg-slate-100 text-slate-500 border border-slate-200"}`}>
+                                                        {customer.clientType || "Non-GST"}
+                                                    </span>
+                                                    {customer.referralCode && <span className="text-[#24672E]">REF: {customer.referralCode}</span>}
+                                                </div>
                                             </div>
                                         </div>
                                     </td>
@@ -459,6 +466,18 @@ const AdminCustomers = () => {
                                     value={editForm.referralCode}
                                 />
                             </div>
+
+                            <div>
+                                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Client Type (GST / Non-GST)</label>
+                                <select
+                                    className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none font-bold text-xs focus:border-[#24672E] transition-all cursor-pointer"
+                                    value={editForm.clientType}
+                                    onChange={(e) => setEditForm({ ...editForm, clientType: e.target.value })}
+                                >
+                                    <option value="Non-GST">Non-GST</option>
+                                    <option value="GST">GST Registered</option>
+                                </select>
+                            </div>
                         </div>
 
                         <div className="px-6 py-4 border-t border-slate-100 bg-slate-50/50 flex justify-end gap-3">
@@ -572,6 +591,22 @@ const AdminCustomers = () => {
                                             value={addForm.wallet}
                                             onChange={(e) => setAddForm({ ...addForm, wallet: Number(e.target.value) })}
                                         />
+                                    </div>
+                                </div>
+
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1.5">
+                                            Client Type (GST / Non-GST)
+                                        </label>
+                                        <select
+                                            className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none font-bold text-xs focus:border-[#24672E] transition-all cursor-pointer"
+                                            value={addForm.clientType}
+                                            onChange={(e) => setAddForm({ ...addForm, clientType: e.target.value })}
+                                        >
+                                            <option value="Non-GST">Non-GST</option>
+                                            <option value="GST">GST Registered</option>
+                                        </select>
                                     </div>
                                 </div>
 

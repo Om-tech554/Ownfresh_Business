@@ -89,6 +89,11 @@ const userSchema = new mongoose.Schema({
     },
     otpExpires: {
         type: Date
+    },
+    clientType: {
+        type: String,
+        enum: ["GST", "Non-GST"],
+        default: "Non-GST"
     }
 }, { timestamps: true });
 

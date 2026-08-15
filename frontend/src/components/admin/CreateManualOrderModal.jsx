@@ -47,6 +47,16 @@ const CreateManualOrderModal = ({ isOpen, onClose, onSuccess }) => {
   // Financials & Settings
   const [discountAmount, setDiscountAmount] = useState(0);
   const [taxAmount, setTaxAmount] = useState(0);
+  const [cgst, setCgst] = useState(0);
+  const [sgst, setSgst] = useState(0);
+
+  // Customer search states
+  const [allCustomers, setAllCustomers] = useState([]);
+  const [searchCustomerQuery, setSearchCustomerQuery] = useState("");
+  const [showCustomerDropdown, setShowCustomerDropdown] = useState(false);
+  const [clientType, setClientType] = useState("Non-GST");
+  const [couponCode, setCouponCode] = useState("");
+  const [couponValidating, setCouponValidating] = useState(false);
   
   // Format current local date for datetime-local input (YYYY-MM-DDTHH:mm)
   const getCurrentLocalDateTime = () => {
@@ -77,8 +87,68 @@ const CreateManualOrderModal = ({ isOpen, onClose, onSuccess }) => {
   useEffect(() => {
     if (isOpen) {
       fetchVariants();
+      fetchCustomers();
     }
   }, [isOpen]);
+
+  const fetchCustomers = async () => {
+    try {
+      const { data } = await axios.get(`${serverUrl}/api/user/admin/all`, {
+        withCredentials: true,
+      });
+      if (data.success) {
+        setAllCustomers(data.users || []);
+      }
+    } catch (err) {
+      console.error("Failed to fetch customers:", err);
+    }
+  };
+
+  const handleSelectCustomer = (cust) => {
+    setCustomerDetails({
+      fullName: cust.fullName || "",
+      mobile: cust.mobile || "",
+      email: cust.email || "",
+      userId: cust._id
+    });
+    setDeliveryAddress((prev) => ({
+      ...prev,
+      phone: cust.mobile || prev.phone || ""
+    }));
+    setClientType(cust.clientType || "Non-GST");
+    setSearchCustomerQuery(cust.fullName || "");
+    setShowCustomerDropdown(false);
+  };
+
+  const handleValidateCoupon = async () => {
+    if (!couponCode.trim()) {
+      toast.error("Please enter a coupon code");
+      return;
+    }
+    const toastId = toast.loading("Validating coupon...");
+    try {
+      setCouponValidating(true);
+      const payload = {
+        code: couponCode.trim().toUpperCase(),
+        amount: subtotal,
+      };
+      if (customerDetails.userId) {
+        payload.userId = customerDetails.userId;
+      }
+      const { data } = await axios.post(`${serverUrl}/api/coupon/validate`, payload, {
+        withCredentials: true
+      });
+      if (data.success) {
+        setDiscountAmount(data.discountAmount || 0);
+        toast.success(`Coupon applied! Saved ₹${data.discountAmount}`, { id: toastId });
+      }
+    } catch (err) {
+      console.error("Coupon validation error:", err);
+      toast.error(err.response?.data?.message || "Invalid coupon code", { id: toastId });
+    } finally {
+      setCouponValidating(false);
+    }
+  };
 
   const fetchVariants = async () => {
     try {
@@ -157,6 +227,23 @@ const CreateManualOrderModal = ({ isOpen, onClose, onSuccess }) => {
     return orderItems.reduce((acc, item) => acc + item.price * item.quantity, 0);
   }, [orderItems]);
 
+  const isGST = clientType === "GST";
+
+  useEffect(() => {
+    if (isGST) {
+      const taxable = Math.max(0, subtotal - Number(discountAmount || 0));
+      const calculatedCgst = taxable * 0.025;
+      const calculatedSgst = taxable * 0.025;
+      setCgst(calculatedCgst);
+      setSgst(calculatedSgst);
+      setTaxAmount(calculatedCgst + calculatedSgst);
+    } else {
+      setCgst(0);
+      setSgst(0);
+      setTaxAmount(0);
+    }
+  }, [isGST, subtotal, discountAmount]);
+
   const finalTotal = useMemo(() => {
     return Math.max(0, subtotal - Number(discountAmount || 0) + Number(taxAmount || 0));
   }, [subtotal, discountAmount, taxAmount]);
@@ -192,9 +279,13 @@ const CreateManualOrderModal = ({ isOpen, onClose, onSuccess }) => {
         orderDate: new Date(orderDate).toISOString(),
         discountAmount: Number(discountAmount) || 0,
         taxAmount: Number(taxAmount) || 0,
+        cgst: Number(cgst) || 0,
+        sgst: Number(sgst) || 0,
+        couponCode: couponCode ? couponCode.trim().toUpperCase() : "",
         adminNotes,
         transactionId,
         deductStock,
+        clientType,
       };
 
       const { data } = await axios.post(`${serverUrl}/api/order/admin/create-manual`, payload, {
@@ -273,7 +364,52 @@ const CreateManualOrderModal = ({ isOpen, onClose, onSuccess }) => {
                   <User className="w-4 h-4 text-emerald-600" /> Customer Information
                 </h3>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {/* Search Customer Input */}
+                <div className="relative mb-4">
+                  <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest block mb-1">
+                    Lookup Registered Customer (Search by Name/Mobile/Email)
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="Type name, email or phone to search..."
+                    value={searchCustomerQuery}
+                    onChange={(e) => {
+                      setSearchCustomerQuery(e.target.value);
+                      setShowCustomerDropdown(true);
+                    }}
+                    onFocus={() => setShowCustomerDropdown(true)}
+                    className="w-full border-2 border-gray-200 rounded-xl p-3 text-xs font-bold focus:border-[#24672E] outline-none transition-all bg-white"
+                  />
+                  
+                  {showCustomerDropdown && searchCustomerQuery.trim() !== "" && (
+                    <div className="absolute left-0 right-0 mt-1 max-h-60 overflow-y-auto bg-white border border-gray-200 rounded-xl shadow-xl z-30 divide-y divide-gray-100">
+                      {allCustomers
+                        .filter(
+                          (c) =>
+                            c.fullName?.toLowerCase().includes(searchCustomerQuery.toLowerCase()) ||
+                            c.email?.toLowerCase().includes(searchCustomerQuery.toLowerCase()) ||
+                            c.mobile?.includes(searchCustomerQuery)
+                        )
+                        .map((cust) => (
+                          <div
+                            key={cust._id}
+                            onClick={() => handleSelectCustomer(cust)}
+                            className="p-3 hover:bg-slate-50 cursor-pointer flex items-center justify-between text-xs transition-colors text-black font-semibold"
+                          >
+                            <div>
+                              <span className="font-bold text-slate-900">{cust.fullName}</span>
+                              <span className="text-[10px] text-gray-500 ml-2">({cust.mobile || cust.email})</span>
+                            </div>
+                            <span className={`px-2 py-0.5 rounded text-[9px] font-black uppercase ${cust.clientType === "GST" ? "bg-purple-100 text-purple-700" : "bg-gray-100 text-gray-600"}`}>
+                              {cust.clientType || "Non-GST"}
+                            </span>
+                          </div>
+                        ))}
+                    </div>
+                  )}
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                   <div>
                     <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block mb-1">
                       Full Name *
@@ -312,6 +448,20 @@ const CreateManualOrderModal = ({ isOpen, onClose, onSuccess }) => {
                       onChange={(e) => setCustomerDetails({ ...customerDetails, email: e.target.value })}
                       className="w-full border-2 border-gray-200 rounded-xl p-3 text-xs font-medium focus:border-black outline-none transition-all bg-white"
                     />
+                  </div>
+
+                  <div>
+                    <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block mb-1">
+                      Client Type *
+                    </label>
+                    <select
+                      value={clientType}
+                      onChange={(e) => setClientType(e.target.value)}
+                      className="w-full border-2 border-gray-200 rounded-xl p-3 text-xs font-bold focus:border-black outline-none transition-all bg-white cursor-pointer"
+                    >
+                      <option value="Non-GST">Non-GST Client</option>
+                      <option value="GST">GST Registered</option>
+                    </select>
                   </div>
                 </div>
               </div>
@@ -542,6 +692,30 @@ const CreateManualOrderModal = ({ isOpen, onClose, onSuccess }) => {
                     </select>
                   </div>
 
+                  {/* Apply Coupon Code */}
+                  <div>
+                    <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block mb-1">
+                      Apply Promo/Coupon
+                    </label>
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        placeholder="e.g. OFF50"
+                        value={couponCode}
+                        onChange={(e) => setCouponCode(e.target.value)}
+                        className="flex-1 border-2 border-gray-200 rounded-xl p-2 text-xs font-bold focus:border-black uppercase outline-none transition-all bg-white"
+                      />
+                      <button
+                        type="button"
+                        onClick={handleValidateCoupon}
+                        disabled={couponValidating}
+                        className="bg-slate-950 text-white font-bold text-[10px] uppercase tracking-wider px-3.5 rounded-xl hover:bg-emerald-600 transition-all flex items-center justify-center shrink-0 cursor-pointer disabled:opacity-50"
+                      >
+                        {couponValidating ? "..." : "Apply"}
+                      </button>
+                    </div>
+                  </div>
+
                   {/* Discount Amount */}
                   <div>
                     <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block mb-1">
@@ -560,15 +734,16 @@ const CreateManualOrderModal = ({ isOpen, onClose, onSuccess }) => {
                   {/* Tax / GST */}
                   <div>
                     <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block mb-1">
-                      Tax / Shipping Charge (₹)
+                      {isGST ? "GST Tax (5% Auto Calc)" : "Tax / Shipping Charge (₹)"}
                     </label>
                     <input
                       type="number"
                       min="0"
+                      disabled={isGST}
                       placeholder="0"
                       value={taxAmount}
                       onChange={(e) => setTaxAmount(Number(e.target.value) || 0)}
-                      className="w-full border-2 border-gray-200 rounded-xl p-3 text-xs font-bold focus:border-black outline-none transition-all bg-white"
+                      className="w-full border-2 border-gray-200 rounded-xl p-3 text-xs font-bold focus:border-black outline-none transition-all bg-white disabled:bg-gray-100 disabled:cursor-not-allowed"
                     />
                   </div>
                 </div>
@@ -624,7 +799,7 @@ const CreateManualOrderModal = ({ isOpen, onClose, onSuccess }) => {
                   <span className="text-[10px] font-bold uppercase tracking-widest text-emerald-400 block">
                     Order Financial Calculation
                   </span>
-                  <div className="flex items-baseline gap-4 mt-1">
+                  <div className="flex flex-wrap items-baseline gap-4 mt-1">
                     <span className="text-xs text-gray-300">
                       Subtotal: <strong className="text-white">₹{subtotal}</strong>
                     </span>
@@ -633,10 +808,21 @@ const CreateManualOrderModal = ({ isOpen, onClose, onSuccess }) => {
                         Discount: -₹{discountAmount}
                       </span>
                     )}
-                    {taxAmount > 0 && (
-                      <span className="text-xs text-amber-400">
-                        Tax/Shipping: +₹{taxAmount}
-                      </span>
+                    {clientType === "GST" ? (
+                      <>
+                        <span className="text-xs text-purple-300">
+                          CGST (2.5%): +₹{cgst.toFixed(2)}
+                        </span>
+                        <span className="text-xs text-purple-300">
+                          SGST (2.5%): +₹{sgst.toFixed(2)}
+                        </span>
+                      </>
+                    ) : (
+                      taxAmount > 0 && (
+                        <span className="text-xs text-amber-400">
+                          Tax/Shipping: +₹{taxAmount}
+                        </span>
+                      )
                     )}
                   </div>
                   <p className="text-2xl font-black text-white mt-1">

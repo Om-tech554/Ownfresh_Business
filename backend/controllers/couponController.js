@@ -81,8 +81,8 @@ export const deleteCoupon = async (req, res) => {
 // VALIDATE & APPLY COUPON (User)
 export const validateCoupon = async (req, res) => {
   try {
-    const { code, amount } = req.body;
-    const userId = req.userId;
+    const { code, amount, userId: bodyUserId } = req.body;
+    const userId = bodyUserId || req.userId;
 
     if (!code || !amount) {
       return res.status(400).json({ message: "Code and amount are required" });

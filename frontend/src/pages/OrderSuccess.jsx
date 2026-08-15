@@ -165,7 +165,7 @@ const OrderSuccess = () => {
               Try Paying Again
             </Link>
             <a
-              href="tel:+919999999999"
+              href="tel:+918999773438"
               className="w-full sm:flex-1 flex items-center justify-center gap-2 px-5 py-3.5 bg-amber-500 text-black rounded-xl font-bold text-xs sm:text-sm hover:bg-amber-400 transition shadow-md shadow-amber-500/20 active:scale-95"
             >
               <FaPhone /> Contact Support
@@ -241,10 +241,13 @@ const OrderSuccess = () => {
           </button>
         </div>
 
-        <div className="mt-4">
-          <Link to="/shop" className="text-xs sm:text-sm font-bold text-amber-600 hover:text-amber-700 transition underline">
+        <div className="mt-6 flex flex-col items-center gap-2 text-xs sm:text-sm text-gray-500 font-medium">
+          <Link to="/shop" className="font-bold text-amber-600 hover:text-amber-700 transition underline">
             Continue Shopping
           </Link>
+          <div className="mt-2 text-slate-400 flex items-center gap-1">
+            Need help? Contact Support at <a href="tel:+918999773438" className="font-extrabold text-[#24672E] hover:underline font-mono">+91 89997 73438</a>
+          </div>
         </div>
       </motion.div>
     </div>
