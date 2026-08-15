@@ -383,40 +383,52 @@ const SignUp = () => {
       </div>
 
       {/* RIGHT COLUMN: FORM */}
-      <div className="w-full lg:w-1/2 flex items-center justify-center p-8 lg:p-12 relative">
+      <div className="w-full lg:w-1/2 flex items-center justify-center p-4 sm:p-8 lg:p-12 relative">
         <button
           onClick={() => navigate("/")}
-          className="absolute top-8 right-8 flex items-center gap-2 text-gray-500 hover:text-black transition-colors"
+          className="absolute top-6 left-6 flex items-center gap-1.5 text-gray-500 hover:text-[#24672E] transition-colors cursor-pointer bg-white py-2 px-4.5 rounded-full shadow-xs hover:shadow-sm border border-slate-150 text-xs font-black uppercase tracking-wider z-50 animate-fade-in"
         >
-          <ArrowLeft size={20} /> Back
+          <ArrowLeft size={14} /> Back
         </button>
 
-        <div className="w-full max-w-md">
-          <div className="text-center mb-8">
+        <div className="w-full max-w-md bg-white sm:bg-transparent p-7 sm:p-0 rounded-3xl sm:rounded-none border border-slate-100 sm:border-0 shadow-sm sm:shadow-none transition-all duration-300">
+          
+          {/* MOBILE LOGO HEADER */}
+          <div className="flex flex-col items-center mb-6 lg:hidden">
+            <img
+              src="https://res.cloudinary.com/dkhq2wlwg/image/upload/v1774962822/ownfresh_media/ndxvmcpisomjzsghrfjs.png"
+              alt="OwnFresh Logo"
+              className="h-10 w-auto object-contain mb-2"
+            />
+            <span className="text-[9px] font-black uppercase tracking-widest text-[#24672E] bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-100">
+              Pure Stone-Pressed Oils
+            </span>
+          </div>
+
+          <div className="text-center mb-6">
             <h1
-              className="text-4xl font-black tracking-tight mb-2 font-playfair"
+              className="text-3xl sm:text-4xl font-black tracking-tight mb-1.5 font-playfair uppercase"
               style={{ color: "#2F5D50" }}
             >
               Botanic Purity
             </h1>
-            <p className="text-gray-500 font-medium">Create your account</p>
+            <p className="text-slate-400 text-xs sm:text-sm font-semibold">Create your account</p>
           </div>
 
           {/* GOOGLE SIGNUP */}
           <button
             onClick={handleGoogleAuth}
-            className="w-full flex items-center justify-center gap-3 border border-gray-200 py-3 rounded-xl mb-3 hover:bg-gray-50 transition-all active:scale-[0.98] cursor-pointer shadow-sm"
+            className="w-full flex items-center justify-center gap-3 border border-slate-200 py-3.5 rounded-xl mb-3 hover:bg-slate-50 transition-all active:scale-[0.98] cursor-pointer shadow-xs bg-white text-xs sm:text-sm font-bold text-slate-700"
           >
             <img src="https://www.svgrepo.com/show/475656/google-color.svg" className="w-5 h-5" alt="Google" />
-            <span className="font-semibold text-gray-700">Sign up with Google</span>
+            <span>Sign up with Google</span>
           </button>
-
 
           {/* Divider */}
           <div className="flex items-center gap-4 mb-6">
-            <div className="flex-1 h-[1px] bg-gray-100" />
-            <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">or</span>
-            <div className="flex-1 h-[1px] bg-gray-100" />
+            <div className="flex-1 h-[1px] bg-slate-100" />
+            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">or</span>
+            <div className="flex-1 h-[1px] bg-slate-100" />
           </div>
 
           <form onSubmit={handleSignUp} className="space-y-4">
@@ -424,11 +436,11 @@ const SignUp = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* Full Name */}
               <div>
-                <label className="block text-sm font-bold text-gray-700 mb-1 ml-1">Full Name</label>
+                <label className="block text-xs font-black text-slate-700 uppercase tracking-wider mb-1.5 ml-1">Full Name</label>
                 <div className="relative">
-                  <User className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                  <User className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
                   <input
-                    className="w-full pl-10 pr-3 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:bg-white transition-all"
+                    className="w-full pl-10 pr-3 py-3.5 bg-slate-50/70 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#24672E] focus:border-[#24672E] focus:bg-white transition-all text-xs sm:text-sm font-semibold text-slate-800"
                     placeholder="John Doe"
                     required
                     onChange={(e) => setFullName(e.target.value)}
@@ -438,11 +450,11 @@ const SignUp = () => {
 
               {/* Email */}
               <div>
-                <label className="block text-sm font-bold text-gray-700 mb-1 ml-1">Email</label>
+                <label className="block text-xs font-black text-slate-700 uppercase tracking-wider mb-1.5 ml-1">Email</label>
                 <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                  <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
                   <input
-                    className="w-full pl-10 pr-3 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:bg-white transition-all"
+                    className="w-full pl-10 pr-3 py-3.5 bg-slate-50/70 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#24672E] focus:border-[#24672E] focus:bg-white transition-all text-xs sm:text-sm font-semibold text-slate-800"
                     type="email"
                     placeholder="name@mail.com"
                     required
@@ -455,12 +467,12 @@ const SignUp = () => {
             <div className="grid grid-cols-1 gap-4">
               {/* Mobile */}
               <div>
-                <label className="block text-sm font-bold text-gray-700 mb-1 ml-1">WhatsApp</label>
-                <div className="flex bg-gray-50 border border-gray-100 rounded-xl focus-within:ring-2 focus-within:ring-yellow-400 focus-within:bg-white transition-all overflow-hidden">
-                  <div className="flex items-center pl-3 border-r border-gray-200 pr-2">
-                    <Phone className="text-gray-400 mr-2" size={18} />
+                <label className="block text-xs font-black text-slate-700 uppercase tracking-wider mb-1.5 ml-1">WhatsApp</label>
+                <div className="flex bg-slate-50/70 border border-slate-200 rounded-xl focus-within:ring-2 focus-within:ring-[#24672E] focus-within:border-[#24672E] focus-within:bg-white transition-all overflow-hidden">
+                  <div className="flex items-center pl-3.5 border-r border-slate-200 pr-2 bg-slate-50 shrink-0">
+                    <Phone className="text-slate-400 mr-2" size={16} />
                     <select
-                      className="bg-transparent text-sm font-bold text-gray-700 focus:outline-none cursor-pointer"
+                      className="bg-transparent text-xs font-black text-slate-700 focus:outline-none cursor-pointer"
                       value={countryCode}
                       onChange={(e) => setCountryCode(e.target.value)}
                     >
@@ -473,7 +485,7 @@ const SignUp = () => {
                     </select>
                   </div>
                   <input
-                    className="w-full px-3 py-3 bg-transparent focus:outline-none text-gray-900"
+                    className="w-full px-3 py-3.5 bg-transparent focus:outline-none text-xs sm:text-sm font-semibold text-slate-800"
                     type="tel"
                     placeholder="1234567890"
                     required
@@ -485,11 +497,11 @@ const SignUp = () => {
 
             {/* Password */}
             <div>
-              <label className="block text-sm font-bold text-gray-700 mb-1 ml-1">Create Password</label>
+              <label className="block text-xs font-black text-slate-700 uppercase tracking-wider mb-1.5 ml-1">Create Password</label>
               <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
                 <input
-                  className="w-full pl-10 pr-10 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:bg-white transition-all"
+                  className="w-full pl-10 pr-10 py-3.5 bg-slate-50/70 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#24672E] focus:border-[#24672E] focus:bg-white transition-all text-xs sm:text-sm font-semibold text-slate-800"
                   required
                   placeholder="••••••••"
                   type={showPassword ? "text" : "password"}
@@ -497,29 +509,28 @@ const SignUp = () => {
                 />
                 <button
                   type="button"
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-650 transition-colors"
                   onClick={() => setShowPassword(!showPassword)}
                 >
-                  {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
               </div>
             </div>
 
             {/* SUBMIT */}
             <button
-              className="w-full py-4 mt-2 rounded-xl font-bold text-[#422006] shadow-lg shadow-yellow-200 transition-all active:scale-[0.98] flex items-center justify-center gap-2"
+              className="w-full py-4 mt-4 rounded-xl font-black text-[#422006] shadow-md shadow-yellow-500/20 hover:shadow-lg transition-all active:scale-[0.98] flex items-center justify-center gap-2 text-xs sm:text-sm uppercase tracking-widest cursor-pointer border-0"
               style={{ backgroundColor: primaryColor }}
             >
-              {loading ? <Loader2 className="animate-spin" size={20} /> : "Create Account"}
+              {loading ? <Loader2 className="animate-spin" size={18} /> : "Create Account"}
             </button>
 
           </form>
 
-          <p className="text-center mt-6 text-sm font-medium text-gray-500">
+          <p className="text-xs sm:text-sm text-center text-slate-400 mt-8 font-semibold">
             Already have an account?{" "}
             <span
-              className="font-bold cursor-pointer transition-colors"
-              style={{ color: primaryColor }}
+              className="font-black cursor-pointer transition-colors text-[#24672E] hover:underline"
               onClick={() => navigate("/signin")}
             >
               Sign In
