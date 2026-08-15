@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { Package, Search, Plus, Edit3, Trash2, Tag } from "lucide-react";
-import toast, { Toaster } from "react-hot-toast";
+import toast from "react-hot-toast";
 import { AnimatePresence, motion } from "framer-motion";
 import { useConfirm } from "../../hooks/ConfirmContext.jsx";
 
@@ -206,7 +206,7 @@ const InventoryManager = () => {
 
   return (
     <div className="max-w-7xl mx-auto px-6 py-6 font-sans">
-      <Toaster position="bottom-right" />
+
       
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">

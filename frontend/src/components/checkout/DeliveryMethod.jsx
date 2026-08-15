@@ -68,7 +68,7 @@ const DeliveryMethod = () => {
             <div 
               key={option.id}
               onClick={() => handleSelectOption(option)}
-              className={`relative flex items-center p-5 rounded-2xl border-2 cursor-pointer transition-all duration-200 ${
+              className={`relative flex items-center p-5 pr-14 rounded-2xl border-2 cursor-pointer transition-all duration-200 ${
                 isSelected 
                   ? 'border-yellow-500 bg-yellow-50/80 shadow-md' 
                   : 'border-gray-200 hover:border-yellow-300 hover:bg-gray-50'

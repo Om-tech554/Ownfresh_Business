@@ -2,7 +2,7 @@ import React, { useEffect, useState, useRef } from "react";
 import axios from "axios";
 import { useParams, useNavigate } from "react-router-dom";
 import { ArrowLeft, Upload, Loader2, Save, Package, DollarSign, Star, Image as ImageIcon } from "lucide-react";
-import toast, { Toaster } from "react-hot-toast";
+import toast from "react-hot-toast";
 import ImagePickerModal from "../../components/admin/ImagePickerModal";
 
 const AdminProductEditor = () => {
@@ -118,7 +118,6 @@ const AdminProductEditor = () => {
 
   return (
     <div className="bg-[#fafafa] min-h-screen pb-20 font-sans">
-      <Toaster position="top-center" />
 
       {/* ── HEADER NAVBAR ── */}
       <div className="sticky top-0 z-50 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between shadow-sm">

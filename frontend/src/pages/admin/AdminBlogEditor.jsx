@@ -3,7 +3,7 @@ import axios from "axios";
 import { useParams, useNavigate } from "react-router-dom";
 import JoditEditor from "jodit-react";
 import { ArrowLeft, Loader2, Save } from "lucide-react";
-import toast, { Toaster } from "react-hot-toast";
+import toast from "react-hot-toast";
 
 import RankMathSEOSidebar from "../../components/admin/seo/RankMathSEOSidebar";
 
@@ -189,7 +189,6 @@ const AdminBlogEditor = () => {
 
   return (
     <div className="bg-gray-50 min-h-screen pb-20">
-      <Toaster position="top-center" />
 
       {/* ── HEADER NAVBAR ── */}
       <div className="sticky top-0 z-50 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between shadow-xs">

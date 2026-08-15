@@ -72,6 +72,7 @@ const ProductDetails = () => {
       quantity: finalQuantity,
     };
     dispatch(addToCart(cartItem));
+    toast.success(`${product.name} - ${selectedVariant.name} added to cart!`);
   };
 
   /* --- Buy Now --- */
@@ -91,6 +92,7 @@ const ProductDetails = () => {
       quantity: finalQuantity,
     };
     dispatch(addToCart(cartItem));
+    toast.success(`Proceeding to checkout with ${product.name} - ${selectedVariant.name}!`);
     navigate("/checkout");
   };
 
@@ -219,11 +221,11 @@ const ProductDetails = () => {
             </div>
 
             {/* BUTTONS */}
-            <div className="mt-10 flex gap-4">
+            <div className="mt-10 flex flex-col sm:flex-row gap-4 w-full">
               {/* Add to Cart */}
               <button
                 onClick={handleAddToCart}
-                className="bg-slate-900 hover:bg-yellow-500 hover:text-slate-900 text-white px-10 py-4 rounded-2xl text-lg font-bold flex items-center gap-3 transition-all"
+                className="bg-slate-900 hover:bg-yellow-500 hover:text-slate-900 text-white px-6 sm:px-10 py-4 rounded-2xl text-base sm:text-lg font-bold flex items-center justify-center gap-3 transition-all w-full sm:w-auto cursor-pointer"
               >
                 <ShoppingCart size={22} />
                 Add to Cart
@@ -232,7 +234,7 @@ const ProductDetails = () => {
               {/* Buy Now */}
               <button
                 onClick={handleBuyNow}
-                className="bg-yellow-500 text-slate-900 hover:bg-slate-900 hover:text-white px-10 py-4 rounded-2xl text-lg font-bold transition-all shadow-md"
+                className="bg-yellow-500 text-slate-900 hover:bg-slate-900 hover:text-white px-6 sm:px-10 py-4 rounded-2xl text-base sm:text-lg font-bold transition-all shadow-md w-full sm:w-auto text-center flex items-center justify-center cursor-pointer"
               >
                 Buy Now
               </button>

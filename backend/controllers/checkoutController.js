@@ -10,7 +10,8 @@ import crypto from "crypto";
 import { sendOrderConfirmationMail } from "../utils/mail.js";
 import { sendOrderConfirmationSms } from "../utils/sms.js";
 import { sendOrderConfirmationWhatsApp } from "../utils/whatsapp.js";
-import { awardOrderCommissionCoins } from "./membershipController.js";
+import { awardOrderCommissionCoins, processCoinExpirations } from "./membershipController.js";
+import CommissionLog from "../models/commissionLogModel.js";
 
 
 // Helper function to generate unique custom order ID without duplicate key collisions
@@ -47,6 +48,7 @@ export const createOrder = async (req, res) => {
       couponCode,
       referralCode,
       useWallet,
+      useCommissionCoins,
       cgst,
       sgst,
       taxAmount,
@@ -109,10 +111,57 @@ export const createOrder = async (req, res) => {
 
     let finalPayableAmount = Math.max(0, Number(totalAmount));
     let walletDeducted = 0;
+    let coinsDeducted = 0;
 
     const isInstantOrder = (paymentMethod === 'cod');
+    const now = new Date();
 
-    // 3) Wallet Deduction Calculation
+    // 3) Commission Coins Deduction Calculation
+    if (useCommissionCoins) {
+      const activeCoins = await processCoinExpirations(targetUserId);
+      if (activeCoins >= 150) {
+        coinsDeducted = Math.min(activeCoins, Math.floor(finalPayableAmount));
+        finalPayableAmount -= coinsDeducted;
+
+        // Perform instant deduction if COD or total becomes 0
+        if (isInstantOrder || finalPayableAmount <= 0) {
+          let remainingToDeduct = coinsDeducted;
+          const activeBatches = await CommissionLog.find({
+            userId: targetUserId,
+            status: "ACTIVE",
+            expiresAt: { $gt: now }
+          }).sort({ expiresAt: 1 });
+
+          for (const batch of activeBatches) {
+            if (remainingToDeduct <= 0) break;
+            const deductFromBatch = Math.min(batch.coinsRemaining, remainingToDeduct);
+            batch.coinsRemaining -= deductFromBatch;
+            if (batch.coinsRemaining === 0) {
+              batch.status = "REDEEMED";
+            }
+            await batch.save();
+            remainingToDeduct -= deductFromBatch;
+          }
+
+          // Create a redemption log
+          await CommissionLog.create({
+            userId: targetUserId,
+            coinsEarned: 0,
+            coinsRemaining: 0,
+            expiresAt: new Date(Date.now() + 45 * 24 * 60 * 60 * 1000), // dummy expiration
+            status: "REDEEMED",
+            type: "REDEEMED_CHECKOUT",
+            note: `Redeemed ${coinsDeducted} commission coins at checkout`
+          });
+
+          // Sync user's total coins count
+          user.commissionCoins = Math.max(0, user.commissionCoins - coinsDeducted);
+          await user.save();
+        }
+      }
+    }
+
+    // 3.5) Wallet Deduction Calculation
     if (useWallet) {
       let wallet = await Wallet.findOne({ userId: targetUserId });
       if (!wallet) {
@@ -206,7 +255,8 @@ export const createOrder = async (req, res) => {
       sgst: Number(sgst) || 0,
       taxAmount: Number(taxAmount) || 0,
       phonePeTransactionId: phonePeTransactionId || undefined,
-      walletDeductedAmount: walletDeducted
+      walletDeductedAmount: walletDeducted,
+      commissionCoinsDeductedAmount: coinsDeducted
     });
 
     // Create Referral Usage record and update User if referral code is applied

@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from "react";
 import { Link } from "react-router-dom";
-import { Star, ShieldCheck, ShoppingCart } from "lucide-react";
+import { Star, ShoppingCart } from "lucide-react";
 import SLink from "./SLink";
 
 const ProductCard = ({ product, user, onAddToCart }) => {
@@ -63,11 +63,6 @@ const ProductCard = ({ product, user, onAddToCart }) => {
           Save {priceDetails.discountPercent}%
         </span>
       )}
-
-      {/* Pure Organic Badge */}
-      <span className="absolute top-2.5 right-2.5 sm:top-4 sm:right-4 bg-emerald-50 text-emerald-700 border border-emerald-100 text-[8px] sm:text-[9px] font-black px-2 sm:px-2.5 py-0.5 rounded-full uppercase tracking-wider z-10 flex items-center gap-0.5 sm:gap-1">
-        <ShieldCheck className="w-3 h-3" /> Pure
-      </span>
 
       {/* Product Image Wrapper */}
       <div className="relative h-32 sm:h-44 w-full rounded-xl sm:rounded-2xl overflow-hidden bg-slate-50 border border-slate-100 mb-3 sm:mb-4 flex items-center justify-center p-2 sm:p-4">

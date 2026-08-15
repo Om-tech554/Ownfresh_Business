@@ -327,6 +327,53 @@ export const phonepeCallback = async (req, res) => {
           }
         }
 
+        // Deduct commission coins if applicable
+        if (order.commissionCoinsDeductedAmount > 0) {
+          try {
+            const userId = order.user._id;
+            const coinsDeducted = order.commissionCoinsDeductedAmount;
+            const now = new Date();
+            let remainingToDeduct = coinsDeducted;
+            const activeBatches = await CommissionLog.find({
+              userId,
+              status: "ACTIVE",
+              expiresAt: { $gt: now }
+            }).sort({ expiresAt: 1 });
+
+            for (const batch of activeBatches) {
+              if (remainingToDeduct <= 0) break;
+              const deductFromBatch = Math.min(batch.coinsRemaining, remainingToDeduct);
+              batch.coinsRemaining -= deductFromBatch;
+              if (batch.coinsRemaining === 0) {
+                batch.status = "REDEEMED";
+              }
+              await batch.save();
+              remainingToDeduct -= deductFromBatch;
+            }
+
+            // Create redemption log entry
+            await CommissionLog.create({
+              userId,
+              orderId: order._id,
+              coinsEarned: 0,
+              coinsRemaining: 0,
+              expiresAt: new Date(Date.now() + 45 * 24 * 60 * 60 * 1000),
+              status: "REDEEMED",
+              type: "REDEEMED_CHECKOUT",
+              note: `Redeemed ${coinsDeducted} commission coins at checkout for order ${order.customOrderId || order._id}`
+            });
+
+            // Sync user's total coins count
+            const user = await User.findById(userId);
+            if (user) {
+              user.commissionCoins = Math.max(0, user.commissionCoins - coinsDeducted);
+              await user.save();
+            }
+          } catch (commErr) {
+            console.error("Failed to deduct commission coins on online payment completion:", commErr);
+          }
+        }
+
         // Increment Coupon usedCount if applicable
         if (order.couponCode) {
           const coupon = await Coupon.findOne({ code: order.couponCode.toUpperCase() });

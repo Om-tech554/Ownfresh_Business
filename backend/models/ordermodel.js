@@ -123,6 +123,10 @@ const orderSchema = new mongoose.Schema({
     type: Number,
     default: 0
   },
+  commissionCoinsDeductedAmount: {
+    type: Number,
+    default: 0
+  },
   referralCode: {
     type: String,
     uppercase: true,

@@ -4,7 +4,7 @@ import { Phone, Mail, MapPin, Share2, QrCode, Download } from 'lucide-react';
 import { FaInstagram, FaFacebookF, FaXTwitter, FaYoutube, FaLinkedinIn } from "react-icons/fa6";
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import toast, { Toaster } from 'react-hot-toast';
+import toast from 'react-hot-toast';
 import SLink from '../components/SLink';
 import { serverUrl } from '../App';
 import { QRCodeSVG } from 'qrcode.react';
@@ -60,7 +60,6 @@ const Contact = () => {
 
     return (
         <div className="w-full bg-white min-h-screen relative z-0">
-            <Toaster position="top-center" />
             <Navbar />
 
             {/* 1. HERO SECTION */}

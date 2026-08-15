@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { Settings, Save, AlertCircle } from "lucide-react";
-import toast, { Toaster } from "react-hot-toast";
+import toast from "react-hot-toast";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
@@ -84,7 +84,7 @@ const SettingsManager = () => {
 
   return (
     <div className="max-w-4xl mx-auto px-6 py-8 font-sans">
-      <Toaster position="bottom-right" />
+
 
       {/* Header */}
       <div className="flex items-center gap-3 mb-8">

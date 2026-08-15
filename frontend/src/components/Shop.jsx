@@ -2,7 +2,7 @@ import React, { useEffect, useState, useMemo } from 'react';
 import Navbar from './Navbar';
 import axios from 'axios';
 import { Loader2, ArrowRight } from "lucide-react";
-import toast, { Toaster } from "react-hot-toast";
+import toast from "react-hot-toast";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { addToCart } from "../redux/userslice";
@@ -182,7 +182,6 @@ const Shop = () => {
       />
       <Navbar />
       <div className="w-full bg-[#fcfcfc] min-h-screen py-12 px-6 md:px-12 lg:px-24">
-        <Toaster position="top-center" />
 
         {/* HEADER */}
         <div className="max-w-7xl mx-auto flex flex-col items-center mb-16 text-center border-b border-gray-200 pb-12">

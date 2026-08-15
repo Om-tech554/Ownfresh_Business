@@ -31,7 +31,7 @@ const MembershipPage = () => {
   const [purchasing, setPurchasing] = useState(false);
   const [plans, setPlans] = useState([]);
   const [membershipStatus, setMembershipStatus] = useState({
-    isMember: false,
+    isMember: true,
     membershipPlanName: "None",
     membershipExpiresAt: null,
     commissionCoins: 0,
@@ -203,7 +203,7 @@ const MembershipPage = () => {
 
         {/* ── COMMISSION COINS WALLET DASHBOARD (FOR ALL USERS) ── */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-          
+
           {/* LEFT: Coins Balance & 150 Threshold Card (7 cols) */}
           <div className="lg:col-span-7 bg-white p-8 rounded-3xl border border-gray-200 shadow-xs space-y-6">
             <div className="flex items-center justify-between border-b border-gray-100 pb-4">
@@ -283,9 +283,8 @@ const MembershipPage = () => {
               </div>
               <div className="w-full bg-gray-100 rounded-full h-3 overflow-hidden p-0.5 border border-gray-200">
                 <div
-                  className={`h-full rounded-full transition-all duration-700 ${
-                    membershipStatus.canRedeem ? "bg-emerald-500" : "bg-amber-400"
-                  }`}
+                  className={`h-full rounded-full transition-all duration-700 ${membershipStatus.canRedeem ? "bg-emerald-500" : "bg-amber-400"
+                    }`}
                   style={{ width: `${membershipStatus.progressPercentage}%` }}
                 />
               </div>
@@ -422,13 +421,12 @@ const MembershipPage = () => {
                       </td>
                       <td className="p-3 text-center">
                         <span
-                          className={`inline-block px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider ${
-                            log.status === "ACTIVE"
-                              ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
-                              : log.status === "EXPIRED"
+                          className={`inline-block px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider ${log.status === "ACTIVE"
+                            ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                            : log.status === "EXPIRED"
                               ? "bg-rose-50 text-rose-600 border border-rose-200"
                               : "bg-gray-100 text-gray-600 border border-gray-200"
-                          }`}
+                            }`}
                         >
                           {log.status}
                         </span>

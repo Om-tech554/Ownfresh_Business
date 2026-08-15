@@ -214,7 +214,7 @@ const MyOrders = () => {
                                                         <div className={`${order.status === 'cancelled' ? 'bg-red-500' : 'bg-orange-500'} p-2.5 rounded-full ring-4 ring-white shadow-sm`}>
                                                             <XCircle size={16} className="text-white" />
                                                         </div>
-                                                        <p className={`absolute top-full mt-2 text-[10px] font-black uppercase whitespace-nowrap ${order.status === 'cancelled' ? 'text-red-500' : 'text-orange-500'}`}>
+                                                        <p className={`absolute top-full mt-2 text-[10px] font-black uppercase whitespace-nowrap hidden sm:block ${order.status === 'cancelled' ? 'text-red-500' : 'text-orange-500'}`}>
                                                             {order.status === 'cancelled' ? 'Cancelled' : 'Cancel Requested'}
                                                         </p>
                                                     </div>
@@ -231,7 +231,7 @@ const MyOrders = () => {
                                                         <step.icon size={16} />
                                                     </div>
                                                     <p className={`
-                                                        absolute top-full mt-2 text-[10px] font-black uppercase whitespace-nowrap
+                                                        absolute top-full mt-2 text-[10px] font-black uppercase whitespace-nowrap hidden sm:block
                                                         ${isDone ? 'text-[#24672E]' : 'text-slate-400'}
                                                     `}>
                                                         {step.label}

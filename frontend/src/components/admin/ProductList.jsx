@@ -132,7 +132,7 @@ import {
   Search,
   Filter
 } from "lucide-react";
-import toast, { Toaster } from "react-hot-toast";
+import toast from "react-hot-toast";
 import { useConfirm } from "../../hooks/ConfirmContext.jsx";
 
 const ProductList = () => {
@@ -213,7 +213,6 @@ const ProductList = () => {
 
   return (
     <div className="min-h-screen bg-slate-50 px-6 py-12 md:px-12 lg:px-20">
-      <Toaster position="bottom-right" />
 
       {/* Header Section */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-10">

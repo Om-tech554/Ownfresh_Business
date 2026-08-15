@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useMemo } from "react";
 import axios from "axios";
 import { Loader2, ArrowRight } from "lucide-react";
-import toast, { Toaster } from "react-hot-toast";
+import toast from "react-hot-toast";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import SLink from "./SLink";
@@ -81,7 +81,6 @@ const ProductSection = ({ limit = null }) => {
 
   return (
     <div id="products" className={`w-full bg-white px-0 md:px-12 lg:px-24 mx-auto ${limit ? "pt-12" : "pt-24"}`}>
-      <Toaster position="top-center" />
 
       {/* HEADER */}
       <div className="flex flex-col items-center mb-10 text-center px-6">
@@ -118,12 +117,13 @@ const ProductSection = ({ limit = null }) => {
             <div className="max-w-7xl mx-auto w-full">
               <div className="flex md:grid md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-8 overflow-x-auto snap-x snap-mandatory hide-scrollbar px-6 md:px-0 pb-12 w-full">
                 {filteredProducts.map((p) => (
-                  <ProductCard
-                    key={p._id}
-                    product={p}
-                    user={user}
-                    onAddToCart={handleAddToCart}
-                  />
+                  <div key={p._id} className="w-[260px] md:w-full flex-shrink-0 snap-start">
+                    <ProductCard
+                      product={p}
+                      user={user}
+                      onAddToCart={handleAddToCart}
+                    />
+                  </div>
                 ))}
               </div>
             </div>

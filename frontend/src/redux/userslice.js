@@ -150,9 +150,9 @@ const userSlice = createSlice({
       const existingItem = state.cartItems.find(i => i._id === cartItem._id);
 
       if (existingItem) {
-        existingItem.quantity += 1;
+        existingItem.quantity += cartItem.quantity || 1;
       } else {
-        state.cartItems.push({ ...cartItem, quantity: 1 });
+        state.cartItems.push(cartItem);
       }
 
       localStorage.setItem("oil_cart", JSON.stringify(state.cartItems));

@@ -681,7 +681,7 @@ const AdminOrders = () => {
                                 <td>
                                     <div class="item-name">${item.name || 'Product'}</div>
                                 </td>
-                                <td><div class="item-variant">${item.selectedVariant || item.variant || '—'}</div></td>
+                                <td><div class="item-variant">${item.variantName || item.selectedVariant || item.variant || '—'}</div></td>
                                 <td>₹${(item.price || 0).toLocaleString('en-IN')}</td>
                                 <td><strong>${item.quantity}</strong></td>
                                 <td>₹${((item.price || 0) * item.quantity).toLocaleString('en-IN')}</td>
@@ -1368,7 +1368,11 @@ const AdminOrders = () => {
                                                 <img src={item.image} className="w-16 h-16 object-contain mix-blend-multiply flex-shrink-0" />
                                                 <div className="flex-1 min-w-0">
                                                     <p className="text-[11px] font-black text-slate-900 uppercase truncate">{item.name}</p>
-                                                    <p className="text-[10px] font-bold text-slate-500 mt-1">QTY: {item.quantity} | SKU: OIL-${((typeof item.productId === 'object' ? item.productId?._id : item.productId) || "").substring(0, 6).toUpperCase()}</p>
+                                                    <p className="text-[10px] font-bold text-slate-500 mt-1">
+                                                        QTY: {item.quantity}
+                                                        {item.variantName && ` | SIZE: ${item.variantName}`}
+                                                        {` | SKU: OIL-${((typeof item.productId === 'object' ? item.productId?._id : item.productId) || "").substring(0, 6).toUpperCase()}`}
+                                                    </p>
                                                 </div>
                                                 <p className="text-sm font-black text-slate-900 font-mono">₹{item.price * item.quantity}</p>
                                             </div>

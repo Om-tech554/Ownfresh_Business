@@ -15,13 +15,16 @@ import { serverUrl } from '../App';
 const CheckoutFlow = () => {
   const {
     currentStep,
+    useWallet,
     setUseWallet,
     useCommissionCoins,
     setUseCommissionCoins,
     setCommissionCoinsBalance,
     setCanRedeemCoins,
     commissionCoinsBalance,
-    canRedeemCoins
+    canRedeemCoins,
+    deliveryMethod,
+    couponDetails
   } = useCheckout();
   const user = useSelector((state) => state.user.userData);
   const cartItems = useSelector((state) => state.user.cartItems);
@@ -117,7 +120,22 @@ const CheckoutFlow = () => {
                    </span>
                  </div>
 
-                 {membershipInfo.canRedeem ? (
+                 {currentStep === 4 ? (
+                   useCommissionCoins && canRedeemCoins ? (
+                     <div className="bg-emerald-50/80 p-3 rounded-xl border border-emerald-300 flex items-center gap-2">
+                       <span className="text-emerald-700">✓</span>
+                       <span className="text-xs font-bold text-slate-900">
+                         Applied {membershipInfo.commissionCoins} Commission Coins (Saved ₹{membershipInfo.commissionCoins})
+                       </span>
+                     </div>
+                   ) : (
+                     <div className="bg-gray-50 p-3 rounded-xl border border-gray-200 flex items-center gap-2">
+                       <span className="text-xs font-bold text-gray-500">
+                         No Commission Coins applied for this order
+                       </span>
+                     </div>
+                   )
+                 ) : membershipInfo.canRedeem ? (
                    <div className="bg-white/80 p-3 rounded-xl border border-amber-300/60 flex items-center gap-3">
                      <input
                        type="checkbox"
@@ -150,21 +168,40 @@ const CheckoutFlow = () => {
                </div>
              )}
 
-             {walletBalance > 0 && currentStep === 4 && (
-                <div className="bg-purple-50 p-4 rounded-xl border border-purple-200">
-                  <div className="flex items-center gap-2">
-                    <input 
-                      type="checkbox" 
-                      id="use-wallet"
-                      className="w-5 h-5 accent-purple-600 cursor-pointer"
-                      onChange={(e) => setUseWallet(e.target.checked)}
-                    />
-                    <label htmlFor="use-wallet" className="text-sm font-bold text-purple-900 cursor-pointer select-none">
-                      Should I use your wallet points for this order? (Available: ₹{walletBalance})
-                    </label>
-                  </div>
-                </div>
-              )}
+             {/* Wallet Widget */}
+             {walletBalance > 0 && (
+               currentStep === 4 ? (
+                 useWallet ? (
+                   <div className="bg-purple-50 p-4 rounded-xl border border-purple-200 flex items-center gap-2">
+                     <span className="text-purple-700">✓</span>
+                     <span className="text-xs font-bold text-purple-900">
+                       Applied wallet points to save ₹{Math.min(walletBalance, (cartItems.reduce((acc, item) => acc + (item.price * item.quantity), 0) - (couponDetails?.discount || 0) - ((useCommissionCoins && canRedeemCoins) ? Math.min(cartItems.reduce((acc, item) => acc + (item.price * item.quantity), 0), commissionCoinsBalance) : 0)) * 1.05 + (deliveryMethod?.cost || 0)).toFixed(2)}
+                     </span>
+                   </div>
+                 ) : (
+                   <div className="bg-gray-50 p-4 rounded-xl border border-gray-200 flex items-center gap-2">
+                     <span className="text-xs font-bold text-gray-500">
+                       No wallet points applied for this order
+                     </span>
+                   </div>
+                 )
+               ) : (
+                 <div className="bg-purple-50 p-4 rounded-xl border border-purple-200">
+                   <div className="flex items-center gap-2">
+                     <input 
+                       type="checkbox" 
+                       id="use-wallet"
+                       checked={useWallet}
+                       className="w-5 h-5 accent-purple-600 cursor-pointer"
+                       onChange={(e) => setUseWallet(e.target.checked)}
+                     />
+                     <label htmlFor="use-wallet" className="text-xs font-bold text-purple-900 cursor-pointer select-none">
+                       Use wallet points for this order (Available: ₹{walletBalance})
+                     </label>
+                   </div>
+                 </div>
+               )
+             )}
           </div>
         </div>
       </div>
