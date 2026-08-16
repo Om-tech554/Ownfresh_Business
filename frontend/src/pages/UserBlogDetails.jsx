@@ -232,11 +232,136 @@ const UserBlogDetails = () => {
             </div>
 
             {/* Blog content */}
+            {/* Blog content styling including Tables, Lists, and TOC blocks */}
             <style dangerouslySetInnerHTML={{
               __html: `
+              .wp-blog-content {
+                font-family: system-ui, -apple-system, sans-serif !important;
+              }
               .wp-blog-content p {
+                margin-top: 0.85rem !important;
+                margin-bottom: 0.85rem !important;
+                line-height: 1.8 !important;
+                font-size: 1.05rem !important;
+                color: #334155 !important;
+              }
+              .wp-blog-content h1 {
+                font-size: 2.25rem !important;
+                font-weight: 900 !important;
+                color: #0f172a !important;
+                margin-top: 2rem !important;
+                margin-bottom: 1rem !important;
+                line-height: 1.25 !important;
+              }
+              .wp-blog-content h2 {
+                font-size: 1.75rem !important;
+                font-weight: 900 !important;
+                color: #0f172a !important;
+                margin-top: 2rem !important;
+                margin-bottom: 1rem !important;
+                line-height: 1.3 !important;
+              }
+              .wp-blog-content h3 {
+                font-size: 1.4rem !important;
+                font-weight: 850 !important;
+                color: #0f172a !important;
+                margin-top: 1.75rem !important;
+                margin-bottom: 0.75rem !important;
+                line-height: 1.35 !important;
+              }
+              .wp-blog-content h4 {
+                font-size: 1.2rem !important;
+                font-weight: 800 !important;
+                color: #0f172a !important;
+                margin-top: 1.5rem !important;
+                margin-bottom: 0.5rem !important;
+                line-height: 1.4 !important;
+              }
+              /* Tables formatting */
+              .wp-blog-content table {
+                width: 100%;
+                border-collapse: collapse;
+                margin: 2rem 0;
+                background-color: #ffffff;
+                border-radius: 12px;
+                overflow: hidden;
+                box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.05);
+                border: 1px solid #f1f5f9;
+              }
+              .wp-blog-content th {
+                background-color: #f8fafc;
+                color: #0f172a;
+                font-weight: 800;
+                text-align: left;
+                padding: 14px 18px;
+                border-bottom: 2px solid #e2e8f0;
+                font-size: 0.95rem;
+                text-transform: uppercase;
+                letter-spacing: 0.05em;
+              }
+              .wp-blog-content td {
+                padding: 14px 18px;
+                border-bottom: 1px solid #f1f5f9;
+                color: #334155;
+                font-size: 0.95rem;
+                line-height: 1.5;
+              }
+              .wp-blog-content tr:last-child td {
+                border-bottom: none;
+              }
+              .wp-blog-content tr:hover td {
+                background-color: #faf5d9/20;
+              }
+              /* Lists formatting (Unordered & Ordered) */
+              .wp-blog-content ul {
+                list-style-type: disc !important;
+                padding-left: 2rem !important;
+                margin-top: 1.25rem !important;
+                margin-bottom: 1.25rem !important;
+              }
+              .wp-blog-content ol {
+                list-style-type: decimal !important;
+                padding-left: 2rem !important;
+                margin-top: 1.25rem !important;
+                margin-bottom: 1.25rem !important;
+              }
+              .wp-blog-content li {
                 margin-top: 0.5rem !important;
                 margin-bottom: 0.5rem !important;
+                line-height: 1.8 !important;
+                color: #334155;
+              }
+              /* Table of Contents card container */
+              .wp-blog-content .toc, 
+              .wp-blog-content [id*="toc"],
+              .wp-blog-content [class*="toc"] {
+                background-color: #fafbf8 !important;
+                border-left: 4px solid #24672E !important;
+                padding: 1.75rem !important;
+                border-radius: 16px !important;
+                margin: 2.5rem 0 !important;
+                box-shadow: inset 0 2px 4px 0 rgb(0 0 0 / 0.02) !important;
+                border: 1px solid #f1f5f9 !important;
+              }
+              .wp-blog-content .toc-title, 
+              .wp-blog-content [class*="toc-title"] {
+                font-size: 1.1rem !important;
+                font-weight: 900 !important;
+                color: #0f172a !important;
+                margin-bottom: 1rem !important;
+                text-transform: uppercase !important;
+                letter-spacing: 0.05em !important;
+              }
+              /* Links styling */
+              .wp-blog-content a {
+                color: #24672E !important;
+                font-weight: 700 !important;
+                text-decoration: none !important;
+                transition: all 0.2s ease !important;
+              }
+              .wp-blog-content a:hover {
+                color: #163f1c !important;
+                text-decoration: underline !important;
               }
             ` }} />
             <div

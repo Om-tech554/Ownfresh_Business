@@ -186,6 +186,12 @@ export const updateBlog = async (req, res) => {
       if (req.files.image4?.[0]) updateData.image4 = req.files.image4[0].path || req.files.image4[0].url;
     }
 
+    if (req.body.deleteImage === "true") updateData.image = null;
+    if (req.body.deleteImage1 === "true") updateData.image1 = null;
+    if (req.body.deleteImage2 === "true") updateData.image2 = null;
+    if (req.body.deleteImage3 === "true") updateData.image3 = null;
+    if (req.body.deleteImage4 === "true") updateData.image4 = null;
+
     // 1. Sync with Blogger
     let bloggerSynced = false;
     let bloggerError = null;

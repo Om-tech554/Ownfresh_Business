@@ -27,18 +27,23 @@ const AdminBlogEditor = () => {
   // Images (supporting featured + 4 gallery)
   const [image, setImage] = useState(null);
   const [preview, setPreview] = useState(null);
+  const [deleteImage, setDeleteImage] = useState(false);
 
   const [image1, setImage1] = useState(null);
   const [preview1, setPreview1] = useState(null);
+  const [deleteImage1, setDeleteImage1] = useState(false);
 
   const [image2, setImage2] = useState(null);
   const [preview2, setPreview2] = useState(null);
+  const [deleteImage2, setDeleteImage2] = useState(false);
 
   const [image3, setImage3] = useState(null);
   const [preview3, setPreview3] = useState(null);
+  const [deleteImage3, setDeleteImage3] = useState(false);
 
   const [image4, setImage4] = useState(null);
   const [preview4, setPreview4] = useState(null);
+  const [deleteImage4, setDeleteImage4] = useState(false);
 
   const [loading, setLoading] = useState(isEditing);
   const [saving, setSaving] = useState(false);
@@ -112,11 +117,12 @@ const AdminBlogEditor = () => {
     }
   }, [id, isEditing, API_BASE_URL]);
 
-  const handleImageChange = (e, setter, previewSetter) => {
+  const handleImageChange = (e, setter, previewSetter, onSelectCallback) => {
     const file = e.target.files[0];
     if (file) {
       setter(file);
       previewSetter(URL.createObjectURL(file));
+      if (onSelectCallback) onSelectCallback();
     }
   };
 
@@ -143,6 +149,13 @@ const AdminBlogEditor = () => {
     if (image2) formData.append("image2", image2);
     if (image3) formData.append("image3", image3);
     if (image4) formData.append("image4", image4);
+
+    // Delete image flags
+    if (deleteImage) formData.append("deleteImage", "true");
+    if (deleteImage1) formData.append("deleteImage1", "true");
+    if (deleteImage2) formData.append("deleteImage2", "true");
+    if (deleteImage3) formData.append("deleteImage3", "true");
+    if (deleteImage4) formData.append("deleteImage4", "true");
 
     // Blogger & SEO features
     formData.append("labels", labels);
@@ -181,10 +194,66 @@ const AdminBlogEditor = () => {
   }
 
   const galleryImages = [
-    { img: image1, prev: preview1, setImg: setImage1, setPrv: setPreview1, num: 1 },
-    { img: image2, prev: preview2, setImg: setImage2, setPrv: setPreview2, num: 2 },
-    { img: image3, prev: preview3, setImg: setImage3, setPrv: setPreview3, num: 3 },
-    { img: image4, prev: preview4, setImg: setImage4, setPrv: setPreview4, num: 4 },
+    { 
+      img: image1, 
+      prev: preview1, 
+      setImg: setImage1, 
+      setPrv: setPreview1, 
+      num: 1,
+      onClear: () => {
+        setImage1(null);
+        setPreview1(null);
+        setDeleteImage1(true);
+      },
+      onSelect: () => {
+        setDeleteImage1(false);
+      }
+    },
+    { 
+      img: image2, 
+      prev: preview2, 
+      setImg: setImage2, 
+      setPrv: setPreview2, 
+      num: 2,
+      onClear: () => {
+        setImage2(null);
+        setPreview2(null);
+        setDeleteImage2(true);
+      },
+      onSelect: () => {
+        setDeleteImage2(false);
+      }
+    },
+    { 
+      img: image3, 
+      prev: preview3, 
+      setImg: setImage3, 
+      setPrv: setPreview3, 
+      num: 3,
+      onClear: () => {
+        setImage3(null);
+        setPreview3(null);
+        setDeleteImage3(true);
+      },
+      onSelect: () => {
+        setDeleteImage3(false);
+      }
+    },
+    { 
+      img: image4, 
+      prev: preview4, 
+      setImg: setImage4, 
+      setPrv: setPreview4, 
+      num: 4,
+      onClear: () => {
+        setImage4(null);
+        setPreview4(null);
+        setDeleteImage4(true);
+      },
+      onSelect: () => {
+        setDeleteImage4(false);
+      }
+    },
   ];
 
   return (
@@ -284,9 +353,50 @@ const AdminBlogEditor = () => {
       <style dangerouslySetInnerHTML={{
         __html: `
         .wp-blog-content-admin .jodit-wysiwyg {
-          line-height: 1.9;
-          font-size: 1.125rem;
-          color: #374151; /* text-gray-700 */
+          font-family: system-ui, -apple-system, sans-serif !important;
+          line-height: 1.8 !important;
+          font-size: 1.05rem !important;
+          color: #334155 !important;
+          padding: 1.5rem !important;
+        }
+        .wp-blog-content-admin .jodit-wysiwyg p {
+          margin-top: 0.85rem !important;
+          margin-bottom: 0.85rem !important;
+          line-height: 1.8 !important;
+          font-size: 1.05rem !important;
+          color: #334155 !important;
+        }
+        .wp-blog-content-admin .jodit-wysiwyg h1 {
+          font-size: 2.25rem !important;
+          font-weight: 900 !important;
+          color: #0f172a !important;
+          margin-top: 2rem !important;
+          margin-bottom: 1rem !important;
+          line-height: 1.25 !important;
+        }
+        .wp-blog-content-admin .jodit-wysiwyg h2 {
+          font-size: 1.75rem !important;
+          font-weight: 900 !important;
+          color: #0f172a !important;
+          margin-top: 2rem !important;
+          margin-bottom: 1rem !important;
+          line-height: 1.3 !important;
+        }
+        .wp-blog-content-admin .jodit-wysiwyg h3 {
+          font-size: 1.4rem !important;
+          font-weight: 850 !important;
+          color: #0f172a !important;
+          margin-top: 1.75rem !important;
+          margin-bottom: 0.75rem !important;
+          line-height: 1.35 !important;
+        }
+        .wp-blog-content-admin .jodit-wysiwyg h4 {
+          font-size: 1.2rem !important;
+          font-weight: 800 !important;
+          color: #0f172a !important;
+          margin-top: 1.5rem !important;
+          margin-bottom: 0.5rem !important;
+          line-height: 1.4 !important;
         }
         .jodit-status-bar {
           display: none !important;
@@ -294,18 +404,15 @@ const AdminBlogEditor = () => {
         .jodit-status-bar-link {
           display: none !important;
         }
-        .wp-blog-content-admin h1, .wp-blog-content-admin h2, .wp-blog-content-admin h3 {
-          font-weight: 900;
-          color: #111827;
-          margin-top: 2.5rem;
-          margin-bottom: 1rem;
-        }
         .wp-blog-content-admin a {
-          color: #24672E;
-          text-decoration: none;
+          color: #24672E !important;
+          font-weight: 700 !important;
+          text-decoration: none !important;
+          transition: all 0.2s ease !important;
         }
         .wp-blog-content-admin a:hover {
-          text-decoration: underline;
+          color: #163f1c !important;
+          text-decoration: underline !important;
         }
         .wp-blog-content-admin img {
           border-radius: 0.75rem;
@@ -316,10 +423,25 @@ const AdminBlogEditor = () => {
         .wp-blog-content-admin table {
           width: 100%;
           border-collapse: collapse;
+          margin: 2rem 0;
+          background-color: #ffffff;
+          border-radius: 12px;
+          overflow: hidden;
+          box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.05);
+          border: 1px solid #f1f5f9;
         }
         .wp-blog-content-admin td, .wp-blog-content-admin th {
-          border: 1px solid #e5e7eb;
-          padding: 0.5rem;
+          padding: 14px 18px;
+          border-bottom: 1px solid #f1f5f9;
+          color: #334155;
+          font-size: 0.95rem;
+        }
+        .wp-blog-content-admin th {
+          background-color: #f8fafc;
+          color: #0f172a;
+          font-weight: 800;
+          text-align: left;
+          border-bottom: 2px solid #e2e8f0;
         }
       `}} />
     </div>

@@ -13,7 +13,8 @@ import {
   Image as ImageIcon,
   Sparkles,
   Upload,
-  BookOpen
+  BookOpen,
+  X
 } from "lucide-react";
 
 /**
@@ -899,28 +900,44 @@ const RankMathSEOSidebar = ({
 
             <div className="grid grid-cols-2 gap-3">
               {galleryImages.map((item) => (
-                <label
+                <div
                   key={item.num}
-                  className="cursor-pointer group flex items-center justify-center h-24 border border-gray-200 bg-gray-50 rounded-xl hover:border-[#EFDB27] transition-all overflow-hidden relative"
+                  className="group flex items-center justify-center h-24 border border-gray-200 bg-gray-50 rounded-xl hover:border-[#EFDB27] transition-all overflow-hidden relative"
                 >
-                  <input
-                    type="file"
-                    className="hidden"
-                    onChange={(e) => handleImageChange(e, item.setImg, item.setPrv)}
-                    accept="image/*"
-                  />
                   {item.prev ? (
-                    <img
-                      src={item.prev}
-                      alt={`Gallery ${item.num}`}
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <div className="text-[10px] text-gray-400 font-bold tracking-widest uppercase">
-                      Img {item.num}
+                    <div className="w-full h-full relative">
+                      <img
+                        src={item.prev}
+                        alt={`Gallery ${item.num}`}
+                        className="w-full h-full object-cover animate-fade-in"
+                      />
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          item.onClear();
+                        }}
+                        className="absolute top-1.5 right-1.5 w-6 h-6 bg-red-650 hover:bg-red-700 text-white rounded-full flex items-center justify-center shadow-md transition-all active:scale-90 z-20 cursor-pointer border-0"
+                        title="Remove image"
+                      >
+                        <X size={12} className="stroke-[3]" />
+                      </button>
                     </div>
+                  ) : (
+                    <label className="w-full h-full flex flex-col items-center justify-center cursor-pointer">
+                      <input
+                        type="file"
+                        className="hidden"
+                        onChange={(e) => handleImageChange(e, item.setImg, item.setPrv, item.onSelect)}
+                        accept="image/*"
+                      />
+                      <div className="text-[10px] text-gray-400 font-bold tracking-widest uppercase">
+                        Img {item.num}
+                      </div>
+                    </label>
                   )}
-                </label>
+                </div>
               ))}
             </div>
           </div>
