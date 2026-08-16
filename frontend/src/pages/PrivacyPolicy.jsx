@@ -23,8 +23,18 @@ const PrivacyPolicy = () => {
         transition={{ duration: 0.5 }}
         className="max-w-4xl mx-auto bg-white p-8 md:p-12 rounded-3xl shadow-sm border border-gray-100 mt-6"
       >
-        <h1 className="text-3xl md:text-4xl font-black text-black mb-2">Privacy Policy</h1>
-        <p className="text-sm text-gray-400 mb-8">Last Updated: July 22, 2026</p>
+        <div className="flex justify-center mb-8 pb-6 border-b border-gray-100">
+          <a href="/">
+            <img
+              src="https://res.cloudinary.com/dkhq2wlwg/image/upload/v1774962822/ownfresh_media/ndxvmcpisomjzsghrfjs.png"
+              alt="OwnFresh Logo"
+              className="h-10 md:h-12 w-auto object-contain cursor-pointer transition-transform duration-300 hover:scale-105"
+            />
+          </a>
+        </div>
+
+        <h1 className="text-3xl md:text-4xl font-black text-black mb-2 text-center">Privacy Policy</h1>
+        <p className="text-sm text-gray-400 mb-8 text-center">Last Updated: July 22, 2026</p>
 
         <div className="space-y-6 leading-relaxed">
           <p className="text-gray-600 font-medium">
