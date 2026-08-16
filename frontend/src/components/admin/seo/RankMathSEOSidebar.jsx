@@ -154,6 +154,31 @@ const RankMathSEOSidebar = ({
     return Number(((matches * kwWordLength / wordCount) * 100).toFixed(2));
   }, [focusKeyword, plainTextContent, wordCount]);
 
+  // Table of Contents Check
+  const hasTOC = useMemo(() => {
+    if (!description) return false;
+    const lower = description.toLowerCase();
+    return lower.includes("toc-container") || lower.includes("table-of-contents") || lower.includes("table of contents");
+  }, [description]);
+
+  // Image Caption Check
+  const hasImageCaption = useMemo(() => {
+    if (!description) return false;
+    const lower = description.toLowerCase();
+    return lower.includes("<figcaption") || lower.includes("<figure");
+  }, [description]);
+
+  // Links to Keyword check
+  const keywordLinkCount = useMemo(() => {
+    if (!description || !focusKeyword) return 0;
+    const div = document.createElement("div");
+    div.innerHTML = description;
+    const anchors = Array.from(div.querySelectorAll("a"));
+    const kwLower = focusKeyword.toLowerCase().trim();
+    if (!kwLower) return 0;
+    return anchors.filter(a => (a.textContent || "").toLowerCase().includes(kwLower)).length;
+  }, [description, focusKeyword]);
+
   // Comprehensive RankMath Audit Rules & Scores
   const auditRules = useMemo(() => {
     const kw = (focusKeyword || "").toLowerCase().trim();
@@ -237,20 +262,44 @@ const RankMathSEOSidebar = ({
         tip: "Add focus keyword to your content image Alt Text.",
       },
       {
+        id: "tableOfContents",
+        category: "additional",
+        label: "Table of Contents",
+        passed: hasTOC,
+        score: 5,
+        tip: "Add a Table of Contents at the beginning of the blog post to improve user readability.",
+      },
+      {
+        id: "imagesWithCaptions",
+        category: "additional",
+        label: "Images with Captions",
+        passed: hasImageCaption,
+        score: 5,
+        tip: "Add at least one image with a descriptive caption to explain visual content.",
+      },
+      {
         id: "internalLinks",
         category: "additional",
-        label: "Internal Links in Content",
-        passed: linkAnalysis.internal > 0,
+        label: "At least 2 Internal Links",
+        passed: linkAnalysis.internal >= 2,
         score: 5,
-        tip: "Add at least 1 internal link (e.g. to /shop, /products, /blog).",
+        tip: `Add at least 2 internal links to other pages on your website (Currently: ${linkAnalysis.internal}).`,
       },
       {
         id: "externalLinks",
         category: "additional",
-        label: "External Links in Content",
-        passed: linkAnalysis.external > 0,
+        label: "At least 2 External Links",
+        passed: linkAnalysis.external >= 2,
         score: 5,
-        tip: "Add at least 1 external reference link.",
+        tip: `Add at least 2 external reference links to other websites (Currently: ${linkAnalysis.external}).`,
+      },
+      {
+        id: "focusKeywordLinks",
+        category: "additional",
+        label: "Hyperlink to Focus Keyword",
+        passed: keywordLinkCount > 0,
+        score: 5,
+        tip: "Add a hyperlink on your focus keyword linking to a relevant product page or resource.",
       },
     ];
 
@@ -265,6 +314,9 @@ const RankMathSEOSidebar = ({
     headingCheck,
     imageAltCheck,
     linkAnalysis,
+    hasTOC,
+    hasImageCaption,
+    keywordLinkCount
   ]);
 
   // Total RankMath Score (0 - 100)
@@ -275,14 +327,21 @@ const RankMathSEOSidebar = ({
 
   // Score Color & Grade
   const scoreBadge = useMemo(() => {
-
-    if (rankMathScore >= 80) {
+    if (rankMathScore >= 90) {
       return {
         bg: "bg-emerald-500",
         text: "text-emerald-500",
         border: "border-emerald-500",
         lightBg: "bg-emerald-50 text-emerald-800 border-emerald-200",
-        label: "Great (90+ Target Ready)",
+        label: "Excellent (90+ Target Met)",
+      };
+    } else if (rankMathScore >= 80) {
+      return {
+        bg: "bg-emerald-600",
+        text: "text-emerald-600",
+        border: "border-emerald-600",
+        lightBg: "bg-emerald-50 text-emerald-850 border-emerald-200",
+        label: "Great (Aim for 90+)",
       };
     } else if (rankMathScore >= 50) {
       return {
@@ -392,13 +451,19 @@ const RankMathSEOSidebar = ({
       {activeTab === "seo" && (
         <div className="space-y-5">
           {/* Main RankMath Score & Auto-Generate Box (Exact Match to Screenshot) */}
-          <div className="bg-white p-5 rounded-2xl border-2 border-rose-200 shadow-sm space-y-4">
+          <div className={`bg-white p-5 rounded-2xl border-2 shadow-sm space-y-4 ${
+            rankMathScore >= 90
+              ? "border-emerald-200 bg-emerald-50/5"
+              : rankMathScore >= 50
+                ? "border-amber-200"
+                : "border-rose-200"
+          }`}>
 
             {/* Top Score Box */}
             <div className="flex items-center gap-4">
               {/* Numeric Score Box */}
               <div
-                className={`w-14 h-14 rounded-2xl flex items-center justify-center text-2xl font-black text-white shadow-sm shrink-0 ${rankMathScore >= 80
+                className={`w-14 h-14 rounded-2xl flex items-center justify-center text-2xl font-black text-white shadow-sm shrink-0 ${rankMathScore >= 90
                   ? "bg-[#24672E]"
                   : rankMathScore >= 50
                     ? "bg-amber-500"
@@ -417,7 +482,7 @@ const RankMathSEOSidebar = ({
                 {/* Progress Bar */}
                 <div className="w-full bg-slate-100 rounded-full h-2 mt-2 overflow-hidden">
                   <div
-                    className={`h-full transition-all duration-500 ${rankMathScore >= 80
+                    className={`h-full transition-all duration-500 ${rankMathScore >= 90
                       ? "bg-[#24672E]"
                       : rankMathScore >= 50
                         ? "bg-amber-500"
@@ -431,6 +496,17 @@ const RankMathSEOSidebar = ({
                 </span>
               </div>
             </div>
+
+            {/* Hit Blog Score above 90% Warning/Guidance Box */}
+            {rankMathScore < 90 && (
+              <div className="bg-amber-50 border border-amber-200 p-3.5 rounded-xl text-[11px] font-bold text-amber-800 flex items-start gap-2 shadow-xs" style={{ borderLeft: '4px solid #d97706' }}>
+                <AlertCircle className="w-4 h-4 text-amber-600 mt-0.5 shrink-0" />
+                <div>
+                  <span className="font-extrabold uppercase tracking-wide text-amber-950 block mb-0.5">Optimize to hit 90%+ Score</span>
+                  Fix links to focus keywords, add at least 2 internal & 2 external links, insert a Table of Contents, and add image captions.
+                </div>
+              </div>
+            )}
 
             {/* OwnFresh Auto-Generate SEO Fields Button */}
             <button

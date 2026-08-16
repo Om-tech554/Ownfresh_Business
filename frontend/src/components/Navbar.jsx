@@ -210,7 +210,7 @@ const Navbar = () => {
                                     <span className="text-[10px] text-gray-500 uppercase truncate">{p.category?.name || p.category || "General"}</span>
                                 </div>
                             </div>
-                            {p.searchType === 'Product' && <div className="text-sm font-bold text-black">₹{p.price}</div>}
+                            {p.searchType === 'Product' && <div className="text-sm font-bold text-black">₹{Math.round(p.price)}</div>}
                         </div>
                     ))
                 ) : (

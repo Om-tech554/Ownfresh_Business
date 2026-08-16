@@ -10,9 +10,28 @@ const ProductCard = ({ product, user, onAddToCart }) => {
   }, [product.variants]);
 
   // Set initial selected variant
-  const [selectedVariant, setSelectedVariant] = useState(() => {
-    return activeVariants.length > 0 ? activeVariants[0] : null;
-  }, [activeVariants]);
+  const [selectedVariant, setSelectedVariant] = useState(null);
+
+  React.useEffect(() => {
+    if (activeVariants.length > 0) {
+      const nameLower = (product.name || "").toLowerCase();
+      let matched = null;
+      if (nameLower.includes("250")) {
+        matched = activeVariants.find(v => v.name.toLowerCase().includes("250"));
+      } else if (nameLower.includes("500")) {
+        matched = activeVariants.find(v => v.name.toLowerCase().includes("500"));
+      } else if (nameLower.includes("1 l") || nameLower.includes("1l") || nameLower.includes("1-l") || nameLower.includes("1 liter") || nameLower.includes("1 litre")) {
+        matched = activeVariants.find(v => v.name.toLowerCase().includes("1 l") || v.name.toLowerCase().includes("1l") || v.name.toLowerCase().includes("1 liter") || v.name.toLowerCase().includes("1 litre"));
+      } else if (nameLower.includes("5 l") || nameLower.includes("5l") || nameLower.includes("5-l") || nameLower.includes("5 liter") || nameLower.includes("5 litre")) {
+        matched = activeVariants.find(v => v.name.toLowerCase().includes("5 l") || v.name.toLowerCase().includes("5l") || v.name.toLowerCase().includes("5 liter") || v.name.toLowerCase().includes("5 litre"));
+      } else if (nameLower.includes("15 l") || nameLower.includes("15l") || nameLower.includes("15-l") || nameLower.includes("15 liter") || nameLower.includes("15 litre")) {
+        matched = activeVariants.find(v => v.name.toLowerCase().includes("15 l") || v.name.toLowerCase().includes("15l") || v.name.toLowerCase().includes("15 liter") || v.name.toLowerCase().includes("15 litre"));
+      }
+      setSelectedVariant(matched || activeVariants[0]);
+    } else {
+      setSelectedVariant(null);
+    }
+  }, [activeVariants, product.name]);
 
   const [isAdded, setIsAdded] = useState(false);
 
@@ -75,7 +94,7 @@ const ProductCard = ({ product, user, onAddToCart }) => {
           }}
           className="h-full w-auto object-contain transition-transform duration-500 group-hover:scale-105 mix-blend-multiply"
         />
-        
+
         {/* Out of Stock Overlay */}
         {activeVariants.length === 0 && (
           <div className="absolute inset-0 bg-white/80 backdrop-blur-[2px] flex items-center justify-center z-10">
@@ -102,11 +121,10 @@ const ProductCard = ({ product, user, onAddToCart }) => {
           {[...Array(5)].map((_, i) => (
             <Star
               key={i}
-              className={`w-3 h-3 sm:w-3.5 sm:h-3.5 ${
-                i < Math.floor(ratingDetails.rating)
+              className={`w-3 h-3 sm:w-3.5 sm:h-3.5 ${i < Math.floor(ratingDetails.rating)
                   ? "fill-amber-500 stroke-amber-500"
                   : "stroke-slate-300"
-              }`}
+                }`}
             />
           ))}
         </div>
@@ -126,11 +144,10 @@ const ProductCard = ({ product, user, onAddToCart }) => {
                   e.stopPropagation();
                   setSelectedVariant(variant);
                 }}
-                className={`px-2 sm:px-3 py-0.5 sm:py-1 rounded-md sm:rounded-lg text-[8px] sm:text-[10px] font-black uppercase tracking-wider border transition-all ${
-                  isSelected
+                className={`px-2 sm:px-3 py-0.5 sm:py-1 rounded-md sm:rounded-lg text-[8px] sm:text-[10px] font-black uppercase tracking-wider border transition-all ${isSelected
                     ? "bg-slate-900 border-slate-900 text-white"
                     : "bg-slate-50 border-slate-200 text-slate-500 hover:bg-slate-100 hover:border-slate-300"
-                }`}
+                  }`}
               >
                 {variant.name}
               </button>
@@ -159,12 +176,12 @@ const ProductCard = ({ product, user, onAddToCart }) => {
                   -{priceDetails.discountPercent}%
                 </span>
                 <span className="text-slate-400 line-through text-[9px] sm:text-xs font-semibold">
-                  ₹{priceDetails.regPrice}
+                  ₹{Math.round(priceDetails.regPrice)}
                 </span>
               </div>
             ) : null}
             <span className="text-lg sm:text-2xl font-black text-slate-900 font-mono">
-              ₹{priceDetails.displayPrice}
+              ₹{Math.round(priceDetails.displayPrice)}
             </span>
           </div>
 
@@ -172,13 +189,12 @@ const ProductCard = ({ product, user, onAddToCart }) => {
             <button
               onClick={handleCartClick}
               disabled={isAdded || selectedVariant?.stockQuantity <= 0}
-              className={`p-2.5 sm:p-3.5 rounded-xl sm:rounded-2xl flex items-center justify-center transition-all duration-300 ${
-                isAdded
+              className={`p-2.5 sm:p-3.5 rounded-xl sm:rounded-2xl flex items-center justify-center transition-all duration-300 ${isAdded
                   ? "bg-green-500 text-white"
                   : selectedVariant?.stockQuantity <= 0
-                  ? "bg-slate-100 text-slate-400 cursor-not-allowed"
-                  : "bg-slate-900 text-white hover:bg-yellow-400 hover:text-black active:scale-95 shadow-md hover:shadow-lg hover:shadow-yellow-100"
-              }`}
+                    ? "bg-slate-100 text-slate-400 cursor-not-allowed"
+                    : "bg-slate-900 text-white hover:bg-yellow-400 hover:text-black active:scale-95 shadow-md hover:shadow-lg hover:shadow-yellow-100"
+                }`}
               title={selectedVariant?.stockQuantity <= 0 ? "Out of Stock" : "Add to Cart"}
             >
               <ShoppingCart className="w-3.5 h-3.5 sm:w-4 sm:h-4" />

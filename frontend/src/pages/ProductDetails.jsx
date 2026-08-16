@@ -32,9 +32,24 @@ const ProductDetails = () => {
         const prod = res.data.product;
         setProduct(prod);
         if (prod.variants && prod.variants.length > 0) {
-          // Preselect the first active variant
+          // Preselect the active variant matching the product name size
           const activeVariants = prod.variants.filter(v => v.status === 'Active');
-          if (activeVariants.length > 0) setSelectedVariant(activeVariants[0]);
+          if (activeVariants.length > 0) {
+            const nameLower = (prod.name || "").toLowerCase();
+            let matched = null;
+            if (nameLower.includes("250")) {
+              matched = activeVariants.find(v => v.name.toLowerCase().includes("250"));
+            } else if (nameLower.includes("500")) {
+              matched = activeVariants.find(v => v.name.toLowerCase().includes("500"));
+            } else if (nameLower.includes("1 l") || nameLower.includes("1l") || nameLower.includes("1-l") || nameLower.includes("1 liter") || nameLower.includes("1 litre")) {
+              matched = activeVariants.find(v => v.name.toLowerCase().includes("1 l") || v.name.toLowerCase().includes("1l") || v.name.toLowerCase().includes("1 liter") || v.name.toLowerCase().includes("1 litre"));
+            } else if (nameLower.includes("5 l") || nameLower.includes("5l") || nameLower.includes("5-l") || nameLower.includes("5 liter") || nameLower.includes("5 litre")) {
+              matched = activeVariants.find(v => v.name.toLowerCase().includes("5 l") || v.name.toLowerCase().includes("5l") || v.name.toLowerCase().includes("5 liter") || v.name.toLowerCase().includes("5 litre"));
+            } else if (nameLower.includes("15 l") || nameLower.includes("15l") || nameLower.includes("15-l") || nameLower.includes("15 liter") || nameLower.includes("15 litre")) {
+              matched = activeVariants.find(v => v.name.toLowerCase().includes("15 l") || v.name.toLowerCase().includes("15l") || v.name.toLowerCase().includes("15 liter") || v.name.toLowerCase().includes("15 litre"));
+            }
+            setSelectedVariant(matched || activeVariants[0]);
+          }
         }
       })
       .catch((err) => console.log(err));
@@ -160,7 +175,7 @@ const ProductDetails = () => {
 
             <div className="mt-4">
               <span className="text-5xl font-extrabold text-yellow-600">
-                ₹{selectedVariant ? ((selectedVariant.salePrice || selectedVariant.price) * finalQuantity) : ((product.price || 0) * finalQuantity)}
+                ₹{Math.round(selectedVariant ? ((selectedVariant.salePrice || selectedVariant.price) * finalQuantity) : ((product.price || 0) * finalQuantity))}
               </span>
 
               {selectedVariant ? (

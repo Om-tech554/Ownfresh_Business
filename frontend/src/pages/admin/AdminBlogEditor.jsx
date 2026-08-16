@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import axios from "axios";
 import { useParams, useNavigate } from "react-router-dom";
 import JoditEditor from "jodit-react";
@@ -6,11 +6,14 @@ import { ArrowLeft, Loader2, Save } from "lucide-react";
 import toast from "react-hot-toast";
 
 import RankMathSEOSidebar from "../../components/admin/seo/RankMathSEOSidebar";
+import ContentImageInserter from "../../components/admin/seo/ContentImageInserter";
+import TableOfContentsInserter from "../../components/admin/seo/TableOfContentsInserter";
 
 const AdminBlogEditor = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const isEditing = id !== "create" && id !== "new";
+  const editorRef = useRef(null);
 
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -299,6 +302,12 @@ const AdminBlogEditor = () => {
             />
           </div>
 
+          {/* Inline Media & Navigation Tools */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <ContentImageInserter editorRef={editorRef} focusKeyword={focusKeyword} />
+            <TableOfContentsInserter editorRef={editorRef} description={description} setDescription={setDescription} />
+          </div>
+
           <div className="bg-white rounded-2xl border border-gray-100 shadow-xs overflow-hidden">
             <div className="px-6 py-4 border-b border-gray-100 bg-gray-50">
               <label className="text-xs font-bold text-gray-500 uppercase tracking-widest">Article Body</label>
@@ -306,6 +315,7 @@ const AdminBlogEditor = () => {
 
             <div className="wp-blog-content-admin w-full">
               <JoditEditor
+                ref={editorRef}
                 value={description}
                 config={editorConfig}
                 onBlur={(newContent) => setDescription(newContent)}
