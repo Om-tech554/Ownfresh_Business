@@ -1,5 +1,6 @@
 import nodemailer from "nodemailer";
 import dotenv from "dotenv";
+import { generateInvoicePdf } from "./pdfGenerator.js";
 
 dotenv.config();
 
@@ -134,6 +135,17 @@ export const sendOrderConfirmationMail = async (order) => {
     </tr>
   `).join('');
 
+  let attachments = [];
+  try {
+    const pdfBuffer = await generateInvoicePdf(order);
+    attachments.push({
+      filename: `Invoice_${order.customOrderId || order._id}.pdf`,
+      content: pdfBuffer
+    });
+  } catch (pdfErr) {
+    console.error("Failed to generate PDF attachment for email:", pdfErr.message);
+  }
+
   await transporter.sendMail({
     from: `"OwnFresh Orders" <${process.env.EMAIL}>`,
     to: order.user.email,
@@ -152,7 +164,7 @@ export const sendOrderConfirmationMail = async (order) => {
           <div style="padding:32px;color:#333;">
             <p style="font-size:16px;margin-top:0;">Hi <b>${order.user.fullName}</b>,</p>
             <p style="font-size:14px;color:#555;line-height:1.5;">
-              We've received your order and payment. We are preparing the items for shipment! Below are your order details:
+              We've received your order and payment. We have attached the official tax invoice to this email. Below are your order details:
             </p>
 
             <div style="background:#F5F5F5;padding:15px;border-radius:8px;margin:20px 0;font-size:14px;">
@@ -214,6 +226,7 @@ export const sendOrderConfirmationMail = async (order) => {
         </div>
       </div>
     `,
+    attachments
   });
 };
 

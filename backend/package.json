@@ -33,6 +33,7 @@
     "nodemon": "^3.1.11",
     "ownfresh": "file:..",
     "pdf-parse": "^2.4.5",
+    "pdfkit": "^0.19.1",
     "tesseract.js": "^7.0.0"
   }
 }
