@@ -35,7 +35,7 @@ const ProductReviews = ({ productId, productName }) => {
   }, [productId]);
 
   return (
-    <div className="w-full bg-white rounded-3xl p-6 md:p-10 border border-gray-100 shadow-sm space-y-8">
+    <div className="w-full bg-white rounded-3xl p-4 sm:p-6 md:p-10 border border-gray-100 shadow-sm space-y-8">
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-gray-100 pb-6">
         <div>
@@ -45,7 +45,7 @@ const ProductReviews = ({ productId, productName }) => {
 
         <button
           onClick={() => setIsModalOpen(true)}
-          className="bg-amber-400 hover:bg-amber-300 text-gray-950 font-bold px-5 py-2.5 rounded-xl text-xs flex items-center justify-center gap-2 transition-all shadow-sm self-start md:self-auto"
+          className="bg-amber-400 hover:bg-amber-300 text-gray-950 font-bold px-5 py-2.5 rounded-xl text-xs flex items-center justify-center gap-2 transition-all shadow-sm w-full md:w-auto"
         >
           <MessageSquare className="w-4 h-4" />
           Write a Review
@@ -53,7 +53,7 @@ const ProductReviews = ({ productId, productName }) => {
       </div>
 
       {/* Ratings Summary & Star Distribution */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8 bg-gray-50 p-6 rounded-2xl">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8 bg-gray-50 p-4 sm:p-6 rounded-2xl">
         {/* Rating Score */}
         <div className="flex flex-col items-center justify-center text-center border-b md:border-b-0 md:border-r border-gray-200 pb-6 md:pb-0">
           <span className="text-5xl font-black text-gray-900">{averageRating}</span>
@@ -115,17 +115,17 @@ const ProductReviews = ({ productId, productName }) => {
       ) : (
         <div className="space-y-4">
           {reviews.map((review) => (
-            <div key={review._id} className="p-5 rounded-2xl border border-gray-100 bg-white space-y-3 shadow-xs">
-              <div className="flex items-center justify-between">
+            <div key={review._id} className="p-4 sm:p-5 rounded-2xl border border-gray-100 bg-white space-y-3 shadow-xs">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-full bg-amber-400 font-black text-gray-950 flex items-center justify-center text-xs">
+                  <div className="w-9 h-9 flex-shrink-0 rounded-full bg-amber-400 font-black text-gray-950 flex items-center justify-center text-xs">
                     {review.userName ? review.userName.charAt(0).toUpperCase() : "U"}
                   </div>
                   <div>
-                    <div className="flex items-center gap-1.5">
+                    <div className="flex flex-wrap items-center gap-1.5">
                       <h5 className="font-bold text-xs text-gray-900">{review.userName}</h5>
                       {review.isVerifiedBuyer && (
-                        <span className="flex items-center gap-0.5 text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-100">
+                        <span className="inline-flex items-center gap-0.5 text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-100">
                           <CheckCircle className="w-3 h-3" /> Verified Buyer
                         </span>
                       )}

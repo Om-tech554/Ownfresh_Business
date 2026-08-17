@@ -95,15 +95,15 @@ const Lightbox = ({ images, index, onClose }) => {
           {/* Prev / Next */}
           <button
             onClick={prev}
-            className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-full pr-4 text-white hover:text-[#FFDD00] transition-colors hidden sm:block"
+            className="absolute left-2 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/60 text-white hover:text-[#FFDD00] transition-colors flex items-center justify-center z-10 sm:-left-16 sm:bg-transparent"
           >
-            <FaChevronLeft size={32} />
+            <FaChevronLeft size={20} />
           </button>
           <button
             onClick={next}
-            className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-full pl-4 text-white hover:text-[#FFDD00] transition-colors hidden sm:block"
+            className="absolute right-2 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/60 text-white hover:text-[#FFDD00] transition-colors flex items-center justify-center z-10 sm:-right-16 sm:bg-transparent"
           >
-            <FaChevronRight size={32} />
+            <FaChevronRight size={20} />
           </button>
         </div>
 
@@ -204,13 +204,13 @@ const GalleryPage = () => {
       </section>
 
       {/* ── Category Filter ── */}
-      <section className="w-full bg-[#fafafa] border-b border-gray-100 py-5 px-6 flex justify-center">
-        <div className="flex flex-wrap gap-3 justify-center">
+      <section className="w-full bg-[#fafafa] border-b border-gray-100 py-4 px-4 flex justify-start md:justify-center overflow-x-auto hide-scrollbar snap-x snap-mandatory">
+        <div className="flex gap-2 snap-start">
           {CATEGORIES.map((cat) => (
             <button
               key={cat}
               onClick={() => setActiveCategory(cat)}
-              className={`px-4 py-1.5 text-xs font-black uppercase tracking-widest border transition-all duration-200 ${activeCategory === cat
+              className={`px-4 py-1.5 text-[10px] md:text-xs font-black uppercase tracking-widest border transition-all duration-200 snap-start whitespace-nowrap ${activeCategory === cat
                 ? 'bg-black text-[#FFDD00] border-black'
                 : 'bg-white text-black border-gray-300 hover:border-black'
                 }`}
@@ -222,8 +222,8 @@ const GalleryPage = () => {
       </section>
 
       {/* ── Masonry Grid ── */}
-      <section className="w-full py-12 md:py-20 px-4 md:px-10 lg:px-20">
-        <div className="max-w-7xl mx-auto columns-1 sm:columns-2 md:columns-2 lg:columns-3 gap-4 space-y-4">
+      <section className="w-full py-8 md:py-20 px-4 md:px-10 lg:px-20">
+        <div className="max-w-7xl mx-auto columns-2 sm:columns-2 md:columns-3 lg:columns-3 gap-3 space-y-3">
           {filtered.map((img, i) => (
             <div
               key={img.id}
@@ -237,16 +237,16 @@ const GalleryPage = () => {
                 loading="lazy"
               />
               {/* Overlay */}
-              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/50 transition-all duration-300 flex flex-col items-center justify-center gap-2">
-                <span className="text-white font-black uppercase tracking-widest text-xs border-2 border-white px-4 py-2 opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 transition-all duration-300">
+              <div className="absolute inset-0 bg-black/40 md:bg-black/0 md:group-hover:bg-black/50 transition-all duration-300 flex flex-col items-center justify-center gap-1.5">
+                <span className="text-white font-black uppercase tracking-widest text-[9px] md:text-xs border-2 border-white px-2 py-1 md:px-4 md:py-2 opacity-100 md:opacity-0 md:group-hover:opacity-100 translate-y-0 md:translate-y-2 md:group-hover:translate-y-0 transition-all duration-300">
                   View
                 </span>
-                <span className="text-white/80 text-xs font-medium px-4 text-center opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 transition-all duration-500 delay-75">
+                <span className="text-white/95 text-[10px] md:text-xs font-semibold px-2 text-center opacity-100 md:opacity-0 md:group-hover:opacity-100 translate-y-0 md:translate-y-2 md:group-hover:translate-y-0 transition-all duration-500 delay-75 line-clamp-1">
                   {img.caption}
                 </span>
               </div>
               {/* Category badge */}
-              <span className="absolute top-3 left-3 bg-[#FFDD00] text-black text-[9px] font-black uppercase tracking-widest px-2 py-0.5 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+              <span className="absolute top-2 left-2 bg-[#FFDD00] text-black text-[8px] md:text-[9px] font-black uppercase tracking-widest px-1.5 py-0.5 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-300">
                 {img.category}
               </span>
             </div>
@@ -289,6 +289,11 @@ const GalleryPage = () => {
           />
         )}
       </AnimatePresence>
+      <style dangerouslySetInnerHTML={{
+        __html: `
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+      `}} />
     </div>
   );
 };

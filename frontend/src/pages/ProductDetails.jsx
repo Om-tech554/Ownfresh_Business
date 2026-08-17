@@ -313,18 +313,24 @@ const ProductDetails = () => {
             Recently Added Oils
           </h2>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10">
+          <div className="flex md:grid md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-8 overflow-x-auto snap-x snap-mandatory hide-scrollbar pb-8 w-full">
             {recentProducts.map((p) => (
-              <ProductCard
-                key={p._id}
-                product={p}
-                user={user}
-                onAddToCart={handleRecentAddToCart}
-              />
+              <div key={p._id} className="w-[265px] md:w-full flex-shrink-0 snap-start">
+                <ProductCard
+                  product={p}
+                  user={user}
+                  onAddToCart={handleRecentAddToCart}
+                />
+              </div>
             ))}
           </div>
         </div>
       </div>
+      <style dangerouslySetInnerHTML={{
+        __html: `
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+      `}} />
     </>
   );
 };
