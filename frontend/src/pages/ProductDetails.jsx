@@ -3,8 +3,9 @@ import toast from "react-hot-toast";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { ShoppingCart } from "lucide-react";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { addToCart } from "../redux/userslice";
+import ProductCard from "../components/ProductCard";
 import Navbar from "../components/Navbar";
 import SLink from "../components/SLink";
 import SEO from "../components/SEO";
@@ -14,6 +15,7 @@ const ProductDetails = () => {
   const { id } = useParams();
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const user = useSelector((state) => state.user.userData);
 
   const [product, setProduct] = useState(null);
   const [recentProducts, setRecentProducts] = useState([]);
@@ -109,6 +111,37 @@ const ProductDetails = () => {
     dispatch(addToCart(cartItem));
     toast.success(`Proceeding to checkout with ${displayName}!`);
     navigate("/checkout");
+  };
+
+  const handleRecentAddToCart = (prod, variant) => {
+    if (!user) {
+      toast.error("Please sign in to add to cart", { duration: 1500 });
+      setTimeout(() => navigate("/signin"), 500);
+      return;
+    }
+    const getDynamicName = (productName, variantName) => {
+      if (!productName) return "";
+      if (!variantName) return productName;
+      const sizeRegex = /\b\d+(?:\.\d+)?\s*(?:ml|l|litre|liter|litres|liters|ltr|ltrs)\b/i;
+      if (sizeRegex.test(productName)) {
+        return productName.replace(sizeRegex, variantName);
+      }
+      return `${productName} - ${variantName}`;
+    };
+    const displayName = getDynamicName(prod.name, variant.name);
+
+    const cartItem = {
+      ...prod,
+      _id: `${prod._id}_${variant._id}`,
+      productId: prod._id,
+      variantId: variant._id,
+      name: displayName,
+      variantName: variant.name,
+      price: variant.salePrice || variant.price,
+      quantity: 1,
+    };
+    dispatch(addToCart(cartItem));
+    toast.success(`${displayName} added to cart!`);
   };
 
   if (!product)
@@ -282,27 +315,12 @@ const ProductDetails = () => {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10">
             {recentProducts.map((p) => (
-              <SLink
+              <ProductCard
                 key={p._id}
-                to={`/product/${p._id}`}
-                className="bg-white border border-white shadow-sm rounded-3xl p-6 hover:shadow-xl hover:-translate-y-2 transition-all cursor-pointer block"
-              >
-                <div className="h-48 bg-gray-50 rounded-2xl p-6 flex items-center justify-center overflow-hidden">
-                  <img
-                    src={p.image}
-                    alt={p.name}
-                    className="w-full h-full object-contain"
-                  />
-                </div>
-
-                <h3 className="mt-4 text-lg font-semibold text-slate-800 line-clamp-2">
-                  {p.name}
-                </h3>
-
-                <p className="text-yellow-600 font-extrabold mt-1 text-xl">
-                  ₹{p.price}
-                </p>
-              </SLink>
+                product={p}
+                user={user}
+                onAddToCart={handleRecentAddToCart}
+              />
             ))}
           </div>
         </div>
