@@ -81,13 +81,13 @@ const ProductDetails = () => {
       _id: `${product._id}_${selectedVariant._id}`,
       productId: product._id,
       variantId: selectedVariant._id,
-      name: `${product.name} - ${selectedVariant.name}`,
+      name: displayName,
       variantName: selectedVariant.name,
       price: selectedVariant.salePrice || selectedVariant.price,
       quantity: finalQuantity,
     };
     dispatch(addToCart(cartItem));
-    toast.success(`${product.name} - ${selectedVariant.name} added to cart!`);
+    toast.success(`${displayName} added to cart!`);
   };
 
   /* --- Buy Now --- */
@@ -101,13 +101,13 @@ const ProductDetails = () => {
       _id: `${product._id}_${selectedVariant._id}`,
       productId: product._id,
       variantId: selectedVariant._id,
-      name: `${product.name} - ${selectedVariant.name}`,
+      name: displayName,
       variantName: selectedVariant.name,
       price: selectedVariant.salePrice || selectedVariant.price,
       quantity: finalQuantity,
     };
     dispatch(addToCart(cartItem));
-    toast.success(`Proceeding to checkout with ${product.name} - ${selectedVariant.name}!`);
+    toast.success(`Proceeding to checkout with ${displayName}!`);
     navigate("/checkout");
   };
 
@@ -116,11 +116,23 @@ const ProductDetails = () => {
 
   const currentPrice = selectedVariant ? (selectedVariant.salePrice || selectedVariant.price) : product.price;
 
+  const getDynamicName = (productName, variantName) => {
+    if (!productName) return "";
+    if (!variantName) return productName;
+    const sizeRegex = /\b\d+(?:\.\d+)?\s*(?:ml|l|litre|liter|litres|liters|ltr|ltrs)\b/i;
+    if (sizeRegex.test(productName)) {
+      return productName.replace(sizeRegex, variantName);
+    }
+    return `${productName} - ${variantName}`;
+  };
+
+  const displayName = getDynamicName(product?.name, selectedVariant?.name);
+
   // Schema Markup for Product
   const schemaMarkup = {
     "@context": "https://schema.org/",
     "@type": "Product",
-    "name": product.name,
+    "name": displayName || product.name,
     "image": product.image,
     "description": product.shortDesc,
     "brand": {
@@ -139,7 +151,7 @@ const ProductDetails = () => {
   return (
     <>
       <SEO
-        title={product.name}
+        title={displayName || product.name}
         description={product.shortDesc}
         image={product.image}
         url={`/product/${product._id}`}
@@ -155,7 +167,7 @@ const ProductDetails = () => {
           <div className="flex justify-center items-center bg-white p-10 rounded-3xl shadow-md">
             <img
               src={product.image}
-              alt={product.name}
+              alt={displayName || product.name}
               onError={(e) => {
                 e.target.onerror = null;
                 e.target.src = "https://res.cloudinary.com/dkhq2wlwg/image/upload/v1786009742/products/banner.png";
@@ -166,7 +178,7 @@ const ProductDetails = () => {
 
           {/* RIGHT — Product Details */}
           <div className="flex flex-col justify-center">
-            <h1 className="text-4xl font-bold text-slate-900">{product.name}</h1>
+            <h1 className="text-4xl font-bold text-slate-900">{displayName || product.name}</h1>
             <div className="flex gap-2 mt-2">
               <span className="text-[10px] font-black px-2 py-0.5 rounded bg-blue-100 text-blue-700 uppercase tracking-widest">
                 {product.category?.name || product.category || "General"}

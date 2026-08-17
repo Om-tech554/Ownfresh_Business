@@ -35,6 +35,17 @@ const ProductCard = ({ product, user, onAddToCart }) => {
 
   const [isAdded, setIsAdded] = useState(false);
 
+  // Compute dynamic name based on selected variant size
+  const displayName = useMemo(() => {
+    if (!product.name) return "";
+    if (!selectedVariant) return product.name;
+    const sizeRegex = /\b\d+(?:\.\d+)?\s*(?:ml|l|litre|liter|litres|liters|ltr|ltrs)\b/i;
+    if (sizeRegex.test(product.name)) {
+      return product.name.replace(sizeRegex, selectedVariant.name);
+    }
+    return `${product.name} - ${selectedVariant.name}`;
+  }, [product.name, selectedVariant]);
+
   // Compute discount and prices
   const priceDetails = useMemo(() => {
     const regPrice = selectedVariant ? selectedVariant.price : (product.price || 0);
@@ -87,7 +98,7 @@ const ProductCard = ({ product, user, onAddToCart }) => {
       <div className="relative h-32 sm:h-44 w-full rounded-xl sm:rounded-2xl overflow-hidden bg-slate-50 border border-slate-100 mb-3 sm:mb-4 flex items-center justify-center p-2 sm:p-4">
         <img
           src={product.image}
-          alt={product.name}
+          alt={displayName}
           onError={(e) => {
             e.target.onerror = null;
             e.target.src = "https://res.cloudinary.com/dkhq2wlwg/image/upload/v1786009742/products/banner.png";
@@ -112,7 +123,7 @@ const ProductCard = ({ product, user, onAddToCart }) => {
 
       {/* Title */}
       <h3 className="text-xs sm:text-sm text-slate-900 font-extrabold leading-tight mb-1.5 sm:mb-2 uppercase line-clamp-2 min-h-[2rem] sm:min-h-[2.5rem]">
-        {product.name}
+        {displayName}
       </h3>
 
       {/* Ratings Row */}

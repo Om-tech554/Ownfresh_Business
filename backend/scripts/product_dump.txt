@@ -1,0 +1,330 @@
+--- Categories (7) ---
+- Groundnut Oil (ID: 6a7559589eff747aaa081c48)
+- Coconut Oil (ID: 6a7559589eff747aaa081c49)
+- Mustard Oil (ID: 6a7559589eff747aaa081c4a)
+- Sesame Oil (ID: 6a7559589eff747aaa081c4b)
+- Safflower Oil (ID: 6a7559589eff747aaa081c4c)
+- Sunflower Oil (ID: 6a7559589eff747aaa081c4d)
+- Combo Value Packs (ID: 6a7559589eff747aaa081c4e)
+
+--- Products (32) ---
+
+Product: "OwnFresh stone Pressed Kacchi Ghani 1 Litre Coconut Oil"
+  Category: Coconut Oil
+  ID: 69cba046c2b2e0ff7775d590
+  Status: Active
+  Variants (4):
+    - "500 ml" | Price: 1205 | Sale Price: null | Stock: 100 | Status: Active | ID: 6a537e8050ad5f19b18e767b
+    - "1 Litre" | Price: 2169 | Sale Price: null | Stock: 50 | Status: Active | ID: 6a7edc770491b3ff62869eac
+    - "5 Litre" | Price: 9640 | Sale Price: null | Stock: 50 | Status: Active | ID: 6a7edc770491b3ff62869ead
+    - "15 Litre" | Price: 26510 | Sale Price: null | Stock: 50 | Status: Active | ID: 6a7edc770491b3ff62869eae
+
+Product: "OwnFresh stone Pressed Kacchi Ghani 5 Litre Coconut Oil"
+  Category: Coconut Oil
+  ID: 69cba046c2b2e0ff7775d591
+  Status: Active
+  Variants (4):
+    - "500 ml" | Price: 6025 | Sale Price: null | Stock: 100 | Status: Active | ID: 6a537e8050ad5f19b18e767e
+    - "1 Litre" | Price: 10845 | Sale Price: null | Stock: 50 | Status: Active | ID: 6a7edc770491b3ff62869eb4
+    - "5 Litre" | Price: 48200 | Sale Price: null | Stock: 50 | Status: Active | ID: 6a7edc770491b3ff62869eb5
+    - "15 Litre" | Price: 132550 | Sale Price: null | Stock: 50 | Status: Active | ID: 6a7edc770491b3ff62869eb6
+
+Product: "OwnFresh stone Pressed Kacchi Ghani 1 Liter Groundnut Oil"
+  Category: Groundnut Oil
+  ID: 69cba046c2b2e0ff7775d592
+  Status: Active
+  Variants (4):
+    - "500 ml" | Price: 605 | Sale Price: null | Stock: 100 | Status: Active | ID: 6a537e8150ad5f19b18e7681
+    - "1 Litre" | Price: 1089 | Sale Price: null | Stock: 50 | Status: Active | ID: 6a7edc770491b3ff62869ebc
+    - "5 Litre" | Price: 4840 | Sale Price: null | Stock: 50 | Status: Active | ID: 6a7edc770491b3ff62869ebd
+    - "15 Litre" | Price: 13310 | Sale Price: null | Stock: 50 | Status: Active | ID: 6a7edc770491b3ff62869ebe
+
+Product: "OwnFresh stone Pressed Kacchi Ghani 1 Litre Mustard Oil"
+  Category: Mustard Oil
+  ID: 69cba046c2b2e0ff7775d593
+  Status: Active
+  Variants (4):
+    - "500 ml" | Price: 575 | Sale Price: null | Stock: 100 | Status: Active | ID: 6a537e8150ad5f19b18e7684
+    - "1 Litre" | Price: 1035 | Sale Price: null | Stock: 50 | Status: Active | ID: 6a7edc770491b3ff62869ec5
+    - "5 Litre" | Price: 4600 | Sale Price: null | Stock: 50 | Status: Active | ID: 6a7edc770491b3ff62869ec6
+    - "15 Litre" | Price: 12650 | Sale Price: null | Stock: 50 | Status: Active | ID: 6a7edc770491b3ff62869ec7
+
+Product: "OwnFresh stone Pressed Kacchi Ghani 1 Litre Safflower Oil"
+  Category: Safflower Oil
+  ID: 69cba046c2b2e0ff7775d594
+  Status: Active
+  Variants (4):
+    - "500 ml" | Price: 580 | Sale Price: null | Stock: 100 | Status: Active | ID: 6a537e8150ad5f19b18e7687
+    - "1 Litre" | Price: 1044 | Sale Price: null | Stock: 50 | Status: Active | ID: 6a7edc770491b3ff62869ecd
+    - "5 Litre" | Price: 4640 | Sale Price: null | Stock: 50 | Status: Active | ID: 6a7edc770491b3ff62869ece
+    - "15 Litre" | Price: 12760 | Sale Price: null | Stock: 50 | Status: Active | ID: 6a7edc770491b3ff62869ecf
+
+Product: "OwnFresh stone Pressed Kacchi Ghani 1 Litre Sesame Oil"
+  Category: Sesame Oil
+  ID: 69cba046c2b2e0ff7775d595
+  Status: Active
+  Variants (4):
+    - "500 ml" | Price: 680 | Sale Price: null | Stock: 100 | Status: Active | ID: 6a537e8150ad5f19b18e768a
+    - "1 Litre" | Price: 1224 | Sale Price: null | Stock: 50 | Status: Active | ID: 6a7edc770491b3ff62869ed5
+    - "5 Litre" | Price: 5440 | Sale Price: null | Stock: 50 | Status: Active | ID: 6a7edc770491b3ff62869ed6
+    - "15 Litre" | Price: 14960 | Sale Price: null | Stock: 50 | Status: Active | ID: 6a7edc770491b3ff62869ed7
+
+Product: "OwnFresh stone Pressed Kacchi Ghani 1 Litre Sunflower Oil"
+  Category: Sunflower Oil
+  ID: 69cba046c2b2e0ff7775d596
+  Status: Active
+  Variants (4):
+    - "500 ml" | Price: 540 | Sale Price: null | Stock: 100 | Status: Active | ID: 6a537e8150ad5f19b18e768d
+    - "1 Litre" | Price: 972 | Sale Price: null | Stock: 50 | Status: Active | ID: 6a7edc770491b3ff62869edd
+    - "5 Litre" | Price: 4320 | Sale Price: null | Stock: 50 | Status: Active | ID: 6a7edc770491b3ff62869ede
+    - "15 Litre" | Price: 11880 | Sale Price: null | Stock: 50 | Status: Active | ID: 6a7edc770491b3ff62869edf
+
+Product: "OwnFresh stone Pressed Kacchi Ghani 250 ML Coconut Oil"
+  Category: Coconut Oil
+  ID: 69cba046c2b2e0ff7775d597
+  Status: Active
+  Variants (4):
+    - "500 ml" | Price: 350 | Sale Price: null | Stock: 100 | Status: Active | ID: 6a537e8150ad5f19b18e7690
+    - "1 Litre" | Price: 630 | Sale Price: null | Stock: 50 | Status: Active | ID: 6a7edc770491b3ff62869ee5
+    - "5 Litre" | Price: 2800 | Sale Price: null | Stock: 50 | Status: Active | ID: 6a7edc770491b3ff62869ee6
+    - "15 Litre" | Price: 7700 | Sale Price: null | Stock: 50 | Status: Active | ID: 6a7edc770491b3ff62869ee7
+
+Product: "OwnFresh stone Pressed Kacchi Ghani 250 ML Groundnut Oil"
+  Category: Groundnut Oil
+  ID: 69cba046c2b2e0ff7775d598
+  Status: Active
+  Variants (4):
+    - "500 ml" | Price: 195 | Sale Price: null | Stock: 100 | Status: Active | ID: 6a537e8150ad5f19b18e7693
+    - "1 Litre" | Price: 351 | Sale Price: null | Stock: 50 | Status: Active | ID: 6a7edc770491b3ff62869eec
+    - "5 Litre" | Price: 1560 | Sale Price: null | Stock: 50 | Status: Active | ID: 6a7edc770491b3ff62869eed
+    - "15 Litre" | Price: 4290 | Sale Price: null | Stock: 50 | Status: Active | ID: 6a7edc770491b3ff62869eee
+
+Product: "OwnFresh stone Pressed Kacchi Ghani 250 ML Mustard Oil"
+  Category: Mustard Oil
+  ID: 69cba046c2b2e0ff7775d599
+  Status: Active
+  Variants (4):
+    - "500 ml" | Price: 185 | Sale Price: null | Stock: 100 | Status: Active | ID: 6a537e8150ad5f19b18e7696
+    - "1 Litre" | Price: 333 | Sale Price: null | Stock: 50 | Status: Active | ID: 6a7edc770491b3ff62869ef5
+    - "5 Litre" | Price: 1480 | Sale Price: null | Stock: 50 | Status: Active | ID: 6a7edc770491b3ff62869ef6
+    - "15 Litre" | Price: 4070 | Sale Price: null | Stock: 50 | Status: Active | ID: 6a7edc770491b3ff62869ef7
+
+Product: "OwnFresh stone Pressed Kacchi Ghani 250 ML Safflower Oil"
+  Category: Safflower Oil
+  ID: 69cba046c2b2e0ff7775d59a
+  Status: Active
+  Variants (4):
+    - "500 ml" | Price: 190 | Sale Price: null | Stock: 100 | Status: Active | ID: 6a537e8150ad5f19b18e7699
+    - "1 Litre" | Price: 342 | Sale Price: null | Stock: 50 | Status: Active | ID: 6a7edc770491b3ff62869efc
+    - "5 Litre" | Price: 1520 | Sale Price: null | Stock: 50 | Status: Active | ID: 6a7edc770491b3ff62869efd
+    - "15 Litre" | Price: 4180 | Sale Price: null | Stock: 50 | Status: Active | ID: 6a7edc770491b3ff62869efe
+
+Product: "OwnFresh stone Pressed Kacchi Ghani 250 ML Sesame Oil"
+  Category: Sesame Oil
+  ID: 69cba046c2b2e0ff7775d59b
+  Status: Active
+  Variants (4):
+    - "500 ml" | Price: 210 | Sale Price: null | Stock: 100 | Status: Active | ID: 6a537e8150ad5f19b18e769c
+    - "1 Litre" | Price: 378 | Sale Price: null | Stock: 50 | Status: Active | ID: 6a7edc770491b3ff62869f05
+    - "5 Litre" | Price: 1680 | Sale Price: null | Stock: 50 | Status: Active | ID: 6a7edc770491b3ff62869f06
+    - "15 Litre" | Price: 4620 | Sale Price: null | Stock: 50 | Status: Active | ID: 6a7edc770491b3ff62869f07
+
+Product: "OwnFresh stone Pressed Kacchi Ghani 250 ML Sunflower Oil"
+  Category: Sunflower Oil
+  ID: 69cba046c2b2e0ff7775d59c
+  Status: Active
+  Variants (4):
+    - "500 ml" | Price: 180 | Sale Price: null | Stock: 100 | Status: Active | ID: 6a537e8150ad5f19b18e769f
+    - "1 Litre" | Price: 324 | Sale Price: null | Stock: 50 | Status: Active | ID: 6a7edc780491b3ff62869f0c
+    - "5 Litre" | Price: 1440 | Sale Price: null | Stock: 50 | Status: Active | ID: 6a7edc780491b3ff62869f0d
+    - "15 Litre" | Price: 3960 | Sale Price: null | Stock: 50 | Status: Active | ID: 6a7edc780491b3ff62869f0e
+
+Product: "OwnFresh stone Pressed Kacchi Ghani 5 Liter Groundnut Oil"
+  Category: Groundnut Oil
+  ID: 69cba046c2b2e0ff7775d59d
+  Status: Active
+  Variants (4):
+    - "500 ml" | Price: 3025 | Sale Price: null | Stock: 100 | Status: Active | ID: 6a537e8150ad5f19b18e76a2
+    - "1 Litre" | Price: 5445 | Sale Price: null | Stock: 50 | Status: Active | ID: 6a7edc780491b3ff62869f14
+    - "5 Litre" | Price: 24200 | Sale Price: null | Stock: 50 | Status: Active | ID: 6a7edc780491b3ff62869f15
+    - "15 Litre" | Price: 66550 | Sale Price: null | Stock: 50 | Status: Active | ID: 6a7edc780491b3ff62869f16
+
+Product: "OwnFresh stone Pressed Kacchi Ghani 5 Litre Mustard Oil"
+  Category: Mustard Oil
+  ID: 69cba046c2b2e0ff7775d59e
+  Status: Active
+  Variants (4):
+    - "500 ml" | Price: 2875 | Sale Price: null | Stock: 100 | Status: Active | ID: 6a537e8150ad5f19b18e76a5
+    - "1 Litre" | Price: 5175 | Sale Price: null | Stock: 50 | Status: Active | ID: 6a7edc780491b3ff62869f1d
+    - "5 Litre" | Price: 23000 | Sale Price: null | Stock: 50 | Status: Active | ID: 6a7edc780491b3ff62869f1e
+    - "15 Litre" | Price: 63250 | Sale Price: null | Stock: 50 | Status: Active | ID: 6a7edc780491b3ff62869f1f
+
+Product: "OwnFresh stone Pressed Kacchi Ghani 5 Litre Safflower Oil"
+  Category: Safflower Oil
+  ID: 69cba046c2b2e0ff7775d59f
+  Status: Active
+  Variants (4):
+    - "500 ml" | Price: 3025 | Sale Price: null | Stock: 100 | Status: Active | ID: 6a537e8150ad5f19b18e76a8
+    - "1 Litre" | Price: 5445 | Sale Price: null | Stock: 50 | Status: Active | ID: 6a7edc780491b3ff62869f24
+    - "5 Litre" | Price: 24200 | Sale Price: null | Stock: 50 | Status: Active | ID: 6a7edc780491b3ff62869f25
+    - "15 Litre" | Price: 66550 | Sale Price: null | Stock: 50 | Status: Active | ID: 6a7edc780491b3ff62869f26
+
+Product: "OwnFresh stone Pressed Kacchi Ghani 5 Litre Sesame Oil"
+  Category: Sesame Oil
+  ID: 69cba046c2b2e0ff7775d5a0
+  Status: Active
+  Variants (4):
+    - "500 ml" | Price: 3400 | Sale Price: null | Stock: 100 | Status: Active | ID: 6a537e8150ad5f19b18e76ab
+    - "1 Litre" | Price: 6200 | Sale Price: null | Stock: 100 | Status: Active | ID: 6a7edb521769c0ef68b92150
+    - "5 Litre" | Price: 28000 | Sale Price: null | Stock: 50 | Status: Active | ID: 6a7edb521769c0ef68b92151
+    - "15 Litre" | Price: 75000 | Sale Price: null | Stock: 20 | Status: Active | ID: 6a7edb521769c0ef68b92152
+
+Product: "OwnFresh stone Pressed Kacchi Ghani 5 Litre Sunflower Oil"
+  Category: Sunflower Oil
+  ID: 69cba046c2b2e0ff7775d5a1
+  Status: Active
+  Variants (4):
+    - "500 ml" | Price: 2700 | Sale Price: null | Stock: 100 | Status: Active | ID: 6a537e8150ad5f19b18e76ae
+    - "1 Litre" | Price: 4860 | Sale Price: null | Stock: 50 | Status: Active | ID: 6a7edc780491b3ff62869f30
+    - "5 Litre" | Price: 21600 | Sale Price: null | Stock: 50 | Status: Active | ID: 6a7edc780491b3ff62869f31
+    - "15 Litre" | Price: 59400 | Sale Price: null | Stock: 50 | Status: Active | ID: 6a7edc780491b3ff62869f32
+
+Product: "OwnFresh stone Pressed Kacchi Ghani 500 ML Coconut Oil"
+  Category: Coconut Oil
+  ID: 69cba046c2b2e0ff7775d5a2
+  Status: Active
+  Variants (4):
+    - "500 ml" | Price: 635 | Sale Price: null | Stock: 100 | Status: Active | ID: 6a537e8150ad5f19b18e76b1
+    - "1 Litre" | Price: 1143 | Sale Price: null | Stock: 50 | Status: Active | ID: 6a7edc780491b3ff62869f37
+    - "5 Litre" | Price: 5080 | Sale Price: null | Stock: 50 | Status: Active | ID: 6a7edc780491b3ff62869f38
+    - "15 Litre" | Price: 13970 | Sale Price: null | Stock: 50 | Status: Active | ID: 6a7edc780491b3ff62869f39
+
+Product: "OwnFresh stone Pressed Kacchi Ghani 500 ML Combo pack of 3"
+  Category: Combo Value Packs
+  ID: 69cba046c2b2e0ff7775d5a3
+  Status: Active
+  Variants (4):
+    - "500 ml" | Price: 950 | Sale Price: null | Stock: 100 | Status: Active | ID: 6a537e8150ad5f19b18e76b4
+    - "1 Litre" | Price: 1710 | Sale Price: null | Stock: 50 | Status: Active | ID: 6a7edc780491b3ff62869f3f
+    - "5 Litre" | Price: 7600 | Sale Price: null | Stock: 50 | Status: Active | ID: 6a7edc780491b3ff62869f40
+    - "15 Litre" | Price: 20900 | Sale Price: null | Stock: 50 | Status: Active | ID: 6a7edc780491b3ff62869f41
+
+Product: "OwnFresh stone Pressed Kacchi Ghani 500 ML Combo pack of 3"
+  Category: Combo Value Packs
+  ID: 69cba046c2b2e0ff7775d5a4
+  Status: Active
+  Variants (4):
+    - "500 ml" | Price: 1310 | Sale Price: null | Stock: 100 | Status: Active | ID: 6a537e8150ad5f19b18e76b7
+    - "1 Litre" | Price: 2358 | Sale Price: null | Stock: 50 | Status: Active | ID: 6a7edc780491b3ff62869f46
+    - "5 Litre" | Price: 10480 | Sale Price: null | Stock: 50 | Status: Active | ID: 6a7edc780491b3ff62869f47
+    - "15 Litre" | Price: 28820 | Sale Price: null | Stock: 50 | Status: Active | ID: 6a7edc780491b3ff62869f48
+
+Product: "OwnFresh stone Pressed Kacchi Ghani 500 ML Combo pack of 3"
+  Category: Combo Value Packs
+  ID: 69cba046c2b2e0ff7775d5a5
+  Status: Active
+  Variants (4):
+    - "500 ml" | Price: 990 | Sale Price: null | Stock: 100 | Status: Active | ID: 6a537e8150ad5f19b18e76ba
+    - "1 Litre" | Price: 1782 | Sale Price: null | Stock: 50 | Status: Active | ID: 6a7edc780491b3ff62869f4d
+    - "5 Litre" | Price: 7920 | Sale Price: null | Stock: 50 | Status: Active | ID: 6a7edc780491b3ff62869f4e
+    - "15 Litre" | Price: 21780 | Sale Price: null | Stock: 50 | Status: Active | ID: 6a7edc780491b3ff62869f4f
+
+Product: "OwnFresh stone Pressed Kacchi Ghani 500 ML Groundnut Oil"
+  Category: Groundnut Oil
+  ID: 69cba046c2b2e0ff7775d5a6
+  Status: Active
+  Variants (4):
+    - "500 ml" | Price: 330 | Sale Price: null | Stock: 100 | Status: Active | ID: 6a537e8150ad5f19b18e76bd
+    - "1 Litre" | Price: 594 | Sale Price: null | Stock: 50 | Status: Active | ID: 6a7edc780491b3ff62869f56
+    - "5 Litre" | Price: 2640 | Sale Price: null | Stock: 50 | Status: Active | ID: 6a7edc780491b3ff62869f57
+    - "15 Litre" | Price: 7260 | Sale Price: null | Stock: 50 | Status: Active | ID: 6a7edc780491b3ff62869f58
+
+Product: "OwnFresh stone Pressed Kacchi Ghani 500 ML Safflower Oil"
+  Category: Safflower Oil
+  ID: 69cba046c2b2e0ff7775d5a7
+  Status: Active
+  Variants (4):
+    - "500 ml" | Price: 320 | Sale Price: null | Stock: 100 | Status: Active | ID: 6a537e8150ad5f19b18e76c0
+    - "1 Litre" | Price: 576 | Sale Price: null | Stock: 50 | Status: Active | ID: 6a7edc780491b3ff62869f5d
+    - "5 Litre" | Price: 2560 | Sale Price: null | Stock: 50 | Status: Active | ID: 6a7edc780491b3ff62869f5e
+    - "15 Litre" | Price: 7040 | Sale Price: null | Stock: 50 | Status: Active | ID: 6a7edc780491b3ff62869f5f
+
+Product: "OwnFresh stone Pressed Kacchi Ghani 500 ML Sesame Oil"
+  Category: Sesame Oil
+  ID: 69cba046c2b2e0ff7775d5a8
+  Status: Active
+  Variants (4):
+    - "500 ml" | Price: 360 | Sale Price: null | Stock: 100 | Status: Active | ID: 6a537e8150ad5f19b18e76c3
+    - "1 Litre" | Price: 648 | Sale Price: null | Stock: 50 | Status: Active | ID: 6a7edc780491b3ff62869f65
+    - "5 Litre" | Price: 2880 | Sale Price: null | Stock: 50 | Status: Active | ID: 6a7edc780491b3ff62869f66
+    - "15 Litre" | Price: 7920 | Sale Price: null | Stock: 50 | Status: Active | ID: 6a7edc780491b3ff62869f67
+
+Product: "OwnFresh stone Pressed Kacchi Ghani 500 ML Sunflower Oil"
+  Category: Sunflower Oil
+  ID: 69cba046c2b2e0ff7775d5a9
+  Status: Active
+  Variants (4):
+    - "500 ml" | Price: 300 | Sale Price: null | Stock: 100 | Status: Active | ID: 6a537e8150ad5f19b18e76c6
+    - "1 Litre" | Price: 540 | Sale Price: null | Stock: 50 | Status: Active | ID: 6a7edc780491b3ff62869f6e
+    - "5 Litre" | Price: 2400 | Sale Price: null | Stock: 50 | Status: Active | ID: 6a7edc780491b3ff62869f6f
+    - "15 Litre" | Price: 6600 | Sale Price: null | Stock: 50 | Status: Active | ID: 6a7edc780491b3ff62869f70
+
+Product: "OwnFresh stone Pressed Kacchi Ghani 500ML Mustard Oil"
+  Category: Mustard Oil
+  ID: 69cba046c2b2e0ff7775d5aa
+  Status: Active
+  Variants (4):
+    - "500 ml" | Price: 315 | Sale Price: null | Stock: 100 | Status: Active | ID: 6a537e8150ad5f19b18e76c9
+    - "1 Litre" | Price: 567 | Sale Price: null | Stock: 50 | Status: Active | ID: 6a7edc780491b3ff62869f77
+    - "5 Litre" | Price: 2520 | Sale Price: null | Stock: 50 | Status: Active | ID: 6a7edc780491b3ff62869f78
+    - "15 Litre" | Price: 6930 | Sale Price: null | Stock: 50 | Status: Active | ID: 6a7edc780491b3ff62869f79
+
+Product: "OwnFresh Stone Pressed Kacchi Ghani Oil 1L Combo pack of 3"
+  Category: Combo Value Packs
+  ID: 69cba046c2b2e0ff7775d5ab
+  Status: Active
+  Variants (4):
+    - "500 ml" | Price: 1725 | Sale Price: null | Stock: 100 | Status: Active | ID: 6a537e8150ad5f19b18e76cc
+    - "1 Litre" | Price: 3105 | Sale Price: null | Stock: 50 | Status: Active | ID: 6a7edc790491b3ff62869f80
+    - "5 Litre" | Price: 13800 | Sale Price: null | Stock: 50 | Status: Active | ID: 6a7edc790491b3ff62869f81
+    - "15 Litre" | Price: 37950 | Sale Price: null | Stock: 50 | Status: Active | ID: 6a7edc790491b3ff62869f82
+
+Product: "OwnFresh Stone Pressed Kacchi Ghani Oil 1L Combo pack of 3"
+  Category: Combo Value Packs
+  ID: 69cba046c2b2e0ff7775d5ac
+  Status: Active
+  Variants (4):
+    - "500 ml" | Price: 2460 | Sale Price: null | Stock: 100 | Status: Active | ID: 6a537e8150ad5f19b18e76cf
+    - "1 Litre" | Price: 4428 | Sale Price: null | Stock: 50 | Status: Active | ID: 6a7edc790491b3ff62869f88
+    - "5 Litre" | Price: 19680 | Sale Price: null | Stock: 50 | Status: Active | ID: 6a7edc790491b3ff62869f89
+    - "15 Litre" | Price: 54120 | Sale Price: null | Stock: 50 | Status: Active | ID: 6a7edc790491b3ff62869f8a
+
+Product: "OwnFresh Stone Pressed Kacchi Ghani Oil 1L Combo pack of 3"
+  Category: Combo Value Packs
+  ID: 69cba046c2b2e0ff7775d5ad
+  Status: Active
+  Variants (4):
+    - "500 ml" | Price: 1827 | Sale Price: null | Stock: 100 | Status: Active | ID: 6a537e8150ad5f19b18e76d2
+    - "1 Litre" | Price: 3289 | Sale Price: null | Stock: 50 | Status: Active | ID: 6a7edc790491b3ff62869f91
+    - "5 Litre" | Price: 14616 | Sale Price: null | Stock: 50 | Status: Active | ID: 6a7edc790491b3ff62869f92
+    - "15 Litre" | Price: 40194 | Sale Price: null | Stock: 50 | Status: Active | ID: 6a7edc790491b3ff62869f93
+
+Product: "OwnFresh Stone Pressed Kacchi Ghani Oil 250 ML Combo pack of 5"
+  Category: Combo Value Packs
+  ID: 69cba046c2b2e0ff7775d5ae
+  Status: Active
+  Variants (4):
+    - "500 ml" | Price: 960 | Sale Price: null | Stock: 100 | Status: Active | ID: 6a537e8150ad5f19b18e76d5
+    - "1 Litre" | Price: 1728 | Sale Price: null | Stock: 50 | Status: Active | ID: 6a7edc790491b3ff62869f98
+    - "5 Litre" | Price: 7680 | Sale Price: null | Stock: 50 | Status: Active | ID: 6a7edc790491b3ff62869f99
+    - "15 Litre" | Price: 21120 | Sale Price: null | Stock: 50 | Status: Active | ID: 6a7edc790491b3ff62869f9a
+
+Product: "OwnFresh Stone Pressed Kacchi Ghani Oil 250 ML Combo pack of 5"
+  Category: Combo Value Packs
+  ID: 69cba046c2b2e0ff7775d5af
+  Status: Active
+  Variants (4):
+    - "500 ml" | Price: 1100 | Sale Price: null | Stock: 100 | Status: Active | ID: 6a537e8150ad5f19b18e76d8
+    - "1 Litre" | Price: 1980 | Sale Price: null | Stock: 50 | Status: Active | ID: 6a7edc790491b3ff62869fa1
+    - "5 Litre" | Price: 8800 | Sale Price: null | Stock: 50 | Status: Active | ID: 6a7edc790491b3ff62869fa2
+    - "15 Litre" | Price: 24200 | Sale Price: null | Stock: 50 | Status: Active | ID: 6a7edc790491b3ff62869fa3

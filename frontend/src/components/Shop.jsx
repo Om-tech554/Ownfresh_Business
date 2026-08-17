@@ -88,18 +88,29 @@ const Shop = () => {
         toast.error("This product is currently out of stock");
         return;
     }
+    const getDynamicName = (productName, variantName) => {
+      if (!productName) return "";
+      if (!variantName) return productName;
+      const sizeRegex = /\b\d+(?:\.\d+)?\s*(?:ml|l|litre|liter|litres|liters|ltr|ltrs)\b/i;
+      if (sizeRegex.test(productName)) {
+        return productName.replace(sizeRegex, variantName);
+      }
+      return `${productName} - ${variantName}`;
+    };
+    const displayName = getDynamicName(product.name, selectedVariant.name);
+
     const itemToAdd = { 
         ...product, 
         _id: `${product._id}_${selectedVariant._id}`,
         productId: product._id,
         variantId: selectedVariant._id,
-        name: `${product.name} - ${selectedVariant.name}`,
+        name: displayName,
         variantName: selectedVariant.name,
         price: selectedVariant.salePrice || selectedVariant.price,
         quantity: 1 
     };
     dispatch(addToCart(itemToAdd));
-    toast.success(`${product.name} - ${selectedVariant.name} added to cart!`);
+    toast.success(`${displayName} added to cart!`);
   };
 
   const sidebarContent = (

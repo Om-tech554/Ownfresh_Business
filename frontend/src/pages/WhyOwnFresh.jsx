@@ -57,7 +57,7 @@ const WhyOwnFresh = () => {
             >
               <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#FFDD00]/25 border border-[#FFDD00]/40 text-black font-bold text-xs tracking-wider uppercase">
                 <Sparkles size={14} className="text-black animate-pulse" />
-                Welcome to OwnFresh
+                Welcome to myOwnFresh
               </div>
 
               <h1 className="text-4xl md:text-6xl font-black text-black leading-[1.1] tracking-tight uppercase">
@@ -66,7 +66,7 @@ const WhyOwnFresh = () => {
                   <span className="relative z-10">Artisan Oils</span>
                   <span className="absolute left-0 bottom-1.5 w-full h-3 bg-[#FFDD00] -z-10 transform -rotate-1 rounded-sm" />
                 </span> <br />
-                from OwnFresh
+                from myOwnFresh
               </h1>
 
               <p className="text-lg md:text-xl text-gray-600 font-medium leading-relaxed max-w-2xl">
@@ -202,7 +202,7 @@ const WhyOwnFresh = () => {
                   </div>
                   <div className="space-y-2">
                     <h3 className="text-xl font-bold text-black flex items-center gap-2 uppercase tracking-wide">
-                      2019 — Research & Trials
+                      2019 - Research & Trials
                     </h3>
                     <p className="text-gray-600 leading-relaxed font-medium text-sm md:text-base">
                       Our journey began in 2019 with extensive research, learning, analysis, practical trials, and developing innovative extraction methods. These efforts led us to craft prototypes for producing Botanic Purity grade edible oils from soil-grown nuts and seeds.
@@ -217,10 +217,10 @@ const WhyOwnFresh = () => {
                   </div>
                   <div className="space-y-2">
                     <h3 className="text-xl font-bold text-black uppercase tracking-wide">
-                      2021 — The Dream Becomes Reality
+                      2021 - The Dream Becomes Reality
                     </h3>
                     <p className="text-gray-600 leading-relaxed font-medium text-sm md:text-base">
-                      In 2021, our dream became a reality with the launch of our startup at Laxmi Industrial Estate, located in the rural heart of Pune, Maharashtra, India. This marked the opening of ‘OwnFresh’—our first manufacturing facility dedicated to extracting 100% pure, stone-pressed, natural oils that retain vital micronutrients.
+                      In 2021, our dream became a reality with the launch of our startup at Laxmi Industrial Estate, located in the rural heart of Pune, Maharashtra, India. This marked the opening of ‘OwnFresh’-our first manufacturing facility dedicated to extracting 100% pure, stone-pressed, natural oils that retain vital micronutrients.
                     </p>
                   </div>
                 </div>
@@ -285,7 +285,7 @@ const WhyOwnFresh = () => {
               </h2>
 
               <p className="text-base md:text-lg text-gray-200 font-medium leading-relaxed">
-                Our mission is to satisfy and delight everyone—from kitchen queens to professional caterers and chefs—by providing oils that elevate every recipe. We proudly stand for 100% pure, stone-pressed, Botanic Purity grade oils and actively support women empowerment.
+                Our mission is to satisfy and delight everyone from kitchen queens to professional caterers and chefs by providing oils that elevate every recipe. We proudly stand for 100% pure, stone-pressed, Botanic Purity grade oils and actively support women empowerment.
               </p>
 
               <div className="pt-4">
@@ -360,7 +360,7 @@ const WhyOwnFresh = () => {
                     From soil-grown nuts to Botanic Purity grade cooking oils, everything we do revolves around you and your culinary passion.
                   </p>
                   <p>
-                    Whether it’s the home cook crafting flavorful recipes or professional chefs creating exquisite dishes, we take pride in producing oils that are natural, real, and 100% pure—extracted from the first stone pressing of whole nuts and seeds.
+                    Whether it’s the home cook crafting flavorful recipes or professional chefs creating exquisite dishes, we take pride in producing oils that are natural, real, and pure extracted from the first stone pressing of whole nuts and seeds.
                   </p>
                   <p>
                     We remain dedicated to your taste, health, and well-being. After all, food is culture, creativity, and a shared craving for excellence.
