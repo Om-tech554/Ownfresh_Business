@@ -155,7 +155,7 @@ const MyOrders = () => {
                                         </div>
                                         <div className="space-y-1">
                                             <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Total Amount</p>
-                                            <p className="text-[11px] font-black text-slate-900 font-mono">₹{order.totalAmount}</p>
+                                            <p className="text-[11px] font-black text-slate-900 font-mono">₹{order.totalAmount.toFixed(2)}</p>
                                         </div>
                                         <div className="space-y-1 hidden sm:block">
                                             <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Ship To</p>
@@ -271,15 +271,15 @@ const MyOrders = () => {
                                         <div className="space-y-3">
                                             <div className="flex justify-between items-center text-[11px] font-bold uppercase tracking-tight text-slate-500">
                                                 <span>Subtotal</span>
-                                                <span className="text-slate-900">₹{order.totalAmount + order.discountAmount}</span>
+                                                <span className="text-slate-900">₹{(order.totalAmount + order.discountAmount).toFixed(2)}</span>
                                             </div>
                                             <div className="flex justify-between items-center text-[11px] font-bold uppercase tracking-tight text-slate-500">
                                                 <span>Savings</span>
-                                                <span className="text-emerald-600">-₹{order.discountAmount}</span>
+                                                <span className="text-emerald-600">-₹{order.discountAmount.toFixed(2)}</span>
                                             </div>
                                             <div className="pt-3 border-t border-slate-200 flex justify-between items-center">
                                                 <span className="text-sm font-black uppercase text-slate-900">Grand Total</span>
-                                                <span className="text-xl font-black text-slate-900 font-mono">₹{order.totalAmount}</span>
+                                                <span className="text-xl font-black text-slate-900 font-mono">₹{order.totalAmount.toFixed(2)}</span>
                                             </div>
                                         </div>
 
