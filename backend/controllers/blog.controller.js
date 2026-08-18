@@ -111,7 +111,14 @@ export const getAllBlogs = async (req, res) => {
 // ===================== GET BLOG BY ID =====================
 export const getBlogById = async (req, res) => {
   try {
-    const blog = await Blog.findById(req.params.id);
+    const { id } = req.params;
+    let blog;
+    
+    if (id.match(/^[0-9a-fA-F]{24}$/)) {
+      blog = await Blog.findById(id);
+    } else {
+      blog = await Blog.findOne({ slug: id });
+    }
 
     if (!blog) {
       return res.status(404).json({

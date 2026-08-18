@@ -116,7 +116,7 @@ const OilInsights = () => {
                     <>
                     {displayedBlogs.slice((currentPage - 1) * blogsPerPage, currentPage * blogsPerPage).map((blog, index) => (
                         <div key={blog.id || blog._id} className="flex flex-col group cursor-pointer w-full bg-white shadow-sm hover:shadow-xl transition-shadow duration-300 rounded-3xl overflow-hidden mb-8 border border-gray-100">
-                            <SLink to={`/blog/${blog.id || blog._id}`}>
+                            <SLink to={`/blog/${blog.slug || blog.id || blog._id}`}>
                                 {/* USER REQUEST FIX: changed object-cover to object-contain to prevent cutting and added border-radius */}
                                 <div className="w-full h-[300px] md:h-[450px] overflow-hidden bg-gray-50 flex items-center justify-center p-4 rounded-t-3xl border-b border-gray-100 mb-6">
                                     <img 
@@ -235,7 +235,7 @@ const OilInsights = () => {
                     <h3 className="text-lg font-black text-black uppercase mb-4 border-b border-gray-100 pb-2">Recent Posts</h3>
                     <div className="flex flex-col gap-4">
                         {allBlogs.slice(0, 3).map((blog) => (
-                            <SLink key={`recent-${blog.id || blog._id}`} to={`/blog/${blog.id || blog._id}`} className="group flex flex-col gap-1 cursor-pointer">
+                            <SLink key={`recent-${blog.id || blog._id}`} to={`/blog/${blog.slug || blog.id || blog._id}`} className="group flex flex-col gap-1 cursor-pointer">
                                 <h4 className="text-sm font-bold text-black leading-tight group-hover:text-[#FFDD00] transition-colors" dangerouslySetInnerHTML={{ __html: blog.title }}>
                                 </h4>
                                 <span className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">{blog.date}</span>

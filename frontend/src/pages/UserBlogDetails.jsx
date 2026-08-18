@@ -62,7 +62,7 @@ const UserBlogDetails = () => {
       const filtered = allBlogs.filter((b) => b._id !== id && b.id !== id).slice(0, 3);
       setRecommendations(
         filtered.map((post) => ({
-          id: post._id || post.id,
+          id: post.slug || post._id || post.id,
           title: post.title,
           date: new Date(post.createdAt || post.updatedAt).toLocaleDateString(undefined, {
             year: "numeric",
@@ -161,7 +161,7 @@ const UserBlogDetails = () => {
         title={cleanTitle}
         description={cleanDescription}
         image={blog.image}
-        url={`/blog/${id}`}
+        url={`/blog/${blog.slug || id}`}
         type="article"
         schemaMarkup={schemaMarkup}
       />

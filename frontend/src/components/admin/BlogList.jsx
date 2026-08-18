@@ -408,7 +408,7 @@ const BlogList = () => {
               {/* ACTIONS */}
               <div className="mt-auto pt-4 border-t border-slate-100 flex items-center justify-between">
                 <button
-                  onClick={() => navigate(`/blog/${b._id}`)}
+                  onClick={() => navigate(`/blog/${b.slug || b._id}`)}
                   className="text-slate-400 hover:text-[#24672E] flex items-center gap-1 text-xs font-bold uppercase tracking-wider"
                 >
                   <ExternalLink className="w-4 h-4" /> View Site

@@ -94,7 +94,7 @@ const Navbar = () => {
                     searchTitle: b.title,
                     searchDescription: b.description?.replace(/<[^>]+>/g, '') || '',
                     searchImage: b.image,
-                    searchUrl: `/blog/${b._id}`
+                    searchUrl: `/blog/${b.slug || b._id}`
                 }));
                 combinedResults = [...combinedResults, ...formattedBackendBlogs];
             } catch (error) {

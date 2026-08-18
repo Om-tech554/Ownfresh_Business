@@ -26,6 +26,7 @@ const AdminBlogEditor = () => {
   const [location, setLocation] = useState(""); // Simple location text
   const [author, setAuthor] = useState(""); // Custom Author
   const [publishedAt, setPublishedAt] = useState(""); // Custom Date
+  const [editorMode, setEditorMode] = useState("write"); // 'write' | 'preview'
 
   // Images (supporting featured + 4 gallery)
   const [image, setImage] = useState(null);
@@ -130,7 +131,8 @@ const AdminBlogEditor = () => {
   };
 
   const handleSave = async () => {
-    if (!title.trim() || !description.trim()) {
+    const finalDescription = editorRef.current?.value || description;
+    if (!title.trim() || !finalDescription.trim()) {
       toast.error("Title and Description are required!");
       return;
     }
@@ -138,7 +140,7 @@ const AdminBlogEditor = () => {
     setSaving(true);
     const formData = new FormData();
     formData.append("title", title);
-    formData.append("description", description);
+    formData.append("description", finalDescription);
 
     // Normalize category before saving
     let normalizedCategory = category ? category.trim() : 'OTHER';
@@ -298,7 +300,13 @@ const AdminBlogEditor = () => {
               placeholder="Enter a captivating title..."
               className="w-full text-4xl font-black text-black border-none focus:outline-none focus:ring-0 placeholder:text-gray-300"
               value={title}
-              onChange={(e) => setTitle(e.target.value)}
+              onChange={(e) => {
+                const newTitle = e.target.value;
+                setTitle(newTitle);
+                if (!isEditing) {
+                  setSlug(newTitle.toLowerCase().trim().replace(/[^\w\s-]/g, "").replace(/[\s_-]+/g, "-"));
+                }
+              }}
             />
           </div>
 
@@ -309,19 +317,145 @@ const AdminBlogEditor = () => {
           </div>
 
           <div className="bg-white rounded-2xl border border-gray-100 shadow-xs overflow-hidden">
-            <div className="px-6 py-4 border-b border-gray-100 bg-gray-50">
+            <div className="px-6 py-4 border-b border-gray-100 bg-gray-50 flex justify-between items-center">
               <label className="text-xs font-bold text-gray-500 uppercase tracking-widest">Article Body</label>
+              <div className="flex bg-gray-100 p-1 rounded-xl text-xs font-bold border border-gray-200">
+                <button
+                  type="button"
+                  onClick={() => setEditorMode("write")}
+                  className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
+                    editorMode === "write"
+                      ? "bg-white text-slate-900 shadow-xs"
+                      : "text-slate-400 hover:text-slate-650"
+                  }`}
+                >
+                  Write Content
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const currentDesc = editorRef.current?.value || description;
+                    setDescription(currentDesc);
+                    setEditorMode("preview");
+                  }}
+                  className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
+                    editorMode === "preview"
+                      ? "bg-white text-slate-900 shadow-xs"
+                      : "text-slate-400 hover:text-slate-650"
+                  }`}
+                >
+                  Live View Preview
+                </button>
+              </div>
             </div>
 
-            <div className="wp-blog-content-admin w-full">
-              <JoditEditor
-                ref={editorRef}
-                value={description}
-                config={editorConfig}
-                onBlur={(newContent) => setDescription(newContent)}
-                onChange={() => { }}
-              />
-            </div>
+            {editorMode === "write" ? (
+              <div className="wp-blog-content-admin w-full animate-in fade-in duration-200">
+                <JoditEditor
+                  ref={editorRef}
+                  value={description}
+                  config={editorConfig}
+                  onBlur={(newContent) => setDescription(newContent)}
+                  onChange={() => { }}
+                />
+              </div>
+            ) : (
+              <div className="p-6 bg-[#FEFDF8] border-t border-gray-100 min-h-[400px] animate-in fade-in duration-200">
+                <style dangerouslySetInnerHTML={{
+                  __html: `
+                  .wp-blog-content-preview p {
+                    margin-top: 0.85rem !important;
+                    margin-bottom: 0.85rem !important;
+                    line-height: 1.8 !important;
+                    font-size: 1.05rem !important;
+                    color: #334155 !important;
+                  }
+                  .wp-blog-content-preview h1 {
+                    font-size: 2.25rem !important;
+                    font-weight: 950 !important;
+                    color: #0f172a !important;
+                    margin-top: 2rem !important;
+                    margin-bottom: 1rem !important;
+                    line-height: 1.25 !important;
+                  }
+                  .wp-blog-content-preview h2 {
+                    font-size: 1.75rem !important;
+                    font-weight: 900 !important;
+                    color: #0f172a !important;
+                    margin-top: 2rem !important;
+                    margin-bottom: 1rem !important;
+                    line-height: 1.3 !important;
+                  }
+                  .wp-blog-content-preview h3 {
+                    font-size: 1.4rem !important;
+                    font-weight: 850 !important;
+                    color: #0f172a !important;
+                    margin-top: 1.75rem !important;
+                    margin-bottom: 0.75rem !important;
+                    line-height: 1.35 !important;
+                  }
+                  .wp-blog-content-preview h4 {
+                    font-size: 1.2rem !important;
+                    font-weight: 800 !important;
+                    color: #0f172a !important;
+                    margin-top: 1.5rem !important;
+                    margin-bottom: 0.5rem !important;
+                    line-height: 1.4 !important;
+                  }
+                  .wp-blog-content-preview table {
+                    width: 100%;
+                    border-collapse: collapse;
+                    margin: 2rem 0;
+                    background-color: #ffffff;
+                    border-radius: 12px;
+                    overflow: hidden;
+                    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05);
+                    border: 1px solid #f1f5f9;
+                  }
+                  .wp-blog-content-preview th {
+                    background-color: #f8fafc;
+                    color: #0f172a;
+                    font-weight: 800;
+                    text-align: left;
+                    padding: 14px 18px;
+                    border-bottom: 2px solid #e2e8f0;
+                    font-size: 0.95rem;
+                  }
+                  .wp-blog-content-preview td {
+                    padding: 14px 18px;
+                    border-bottom: 1px solid #f1f5f9;
+                    color: #334155;
+                    font-size: 0.95rem;
+                  }
+                  .wp-blog-content-preview ul {
+                    list-style-type: disc !important;
+                    padding-left: 2rem !important;
+                    margin-top: 1.25rem !important;
+                    margin-bottom: 1.25rem !important;
+                  }
+                  .wp-blog-content-preview ol {
+                    list-style-type: decimal !important;
+                    padding-left: 2rem !important;
+                    margin-top: 1.25rem !important;
+                    margin-bottom: 1.25rem !important;
+                  }
+                  .wp-blog-content-preview li {
+                    margin-top: 0.5rem !important;
+                    margin-bottom: 0.5rem !important;
+                    line-height: 1.8 !important;
+                    color: #334155;
+                  }
+                  .wp-blog-content-preview a {
+                    color: #24672E !important;
+                    font-weight: 700 !important;
+                  }
+                `}} />
+                <div
+                  className="prose prose-lg max-w-none space-y-2 wp-blog-content-preview"
+                  dangerouslySetInnerHTML={{ __html: description }}
+                />
+              </div>
+            )}
           </div>
 
         </div>

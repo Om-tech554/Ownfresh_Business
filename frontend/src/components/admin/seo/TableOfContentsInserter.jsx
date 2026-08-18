@@ -19,7 +19,7 @@ const TableOfContentsInserter = ({ editorRef, description, setDescription }) => 
       const jodit = editorRef.current;
       currentHtml = jodit.value || jodit.editor?.value || "";
     }
-    
+
     try {
       const parser = new DOMParser();
       const doc = parser.parseFromString(currentHtml, "text/html");
@@ -30,7 +30,7 @@ const TableOfContentsInserter = ({ editorRef, description, setDescription }) => 
         originalId: h.getAttribute("id") || "",
         index
       })).filter(h => h.text.length > 0);
-      
+
       setHeadings(list);
       return list;
     } catch (err) {
@@ -65,7 +65,7 @@ const TableOfContentsInserter = ({ editorRef, description, setDescription }) => 
       const parser = new DOMParser();
       const doc = parser.parseFromString(currentHtml, "text/html");
       const headingElements = Array.from(doc.querySelectorAll("h1, h2, h3, h4"));
-      
+
       const tocItems = [];
 
       headingElements.forEach((h, i) => {
@@ -80,7 +80,7 @@ const TableOfContentsInserter = ({ editorRef, description, setDescription }) => 
             .replace(/[^\w\s-]/g, "")
             .replace(/[\s_-]+/g, "-")
             .replace(/^-+|-+$/g, "");
-          
+
           if (!anchorId) anchorId = `section-${i}`;
           h.setAttribute("id", anchorId);
         }
@@ -138,7 +138,7 @@ const TableOfContentsInserter = ({ editorRef, description, setDescription }) => 
       if (editorRef?.current) {
         const jodit = editorRef.current;
         let inserted = false;
-        
+
         try {
           if (typeof jodit.selection?.insertHTML === "function") {
             jodit.selection.insertHTML(tocHtml);

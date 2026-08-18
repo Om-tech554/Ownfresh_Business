@@ -51,7 +51,7 @@ const BlogSection = ({ limit = null }) => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {displayedBlogs.map((blog) => (
               <SLink
-                to={`/blog/${blog._id}`}
+                to={`/blog/${blog.slug || blog._id}`}
                 key={blog._id}
                 className="group bg-white rounded-2xl overflow-hidden border border-gray-100 shadow-sm 
                            hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col h-full cursor-pointer"

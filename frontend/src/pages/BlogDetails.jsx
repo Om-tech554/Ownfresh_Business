@@ -59,7 +59,7 @@ const AdminBlogDetails = () => {
   };
 
   const editBlog = () => {
-    navigate(`/blogs/edit/${id}`);
+    navigate(`/admin/blog/editor/${id}`);
   };
 
   useEffect(() => fetchBlog(), [id]);
