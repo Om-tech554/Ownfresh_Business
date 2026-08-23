@@ -12,10 +12,10 @@ const InventoryManager = () => {
   const [products, setProducts] = useState([]);
   const [variants, setVariants] = useState([]);
   const [categories, setCategories] = useState([]);
-  
+
   const [showVariantModal, setShowVariantModal] = useState(false);
   const [showBulkModal, setShowBulkModal] = useState(false);
-  
+
   const [selectedVariant, setSelectedVariant] = useState(null);
   const [formData, setFormData] = useState({
     product: "",
@@ -28,7 +28,7 @@ const InventoryManager = () => {
   });
 
   const [bulkData, setBulkData] = useState({ categoryId: "", percentageIncrease: "" });
-  
+
   // Search & Filter State
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
@@ -181,14 +181,14 @@ const InventoryManager = () => {
   // Apply Search & Filter Conditions
   const filteredItems = displayItems.filter(item => {
     // 1. Search Query Match
-    const matchesSearch = 
+    const matchesSearch =
       item.productName.toLowerCase().includes(searchQuery.toLowerCase()) ||
       item.variantName.toLowerCase().includes(searchQuery.toLowerCase()) ||
       item.sku.toLowerCase().includes(searchQuery.toLowerCase());
 
     // 2. Category Match
-    const matchesCategory = 
-      selectedCategory === "All" || 
+    const matchesCategory =
+      selectedCategory === "All" ||
       item.category === selectedCategory;
 
     // 3. Stock Status Match
@@ -207,7 +207,7 @@ const InventoryManager = () => {
   return (
     <div className="max-w-7xl mx-auto px-6 py-6 font-sans">
 
-      
+
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
         <div>
@@ -218,13 +218,13 @@ const InventoryManager = () => {
           <p className="text-slate-500 text-sm mt-1">Manage product variants, prices, and stock.</p>
         </div>
         <div className="flex gap-3">
-          <button 
+          <button
             onClick={() => setShowBulkModal(true)}
             className="px-4 py-2 bg-blue-50 text-blue-600 rounded-lg font-bold flex items-center gap-2 hover:bg-blue-100"
           >
             <Tag className="w-4 h-4" /> Bulk Update
           </button>
-          <button 
+          <button
             onClick={() => openModal()}
             className="px-4 py-2 bg-[#1E971D] text-white rounded-lg font-bold flex items-center gap-2 hover:bg-[#1E971D]/90 shadow-md"
           >
@@ -309,7 +309,7 @@ const InventoryManager = () => {
                         </span>
                       </td>
                       <td className="p-4 text-right">
-                        <button 
+                        <button
                           onClick={() => {
                             setSelectedVariant(null);
                             setFormData({
@@ -322,7 +322,7 @@ const InventoryManager = () => {
                               status: "Active"
                             });
                             setShowVariantModal(true);
-                          }} 
+                          }}
                           className="px-3 py-1.5 bg-[#1E971D] text-white text-xs font-bold rounded-lg hover:bg-[#1E971D]/90"
                         >
                           Convert to Variant
@@ -396,82 +396,82 @@ const InventoryManager = () => {
               transition={{ type: "spring", duration: 0.4 }}
               className="bg-white rounded-2xl w-full max-w-lg shadow-xl overflow-hidden z-10"
             >
-            <div className="p-6 border-b border-slate-100 flex justify-between items-center">
-              <h3 className="text-xl font-bold">{selectedVariant ? "Edit Variant" : "New Variant"}</h3>
-              <button onClick={() => setShowVariantModal(false)} className="text-slate-400 hover:text-slate-600 text-2xl leading-none">&times;</button>
-            </div>
-            <form onSubmit={handleSaveVariant} className="p-6 space-y-4">
-              <div>
-                <label className="block text-sm font-bold text-slate-700 mb-1">Parent Product</label>
-                <select 
-                  className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl"
-                  value={formData.product}
-                  onChange={e => setFormData({...formData, product: e.target.value})}
-                  required
-                >
-                  <option value="">Select a product...</option>
-                  {products.map(p => (
-                    <option key={p._id} value={p._id}>{p.name}</option>
-                  ))}
-                </select>
+              <div className="p-6 border-b border-slate-100 flex justify-between items-center">
+                <h3 className="text-xl font-bold">{selectedVariant ? "Edit Variant" : "New Variant"}</h3>
+                <button onClick={() => setShowVariantModal(false)} className="text-slate-400 hover:text-slate-600 text-2xl leading-none">&times;</button>
               </div>
-
-              <div className="grid grid-cols-2 gap-4">
+              <form onSubmit={handleSaveVariant} className="p-6 space-y-4">
                 <div>
-                  <label className="block text-sm font-bold text-slate-700 mb-1">Variant Name</label>
-                  <input type="text" placeholder="e.g. 500ml" required
+                  <label className="block text-sm font-bold text-slate-700 mb-1">Parent Product</label>
+                  <select
                     className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl"
-                    value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} />
-                </div>
-                <div>
-                  <label className="block text-sm font-bold text-slate-700 mb-1">SKU</label>
-                  <input type="text" placeholder="Optional"
-                    className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl"
-                    value={formData.sku} onChange={e => setFormData({...formData, sku: e.target.value})} />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-bold text-slate-700 mb-1">Regular Price</label>
-                  <input type="number" required min="0"
-                    className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl"
-                    value={formData.price} onChange={e => setFormData({...formData, price: e.target.value})} />
-                </div>
-                <div>
-                  <label className="block text-sm font-bold text-slate-700 mb-1">Sale Price</label>
-                  <input type="number" min="0" placeholder="Optional"
-                    className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl"
-                    value={formData.salePrice} onChange={e => setFormData({...formData, salePrice: e.target.value})} />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-bold text-slate-700 mb-1">Stock Qty</label>
-                  <input type="number" required min="0"
-                    className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl"
-                    value={formData.stockQuantity} onChange={e => setFormData({...formData, stockQuantity: e.target.value})} />
-                </div>
-                <div>
-                  <label className="block text-sm font-bold text-slate-700 mb-1">Status</label>
-                  <select 
-                    className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl"
-                    value={formData.status} onChange={e => setFormData({...formData, status: e.target.value})}
+                    value={formData.product}
+                    onChange={e => setFormData({ ...formData, product: e.target.value })}
+                    required
                   >
-                    <option value="Active">Active</option>
-                    <option value="Inactive">Inactive</option>
+                    <option value="">Select a product...</option>
+                    {products.map(p => (
+                      <option key={p._id} value={p._id}>{p.name}</option>
+                    ))}
                   </select>
                 </div>
-              </div>
 
-              <div className="pt-4 flex justify-end gap-3">
-                <button type="button" onClick={() => setShowVariantModal(false)} className="px-5 py-2 text-slate-600 font-bold">Cancel</button>
-                <button type="submit" className="px-5 py-2 bg-[#1E971D] text-white rounded-xl font-bold shadow-md hover:bg-[#1E971D]/90">
-                  {selectedVariant ? "Update Variant" : "Create Variant"}
-                </button>
-              </div>
-            </form>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-bold text-slate-700 mb-1">Variant Name</label>
+                    <input type="text" placeholder="e.g. 500ml" required
+                      className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl"
+                      value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-bold text-slate-700 mb-1">SKU</label>
+                    <input type="text" placeholder="Optional"
+                      className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl"
+                      value={formData.sku} onChange={e => setFormData({ ...formData, sku: e.target.value })} />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-bold text-slate-700 mb-1">Regular Price</label>
+                    <input type="number" required min="0"
+                      className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl"
+                      value={formData.price} onChange={e => setFormData({ ...formData, price: e.target.value })} />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-bold text-slate-700 mb-1">Sale Price</label>
+                    <input type="number" min="0" placeholder="Optional"
+                      className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl"
+                      value={formData.salePrice} onChange={e => setFormData({ ...formData, salePrice: e.target.value })} />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-bold text-slate-700 mb-1">Stock Qty</label>
+                    <input type="number" required min="0"
+                      className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl"
+                      value={formData.stockQuantity} onChange={e => setFormData({ ...formData, stockQuantity: e.target.value })} />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-bold text-slate-700 mb-1">Status</label>
+                    <select
+                      className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl"
+                      value={formData.status} onChange={e => setFormData({ ...formData, status: e.target.value })}
+                    >
+                      <option value="Active">Active</option>
+                      <option value="Inactive">Inactive</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="pt-4 flex justify-end gap-3">
+                  <button type="button" onClick={() => setShowVariantModal(false)} className="px-5 py-2 text-slate-600 font-bold">Cancel</button>
+                  <button type="submit" className="px-5 py-2 bg-[#1E971D] text-white rounded-xl font-bold shadow-md hover:bg-[#1E971D]/90">
+                    {selectedVariant ? "Update Variant" : "Create Variant"}
+                  </button>
+                </div>
+              </form>
             </motion.div>
           </div>
         )}
@@ -495,39 +495,39 @@ const InventoryManager = () => {
               transition={{ type: "spring", duration: 0.4 }}
               className="bg-white rounded-2xl w-full max-w-md shadow-xl overflow-hidden z-10"
             >
-            <div className="p-6 border-b border-slate-100 flex justify-between items-center">
-              <h3 className="text-xl font-bold">Bulk Price Update</h3>
-              <button onClick={() => setShowBulkModal(false)} className="text-slate-400 hover:text-slate-600 text-2xl leading-none">&times;</button>
-            </div>
-            <form onSubmit={handleBulkUpdate} className="p-6 space-y-4">
-              <div>
-                <label className="block text-sm font-bold text-slate-700 mb-1">Category</label>
-                <select 
-                  className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl"
-                  value={bulkData.categoryId}
-                  onChange={e => setBulkData({...bulkData, categoryId: e.target.value})}
-                  required
-                >
-                  <option value="">Select a category...</option>
-                  {categories.map(c => (
-                    <option key={c._id} value={c._id}>{c.name}</option>
-                  ))}
-                </select>
+              <div className="p-6 border-b border-slate-100 flex justify-between items-center">
+                <h3 className="text-xl font-bold">Bulk Price Update</h3>
+                <button onClick={() => setShowBulkModal(false)} className="text-slate-400 hover:text-slate-600 text-2xl leading-none">&times;</button>
               </div>
-              <div>
-                <label className="block text-sm font-bold text-slate-700 mb-1">Percentage Increase (%)</label>
-                <input type="number" required placeholder="e.g. 5 or -5"
-                  className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl"
-                  value={bulkData.percentageIncrease} onChange={e => setBulkData({...bulkData, percentageIncrease: e.target.value})} />
-                <p className="text-xs text-slate-500 mt-1">Use a negative number to decrease prices.</p>
-              </div>
-              <div className="pt-4 flex justify-end gap-3">
-                <button type="button" onClick={() => setShowBulkModal(false)} className="px-5 py-2 text-slate-600 font-bold">Cancel</button>
-                <button type="submit" className="px-5 py-2 bg-blue-600 text-white rounded-xl font-bold shadow-md hover:bg-blue-700">
-                  Apply Update
-                </button>
-              </div>
-            </form>
+              <form onSubmit={handleBulkUpdate} className="p-6 space-y-4">
+                <div>
+                  <label className="block text-sm font-bold text-slate-700 mb-1">Category</label>
+                  <select
+                    className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl"
+                    value={bulkData.categoryId}
+                    onChange={e => setBulkData({ ...bulkData, categoryId: e.target.value })}
+                    required
+                  >
+                    <option value="">Select a category...</option>
+                    {categories.map(c => (
+                      <option key={c._id} value={c._id}>{c.name}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-bold text-slate-700 mb-1">Percentage Increase (%)</label>
+                  <input type="number" required placeholder="e.g. 5 or -5"
+                    className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl"
+                    value={bulkData.percentageIncrease} onChange={e => setBulkData({ ...bulkData, percentageIncrease: e.target.value })} />
+                  <p className="text-xs text-slate-500 mt-1">Use a negative number to decrease prices.</p>
+                </div>
+                <div className="pt-4 flex justify-end gap-3">
+                  <button type="button" onClick={() => setShowBulkModal(false)} className="px-5 py-2 text-slate-600 font-bold">Cancel</button>
+                  <button type="submit" className="px-5 py-2 bg-blue-600 text-white rounded-xl font-bold shadow-md hover:bg-blue-700">
+                    Apply Update
+                  </button>
+                </div>
+              </form>
             </motion.div>
           </div>
         )}

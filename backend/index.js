@@ -13,6 +13,7 @@ import newsletterRoutes from "./routes/newsletterRoutes.js";
 import contactRoutes from "./routes/contactRoutes.js";
 import categoryRoutes from "./routes/categoryRoutes.js";
 import couponRoutes from "./routes/couponRoutes.js";
+import campaignRoutes from "./routes/campaignRoutes.js";
 import paymentRoutes from "./routes/paymentRoutes.js";
 import walletRoutes from "./routes/walletRoutes.js";
 import galleryRoutes from "./routes/galleryRoutes.js";
@@ -73,7 +74,7 @@ app.use(cors({
         return callback(new Error(`CORS blocked: unauthorized origin ${origin}`));
     },
     credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'X-Firebase-AppCheck']
 }))
 app.use(express.json())
@@ -90,6 +91,7 @@ app.use("/api/newsletter", newsletterRoutes);
 app.use("/api/contact", contactRoutes);
 app.use("/api/category", categoryRoutes);
 app.use("/api/coupon", couponRoutes);
+app.use("/api/campaign", campaignRoutes);
 app.use("/api/referral", referralRoutes);
 app.use("/api/payment", paymentRoutes);
 app.use("/api/wallet", walletRoutes);

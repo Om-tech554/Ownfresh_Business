@@ -6,8 +6,9 @@ import BlogList from './admin/BlogList';
 import AdminOrders from './admin/AdminOrders';
 import AdminCustomers from './admin/AdminCustomers';
 import { useSelector } from 'react-redux';
-import { Package, BookOpen, Ticket, ShoppingCart, Layers, Users, Image as ImageIcon, Settings, BarChart3, Crown, Star } from "lucide-react";
+import { Package, BookOpen, Ticket, ShoppingCart, Layers, Users, Image as ImageIcon, Settings, BarChart3, Crown, Star, Sparkles } from "lucide-react";
 import CouponManager from './admin/CouponManager';
+import CampaignManager from './admin/CampaignManager';
 import CategoryManager from './admin/CategoryManager';
 import GalleryManager from './admin/GalleryManager';
 import InventoryManager from './admin/InventoryManager';
@@ -151,6 +152,19 @@ function AdminDashboard() {
 
           {userData?.role === "admin" && (
             <button
+              onClick={() => setActiveTab("campaigns")}
+              className={`flex items-center gap-2 px-6 py-2.5 rounded-xl font-bold transition-all whitespace-nowrap ${activeTab === "campaigns"
+                  ? "bg-[#1E971D] text-white shadow-lg shadow-[#1E971D]/20"
+                  : "text-slate-500 hover:bg-slate-50"
+                }`}
+            >
+              <Sparkles className="w-4 h-4 text-[#F9DD19]" />
+              Festival Campaigns
+            </button>
+          )}
+
+          {userData?.role === "admin" && (
+            <button
               onClick={() => setActiveTab("prime")}
               className={`flex items-center gap-2 px-6 py-2.5 rounded-xl font-bold transition-all whitespace-nowrap ${activeTab === "prime"
                   ? "bg-[#1E971D] text-white shadow-lg shadow-[#1E971D]/20"
@@ -197,6 +211,7 @@ function AdminDashboard() {
         {activeTab === "blogs" && (userData?.role === "admin" || userData?.role === "blogger") && <BlogList />}
         {activeTab === "gallery" && (userData?.role === "admin" || userData?.role === "blogger") && <GalleryManager />}
         {activeTab === "coupons" && userData?.role === "admin" && <CouponManager />}
+        {activeTab === "campaigns" && userData?.role === "admin" && <CampaignManager />}
         {activeTab === "categories" && userData?.role === "admin" && <CategoryManager />}
         {activeTab === "orders" && userData?.role === "admin" && <AdminOrders />}
         {activeTab === "customers" && userData?.role === "admin" && <AdminCustomers />}

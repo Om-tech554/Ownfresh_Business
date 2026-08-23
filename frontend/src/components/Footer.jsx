@@ -191,8 +191,21 @@ const Footer = () => {
 
       </div>
 
+      {/* Secure Payments Footer Section */}
+      <div className="border-t border-gray-200 mt-12 pt-6 flex flex-col md:flex-row items-center justify-between gap-4 text-xs font-semibold text-gray-500">
+        <div className="flex flex-col gap-1 items-center md:items-start text-center md:text-left">
+          <span className="text-gray-900 text-sm font-black tracking-tight">Secure & Easy Payments</span>
+          <span>We support: Credit Card • Debit Card • UPI • Net Banking</span>
+        </div>
+        <div className="flex gap-3">
+          <span className="px-3 py-1.5 bg-white border border-gray-300 rounded-md text-gray-800 font-extrabold uppercase tracking-wider text-[9px] shadow-sm select-none">UPI</span>
+          <span className="px-3 py-1.5 bg-white border border-gray-300 rounded-md text-gray-800 font-extrabold uppercase tracking-wider text-[9px] shadow-sm select-none">Cards</span>
+          <span className="px-3 py-1.5 bg-white border border-gray-300 rounded-md text-gray-800 font-extrabold uppercase tracking-wider text-[9px] shadow-sm select-none">Net Banking</span>
+        </div>
+      </div>
+
       {/* Bottom Section */}
-      <div className="border-t mt-16 pt-6 text-center text-sm text-gray-500">
+      <div className="border-t mt-8 pt-6 text-center text-sm text-gray-500">
         <p className="hover:text-black transition duration-300">
           © 2026 OwnFresh. All rights reserved.
         </p>

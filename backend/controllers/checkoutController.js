@@ -4,6 +4,8 @@ import User from "../models/usermodel.js";
 import Wallet from "../models/walletModel.js";
 import Transaction from "../models/transactionModel.js";
 import Coupon from "../models/couponModel.js";
+import Product from "../models/productModel.js";
+import ProductVariant from "../models/productVariantModel.js";
 import ReferralCode from "../models/referralCodeModel.js";
 import ReferralUsage from "../models/referralUsageModel.js";
 import crypto from "crypto";
@@ -53,7 +55,8 @@ export const createOrder = async (req, res) => {
       cgst,
       sgst,
       taxAmount,
-      phonePeTransactionId
+      phonePeTransactionId,
+      deliveryMethodId
     } = req.body;
 
     const targetUserId = req.userId || userId;
@@ -110,22 +113,156 @@ export const createOrder = async (req, res) => {
       }
     }
 
-    let finalPayableAmount = Math.max(0, Number(totalAmount));
     let walletDeducted = 0;
     let coinsDeducted = 0;
 
     const isInstantOrder = (paymentMethod === 'cod');
     const now = new Date();
 
-    // 3) Commission Coins Deduction Calculation
+    // 1) Recalculate true prices and totals from the database to prevent price manipulation
+    let calculatedSubtotal = 0;
+    const validatedItems = [];
+
+    for (const item of items) {
+      if (!item.productId) {
+        return res.status(400).json({ msg: "Product ID is required for each cart item" });
+      }
+
+      let price = 0;
+      let variantName = item.variantName || "";
+      let name = item.name || "";
+      let image = item.image || "";
+
+      // Resolve Composite ID if needed
+      let pId = item.productId;
+      let vId = item.variantId;
+      if ((!pId || !vId) && typeof item._id === 'string' && item._id.includes('_')) {
+        const parts = item._id.split('_');
+        if (!pId) pId = parts[0];
+        if (!vId) vId = parts[1];
+      }
+
+      if (vId && mongoose.Types.ObjectId.isValid(vId)) {
+        const variant = await ProductVariant.findById(vId).populate("product");
+        if (!variant) {
+          return res.status(404).json({ msg: `Product variant not found` });
+        }
+        price = variant.salePrice !== null && variant.salePrice !== undefined ? variant.salePrice : variant.price;
+        variantName = variant.name;
+        name = variant.product?.name || item.name || item.title || "Product";
+        image = item.image || (Array.isArray(item.images) ? item.images[0] : item.images) || variant.product?.image || "";
+      } else {
+        const product = await Product.findById(pId);
+        if (!product) {
+          return res.status(404).json({ msg: `Product not found` });
+        }
+        const variants = await ProductVariant.find({ product: pId, status: "Active" }).sort({ price: 1 });
+        if (variants.length > 0) {
+          price = variants[0].salePrice !== null && variants[0].salePrice !== undefined ? variants[0].salePrice : variants[0].price;
+          variantName = variants[0].name;
+          image = item.image || (Array.isArray(item.images) ? item.images[0] : item.images) || product.image || "";
+        } else {
+          return res.status(400).json({ msg: `No active variants found for product ${product.name}` });
+        }
+        name = product.name;
+      }
+
+      const qty = Number(item.quantity) || 1;
+      calculatedSubtotal += price * qty;
+
+      validatedItems.push({
+        productId: pId && mongoose.Types.ObjectId.isValid(pId) ? pId : null,
+        variantId: vId && mongoose.Types.ObjectId.isValid(vId) ? vId : null,
+        name,
+        variantName,
+        price,
+        quantity: qty,
+        image
+      });
+    }
+
+    // 2) Recalculate true coupon discount
+    let calculatedDiscount = 0;
+    let couponRecord = null;
+    if (couponCode && String(couponCode).trim() !== "") {
+      const cleanCouponCode = String(couponCode).trim().toUpperCase();
+      const coupon = await Coupon.findOne({ code: cleanCouponCode });
+      
+      if (coupon) {
+        if (!coupon.isActive) {
+          return res.status(400).json({ msg: "Promo code is currently inactive" });
+        }
+        if (new Date(coupon.startDate) > now) {
+          return res.status(400).json({ msg: "Promo code promotion has not started yet" });
+        }
+        if (new Date(coupon.expiryDate) < now) {
+          coupon.isActive = false;
+          await coupon.save();
+          return res.status(400).json({ msg: "Promo code has expired" });
+        }
+        if (coupon.usageLimit && coupon.usedCount >= coupon.usageLimit) {
+          return res.status(400).json({ msg: "Promo code usage limit has been reached" });
+        }
+        if (targetUserId) {
+          const userUsageCount = await Order.countDocuments({
+            user: targetUserId,
+            couponCode: coupon.code,
+            status: { $ne: "cancelled" }
+          });
+          if (userUsageCount >= coupon.perUserLimit) {
+            return res.status(400).json({ msg: `You have reached your limit for this promo code` });
+          }
+        }
+        if (calculatedSubtotal < coupon.minimumOrderAmount) {
+          return res.status(400).json({ msg: `Minimum order amount to use this promo code is ₹${coupon.minimumOrderAmount}` });
+        }
+        if (targetUserId) {
+          if (coupon.applicableUsers === "NEW_USERS") {
+            const deliveredCount = await Order.countDocuments({ user: targetUserId, status: "delivered" });
+            if (deliveredCount > 0) {
+              return res.status(400).json({ msg: "This offer is only valid for your first order" });
+            }
+          } else if (coupon.applicableUsers === "SELECTED_USERS") {
+            const isEligible = coupon.selectedUsersList.some(id => id.toString() === targetUserId.toString());
+            if (!isEligible) {
+              return res.status(400).json({ msg: "You are not eligible to apply this coupon" });
+            }
+          }
+        }
+
+        // Calculate true discount amount
+        if (coupon.discountType === "PERCENTAGE" || coupon.discountType === "percentage") {
+          calculatedDiscount = (calculatedSubtotal * coupon.discountValue) / 100;
+          if (coupon.maximumDiscountAmount) {
+            calculatedDiscount = Math.min(calculatedDiscount, coupon.maximumDiscountAmount);
+          }
+        } else {
+          calculatedDiscount = coupon.discountValue;
+        }
+        calculatedDiscount = Math.min(calculatedDiscount, calculatedSubtotal);
+        couponRecord = coupon;
+      } else {
+        return res.status(404).json({ msg: "Promo code does not exist" });
+      }
+    }
+
+    // 3) Calculate standard shipping cost
+    let shippingCost = 0;
+    if (deliveryMethodId === 'express') {
+      shippingCost = 150;
+    } else if (deliveryMethodId === 'priority') {
+      shippingCost = 300;
+    }
+
+    // 4) Calculate commission coins deduction
     if (useCommissionCoins) {
       const activeCoins = await processCoinExpirations(targetUserId);
       if (activeCoins >= 150) {
-        coinsDeducted = Math.min(activeCoins, Math.floor(finalPayableAmount));
-        finalPayableAmount -= coinsDeducted;
+        const maxCoinDiscount = Math.max(0, calculatedSubtotal - calculatedDiscount);
+        coinsDeducted = Math.min(activeCoins, Math.floor(maxCoinDiscount));
 
         // Perform instant deduction if COD or total becomes 0
-        if (isInstantOrder || finalPayableAmount <= 0) {
+        if (isInstantOrder || (calculatedSubtotal - calculatedDiscount - coinsDeducted <= 0)) {
           let remainingToDeduct = coinsDeducted;
           const activeBatches = await CommissionLog.find({
             userId: targetUserId,
@@ -149,7 +286,7 @@ export const createOrder = async (req, res) => {
             userId: targetUserId,
             coinsEarned: 0,
             coinsRemaining: 0,
-            expiresAt: new Date(Date.now() + 45 * 24 * 60 * 60 * 1000), // dummy expiration
+            expiresAt: new Date(Date.now() + 45 * 24 * 60 * 60 * 1000),
             status: "REDEEMED",
             type: "REDEEMED_CHECKOUT",
             note: `Redeemed ${coinsDeducted} commission coins at checkout`
@@ -162,7 +299,16 @@ export const createOrder = async (req, res) => {
       }
     }
 
-    // 3.5) Wallet Deduction Calculation
+    // 5) Calculate taxes on taxable subtotal
+    const taxableAmount = Math.max(0, calculatedSubtotal - calculatedDiscount - coinsDeducted);
+    const cgstRecalculated = Math.round(taxableAmount * 0.025 * 100) / 100;
+    const sgstRecalculated = Math.round(taxableAmount * 0.025 * 100) / 100;
+    const taxRecalculated = cgstRecalculated + sgstRecalculated;
+
+    // Subtotal + Tax + Shipping before wallet is applied
+    let finalPayableAmount = taxableAmount + taxRecalculated + shippingCost;
+
+    // 6) Calculate wallet deduction
     if (useWallet) {
       let wallet = await Wallet.findOne({ userId: targetUserId });
       if (!wallet) {
@@ -191,15 +337,11 @@ export const createOrder = async (req, res) => {
       }
     }
 
-    // 4) Coupon Usage Calculation
-    if (couponCode && String(couponCode).trim() !== "") {
-      const cleanCouponCode = String(couponCode).trim().toUpperCase();
-      const coupon = await Coupon.findOne({ code: cleanCouponCode });
-      if (coupon) {
-        if (isInstantOrder || finalPayableAmount <= 0) {
-          coupon.usedCount += 1;
-          await coupon.save();
-        }
+    // 7) Increment coupon usedCount if the order is instant or final total is 0
+    if (couponRecord) {
+      if (isInstantOrder || finalPayableAmount <= 0) {
+        couponRecord.usedCount += 1;
+        await couponRecord.save();
       }
     }
 
@@ -211,50 +353,27 @@ export const createOrder = async (req, res) => {
       paymentStatus = 'pending';
     }
 
-    // Map items & sanitize invalid ObjectIds
-    const orderItems = items.map(item => {
-      let pId = item.productId;
-      let vId = item.variantId;
-
-      // Extract from composite _id if needed
-      if ((!pId || !vId) && typeof item._id === 'string' && item._id.includes('_')) {
-        const parts = item._id.split('_');
-        if (!pId) pId = parts[0];
-        if (!vId) vId = parts[1];
-      }
-
-      return {
-        productId: pId && mongoose.Types.ObjectId.isValid(pId) ? pId : null,
-        variantId: vId && mongoose.Types.ObjectId.isValid(vId) ? vId : null,
-        name: item.name || item.title || "Product",
-        variantName: item.variantName || "",
-        price: Number(item.price) || 0,
-        quantity: Number(item.quantity) || 1,
-        image: item.image || (Array.isArray(item.images) ? item.images[0] : item.images) || ""
-      };
-    });
-
     // Generate unique custom order ID without collisions
     const customOrderId = await generateUniqueCustomOrderId(user?.clientType || "Non-GST");
 
-    // 5) Create Order logic
+    // Create Order with all verified amounts
     const order = await Order.create({
       customOrderId,
       user: targetUserId,
-      items: orderItems, 
+      items: validatedItems, 
       PaymentMethod: paymentMethod,
       paymentStatus,
       status: 'pending',
       deliveryAddress,
       totalAmount: finalPayableAmount,
-      discountAmount: Number(discountAmount) || 0,
-      couponCode: couponCode ? String(couponCode).trim().toUpperCase() : "",
+      discountAmount: calculatedDiscount,
+      couponCode: couponRecord ? couponRecord.code : "",
       referralCode: referralCode ? String(referralCode).trim().toUpperCase() : "",
       referralStatus: referralCode ? "PENDING" : "NONE",
       rewardCredited: false,
-      cgst: Number(cgst) || 0,
-      sgst: Number(sgst) || 0,
-      taxAmount: Number(taxAmount) || 0,
+      cgst: cgstRecalculated,
+      sgst: sgstRecalculated,
+      taxAmount: taxRecalculated,
       phonePeTransactionId: phonePeTransactionId || undefined,
       walletDeductedAmount: walletDeducted,
       commissionCoinsDeductedAmount: coinsDeducted,

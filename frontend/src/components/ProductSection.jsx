@@ -62,8 +62,8 @@ const ProductSection = ({ limit = null }) => {
       return;
     }
     if (!selectedVariant) {
-        toast.error("This product is currently out of stock");
-        return;
+      toast.error("This product is currently out of stock");
+      return;
     }
     const getDynamicName = (productName, variantName) => {
       if (!productName) return "";
@@ -76,15 +76,15 @@ const ProductSection = ({ limit = null }) => {
     };
     const displayName = getDynamicName(product.name, selectedVariant.name);
 
-    const itemToAdd = { 
-        ...product, 
-        _id: `${product._id}_${selectedVariant._id}`,
-        productId: product._id,
-        variantId: selectedVariant._id,
-        name: displayName,
-        variantName: selectedVariant.name,
-        price: selectedVariant.salePrice || selectedVariant.price,
-        quantity: 1 
+    const itemToAdd = {
+      ...product,
+      _id: `${product._id}_${selectedVariant._id}`,
+      productId: product._id,
+      variantId: selectedVariant._id,
+      name: displayName,
+      variantName: selectedVariant.name,
+      price: selectedVariant.salePrice || selectedVariant.price,
+      quantity: 1
     };
     dispatch(addToCart(itemToAdd));
     toast.success(`${displayName} added to cart!`);

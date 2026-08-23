@@ -3,6 +3,8 @@ import Navbar from "../components/Navbar";
 import BlogSection from "../components/BlogSection";
 import ProductSection from "../components/ProductSection";
 import HeroSection from './HeroSection';
+import FestivalBanner from "./FestivalBanner";
+import MarketingPopUp from "./MarketingPopUp";
 import { OurStorySnippet, Gallery, FAQSection } from './HomeExtras';
 import PartnersSection from './PartnersSection';
 import FeaturesHighlights from './FeaturesHighlights';
@@ -13,7 +15,8 @@ import SEO from './SEO';
 const UserDashboard = () => {
   return (
     <div className="w-full">
-      <SEO 
+      <MarketingPopUp />
+      <SEO
         title="Premium Stone Pressed Oils & Organic Products"
         description="Shop the best Premium Grade Pure Oil natural, stone-pressed oils and organic products at Own Fresh. Pure, healthy, and delivered fresh to your doorstep."
         keywords="stone pressed oil, pure organic oil, fresh natural oil, healthy cooking oil, buy stone pressed oil online"
@@ -21,6 +24,7 @@ const UserDashboard = () => {
       />
       <Navbar />
       <HeroSection />
+      <FestivalBanner />
 
       {/* Featured Products with Mobile Swiper & Filters */}
       <ProductSection limit={8} />
@@ -51,7 +55,7 @@ const UserDashboard = () => {
             className="w-full h-auto object-contain rounded-[12px] md:rounded-[20px] shadow-[0_4px_20px_rgba(0,0,0,0.02)]"
           />
         </div>
-        
+
         {/* Centered Connection Message */}
         <div className="text-center mt-10 max-w-xl mx-auto px-4">
           <h3 className="text-2xl md:text-3xl font-black text-black mb-3 tracking-tight">

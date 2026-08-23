@@ -85,8 +85,8 @@ const Shop = () => {
       return;
     }
     if (!selectedVariant) {
-        toast.error("This product is currently out of stock");
-        return;
+      toast.error("This product is currently out of stock");
+      return;
     }
     const getDynamicName = (productName, variantName) => {
       if (!productName) return "";
@@ -99,15 +99,15 @@ const Shop = () => {
     };
     const displayName = getDynamicName(product.name, selectedVariant.name);
 
-    const itemToAdd = { 
-        ...product, 
-        _id: `${product._id}_${selectedVariant._id}`,
-        productId: product._id,
-        variantId: selectedVariant._id,
-        name: displayName,
-        variantName: selectedVariant.name,
-        price: selectedVariant.salePrice || selectedVariant.price,
-        quantity: 1 
+    const itemToAdd = {
+      ...product,
+      _id: `${product._id}_${selectedVariant._id}`,
+      productId: product._id,
+      variantId: selectedVariant._id,
+      name: displayName,
+      variantName: selectedVariant.name,
+      price: selectedVariant.salePrice || selectedVariant.price,
+      quantity: 1
     };
     dispatch(addToCart(itemToAdd));
     toast.success(`${displayName} added to cart!`);
@@ -185,7 +185,7 @@ const Shop = () => {
 
   return (
     <>
-      <SEO 
+      <SEO
         title="Shop Stone Pressed Oils"
         description="Browse our collection of premium stone-pressed oils. Buy Premium Grade Pure Oil natural and organic oils online at the best prices."
         keywords="shop stone pressed oil, buy organic oil online, stone pressed cooking oil"

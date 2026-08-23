@@ -100,7 +100,7 @@ export const getAllVariants = async (req, res) => {
 export const bulkUpdatePrices = async (req, res) => {
   try {
     const { categoryId, percentageIncrease } = req.body;
-    
+
     if (!categoryId || !percentageIncrease) {
       return res.status(400).json({ success: false, message: "Category ID and Percentage Increase are required" });
     }
@@ -113,7 +113,7 @@ export const bulkUpdatePrices = async (req, res) => {
     for (let variant of variants) {
       const oldPrice = variant.price;
       const newPrice = Math.round(oldPrice * (1 + (percentageIncrease / 100)));
-      
+
       await PriceHistory.create({
         variant: variant._id,
         oldPrice: oldPrice,

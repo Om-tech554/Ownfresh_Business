@@ -247,7 +247,8 @@ const OrderReview = () => {
         sgst,
         taxAmount: totalTax,
         useWallet: useWallet,
-        useCommissionCoins: useCommissionCoins
+        useCommissionCoins: useCommissionCoins,
+        deliveryMethodId: deliveryMethod?.id || "standard"
       };
 
       const { data } = await axios.post(`${serverUrl}/api/order/create`, payload, { 
