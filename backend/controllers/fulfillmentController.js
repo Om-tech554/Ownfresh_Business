@@ -93,7 +93,10 @@ export const confirmFulfillment = async (req, res) => {
     // Look up carrier to build tracking URL
     const carrier = await Carrier.findOne({ name: courierPartner });
     const baseTrackingUrl = carrier ? carrier.baseTrackingUrl : "";
-    const trackingUrl = baseTrackingUrl + trackingId;
+    let trackingUrl = baseTrackingUrl + trackingId;
+    if (courierPartner && courierPartner.toLowerCase() === "trackon") {
+      trackingUrl = baseTrackingUrl || "https://trackon.in/";
+    }
 
     // Update Order fields
     order.courierPartner = courierPartner;

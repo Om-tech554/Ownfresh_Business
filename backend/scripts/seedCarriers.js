@@ -13,7 +13,8 @@ const carriersData = [
   { name: "Professional Couriers", baseTrackingUrl: "http://www.tpcindia.com/Default.aspx?AWB=" },
   { name: "Shadowfax", baseTrackingUrl: "https://track.shadowfax.in/track?awb=" },
   { name: "Ekart", baseTrackingUrl: "https://ekartlogistics.com/track/" },
-  { name: "Ecom Express", baseTrackingUrl: "https://ecomexpress.in/tracking/?awb_field=" }
+  { name: "Ecom Express", baseTrackingUrl: "https://ecomexpress.in/tracking/?awb_field=" },
+  { name: "Trackon", baseTrackingUrl: "https://trackon.in/" }
 ];
 
 const seed = async () => {

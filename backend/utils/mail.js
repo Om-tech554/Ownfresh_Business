@@ -5,9 +5,9 @@ import { generateInvoicePdf } from "./pdfGenerator.js";
 dotenv.config();
 
 const transporter = nodemailer.createTransport({
-  host: "smtp.gmail.com",
-  port: 465,
-  secure: true,
+  host: process.env.SMTP_HOST || "smtp.gmail.com",
+  port: parseInt(process.env.SMTP_PORT, 10) || 465,
+  secure: process.env.SMTP_SECURE === "false" ? false : true,
   connectionTimeout: 8000, // 8s connection timeout
   socketTimeout: 8000,     // 8s socket timeout
   greetingTimeout: 8000,   // 8s greeting timeout
@@ -242,12 +242,15 @@ export const sendCustomMail = async ({ to, subject, html, text }) => {
 
 export const generateShipmentEmailHtml = (order, trackingUrl) => {
   const customerName = order.user?.fullName || "Customer";
+  const siteUrl = process.env.FRONTEND_URL || "https://myownfresh.com";
   return `
       <div style="background-color:#FFFDF2;padding:24px;font-family:Arial,sans-serif;">
         <div style="max-width:520px;margin:auto;background:#ffffff;border:1px solid #E5E5E5;border-radius:12px;overflow:hidden;">
           <!-- Header -->
-          <div style="background:#24672E;padding:16px;text-align:center;">
-            <h1 style="margin:0;color:#FFF;font-size:22px;">OwnFresh</h1>
+          <div style="background:#ffffff;border-bottom:1px solid #E5E5E5;padding:16px;text-align:center;">
+            <a href="${siteUrl}" target="_blank" style="text-decoration:none;display:inline-block;">
+              <img src="https://res.cloudinary.com/dkhq2wlwg/image/upload/v1774962822/ownfresh_media/ndxvmcpisomjzsghrfjs.png" alt="OwnFresh Logo" style="height:44px;border:none;display:inline-block;vertical-align:middle;" />
+            </a>
           </div>
           <!-- Body -->
           <div style="padding:24px;color:#333;">
@@ -262,6 +265,17 @@ export const generateShipmentEmailHtml = (order, trackingUrl) => {
             <div style="margin:24px 0;padding:16px;background:#F5F5F5;border-radius:8px;border:1px solid #E5E5E5;">
               <p style="margin:0 0 8px 0;font-size:14px;"><b>Courier:</b> ${order.courierPartner}</p>
               <p style="margin:0 0 16px 0;font-size:14px;"><b>AWB/Tracking Number:</b> ${order.trackingId}</p>
+              
+              <!-- Instructions -->
+              <div style="margin: 0 0 20px 0; padding: 12px; background: #ffffff; border-radius: 6px; border: 1px dashed #cccccc; font-size: 13px; color: #555; line-height: 1.5; text-align: left;">
+                <b style="color: #24672E; display: block; margin-bottom: 6px;">How to track your shipment:</b>
+                <ol style="margin: 0; padding-left: 20px;">
+                  <li>Copy the <b>AWB/Tracking Number</b> above.</li>
+                  <li>Click the <b>Track Package</b> button below.</li>
+                  <li>Paste the AWB number on the tracking page to get your details.</li>
+                </ol>
+              </div>
+
               <div style="text-align:center;">
                 <a href="${trackingUrl}" target="_blank" style="
                   display:inline-block;
@@ -283,6 +297,9 @@ export const generateShipmentEmailHtml = (order, trackingUrl) => {
             </p>
             <p style="font-size:13px;color:#777;margin-top:16px;">
               If you have any questions or concerns, contact our support team at <a href="mailto:contact@myownfresh.com" style="color:#24672E;text-decoration:none;">contact@myownfresh.com</a>.
+            </p>
+            <p style="font-size:13px;color:#777;margin-top:8px;">
+              You can read our <a href="${siteUrl}/refund-policy" target="_blank" style="color:#24672E;text-decoration:none;font-weight:bold;">Return & Refund Policy here</a>.
             </p>
           </div>
           <!-- Footer -->

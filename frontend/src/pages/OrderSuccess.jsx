@@ -203,9 +203,11 @@ const OrderSuccess = () => {
         <div className="border border-gray-300 p-6 rounded-lg">
           <div className="flex justify-between items-start pb-6 border-b border-gray-200">
             <div>
-              <h1 className="text-3xl font-black tracking-tight text-gray-900">
-                OwnFresh<span className="text-[#24672E]">.</span>
-              </h1>
+              <img
+                src="https://res.cloudinary.com/dkhq2wlwg/image/upload/v1774962822/ownfresh_media/ndxvmcpisomjzsghrfjs.png"
+                alt="OwnFresh Logo"
+                className="h-10 md:h-12 w-auto object-contain"
+              />
               <p className="text-[10px] text-gray-500 uppercase tracking-widest mt-1 font-bold">
                 Stone-Pressed Botanic Purity
               </p>

@@ -605,7 +605,7 @@ const AdminOrders = () => {
                 <!-- TOP HEADER -->
                 <div class="top-header">
                     <div>
-                        <div class="brand-name">OWN<span>FRESH</span></div>
+                        <img src="https://res.cloudinary.com/dkhq2wlwg/image/upload/v1774962822/ownfresh_media/ndxvmcpisomjzsghrfjs.png" alt="OwnFresh Logo" style="height:38px;display:block;margin-bottom:4px;object-fit:contain;" />
                         <div class="brand-tagline">Natural Oils &amp; Wellness</div>
                         <div style="margin-top:8px;font-size:10px;color:#6b7280;">
                             contact@myownfresh.com &nbsp;|&nbsp; www.myownfresh.com
