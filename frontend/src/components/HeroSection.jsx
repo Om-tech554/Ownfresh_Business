@@ -19,7 +19,7 @@ const slides = [
     id: 2,
     layout: "full",
     bgColor: "bg-gray-100",
-    image: "https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?q=80&w=2000&auto=format&fit=crop",
+    image: "/hero-slide-2.png",
     subtitle: "Welcome to OwnFresh",
     title: "PREMIUM GRADE PURE OIL <br/> <span class='text-[#FFDD00]'>BOTANIC</span> OIL",
     description: "Natural, Real, and extracted from the earliest pressing. Rooted in tradition, prioritizing your health and taste.",

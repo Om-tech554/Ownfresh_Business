@@ -16,6 +16,7 @@ import ReferralManager from './admin/ReferralManager';
 import SettingsManager from './admin/SettingsManager';
 import PrimeMembershipManager from './admin/PrimeMembershipManager';
 import ReviewManager from './admin/ReviewManager';
+import SupportTicketManager from './admin/SupportTicketManager';
 
 function AdminDashboard() {
   const userData = useSelector((state) => state.user.userData);
@@ -190,16 +191,29 @@ function AdminDashboard() {
           )}
 
           {userData?.role === "admin" && (
-            <button
-              onClick={() => setActiveTab("partners")}
-              className={`flex items-center gap-2 px-6 py-2.5 rounded-xl font-bold transition-all whitespace-nowrap ${activeTab === "partners"
-                  ? "bg-[#1E971D] text-white shadow-lg shadow-[#1E971D]/20"
-                  : "text-slate-500 hover:bg-slate-50"
-                }`}
-            >
-              <Users className="w-4 h-4" />
-              Partners
-            </button>
+            <>
+              <button
+                onClick={() => setActiveTab("partners")}
+                className={`flex items-center gap-2 px-6 py-2.5 rounded-xl font-bold transition-all whitespace-nowrap ${activeTab === "partners"
+                    ? "bg-[#1E971D] text-white shadow-lg shadow-[#1E971D]/20"
+                    : "text-slate-500 hover:bg-slate-50"
+                  }`}
+              >
+                <Users className="w-4 h-4" />
+                Partners
+              </button>
+
+              <button
+                onClick={() => setActiveTab("tickets")}
+                className={`flex items-center gap-2 px-6 py-2.5 rounded-xl font-bold transition-all whitespace-nowrap ${activeTab === "tickets"
+                    ? "bg-[#1E971D] text-white shadow-lg shadow-[#1E971D]/20"
+                    : "text-slate-500 hover:bg-slate-50"
+                  }`}
+              >
+                <Ticket className="w-4 h-4" />
+                Support Tickets
+              </button>
+            </>
           )}
         </div>
       </div>
@@ -219,6 +233,7 @@ function AdminDashboard() {
         {activeTab === "partners" && userData?.role === "admin" && <ReferralManager />}
         {activeTab === "reviews" && userData?.role === "admin" && <ReviewManager />}
         {activeTab === "settings" && userData?.role === "admin" && <SettingsManager />}
+        {activeTab === "tickets" && userData?.role === "admin" && <SupportTicketManager />}
       </div>
     </div>
   );

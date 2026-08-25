@@ -11,6 +11,7 @@ import blogRoutes from "./routes/blogRoutes.js";
 import orderRoutes from "./routes/orderRoutes.js";
 import newsletterRoutes from "./routes/newsletterRoutes.js";
 import contactRoutes from "./routes/contactRoutes.js";
+import ticketRoutes from "./routes/ticketRoutes.js";
 import categoryRoutes from "./routes/categoryRoutes.js";
 import couponRoutes from "./routes/couponRoutes.js";
 import campaignRoutes from "./routes/campaignRoutes.js";
@@ -39,17 +40,17 @@ const app = express()
 app.use(requestIdMiddleware);
 app.set("trust proxy", 1); // Required for secure cookies on Render
 app.use(helmet({
-  contentSecurityPolicy: {
-    directives: {
-      defaultSrc: ["'self'"],
-      scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'", "https://apis.google.com", "https://www.gstatic.com", "https://www.googletagmanager.com"],
-      frameSrc: ["'self'", "https://api.phonepe.com", "https://api-preprod.phonepe.com", "https://mercury.phonepe.com", "https://mercury-t2.phonepe.com", "https://own-fresh.firebaseapp.com", "https://www.google.com", "https://myownfresh.com", "https://www.myownfresh.com"],
-      connectSrc: ["'self'", "https://api.phonepe.com", "https://api-preprod.phonepe.com", "https://mercury.phonepe.com", "https://api.geoapify.com", "https://nominatim.openstreetmap.org", "https://api.bigdatacloud.net", "https://ipapi.co", "https://ip-api.com", "https://*.onrender.com", "https://myownfresh.com", "https://www.myownfresh.com", "https://identitytoolkit.googleapis.com", "https://securetoken.googleapis.com", "https://firebaseinstallations.googleapis.com", "https://content-firebaseappcheck.googleapis.com"],
-      imgSrc: ["'self'", "data:", "https://res.cloudinary.com", "https://api.qrserver.com", "https://*.tile.openstreetmap.org", "https://lh3.googleusercontent.com"],
+    contentSecurityPolicy: {
+        directives: {
+            defaultSrc: ["'self'"],
+            scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'", "https://apis.google.com", "https://www.gstatic.com", "https://www.googletagmanager.com"],
+            frameSrc: ["'self'", "https://api.phonepe.com", "https://api-preprod.phonepe.com", "https://mercury.phonepe.com", "https://mercury-t2.phonepe.com", "https://own-fresh.firebaseapp.com", "https://www.google.com", "https://myownfresh.com", "https://www.myownfresh.com"],
+            connectSrc: ["'self'", "https://api.phonepe.com", "https://api-preprod.phonepe.com", "https://mercury.phonepe.com", "https://api.geoapify.com", "https://nominatim.openstreetmap.org", "https://api.bigdatacloud.net", "https://ipapi.co", "https://ip-api.com", "https://*.onrender.com", "https://myownfresh.com", "https://www.myownfresh.com", "https://identitytoolkit.googleapis.com", "https://securetoken.googleapis.com", "https://firebaseinstallations.googleapis.com", "https://content-firebaseappcheck.googleapis.com"],
+            imgSrc: ["'self'", "data:", "https://res.cloudinary.com", "https://api.qrserver.com", "https://*.tile.openstreetmap.org", "https://lh3.googleusercontent.com"],
+        },
     },
-  },
-  crossOriginEmbedderPolicy: false,
-  crossOriginOpenerPolicy: false,
+    crossOriginEmbedderPolicy: false,
+    crossOriginOpenerPolicy: false,
 })); // Set standard security headers
 const port = process.env.PORT || 10000
 
@@ -89,6 +90,7 @@ app.use("/api/blog", blogRoutes);
 app.use("/api/order", orderRoutes);
 app.use("/api/newsletter", newsletterRoutes);
 app.use("/api/contact", contactRoutes);
+app.use("/api/ticket", ticketRoutes);
 app.use("/api/category", categoryRoutes);
 app.use("/api/coupon", couponRoutes);
 app.use("/api/campaign", campaignRoutes);

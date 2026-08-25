@@ -1,5 +1,6 @@
 import express from "express";
 import upload from "../middleware/multer.js";
+import isAuth, { isAdmin } from "../middleware/isAuth.js";
 
 import {
   addBlog,
@@ -7,6 +8,18 @@ import {
   deleteBlog,
   updateBlog,
   getBlogById,
+  fetchBookmarkMetadata,
+  checkLinks,
+  aiOutline,
+  aiBlogPost,
+  aiFAQ,
+  aiSEOBrief,
+  aiKeywords,
+  aiRewrite,
+  aiImprove,
+  aiExpand,
+  aiShorten,
+  aiMetaDescription
 } from "../controllers/blog.controller.js";
 
 const router = express.Router();
@@ -46,4 +59,22 @@ router.put(
 // DELETE
 router.delete("/delete/:id", deleteBlog);
 
-export default router;
+// LINK AUDITING & BOOKMARK METADATA
+router.post("/bookmark/metadata", isAuth, isAdmin, fetchBookmarkMetadata);
+router.post("/links/check-all", isAuth, isAdmin, checkLinks);
+
+// AI WRITING ASSISTANT Presets
+router.post("/ai/outline", isAuth, isAdmin, aiOutline);
+router.post("/ai/blog-post", isAuth, isAdmin, aiBlogPost);
+router.post("/ai/faq", isAuth, isAdmin, aiFAQ);
+router.post("/ai/seo-brief", isAuth, isAdmin, aiSEOBrief);
+router.post("/ai/keywords", isAuth, isAdmin, aiKeywords);
+
+// AI TEXT EDITING Presets
+router.post("/ai/rewrite", isAuth, isAdmin, aiRewrite);
+router.post("/ai/improve", isAuth, isAdmin, aiImprove);
+router.post("/ai/expand", isAuth, isAdmin, aiExpand);
+router.post("/ai/shorten", isAuth, isAdmin, aiShorten);
+router.post("/ai/meta-description", isAuth, isAdmin, aiMetaDescription);
+
+export default router;

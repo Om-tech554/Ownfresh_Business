@@ -5,6 +5,7 @@ import { FaInstagram, FaChevronLeft, FaChevronRight } from 'react-icons/fa6';
 import { useSearchParams } from 'react-router-dom';
 import axios from 'axios';
 import { AnimatePresence, motion } from 'framer-motion';
+import SEO from '../components/SEO';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
@@ -85,11 +86,16 @@ const Lightbox = ({ images, index, onClose }) => {
         </button>
 
         {/* Image */}
-        <div className="relative w-full">
+        <div 
+          className="relative w-full"
+          onContextMenu={img.category === 'Certifications' ? (e) => e.preventDefault() : undefined}
+        >
           <img
             src={img.src}
             alt={img.alt}
-            className="w-full max-h-[75vh] object-contain rounded-sm shadow-2xl"
+            className={`w-full max-h-[75vh] object-contain rounded-sm shadow-2xl ${img.category === 'Certifications' ? 'select-none' : ''}`}
+            onContextMenu={img.category === 'Certifications' ? (e) => e.preventDefault() : undefined}
+            onDragStart={img.category === 'Certifications' ? (e) => e.preventDefault() : undefined}
           />
 
           {/* Prev / Next */}
@@ -170,11 +176,76 @@ const GalleryPage = () => {
     activeCategory === 'All'
       ? allImages
       : activeCategory === 'Certifications'
-      ? staticCertifications
-      : allImages.filter((img) => img.category === activeCategory);
+        ? staticCertifications
+        : allImages.filter((img) => img.category === activeCategory);
+
+  const gallerySchema = {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    "name": "Own Fresh",
+    "url": "https://myownfresh.com",
+    "logo": "https://res.cloudinary.com/dkhq2wlwg/image/upload/v1774962822/ownfresh_media/ndxvmcpisomjzsghrfjs.png",
+    "hasCredential": [
+      {
+        "@type": "EducationalOccupationalCredential",
+        "name": "FSSAI Certification",
+        "credentialCategory": "Government Registered Food Safety and Standards Authority of India (FSSAI) Certification",
+        "recognizedBy": {
+          "@type": "Organization",
+          "name": "FSSAI (Food Safety and Standards Authority of India)"
+        },
+        "image": "https://res.cloudinary.com/dkhq2wlwg/image/upload/v1774961102/ownfresh_media/vwylvev18xuvlp7pdak8.jpg"
+      },
+      {
+        "@type": "EducationalOccupationalCredential",
+        "name": "Quality Standard Certification",
+        "credentialCategory": "Rigorous Quality Standards & Process Monitoring Certification",
+        "recognizedBy": {
+          "@type": "Organization",
+          "name": "Own Fresh Quality Control Division"
+        },
+        "image": "https://res.cloudinary.com/dkhq2wlwg/image/upload/v1774961151/ownfresh_media/entjvm79dktv5e8ekvmx.jpg"
+      },
+      {
+        "@type": "EducationalOccupationalCredential",
+        "name": "Process Standard Certification",
+        "credentialCategory": "Standardized Traditional Cold-Pressing Extraction Practices Certification",
+        "recognizedBy": {
+          "@type": "Organization",
+          "name": "Own Fresh Manufacturing Standards"
+        },
+        "image": "https://res.cloudinary.com/dkhq2wlwg/image/upload/v1774961219/ownfresh_media/cqfid9v0hfqenb0zezwx.png"
+      },
+      {
+        "@type": "EducationalOccupationalCredential",
+        "name": "Botanic Purity Verified Mark",
+        "credentialCategory": "Purity Verification of Raw Materials Certification",
+        "recognizedBy": {
+          "@type": "Organization",
+          "name": "Botanic Purity Assurance Division"
+        },
+        "image": "https://res.cloudinary.com/dkhq2wlwg/image/upload/v1774961250/ownfresh_media/y7denrhgp9vpmbxjk5om.png"
+      },
+      {
+        "@type": "EducationalOccupationalCredential",
+        "name": "Compliance Certification",
+        "credentialCategory": "Certified Production and Safety Compliance Certification",
+        "recognizedBy": {
+          "@type": "Organization",
+          "name": "Production Safety Compliance Board"
+        },
+        "image": "https://res.cloudinary.com/dkhq2wlwg/image/upload/v1774961287/ownfresh_media/mpvtpafstuox80colfej.png"
+      }
+    ]
+  };
 
   return (
     <div className="w-full min-h-screen bg-white">
+      <SEO
+        title="Gallery - Verification & Certifications"
+        description="Explore the visual journey of Own Fresh, showcasing our traditional stone-pressing processes, premium raw materials, and verified certifications (FSSAI)."
+        schemaMarkup={gallerySchema}
+      />
       <Navbar />
 
       {/* ── Page Header ── */}
@@ -229,12 +300,15 @@ const GalleryPage = () => {
               key={img.id}
               className="group relative break-inside-avoid overflow-hidden bg-gray-100 cursor-pointer shadow-sm hover:shadow-xl transition-shadow duration-300"
               onClick={() => setLightboxIndex(i)}
+              onContextMenu={img.category === 'Certifications' ? (e) => e.preventDefault() : undefined}
             >
               <img
                 src={img.src}
                 alt={img.alt}
-                className="w-full h-auto object-cover transition-transform duration-700 group-hover:scale-105"
+                className={`w-full h-auto object-cover transition-transform duration-700 group-hover:scale-105 ${img.category === 'Certifications' ? 'select-none' : ''}`}
                 loading="lazy"
+                onContextMenu={img.category === 'Certifications' ? (e) => e.preventDefault() : undefined}
+                onDragStart={img.category === 'Certifications' ? (e) => e.preventDefault() : undefined}
               />
               {/* Overlay */}
               <div className="absolute inset-0 bg-black/40 md:bg-black/0 md:group-hover:bg-black/50 transition-all duration-300 flex flex-col items-center justify-center gap-1.5">

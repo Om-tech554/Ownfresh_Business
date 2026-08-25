@@ -40,6 +40,7 @@ const blogSchema = new mongoose.Schema(
     // RankMath SEO fields
     focusKeyword: { type: String, default: "" },
     slug: { type: String, default: "" },
+    language: { type: String, default: "en" },
   },
   { timestamps: true }
 );

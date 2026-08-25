@@ -1,34 +1,45 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import axios from "axios";
 import { useParams, useNavigate } from "react-router-dom";
-import JoditEditor from "jodit-react";
-import { ArrowLeft, Loader2, Save } from "lucide-react";
+import { ArrowLeft, Loader2, Save, Sparkles, ExternalLink, RotateCcw, CheckCircle2, AlertCircle } from "lucide-react";
 import toast from "react-hot-toast";
 
 import RankMathSEOSidebar from "../../components/admin/seo/RankMathSEOSidebar";
-import ContentImageInserter from "../../components/admin/seo/ContentImageInserter";
-import TableOfContentsInserter from "../../components/admin/seo/TableOfContentsInserter";
+import BlogBlockEditor from "../../components/admin/BlogBlockEditor";
+import { parseHtmlToBlocks, serializeBlocksToHtml } from "../../utils/HtmlBlockConverter";
+
+const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
 const AdminBlogEditor = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const isEditing = id !== "create" && id !== "new";
-  const editorRef = useRef(null);
 
+  // Core Editor States
+  const [blocks, setBlocks] = useState([{ id: "1", type: "paragraph", data: { content: "" } }]);
+  const [originalBlocks, setOriginalBlocks] = useState([{ id: "1", type: "paragraph", data: { content: "" } }]);
+
+  // Metadata States
   const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
+  const [slug, setSlug] = useState("");
+  const [focusKeyword, setFocusKeyword] = useState("");
+  const [searchDescription, setSearchDescription] = useState("");
   const [category, setCategory] = useState("OTHER");
-  const [labels, setLabels] = useState(""); // Blogger Labels (comma separated)
-  const [status, setStatus] = useState("LIVE"); // Blogger Status (LIVE/DRAFT)
-  const [searchDescription, setSearchDescription] = useState(""); // SEO
-  const [focusKeyword, setFocusKeyword] = useState(""); // RankMath Focus Keyword
-  const [slug, setSlug] = useState(""); // SEO URL Slug
-  const [location, setLocation] = useState(""); // Simple location text
-  const [author, setAuthor] = useState(""); // Custom Author
-  const [publishedAt, setPublishedAt] = useState(""); // Custom Date
-  const [editorMode, setEditorMode] = useState("write"); // 'write' | 'preview'
+  const [labels, setLabels] = useState(""); 
+  const [status, setStatus] = useState("LIVE"); 
+  const [location, setLocation] = useState(""); 
+  const [author, setAuthor] = useState(""); 
+  const [publishedAt, setPublishedAt] = useState(""); 
+  const [language, setLanguage] = useState("en"); 
 
-  // Images (supporting featured + 4 gallery)
+  // originalMetadata for checking dirty state & supporting discards
+  const [originalMetadata, setOriginalMetadata] = useState({
+    title: "", slug: "", focusKeyword: "", searchDescription: "", category: "OTHER",
+    labels: "", status: "LIVE", location: "", author: "", publishedAt: "", language: "en",
+    image: null, image1: null, image2: null, image3: null, image4: null
+  });
+
+  // Images states (cover + 4 gallery slots)
   const [image, setImage] = useState(null);
   const [preview, setPreview] = useState(null);
   const [deleteImage, setDeleteImage] = useState(false);
@@ -49,41 +60,63 @@ const AdminBlogEditor = () => {
   const [preview4, setPreview4] = useState(null);
   const [deleteImage4, setDeleteImage4] = useState(false);
 
+  // Layout & UI states
+  const [activeTabMobile, setActiveTabMobile] = useState("write"); // 'write' | 'settings'
   const [loading, setLoading] = useState(isEditing);
   const [saving, setSaving] = useState(false);
-  const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
-  // Jodit Editor Config for Full Blogger Experience
-  const editorConfig = {
-    readonly: false,
-    placeholder: "Write your masterpiece here...",
-    height: 600,
-    hidePoweredBy: true,
-    showCharsCounter: false,
-    showWordsCounter: false,
-    showXPathInStatusbar: false,
-    style: {
-      background: "#ffffff",
-      color: "#000000",
-    },
-    useSplitMode: true,
-    buttons: [
-      "source", "|",
-      "bold", "strikethrough", "underline", "italic", "|",
-      "superscript", "subscript", "|",
-      "ul", "ol", "|",
-      "outdent", "indent", "|",
-      "font", "fontsize", "brush", "paragraph", "|",
-      "image", "video", "table", "link", "|",
-      "align", "undo", "redo", "|",
-      "hr", "eraser", "copyformat", "|",
-      "symbol", "fullsize", "preview"
-    ],
-    uploader: {
-      insertImageAsBase64URI: true // allows pasting/dropping images directly in the editor flow
-    }
-  };
+  // Compute raw HTML representation of blocks dynamically
+  const contentHtml = useMemo(() => {
+    return serializeBlocksToHtml(blocks);
+  }, [blocks]);
 
+  // Compute word count
+  const wordCount = useMemo(() => {
+    const plainText = blocks.map(b => {
+      if (b.type === "paragraph" || b.type === "heading" || b.type === "blockquote") {
+        return b.data.content || "";
+      }
+      if (b.type === "list") {
+        return b.data.items?.join(" ") || "";
+      }
+      if (b.type === "callout") {
+        return b.data.content || "";
+      }
+      return "";
+    }).join(" ");
+    const cleanText = plainText.replace(/<[^>]+>/g, '').trim();
+    return cleanText ? cleanText.split(/\s+/).length : 0;
+  }, [blocks]);
+
+  // Compute dirty state
+  const isDirty = useMemo(() => {
+    const blocksChanged = JSON.stringify(blocks) !== JSON.stringify(originalBlocks);
+    const metaChanged = 
+      title !== originalMetadata.title ||
+      slug !== originalMetadata.slug ||
+      focusKeyword !== originalMetadata.focusKeyword ||
+      searchDescription !== originalMetadata.searchDescription ||
+      category !== originalMetadata.category ||
+      labels !== originalMetadata.labels ||
+      status !== originalMetadata.status ||
+      location !== originalMetadata.location ||
+      author !== originalMetadata.author ||
+      publishedAt !== originalMetadata.publishedAt ||
+      language !== originalMetadata.language ||
+      image !== originalMetadata.image ||
+      image1 !== originalMetadata.image1 ||
+      image2 !== originalMetadata.image2 ||
+      image3 !== originalMetadata.image3 ||
+      image4 !== originalMetadata.image4;
+    
+    return blocksChanged || metaChanged;
+  }, [
+    blocks, originalBlocks, title, slug, focusKeyword, searchDescription, category, 
+    labels, status, location, author, publishedAt, language, originalMetadata,
+    image, image1, image2, image3, image4
+  ]);
+
+  // Fetch article data on mount (if editing)
   useEffect(() => {
     if (isEditing) {
       const fetchBlog = async () => {
@@ -91,24 +124,70 @@ const AdminBlogEditor = () => {
           const res = await axios.get(`${API_BASE_URL}/api/blog/${id}`);
           const blog = res.data.blog;
           if (blog) {
-            setTitle(blog.title || "");
-            setDescription(blog.description || "");
-            setCategory(blog.category || "General");
-            setPreview(blog.image || null);
-            setPreview1(blog.image1 || null);
-            setPreview2(blog.image2 || null);
-            setPreview3(blog.image3 || null);
-            setPreview4(blog.image4 || null);
-            setLabels(blog.labels ? blog.labels.join(", ") : "");
-            setStatus(blog.status || "LIVE");
-            setSearchDescription(blog.searchDescription || "");
-            setFocusKeyword(blog.focusKeyword || "");
-            setSlug(blog.slug || "");
-            setLocation(blog.location ? (typeof blog.location === 'object' ? blog.location.name : blog.location) : "");
-            setAuthor(blog.author || "");
+            // Load blocks by parsing description HTML
+            const parsedBlocks = parseHtmlToBlocks(blog.description || "");
+            setBlocks(parsedBlocks);
+            setOriginalBlocks(JSON.parse(JSON.stringify(parsedBlocks)));
+
+            // Load metadata states
+            const blogTitle = blog.title || "";
+            const blogSlug = blog.slug || "";
+            const blogFocusKeyword = blog.focusKeyword || "";
+            const blogSearchDesc = blog.searchDescription || "";
+            const blogCat = blog.category || "OTHER";
+            const blogLabels = blog.labels ? blog.labels.join(", ") : "";
+            const blogStatus = blog.status || "LIVE";
+            const blogLoc = blog.location ? (typeof blog.location === 'object' ? blog.location.name : blog.location) : "";
+            const blogAuth = blog.author || "";
+            const blogLang = blog.language || "en";
+            let blogDate = "";
             if (blog.publishedAt) {
-              setPublishedAt(new Date(blog.publishedAt).toISOString().split('T')[0]);
+              blogDate = new Date(blog.publishedAt).toISOString().split('T')[0];
             }
+
+            setTitle(blogTitle);
+            setSlug(blogSlug);
+            setFocusKeyword(blogFocusKeyword);
+            setSearchDescription(blogSearchDesc);
+            setCategory(blogCat);
+            setLabels(blogLabels);
+            setStatus(blogStatus);
+            setLocation(blogLoc);
+            setAuthor(blogAuth);
+            setLanguage(blogLang);
+            setPublishedAt(blogDate);
+
+            // Images preview
+            setPreview(blog.image || null);
+            setImage(blog.image || null);
+            setPreview1(blog.image1 || null);
+            setImage1(blog.image1 || null);
+            setPreview2(blog.image2 || null);
+            setImage2(blog.image2 || null);
+            setPreview3(blog.image3 || null);
+            setImage3(blog.image3 || null);
+            setPreview4(blog.image4 || null);
+            setImage4(blog.image4 || null);
+
+            // Track original metadata
+            setOriginalMetadata({
+              title: blogTitle,
+              slug: blogSlug,
+              focusKeyword: blogFocusKeyword,
+              searchDescription: blogSearchDesc,
+              category: blogCat,
+              labels: blogLabels,
+              status: blogStatus,
+              location: blogLoc,
+              author: blogAuth,
+              publishedAt: blogDate,
+              language: blogLang,
+              image: blog.image || null,
+              image1: blog.image1 || null,
+              image2: blog.image2 || null,
+              image3: blog.image3 || null,
+              image4: blog.image4 || null
+            });
           }
         } catch (error) {
           toast.error("Failed to load blog details.");
@@ -119,41 +198,84 @@ const AdminBlogEditor = () => {
       };
       fetchBlog();
     }
-  }, [id, isEditing, API_BASE_URL]);
+  }, [id, isEditing]);
 
-  const handleImageChange = (e, setter, previewSetter, onSelectCallback) => {
+  const handleImageChange = (e, setter, previewSetter) => {
     const file = e.target.files[0];
     if (file) {
       setter(file);
       previewSetter(URL.createObjectURL(file));
-      if (onSelectCallback) onSelectCallback();
     }
   };
 
-  const handleSave = async () => {
-    const finalDescription = editorRef.current?.value || description;
-    if (!title.trim() || !finalDescription.trim()) {
-      toast.error("Title and Description are required!");
+  const discardChanges = () => {
+    if (window.confirm("Are you sure you want to discard all unsaved edits?")) {
+      setBlocks(JSON.parse(JSON.stringify(originalBlocks)));
+      setTitle(originalMetadata.title);
+      setSlug(originalMetadata.slug);
+      setFocusKeyword(originalMetadata.focusKeyword);
+      setSearchDescription(originalMetadata.searchDescription);
+      setCategory(originalMetadata.category);
+      setLabels(originalMetadata.labels);
+      setStatus(originalMetadata.status);
+      setLocation(originalMetadata.location);
+      setAuthor(originalMetadata.author);
+      setLanguage(originalMetadata.language);
+      setPublishedAt(originalMetadata.publishedAt);
+      
+      setImage(originalMetadata.image);
+      setPreview(originalMetadata.image);
+      setImage1(originalMetadata.image1);
+      setPreview1(originalMetadata.image1);
+      setImage2(originalMetadata.image2);
+      setPreview2(originalMetadata.image2);
+      setImage3(originalMetadata.image3);
+      setPreview3(originalMetadata.image3);
+      setImage4(originalMetadata.image4);
+      setPreview4(originalMetadata.image4);
+      
+      toast.success("All changes discarded.");
+    }
+  };
+
+  const handleSave = async (forcedStatus = null) => {
+    const finalHtml = serializeBlocksToHtml(blocks);
+    if (!title.trim()) {
+      toast.error("Title is required!");
+      return;
+    }
+    if (!finalHtml.trim()) {
+      toast.error("Article content body is required!");
       return;
     }
 
     setSaving(true);
     const formData = new FormData();
     formData.append("title", title);
-    formData.append("description", finalDescription);
+    formData.append("description", finalHtml);
 
-    // Normalize category before saving
     let normalizedCategory = category ? category.trim() : 'OTHER';
     if (normalizedCategory.length > 0) {
       normalizedCategory = normalizedCategory.toUpperCase();
     }
     formData.append("category", normalizedCategory);
 
-    if (image) formData.append("image", image);
-    if (image1) formData.append("image1", image1);
-    if (image2) formData.append("image2", image2);
-    if (image3) formData.append("image3", image3);
-    if (image4) formData.append("image4", image4);
+    // Cover asset
+    if (image instanceof File) {
+      formData.append("image", image);
+    } else if (image) {
+      formData.append("image", image); // Image URL from gallery picker
+    }
+    
+    // Gallery assets
+    if (image1 instanceof File) formData.append("image1", image1);
+    else if (image1) formData.append("image1", image1);
+    if (image2 instanceof File) formData.append("image2", image2);
+    else if (image2) formData.append("image2", image2);
+    if (image3 instanceof File) formData.append("image3", image3);
+    else if (image3) formData.append("image3", image3);
+    if (image4 instanceof File) formData.append("image4", image4);
+    else if (image4) formData.append("image4", image4);
 
     // Delete image flags
     if (deleteImage) formData.append("deleteImage", "true");
@@ -162,309 +284,298 @@ const AdminBlogEditor = () => {
     if (deleteImage3) formData.append("deleteImage3", "true");
     if (deleteImage4) formData.append("deleteImage4", "true");
 
-    // Blogger & SEO features
+    const targetStatus = forcedStatus || status;
+
     formData.append("labels", labels);
-    formData.append("status", status);
+    formData.append("status", targetStatus);
     formData.append("searchDescription", searchDescription);
     formData.append("focusKeyword", focusKeyword);
     formData.append("slug", slug);
     formData.append("location", location);
     formData.append("author", author);
+    formData.append("language", language);
     if (publishedAt) formData.append("publishedAt", new Date(publishedAt).toISOString());
 
     try {
+      let savedBlog;
       if (isEditing) {
-        await axios.put(`${API_BASE_URL}/api/blog/update/${id}`, formData);
-        toast.success("Blog updated successfully!");
+        const res = await axios.put(`${API_BASE_URL}/api/blog/update/${id}`, formData, { withCredentials: true });
+        savedBlog = res.data.blog;
+        toast.success("Blog post saved successfully!");
       } else {
-        await axios.post(`${API_BASE_URL}/api/blog/add`, formData);
-        toast.success("Blog published successfully!");
+        const res = await axios.post(`${API_BASE_URL}/api/blog/add`, formData, { withCredentials: true });
+        savedBlog = res.data.blog;
+        toast.success("Blog post published successfully!");
       }
-      setTimeout(() => navigate("/blogs"), 1500);
+
+      // Re-initialize dirty validation with saved values
+      const parsedBlocks = parseHtmlToBlocks(savedBlog.description);
+      setBlocks(parsedBlocks);
+      setOriginalBlocks(JSON.parse(JSON.stringify(parsedBlocks)));
+      setStatus(savedBlog.status || "LIVE");
+
+      const savedDate = savedBlog.publishedAt ? new Date(savedBlog.publishedAt).toISOString().split('T')[0] : "";
+
+      setOriginalMetadata({
+        title: savedBlog.title || "",
+        slug: savedBlog.slug || "",
+        focusKeyword: savedBlog.focusKeyword || "",
+        searchDescription: savedBlog.searchDescription || "",
+        category: savedBlog.category || "OTHER",
+        labels: savedBlog.labels ? savedBlog.labels.join(", ") : "",
+        status: savedBlog.status || "LIVE",
+        location: savedBlog.location ? (typeof savedBlog.location === 'object' ? savedBlog.location.name : savedBlog.location) : "",
+        author: savedBlog.author || "",
+        publishedAt: savedDate,
+        language: savedBlog.language || "en",
+        image: savedBlog.image || null,
+        image1: savedBlog.image1 || null,
+        image2: savedBlog.image2 || null,
+        image3: savedBlog.image3 || null,
+        image4: savedBlog.image4 || null
+      });
+
+      if (!isEditing) {
+        setTimeout(() => navigate(`/admin/blog/editor/${savedBlog._id}`), 1000);
+      }
     } catch (error) {
       console.error(error);
-      const errorMsg = error.response?.data?.message || "Something went wrong on the server.";
+      const errorMsg = error.response?.data?.message || "Server error while saving post.";
       toast.error(`Failed to save blog: ${errorMsg}`);
     } finally {
       setSaving(false);
     }
   };
 
+  // Helper for inserting blocks generated from AI tab directly into editor
+  const handleInsertAiBlocks = (aiContent) => {
+    if (typeof aiContent === "string") {
+      const parsed = parseHtmlToBlocks(aiContent);
+      setBlocks(prev => [...prev, ...parsed]);
+      toast.success("AI content blocks inserted into editor!");
+    } else if (Array.isArray(aiContent)) {
+      setBlocks(prev => [...prev, ...aiContent]);
+      toast.success("AI blocks appended to editor!");
+    }
+  };
+
   if (loading) {
     return (
-      <div className="min-h-screen flex justify-center pt-32 bg-gray-50">
-        <Loader2 className="w-12 h-12 animate-spin text-[#EFDB27]" />
+      <div className="min-h-screen flex flex-col justify-center items-center bg-slate-50 gap-3">
+        <Loader2 className="w-12 h-12 animate-spin text-[#24672E]" />
+        <span className="text-xs font-bold uppercase tracking-widest text-slate-500">Loading Article Workspace...</span>
       </div>
     );
   }
 
-  const galleryImages = [
+  const galleryList = [
     { 
-      img: image1, 
-      prev: preview1, 
-      setImg: setImage1, 
-      setPrv: setPreview1, 
-      num: 1,
-      onClear: () => {
-        setImage1(null);
-        setPreview1(null);
-        setDeleteImage1(true);
-      },
-      onSelect: () => {
-        setDeleteImage1(false);
-      }
+      img: image1, prev: preview1, setImg: setImage1, setPrv: setPreview1, num: 1,
+      onClear: () => { setImage1(null); setPreview1(null); setDeleteImage1(true); },
+      onSelect: () => setDeleteImage1(false)
     },
     { 
-      img: image2, 
-      prev: preview2, 
-      setImg: setImage2, 
-      setPrv: setPreview2, 
-      num: 2,
-      onClear: () => {
-        setImage2(null);
-        setPreview2(null);
-        setDeleteImage2(true);
-      },
-      onSelect: () => {
-        setDeleteImage2(false);
-      }
+      img: image2, prev: preview2, setImg: setImage2, setPrv: setPreview2, num: 2,
+      onClear: () => { setImage2(null); setPreview2(null); setDeleteImage2(true); },
+      onSelect: () => setDeleteImage2(false)
     },
     { 
-      img: image3, 
-      prev: preview3, 
-      setImg: setImage3, 
-      setPrv: setPreview3, 
-      num: 3,
-      onClear: () => {
-        setImage3(null);
-        setPreview3(null);
-        setDeleteImage3(true);
-      },
-      onSelect: () => {
-        setDeleteImage3(false);
-      }
+      img: image3, prev: preview3, setImg: setImage3, setPrv: setPreview3, num: 3,
+      onClear: () => { setImage3(null); setPreview3(null); setDeleteImage3(true); },
+      onSelect: () => setDeleteImage3(false)
     },
     { 
-      img: image4, 
-      prev: preview4, 
-      setImg: setImage4, 
-      setPrv: setPreview4, 
-      num: 4,
-      onClear: () => {
-        setImage4(null);
-        setPreview4(null);
-        setDeleteImage4(true);
-      },
-      onSelect: () => {
-        setDeleteImage4(false);
-      }
+      img: image4, prev: preview4, setImg: setImage4, setPrv: setPreview4, num: 4,
+      onClear: () => { setImage4(null); setPreview4(null); setDeleteImage4(true); },
+      onSelect: () => setDeleteImage4(false)
     },
   ];
 
   return (
-    <div className="bg-gray-50 min-h-screen pb-20">
+    <div className="bg-slate-50 min-h-screen pb-16 flex flex-col">
 
-      {/* ── HEADER NAVBAR ── */}
-      <div className="sticky top-0 z-50 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between shadow-xs">
-        <div className="flex items-center gap-4">
+      {/* ── HEADER ACTION NAVBAR ── */}
+      <div className="sticky top-0 z-[1000] bg-white border-b border-slate-200 px-6 py-3.5 flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-sm">
+        
+        {/* Navigation & Status Labels */}
+        <div className="flex items-center gap-3">
           <button
             onClick={() => navigate("/blogs")}
-            className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors"
+            className="p-2 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-xl text-slate-650 hover:text-[#24672E] transition-colors shadow-xs"
+            title="Back to Posts list"
           >
-            <ArrowLeft className="w-5 h-5 text-gray-700" />
+            <ArrowLeft className="w-4 h-4" />
           </button>
-          <h1 className="text-xl font-black uppercase tracking-widest text-slate-900 border-l-2 border-gray-200 pl-4">
-            {isEditing ? "Edit Blog Post" : "Draft New Blog Post"}
-          </h1>
+          
+          <div className="flex flex-col">
+            <div className="flex items-center gap-2">
+              <h1 className="text-sm font-black uppercase tracking-widest text-slate-900 leading-none">
+                {isEditing ? "Upgrading Article" : "Draft Workspace"}
+              </h1>
+              <span className={`text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full border ${
+                status === "LIVE" ? "bg-emerald-50 text-emerald-800 border-emerald-250" : "bg-amber-50 text-amber-800 border-amber-250"
+              }`}>
+                {status === "LIVE" ? "Published" : "Draft"}
+              </span>
+              {isEditing && originalMetadata.status === "LIVE" && status === "LIVE" && (
+                <span className="text-[9px] font-bold bg-sky-50 text-sky-850 px-2 py-0.5 rounded-full border border-sky-200">
+                  Editing live article
+                </span>
+              )}
+            </div>
+            <div className="flex items-center gap-2.5 mt-1">
+              <span className="text-[10px] text-slate-400 font-bold">{wordCount} words</span>
+              
+              {/* Saved/Unsaved state indicator */}
+              {isDirty ? (
+                <span className="text-[9px] font-black text-amber-600 bg-amber-50 border border-amber-200 rounded px-1.5 py-0.5 flex items-center gap-1">
+                  <AlertCircle className="w-3 h-3" /> Unsaved Changes
+                </span>
+              ) : (
+                <span className="text-[9px] font-black text-emerald-600 bg-emerald-50 border border-emerald-250 rounded px-1.5 py-0.5 flex items-center gap-1">
+                  <CheckCircle2 className="w-3 h-3" /> All Saved
+                </span>
+              )}
+            </div>
+          </div>
         </div>
 
-        <button
-          onClick={handleSave}
-          disabled={saving}
-          className="flex items-center gap-2 bg-[#EFDB27] text-black px-6 py-2 rounded-full font-bold uppercase tracking-widest text-xs hover:bg-black hover:text-white transition-all disabled:opacity-50"
-        >
-          {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-          {isEditing ? "Save Publishing" : "Publish"}
-        </button>
+        {/* Mobile Tab switchers */}
+        <div className="flex lg:hidden bg-slate-100 p-0.5 rounded-xl text-xs font-bold w-fit border border-slate-200 self-center">
+          <button
+            type="button"
+            onClick={() => setActiveTabMobile("write")}
+            className={`px-4 py-1.5 rounded-lg transition-all ${
+              activeTabMobile === "write" ? "bg-white text-slate-900 shadow-xs" : "text-slate-500"
+            }`}
+          >
+            Editor Canvas
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveTabMobile("settings")}
+            className={`px-4 py-1.5 rounded-lg transition-all ${
+              activeTabMobile === "settings" ? "bg-white text-slate-900 shadow-xs" : "text-slate-500"
+            }`}
+          >
+            Management Tabs
+          </button>
+        </div>
+
+        {/* Header Action Buttons */}
+        <div className="flex items-center flex-wrap gap-2.5 justify-end">
+          
+          {/* Language Selector */}
+          <div className="flex items-center gap-1.5">
+            <span className="text-[9px] font-black text-slate-450 uppercase tracking-widest hidden sm:inline">Language</span>
+            <select
+              value={language}
+              onChange={(e) => setLanguage(e.target.value)}
+              className="border border-slate-250 rounded-xl px-2.5 py-1.5 text-xs font-bold text-slate-700 outline-none bg-white cursor-pointer hover:border-slate-350 transition-colors"
+            >
+              <option value="en">English (EN)</option>
+              <option value="hi">Hindi (HI)</option>
+              <option value="ta">Tamil (TA)</option>
+              <option value="te">Telugu (TE)</option>
+              <option value="kn">Kannada (KN)</option>
+            </select>
+          </div>
+
+          {/* View Article */}
+          {isEditing && (
+            <a
+              href={`https://myownfresh.com/blog/${slug || id}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-1.5 border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 px-4 py-1.5 rounded-xl font-bold uppercase text-[10px] tracking-wider transition-all"
+            >
+              View Article <ExternalLink className="w-3.5 h-3.5" />
+            </a>
+          )}
+
+          {/* Discard changes */}
+          <button
+            type="button"
+            onClick={discardChanges}
+            disabled={!isDirty || saving}
+            className="flex items-center gap-1 border border-slate-200 bg-white hover:bg-rose-50 hover:text-rose-600 disabled:opacity-30 text-slate-750 px-4 py-1.5 rounded-xl font-bold uppercase text-[10px] tracking-wider transition-all"
+            title="Discard current unsaved changes"
+          >
+            <RotateCcw className="w-3.5 h-3.5" /> Discard
+          </button>
+
+          {/* Publish / Unpublish toggles */}
+          {status === "DRAFT" ? (
+            <button
+              onClick={() => handleSave("LIVE")}
+              disabled={saving}
+              className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-4 py-1.5 rounded-xl uppercase text-[10px] tracking-wider shadow transition-all disabled:opacity-50"
+            >
+              Publish
+            </button>
+          ) : (
+            <button
+              onClick={() => handleSave("DRAFT")}
+              disabled={saving}
+              className="bg-amber-600 hover:bg-amber-700 text-white font-bold px-4 py-1.5 rounded-xl uppercase text-[10px] tracking-wider shadow transition-all disabled:opacity-50"
+            >
+              Unpublish
+            </button>
+          )}
+
+          {/* Save/Update Button */}
+          <button
+            onClick={() => handleSave()}
+            disabled={saving || !isDirty}
+            className="flex items-center gap-1.5 bg-[#EFDB27] text-black px-5 py-1.5 rounded-xl font-extrabold uppercase tracking-widest text-[10px] hover:bg-slate-900 hover:text-white transition-all disabled:opacity-55"
+          >
+            {saving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
+            Save Changes
+          </button>
+        </div>
       </div>
 
-      <div className="max-w-7xl mx-auto mt-8 px-6 grid grid-cols-1 lg:grid-cols-4 gap-8">
+      {/* ── TWO COLUMN WORKSPACE ── */}
+      <div className="max-w-7xl mx-auto mt-6 px-4 md:px-6 grid grid-cols-1 lg:grid-cols-4 gap-8 flex-grow w-full">
 
         {/* ── LEFT: EDITOR CANVAS (75%) ── */}
-        <div className="lg:col-span-3 space-y-6">
-
-          <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-xs flex flex-col gap-4">
-            <label className="text-xs font-bold text-gray-500 uppercase tracking-widest">Blog Title</label>
+        <div className={`lg:col-span-3 space-y-6 ${activeTabMobile === "write" ? "block" : "hidden lg:block"}`}>
+          
+          {/* Article Title input header */}
+          <div className="bg-white p-6 rounded-3xl border border-slate-200/80 shadow-sm flex flex-col gap-3">
+            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none">Article Title</label>
             <input
               type="text"
-              placeholder="Enter a captivating title..."
-              className="w-full text-4xl font-black text-black border-none focus:outline-none focus:ring-0 placeholder:text-gray-300"
+              placeholder="Enter a captivating article title..."
+              className="w-full text-3xl font-black text-slate-900 border-none focus:outline-none focus:ring-0 placeholder:text-slate-200 outline-none leading-tight"
               value={title}
               onChange={(e) => {
-                const newTitle = e.target.value;
-                setTitle(newTitle);
+                setTitle(e.target.value);
                 if (!isEditing) {
-                  setSlug(newTitle.toLowerCase().trim().replace(/[^\w\s-]/g, "").replace(/[\s_-]+/g, "-"));
+                  // Prepopulate Slug
+                  setSlug(e.target.value.toLowerCase().trim().replace(/[^\w\s-]/g, "").replace(/[\s_-]+/g, "-"));
                 }
               }}
             />
           </div>
 
-          {/* Inline Media & Navigation Tools */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <ContentImageInserter editorRef={editorRef} focusKeyword={focusKeyword} />
-            <TableOfContentsInserter editorRef={editorRef} description={description} setDescription={setDescription} />
+          {/* Block Editor Workspace Canvas */}
+          <div className="bg-white rounded-3xl border border-slate-200/80 shadow-sm p-6">
+            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4 block leading-none border-b border-slate-100 pb-3">Article Content Blocks</label>
+            <BlogBlockEditor
+              blocks={blocks}
+              onChange={setBlocks}
+            />
           </div>
-
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-xs overflow-hidden">
-            <div className="px-6 py-4 border-b border-gray-100 bg-gray-50 flex justify-between items-center">
-              <label className="text-xs font-bold text-gray-500 uppercase tracking-widest">Article Body</label>
-              <div className="flex bg-gray-100 p-1 rounded-xl text-xs font-bold border border-gray-200">
-                <button
-                  type="button"
-                  onClick={() => setEditorMode("write")}
-                  className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
-                    editorMode === "write"
-                      ? "bg-white text-slate-900 shadow-xs"
-                      : "text-slate-400 hover:text-slate-650"
-                  }`}
-                >
-                  Write Content
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    const currentDesc = editorRef.current?.value || description;
-                    setDescription(currentDesc);
-                    setEditorMode("preview");
-                  }}
-                  className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
-                    editorMode === "preview"
-                      ? "bg-white text-slate-900 shadow-xs"
-                      : "text-slate-400 hover:text-slate-650"
-                  }`}
-                >
-                  Live View Preview
-                </button>
-              </div>
-            </div>
-
-            {editorMode === "write" ? (
-              <div className="wp-blog-content-admin w-full animate-in fade-in duration-200">
-                <JoditEditor
-                  ref={editorRef}
-                  value={description}
-                  config={editorConfig}
-                  onBlur={(newContent) => setDescription(newContent)}
-                  onChange={() => { }}
-                />
-              </div>
-            ) : (
-              <div className="p-6 bg-[#FEFDF8] border-t border-gray-100 min-h-[400px] animate-in fade-in duration-200">
-                <style dangerouslySetInnerHTML={{
-                  __html: `
-                  .wp-blog-content-preview p {
-                    margin-top: 0.85rem !important;
-                    margin-bottom: 0.85rem !important;
-                    line-height: 1.8 !important;
-                    font-size: 1.05rem !important;
-                    color: #334155 !important;
-                  }
-                  .wp-blog-content-preview h1 {
-                    font-size: 2.25rem !important;
-                    font-weight: 950 !important;
-                    color: #0f172a !important;
-                    margin-top: 2rem !important;
-                    margin-bottom: 1rem !important;
-                    line-height: 1.25 !important;
-                  }
-                  .wp-blog-content-preview h2 {
-                    font-size: 1.75rem !important;
-                    font-weight: 900 !important;
-                    color: #0f172a !important;
-                    margin-top: 2rem !important;
-                    margin-bottom: 1rem !important;
-                    line-height: 1.3 !important;
-                  }
-                  .wp-blog-content-preview h3 {
-                    font-size: 1.4rem !important;
-                    font-weight: 850 !important;
-                    color: #0f172a !important;
-                    margin-top: 1.75rem !important;
-                    margin-bottom: 0.75rem !important;
-                    line-height: 1.35 !important;
-                  }
-                  .wp-blog-content-preview h4 {
-                    font-size: 1.2rem !important;
-                    font-weight: 800 !important;
-                    color: #0f172a !important;
-                    margin-top: 1.5rem !important;
-                    margin-bottom: 0.5rem !important;
-                    line-height: 1.4 !important;
-                  }
-                  .wp-blog-content-preview table {
-                    width: 100%;
-                    border-collapse: collapse;
-                    margin: 2rem 0;
-                    background-color: #ffffff;
-                    border-radius: 12px;
-                    overflow: hidden;
-                    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05);
-                    border: 1px solid #f1f5f9;
-                  }
-                  .wp-blog-content-preview th {
-                    background-color: #f8fafc;
-                    color: #0f172a;
-                    font-weight: 800;
-                    text-align: left;
-                    padding: 14px 18px;
-                    border-bottom: 2px solid #e2e8f0;
-                    font-size: 0.95rem;
-                  }
-                  .wp-blog-content-preview td {
-                    padding: 14px 18px;
-                    border-bottom: 1px solid #f1f5f9;
-                    color: #334155;
-                    font-size: 0.95rem;
-                  }
-                  .wp-blog-content-preview ul {
-                    list-style-type: disc !important;
-                    padding-left: 2rem !important;
-                    margin-top: 1.25rem !important;
-                    margin-bottom: 1.25rem !important;
-                  }
-                  .wp-blog-content-preview ol {
-                    list-style-type: decimal !important;
-                    padding-left: 2rem !important;
-                    margin-top: 1.25rem !important;
-                    margin-bottom: 1.25rem !important;
-                  }
-                  .wp-blog-content-preview li {
-                    margin-top: 0.5rem !important;
-                    margin-bottom: 0.5rem !important;
-                    line-height: 1.8 !important;
-                    color: #334155;
-                  }
-                  .wp-blog-content-preview a {
-                    color: #24672E !important;
-                    font-weight: 700 !important;
-                  }
-                `}} />
-                <div
-                  className="prose prose-lg max-w-none space-y-2 wp-blog-content-preview"
-                  dangerouslySetInnerHTML={{ __html: description }}
-                />
-              </div>
-            )}
-          </div>
-
         </div>
 
-        {/* ── RIGHT: RANKMATH SEO SIDEBAR & SETTINGS (25%) ── */}
-        <div className="lg:col-span-1">
+        {/* ── RIGHT: SIDEBAR MANAGEMENT SUITE (25%) ── */}
+        <div className={`lg:col-span-1 lg:h-[calc(100vh-140px)] lg:sticky lg:top-24 lg:overflow-y-auto ${
+          activeTabMobile === "settings" ? "block" : "hidden lg:block"
+        }`}>
           <RankMathSEOSidebar
             title={title}
-            description={description}
+            description={contentHtml}
             focusKeyword={focusKeyword}
             setFocusKeyword={setFocusKeyword}
             slug={slug}
@@ -488,7 +599,9 @@ const AdminBlogEditor = () => {
             handleImageChange={handleImageChange}
             setImage={setImage}
             setPreview={setPreview}
-            galleryImages={galleryImages}
+            galleryImages={galleryList}
+            onInsertAiBlocks={handleInsertAiBlocks}
+            blocks={blocks}
           />
         </div>
 
@@ -496,96 +609,50 @@ const AdminBlogEditor = () => {
 
       <style dangerouslySetInnerHTML={{
         __html: `
-        .wp-blog-content-admin .jodit-wysiwyg {
-          font-family: system-ui, -apple-system, sans-serif !important;
-          line-height: 1.8 !important;
-          font-size: 1.05rem !important;
-          color: #334155 !important;
-          padding: 1.5rem !important;
+        /* Utility styles for formatting elements within Block Editor editable areas */
+        .editable-area[contenteditable]:empty:before {
+          content: attr(placeholder);
+          color: #cbd5e1;
+          font-weight: 500;
+          cursor: text;
         }
-        .wp-blog-content-admin .jodit-wysiwyg p {
-          margin-top: 0.85rem !important;
-          margin-bottom: 0.85rem !important;
-          line-height: 1.8 !important;
-          font-size: 1.05rem !important;
-          color: #334155 !important;
-        }
-        .wp-blog-content-admin .jodit-wysiwyg h1 {
-          font-size: 2.25rem !important;
-          font-weight: 900 !important;
-          color: #0f172a !important;
-          margin-top: 2rem !important;
-          margin-bottom: 1rem !important;
-          line-height: 1.25 !important;
-        }
-        .wp-blog-content-admin .jodit-wysiwyg h2 {
-          font-size: 1.75rem !important;
-          font-weight: 900 !important;
-          color: #0f172a !important;
-          margin-top: 2rem !important;
-          margin-bottom: 1rem !important;
-          line-height: 1.3 !important;
-        }
-        .wp-blog-content-admin .jodit-wysiwyg h3 {
-          font-size: 1.4rem !important;
-          font-weight: 850 !important;
-          color: #0f172a !important;
-          margin-top: 1.75rem !important;
-          margin-bottom: 0.75rem !important;
-          line-height: 1.35 !important;
-        }
-        .wp-blog-content-admin .jodit-wysiwyg h4 {
-          font-size: 1.2rem !important;
-          font-weight: 800 !important;
-          color: #0f172a !important;
-          margin-top: 1.5rem !important;
-          margin-bottom: 0.5rem !important;
-          line-height: 1.4 !important;
-        }
-        .jodit-status-bar {
-          display: none !important;
-        }
-        .jodit-status-bar-link {
-          display: none !important;
-        }
-        .wp-blog-content-admin a {
-          color: #24672E !important;
-          font-weight: 700 !important;
-          text-decoration: none !important;
-          transition: all 0.2s ease !important;
-        }
-        .wp-blog-content-admin a:hover {
-          color: #163f1c !important;
-          text-decoration: underline !important;
-        }
-        .wp-blog-content-admin img {
-          border-radius: 0.75rem;
-          box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
-          margin-top: 1.5rem;
-          margin-bottom: 1.5rem;
-        }
-        .wp-blog-content-admin table {
-          width: 100%;
-          border-collapse: collapse;
-          margin: 2rem 0;
-          background-color: #ffffff;
-          border-radius: 12px;
-          overflow: hidden;
-          box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.05);
-          border: 1px solid #f1f5f9;
-        }
-        .wp-blog-content-admin td, .wp-blog-content-admin th {
-          padding: 14px 18px;
-          border-bottom: 1px solid #f1f5f9;
-          color: #334155;
-          font-size: 0.95rem;
-        }
-        .wp-blog-content-admin th {
-          background-color: #f8fafc;
-          color: #0f172a;
+        
+        .editable-area b, .editable-area strong {
           font-weight: 800;
-          text-align: left;
-          border-bottom: 2px solid #e2e8f0;
+        }
+        
+        .editable-area i, .editable-area em {
+          font-style: italic;
+        }
+        
+        .editable-area a {
+          color: #24672E !important;
+          text-decoration: underline !important;
+          font-weight: 700;
+        }
+        
+        .editable-area u {
+          text-decoration: underline;
+        }
+        
+        .editable-area strike, .editable-area s {
+          text-decoration: line-through;
+        }
+        
+        /* Slide up animation for slash commands */
+        @keyframes slideUp {
+          from {
+            opacity: 0;
+            transform: translateY(6px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+        
+        .animate-slide-up {
+          animation: slideUp 0.18s ease-out forwards;
         }
       `}} />
     </div>

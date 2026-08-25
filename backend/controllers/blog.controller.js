@@ -1,5 +1,12 @@
 import Blog from "../models/blogModel.js";
 import { bloggerService } from "../utils/bloggerService.js";
+import * as aiService from "../services/ai/articleAiService.js";
+import dns from "dns";
+import { promisify } from "util";
+import axios from "axios";
+
+const lookupPromise = promisify(dns.lookup);
+
 
 // ===================== ADD BLOG =====================
 export const addBlog = async (req, res) => {
@@ -51,7 +58,8 @@ export const addBlog = async (req, res) => {
       location,
       author: author || "Own Fresh Blogs",
       focusKeyword: focusKeyword || "",
-      slug: slug || ""
+      slug: slug || "",
+      language: req.body.language || "en"
     });
 
     return res.status(201).json({
@@ -182,7 +190,8 @@ export const updateBlog = async (req, res) => {
       location,
       author: author || "Own Fresh Blogs",
       focusKeyword: focusKeyword || "",
-      slug: slug || ""
+      slug: slug || "",
+      language: req.body.language || "en"
     };
 
     if (req.files) {
@@ -245,3 +254,255 @@ export const updateBlog = async (req, res) => {
     res.status(500).json({ success: false, message: error.message });
   }
 };
+
+// ===================== SSRF HELPER & METADATA FETCHING =====================
+const isPrivateIp = (ip) => {
+  if (!ip) return true;
+  if (ip === "::1" || ip === "0.0.0.0" || ip === "localhost") return true;
+
+  const parts = ip.split(".").map(Number);
+  if (parts.length === 4) {
+    const [p1, p2, p3, p4] = parts;
+    if (p1 === 127) return true;
+    if (p1 === 10) return true;
+    if (p1 === 172 && p2 >= 16 && p2 <= 31) return true;
+    if (p1 === 192 && p2 === 168) return true;
+    if (p1 === 169 && p2 === 254) return true;
+    return false;
+  }
+
+  if (ip.startsWith("fc00:") || ip.startsWith("fd00:") || ip.startsWith("fe80:") || ip === "::") {
+    return true;
+  }
+  return false;
+};
+
+const isSafeUrl = async (urlStr) => {
+  try {
+    const url = new URL(urlStr);
+    if (url.protocol !== "http:" && url.protocol !== "https:") {
+      return false;
+    }
+    const { address } = await lookupPromise(url.hostname);
+    return !isPrivateIp(address);
+  } catch (error) {
+    return false;
+  }
+};
+
+export const fetchBookmarkMetadata = async (req, res) => {
+  try {
+    const { url } = req.body;
+    if (!url) {
+      return res.status(400).json({ success: false, message: "URL is required" });
+    }
+
+    const safe = await isSafeUrl(url);
+    if (!safe) {
+      return res.status(400).json({ success: false, message: "Invalid or unsafe URL requested" });
+    }
+
+    const response = await axios.get(url, {
+      headers: {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8"
+      },
+      timeout: 5000,
+    });
+
+    const html = response.data;
+    if (typeof html !== "string") {
+      throw new Error("Target did not return a valid HTML body");
+    }
+
+    // Extract Title
+    const titleMatch = html.match(/<title>(.*?)<\/title>/i) || html.match(/<meta\s+property=["']og:title["']\s+content=["'](.*?)["']/i);
+    const title = titleMatch ? titleMatch[1].replace(/<[^>]+>/g, '').trim() : "Link Bookmark";
+
+    // Extract Description
+    const descMatch = html.match(/<meta\s+name=["']description["']\s+content=["'](.*?)["']/i) || html.match(/<meta\s+property=["']og:description["']\s+content=["'](.*?)["']/i);
+    const description = descMatch ? descMatch[1].trim() : "No description available for this link.";
+
+    // Extract Image
+    const imageMatch = html.match(/<meta\s+property=["']og:image["']\s+content=["'](.*?)["']/i) || html.match(/<meta\s+name=["']twitter:image["']\s+content=["'](.*?)["']/i);
+    let image = imageMatch ? imageMatch[1] : "";
+    if (image && !image.startsWith("http")) {
+      const urlObj = new URL(url);
+      image = new URL(image, urlObj.origin).href;
+    }
+
+    const domain = new URL(url).hostname;
+
+    return res.json({
+      success: true,
+      metadata: { title, description, image, domain, url }
+    });
+  } catch (error) {
+    console.error("Bookmark Metadata Fetch Error:", error.message);
+    return res.status(500).json({ success: false, message: `Could not load page metadata: ${error.message}` });
+  }
+};
+
+// ===================== LINKS CHECKER =====================
+export const checkLinks = async (req, res) => {
+  try {
+    const { links } = req.body;
+    if (!links || !Array.isArray(links)) {
+      return res.status(400).json({ success: false, message: "An array of links is required" });
+    }
+
+    const results = await Promise.all(
+      links.map(async (url) => {
+        try {
+          if (!url || (!url.startsWith("http://") && !url.startsWith("https://"))) {
+            return { url, status: "broken", code: null, message: "Invalid URL protocol" };
+          }
+
+          const safe = await isSafeUrl(url);
+          if (!safe) {
+            return { url, status: "broken", code: 403, message: "Forbidden destination (SSRF protection)" };
+          }
+
+          // Try HEAD request
+          try {
+            const headRes = await axios.head(url, {
+              headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36" },
+              timeout: 4000,
+              validateStatus: () => true
+            });
+            if (headRes.status >= 200 && headRes.status < 400) {
+              return { url, status: "working", code: headRes.status };
+            }
+          } catch (headErr) {
+            // Fall back to GET
+          }
+
+          // Try GET request
+          const getRes = await axios.get(url, {
+            headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36" },
+            timeout: 4000,
+            validateStatus: () => true
+          });
+
+          if (getRes.status >= 200 && getRes.status < 400) {
+            return { url, status: "working", code: getRes.status };
+          } else {
+            return { url, status: "broken", code: getRes.status, message: `Status code ${getRes.status}` };
+          }
+        } catch (err) {
+          return { url, status: "broken", code: null, message: err.message };
+        }
+      })
+    );
+
+    return res.json({ success: true, results });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// ===================== AI ASSISTANT ENDPOINTS =====================
+export const aiOutline = async (req, res) => {
+  try {
+    const { title, focusKeyword, description, content } = req.body;
+    const outline = await aiService.generateOutline({ title, focusKeyword, description, content });
+    return res.json({ success: true, outline });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+export const aiBlogPost = async (req, res) => {
+  try {
+    const { title, focusKeyword, description, content, prompt } = req.body;
+    const article = await aiService.generateBlogPost({ title, focusKeyword, description, content, prompt });
+    return res.json({ success: true, article });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+export const aiFAQ = async (req, res) => {
+  try {
+    const { title, focusKeyword, content } = req.body;
+    const faq = await aiService.generateFAQ({ title, focusKeyword, content });
+    return res.json({ success: true, faq });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+export const aiSEOBrief = async (req, res) => {
+  try {
+    const { title, focusKeyword } = req.body;
+    const brief = await aiService.generateSEOBrief({ title, focusKeyword });
+    return res.json({ success: true, brief });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+export const aiKeywords = async (req, res) => {
+  try {
+    const { title, focusKeyword } = req.body;
+    const keywords = await aiService.generateKeywordIdeas({ title, focusKeyword });
+    return res.json({ success: true, keywords });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+export const aiRewrite = async (req, res) => {
+  try {
+    const { text, tone } = req.body;
+    if (!text) return res.status(400).json({ success: false, message: "Text is required" });
+    const result = await aiService.rewriteText({ text, tone });
+    return res.json({ success: true, result });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+export const aiImprove = async (req, res) => {
+  try {
+    const { text } = req.body;
+    if (!text) return res.status(400).json({ success: false, message: "Text is required" });
+    const result = await aiService.improveText({ text });
+    return res.json({ success: true, result });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+export const aiExpand = async (req, res) => {
+  try {
+    const { text } = req.body;
+    if (!text) return res.status(400).json({ success: false, message: "Text is required" });
+    const result = await aiService.expandText({ text });
+    return res.json({ success: true, result });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+export const aiShorten = async (req, res) => {
+  try {
+    const { text } = req.body;
+    if (!text) return res.status(400).json({ success: false, message: "Text is required" });
+    const result = await aiService.shortenText({ text });
+    return res.json({ success: true, result });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+export const aiMetaDescription = async (req, res) => {
+  try {
+    const { title, content } = req.body;
+    const description = await aiService.generateMetaDescription({ title, content });
+    return res.json({ success: true, description });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+

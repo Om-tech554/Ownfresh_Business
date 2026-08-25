@@ -32,10 +32,10 @@ router.get("/sitemap.xml", async (req, res) => {
     let blogUrls = "";
     try {
       const Blog = mongoose.model("Blog");
-      const blogs = await Blog.find({ status: "Published" }).select("_id updatedAt").lean();
+      const blogs = await Blog.find({ status: "LIVE" }).select("_id slug updatedAt").lean();
       blogUrls = blogs.map(blog => `
   <url>
-    <loc>${baseUrl}/blog/${blog._id}</loc>
+    <loc>${baseUrl}/blog/${blog.slug || blog._id}</loc>
     <lastmod>${new Date(blog.updatedAt || Date.now()).toISOString().split("T")[0]}</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>

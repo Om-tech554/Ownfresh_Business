@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import {
   Target,
   CheckCircle2,
@@ -14,18 +14,23 @@ import {
   Sparkles,
   Upload,
   BookOpen,
-  X
+  X,
+  ExternalLink,
+  Plus,
+  Search,
+  Loader2,
+  HelpCircle,
+  RefreshCw
 } from "lucide-react";
+import axios from "axios";
+import toast from "react-hot-toast";
+import ImagePickerModal from "../ImagePickerModal";
 
-/**
- * RankMathSEOSidebar
- * Positioned on the RIGHT side of the Blog Editor.
- * Includes complete RankMath SEO protocol analysis, 0-100 score engine targeting 90+,
- * Google preview, slug suggestion, link auditor, and general blog settings.
- */
+const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
+
 const RankMathSEOSidebar = ({
   title,
-  description,
+  description, // Raw serialized HTML body content
   focusKeyword,
   setFocusKeyword,
   slug,
@@ -50,9 +55,12 @@ const RankMathSEOSidebar = ({
   setImage,
   setPreview,
   galleryImages,
+  onInsertAiBlocks, // Callback to append/insert blocks into editor
+  blocks // Current editor blocks array
 }) => {
-  const [devicePreview, setDevicePreview] = useState("desktop"); // 'desktop' | 'mobile'
-  const [activeTab, setActiveTab] = useState("seo"); // 'seo' | 'settings' | 'links'
+  const [devicePreview, setDevicePreview] = useState("desktop");
+  const [activeTab, setActiveTab] = useState("seo");
+  const [secondaryKeywords, setSecondaryKeywords] = useState("");
   const [accordionOpen, setAccordionOpen] = useState({
     basic: true,
     additional: true,
@@ -60,7 +68,22 @@ const RankMathSEOSidebar = ({
     contentReadability: false,
   });
 
-  // Helper: Extract plain text from HTML
+  // Link Checker & Inserter States
+  const [linksStatus, setLinksStatus] = useState({}); // { url: { status, code, message } }
+  const [checkingLinks, setCheckingLinks] = useState(false);
+  const [addLinkUrl, setAddLinkUrl] = useState("");
+  const [anchorList, setAnchorList] = useState([]);
+  const [blogPosts, setBlogPosts] = useState([]);
+  const [blogSearchQuery, setBlogSearchQuery] = useState("");
+  const [openImagePickerField, setOpenImagePickerField] = useState(null); // 'cover' | 1 | 2 | 3 | 4
+
+  // AI Tab States
+  const [aiPreset, setAiPreset] = useState("outline"); // 'outline' | 'post' | 'article' | 'faq' | 'brief' | 'keywords'
+  const [aiInstructions, setAiInstructions] = useState("");
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiResult, setAiResult] = useState(null);
+
+  // Helper: Extract plain text from HTML description
   const plainTextContent = useMemo(() => {
     if (!description) return "";
     const div = document.createElement("div");
@@ -74,44 +97,94 @@ const RankMathSEOSidebar = ({
     return trimmed ? trimmed.split(/\s+/).length : 0;
   }, [plainTextContent]);
 
-  // Auto Slug Generator if blank
-  const generatedSlug = useMemo(() => {
-    if (slug) return slug;
-    const base = focusKeyword || title || "";
-    return base
-      .toLowerCase()
-      .trim()
-      .replace(/[^\w\s-]/g, "")
-      .replace(/[\s_-]+/g, "-")
-      .replace(/^-+|-+$/g, "");
-  }, [slug, focusKeyword, title]);
-
-  // Extract links from HTML
-  const linkAnalysis = useMemo(() => {
-    if (!description) return { internal: 0, external: 0, links: [] };
+  // Scanned Links from Content
+  const linksInArticle = useMemo(() => {
+    if (!description) return [];
     const div = document.createElement("div");
     div.innerHTML = description;
     const anchors = Array.from(div.querySelectorAll("a"));
-    let internal = 0;
-    let external = 0;
-
-    anchors.forEach((a) => {
+    return anchors.map((a) => {
       const href = a.getAttribute("href") || "";
-      if (
-        href.startsWith("/") ||
-        href.includes("ownfresh") ||
-        href.startsWith("#")
-      ) {
-        internal++;
-      } else if (href.startsWith("http")) {
-        external++;
-      }
+      const text = a.textContent || "";
+      const isInternal = href.startsWith("/") || href.includes("ownfresh") || href.startsWith("#");
+      return { url: href, text, isInternal };
     });
-
-    return { internal, external, count: anchors.length };
   }, [description]);
 
-  // Image Alt text check from HTML content
+  const linkAnalysis = useMemo(() => {
+    const internal = linksInArticle.filter(l => l.isInternal).length;
+    const external = linksInArticle.length - internal;
+    return { internal, external, total: linksInArticle.length };
+  }, [linksInArticle]);
+
+  // Pull existing headings for jump links
+  const headingList = useMemo(() => {
+    if (!description) return [];
+    const div = document.createElement("div");
+    div.innerHTML = description;
+    const headings = Array.from(div.querySelectorAll("h1, h2, h3, h4, h5, h6"));
+    return headings.map((h, i) => {
+      const text = h.textContent.trim();
+      const id = h.getAttribute("id") || `section-${i}`;
+      return { text, id, tag: h.tagName.toLowerCase() };
+    }).filter(h => h.text.length > 0);
+  }, [description]);
+
+  // Auto load existing blog posts list once for search link insertion
+  useEffect(() => {
+    const fetchBlogs = async () => {
+      try {
+        const res = await axios.get(`${API_BASE_URL}/api/blog/all?limit=50`);
+        if (res.data.success) {
+          setBlogPosts(res.data.blogs || []);
+        }
+      } catch (err) {
+        console.warn("Failed to load existing blogs for link suggestion:", err);
+      }
+    };
+    fetchBlogs();
+  }, []);
+
+  // Live checker for URLs in body
+  const recheckAllLinks = async () => {
+    const uniqueUrls = [...new Set(linksInArticle.map(l => l.url))].filter(u => u && !u.startsWith("#"));
+    if (uniqueUrls.length === 0) {
+      toast.success("No links found to check!");
+      return;
+    }
+
+    setCheckingLinks(true);
+    // Initialize status mapping
+    const initStatus = {};
+    uniqueUrls.forEach(url => {
+      initStatus[url] = { status: "checking", code: null, message: "Validating link..." };
+    });
+    setLinksStatus(prev => ({ ...prev, ...initStatus }));
+
+    try {
+      const res = await axios.post(`${API_BASE_URL}/api/blog/links/check-all`, { links: uniqueUrls }, { withCredentials: true });
+      if (res.data.success) {
+        const statusMap = {};
+        res.data.results.forEach(item => {
+          statusMap[item.url] = { status: item.status, code: item.code, message: item.message };
+        });
+        setLinksStatus(prev => ({ ...prev, ...statusMap }));
+        
+        const brokenCount = res.data.results.filter(r => r.status === "broken").length;
+        if (brokenCount > 0) {
+          toast.error(`${brokenCount} broken links detected!`);
+        } else {
+          toast.success("All links check completed!");
+        }
+      }
+    } catch (err) {
+      toast.error("Failed to check links: " + err.message);
+    } finally {
+      setCheckingLinks(false);
+    }
+  };
+
+  // Image Alt Check
   const imageAltCheck = useMemo(() => {
     if (!description) return { total: 0, withAlt: 0, withKeyphraseAlt: 0 };
     const div = document.createElement("div");
@@ -124,7 +197,7 @@ const RankMathSEOSidebar = ({
 
     imgs.forEach((img) => {
       const alt = (img.getAttribute("alt") || "").toLowerCase().trim();
-      if (alt && alt !== "blog content image") {
+      if (alt && alt !== "blog content image" && alt !== "preview") {
         withAlt++;
         if (keywordLower && alt.includes(keywordLower)) {
           withKeyphraseAlt++;
@@ -135,7 +208,7 @@ const RankMathSEOSidebar = ({
     return { total: imgs.length, withAlt, withKeyphraseAlt };
   }, [description, focusKeyword]);
 
-  // Check Heading Tags for Focus Keyword
+  // Heading check
   const headingCheck = useMemo(() => {
     if (!description || !focusKeyword) return false;
     const div = document.createElement("div");
@@ -145,7 +218,7 @@ const RankMathSEOSidebar = ({
     return headings.some((h) => (h.textContent || "").toLowerCase().includes(keywordLower));
   }, [description, focusKeyword]);
 
-  // Keyword Density Calculation
+  // Keyword Density
   const keywordDensity = useMemo(() => {
     if (!focusKeyword || wordCount === 0) return 0;
     const kwLower = focusKeyword.toLowerCase().trim();
@@ -154,56 +227,46 @@ const RankMathSEOSidebar = ({
     return Number(((matches * kwWordLength / wordCount) * 100).toFixed(2));
   }, [focusKeyword, plainTextContent, wordCount]);
 
-  // Table of Contents Check
   const hasTOC = useMemo(() => {
     if (!description) return false;
     const lower = description.toLowerCase();
-    return lower.includes("toc-container") || lower.includes("table-of-contents") || lower.includes("table of contents");
+    return lower.includes("toc-container") || lower.includes("table-of-contents") || lower.includes("table of contents") || lower.includes("blog-toc");
   }, [description]);
 
-  // Image Caption Check
   const hasImageCaption = useMemo(() => {
     if (!description) return false;
     const lower = description.toLowerCase();
-    return lower.includes("<figcaption") || lower.includes("<figure");
+    return lower.includes("<figcaption") || lower.includes("<figure") || lower.includes("figcaption");
   }, [description]);
 
-  // Links to Keyword check
-  const keywordLinkCount = useMemo(() => {
-    if (!description || !focusKeyword) return 0;
-    const div = document.createElement("div");
-    div.innerHTML = description;
-    const anchors = Array.from(div.querySelectorAll("a"));
-    const kwLower = focusKeyword.toLowerCase().trim();
-    if (!kwLower) return 0;
-    return anchors.filter(a => (a.textContent || "").toLowerCase().includes(kwLower)).length;
-  }, [description, focusKeyword]);
-
-  // Comprehensive RankMath Audit Rules & Scores
+  // SEO Audit Score Calculations
   const auditRules = useMemo(() => {
     const kw = (focusKeyword || "").toLowerCase().trim();
     const titleLower = (title || "").toLowerCase();
     const descLower = (searchDescription || "").toLowerCase();
-    const slugLower = (generatedSlug || "").toLowerCase();
+    const slugLower = (slug || "").toLowerCase();
     const bodyLower = plainTextContent.toLowerCase();
     const first10Percent = bodyLower.slice(0, Math.max(200, Math.floor(bodyLower.length * 0.1)));
 
-    const rules = [
+    const secKws = secondaryKeywords.split(",").map(k => k.trim().toLowerCase()).filter(Boolean);
+    const secKwsPassed = secKws.length > 0 ? secKws.every(k => bodyLower.includes(k)) : true;
+
+    return [
       {
         id: "kwInTitle",
         category: "basic",
         label: "Focus Keyword in SEO Title",
         passed: Boolean(kw && titleLower.includes(kw)),
         score: 15,
-        tip: "Add your focus keyword to the Blog Title.",
+        tip: "Include your primary keyword in the Title.",
       },
       {
         id: "kwTitleStart",
         category: "titleReadability",
-        label: "Focus Keyword near start of Title",
+        label: "Focus Keyword at start of Title",
         passed: Boolean(kw && titleLower.indexOf(kw) !== -1 && titleLower.indexOf(kw) < 25),
         score: 5,
-        tip: "Place focus keyword near the beginning of Title.",
+        tip: "Move keyword closer to the start of Title.",
       },
       {
         id: "kwInMeta",
@@ -211,7 +274,7 @@ const RankMathSEOSidebar = ({
         label: "Focus Keyword in Meta Description",
         passed: Boolean(kw && descLower.includes(kw)),
         score: 15,
-        tip: "Include focus keyword in your Meta Description.",
+        tip: "Mention primary focus keyword in Meta description.",
       },
       {
         id: "kwInSlug",
@@ -219,96 +282,94 @@ const RankMathSEOSidebar = ({
         label: "Focus Keyword in URL Slug",
         passed: Boolean(kw && slugLower.includes(kw.replace(/\s+/g, "-"))),
         score: 10,
-        tip: "Include focus keyword in the URL slug.",
+        tip: "Incorporate focus keyword into URL slug.",
       },
       {
         id: "kwInIntro",
         category: "basic",
-        label: "Focus Keyword in First 10% of Content",
+        label: "Focus Keyword in intro paragraph",
         passed: Boolean(kw && first10Percent.includes(kw)),
         score: 10,
-        tip: "Mention focus keyword in your introductory paragraph.",
+        tip: "Mention focus keyword in introductory 10% content.",
       },
       {
         id: "kwInBody",
         category: "basic",
-        label: "Focus Keyword found in Content Body",
+        label: "Focus Keyword in body text",
         passed: Boolean(kw && bodyLower.includes(kw)),
         score: 10,
-        tip: "Use the focus keyword naturally within article body.",
+        tip: "Spread the focus keyword naturally in the body.",
       },
       {
         id: "contentLength",
         category: "basic",
-        label: "Content Length (>= 600 words)",
+        label: "Word Count >= 600 words",
         passed: wordCount >= 600,
         score: wordCount >= 1000 ? 15 : wordCount >= 600 ? 10 : 0,
-        tip: wordCount < 600 ? `Currently ${wordCount} words. Aim for 600+ words.` : "Great content length!",
+        tip: `Currently: ${wordCount} words. Write 600+ words.`,
       },
       {
         id: "kwInHeading",
         category: "additional",
-        label: "Focus Keyword in Subheadings (H2/H3)",
+        label: "Focus Keyword in Subheading (H2/H3)",
         passed: headingCheck,
         score: 5,
-        tip: "Use focus keyword inside at least one H2 or H3 heading.",
+        tip: "Include keyword in at least one subheading (H2, H3).",
       },
       {
         id: "kwInAlt",
         category: "additional",
-        label: "Focus Keyword in Image Alt Text",
+        label: "Focus Keyword in Image Alt tag",
         passed: imageAltCheck.withKeyphraseAlt > 0,
         score: 5,
-        tip: "Add focus keyword to your content image Alt Text.",
+        tip: "Add focus keyword to Alt tag of block images.",
       },
       {
         id: "tableOfContents",
         category: "additional",
-        label: "Table of Contents",
+        label: "Table of Contents Block",
         passed: hasTOC,
         score: 5,
-        tip: "Add a Table of Contents at the beginning of the blog post to improve user readability.",
+        tip: "Place a Table of Contents block in the article.",
       },
       {
         id: "imagesWithCaptions",
         category: "additional",
-        label: "Images with Captions",
+        label: "Image Captions",
         passed: hasImageCaption,
         score: 5,
-        tip: "Add at least one image with a descriptive caption to explain visual content.",
+        tip: "Write a descriptive caption for your images.",
       },
       {
         id: "internalLinks",
         category: "additional",
-        label: "At least 2 Internal Links",
-        passed: linkAnalysis.internal >= 2,
+        label: "Includes Internal Links (>= 1)",
+        passed: linkAnalysis.internal >= 1,
         score: 5,
-        tip: `Add at least 2 internal links to other pages on your website (Currently: ${linkAnalysis.internal}).`,
+        tip: "Include a link to internal products or pages.",
       },
       {
         id: "externalLinks",
         category: "additional",
-        label: "At least 2 External Links",
-        passed: linkAnalysis.external >= 2,
+        label: "Includes External Links (>= 1)",
+        passed: linkAnalysis.external >= 1,
         score: 5,
-        tip: `Add at least 2 external reference links to other websites (Currently: ${linkAnalysis.external}).`,
+        tip: "Reference external articles or resources.",
       },
       {
-        id: "focusKeywordLinks",
+        id: "secondaryKeywords",
         category: "additional",
-        label: "Hyperlink to Focus Keyword",
-        passed: keywordLinkCount > 0,
+        label: "Secondary Keywords Present",
+        passed: secKwsPassed,
         score: 5,
-        tip: "Add a hyperlink on your focus keyword linking to a relevant product page or resource.",
-      },
+        tip: "Ensure secondary keywords exist in body content.",
+      }
     ];
-
-    return rules;
   }, [
     focusKeyword,
     title,
     searchDescription,
-    generatedSlug,
+    slug,
     plainTextContent,
     wordCount,
     headingCheck,
@@ -316,702 +377,372 @@ const RankMathSEOSidebar = ({
     linkAnalysis,
     hasTOC,
     hasImageCaption,
-    keywordLinkCount
+    secondaryKeywords
   ]);
 
-  // Total RankMath Score (0 - 100)
-  const rankMathScore = useMemo(() => {
+  const seoScore = useMemo(() => {
     const total = auditRules.reduce((acc, curr) => acc + (curr.passed ? curr.score : 0), 0);
     return Math.min(100, Math.max(0, total));
   }, [auditRules]);
 
-  // Score Color & Grade
-  const scoreBadge = useMemo(() => {
-    if (rankMathScore >= 90) {
-      return {
-        bg: "bg-emerald-500",
-        text: "text-emerald-500",
-        border: "border-emerald-500",
-        lightBg: "bg-emerald-50 text-emerald-800 border-emerald-200",
-        label: "Excellent (90+ Target Met)",
-      };
-    } else if (rankMathScore >= 80) {
-      return {
-        bg: "bg-emerald-600",
-        text: "text-emerald-600",
-        border: "border-emerald-600",
-        lightBg: "bg-emerald-50 text-emerald-850 border-emerald-200",
-        label: "Great (Aim for 90+)",
-      };
-    } else if (rankMathScore >= 50) {
-      return {
-        bg: "bg-amber-500",
-        text: "text-amber-500",
-        border: "border-amber-500",
-        lightBg: "bg-amber-50 text-amber-800 border-amber-200",
-        label: "Good (Needs Optimization)",
-      };
-    }
-    return {
-      bg: "bg-rose-500",
-      text: "text-rose-500",
-      border: "border-rose-500",
-      lightBg: "bg-rose-50 text-rose-800 border-rose-200",
-      label: "Needs Work",
+  // AI Operation triggers
+  const executeAiGeneration = async () => {
+    setAiLoading(true);
+    setAiResult(null);
+
+    const payload = {
+      title,
+      focusKeyword,
+      description: searchDescription,
+      content: plainTextContent,
+      prompt: aiInstructions
     };
-  }, [rankMathScore]);
 
-  const toggleAccordion = (key) => {
-    setAccordionOpen((prev) => ({ ...prev, [key]: !prev[key] }));
-  };
-
-  // Auto-Generate All SEO Fields from Title & Content
-  const handleAutoGenerateSEO = () => {
-    // 1. Focus Keyword from Title
-    if (title) {
-      // Pick first 2-4 meaningful words
-      const words = title
-        .trim()
-        .replace(/[^\w\s]/gi, "")
-        .split(/\s+/)
-        .slice(0, 4)
-        .join(" ");
-      if (words) setFocusKeyword(words);
-    }
-
-    // 2. Slug from Title / Focus Keyword
-    const baseForSlug = title || focusKeyword || "blog-post";
-    const autoSlug = baseForSlug
-      .toLowerCase()
-      .trim()
-      .replace(/[^\w\s-]/g, "")
-      .replace(/[\s_-]+/g, "-")
-      .replace(/^-+|-+$/g, "");
-    setSlug(autoSlug);
-
-    // 3. Meta Description from Content
-    if (plainTextContent) {
-      const excerpt = plainTextContent.trim().slice(0, 155);
-      setSearchDescription(excerpt + (plainTextContent.length > 155 ? "..." : ""));
+    try {
+      const endpoint = `${API_BASE_URL}/api/blog/ai/${aiPreset === "keywords" ? "keywords" : aiPreset === "brief" ? "seo-brief" : aiPreset === "faq" ? "faq" : aiPreset === "outline" ? "outline" : "blog-post"}`;
+      const res = await axios.post(endpoint, payload, { withCredentials: true });
+      if (res.data.success) {
+        setAiResult(res.data);
+        toast.success("AI generated content successfully!");
+      }
+    } catch (err) {
+      toast.error(err.response?.data?.message || "AI Call failed. Please check OPENAI_API_KEY.");
+    } finally {
+      setAiLoading(false);
     }
   };
 
-  const passedCount = useMemo(() => {
-    return auditRules.filter((r) => r.passed).length;
-  }, [auditRules]);
+  const handleInsertAiContent = () => {
+    if (!aiResult) return;
+    
+    let generatedBlocks = [];
 
-  const failedRules = useMemo(() => {
-    return auditRules.filter((r) => !r.passed);
-  }, [auditRules]);
+    if (aiPreset === "outline" && aiResult.outline?.sections) {
+      aiResult.outline.sections.forEach(s => {
+        generatedBlocks.push({ id: Math.random().toString(36).substr(2, 9), type: "heading", data: { level: 2, content: s.heading } });
+        generatedBlocks.push({ id: Math.random().toString(36).substr(2, 9), type: "paragraph", data: { content: s.description } });
+      });
+    } else if (aiPreset === "faq" && aiResult.faq?.faqs) {
+      generatedBlocks.push({ id: Math.random().toString(36).substr(2, 9), type: "heading", data: { level: 2, content: "Frequently Asked Questions" } });
+      aiResult.faq.faqs.forEach(f => {
+        generatedBlocks.push({ id: Math.random().toString(36).substr(2, 9), type: "callout", data: { type: "info", content: `<strong>Q: ${f.question}</strong><br/>A: ${f.answer}` } });
+      });
+    } else if (aiPreset === "keywords" && aiResult.keywords?.keywords) {
+      setSecondaryKeywords(aiResult.keywords.keywords.join(", "));
+      toast.success("Secondary keywords applied directly to SEO tab!");
+      setAiResult(null);
+      return;
+    } else if (aiPreset === "brief" && aiResult.brief) {
+      const brief = aiResult.brief;
+      generatedBlocks.push({ id: Math.random().toString(36).substr(2, 9), type: "callout", data: { type: "note", content: `<strong>Target Audience:</strong> ${brief.targetAudience}<br/><strong>Recommended Word Count:</strong> ${brief.recommendedLength}<br/><strong>SEO Keywords to target:</strong> ${brief.keyPhrases?.join(", ")}` } });
+    } else if (aiResult.article) {
+      // HTML output
+      onInsertAiBlocks(aiResult.article);
+      setAiResult(null);
+      return;
+    }
 
-  const passedRules = useMemo(() => {
-    return auditRules.filter((r) => r.passed);
-  }, [auditRules]);
+    if (generatedBlocks.length > 0) {
+      onInsertAiBlocks(generatedBlocks);
+      setAiResult(null);
+    }
+  };
 
   return (
     <div className="space-y-6">
-      {/* Top Sidebar Navigation Tabs */}
-      <div className="flex bg-white p-1.5 rounded-2xl border border-slate-200 shadow-xs">
+      
+      {/* ── SIDEBAR NAVIGATION TABS ── */}
+      <div className="flex bg-white p-1 rounded-2xl border border-slate-200 shadow-sm shrink-0">
         <button
           type="button"
           onClick={() => setActiveTab("seo")}
-          className={`flex-1 py-2.5 rounded-xl text-xs font-extrabold uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 ${
-            activeTab === "seo"
-              ? "bg-[#1E971D] text-white shadow-xs"
-              : "text-slate-500 hover:text-[#1E971D]"
+          className={`flex-grow py-2 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 ${
+            activeTab === "seo" ? "bg-[#24672E] text-white shadow" : "text-slate-500 hover:text-[#24672E]"
           }`}
         >
-          <Target className="w-3.5 h-3.5" /> SEO Score
+          <Target className="w-3.5 h-3.5" /> SEO
         </button>
-
-        <button
-          type="button"
-          onClick={() => setActiveTab("links")}
-          className={`flex-1 py-2.5 rounded-xl text-xs font-extrabold uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 ${activeTab === "links"
-            ? "bg-[#1E971D] text-white shadow-xs"
-            : "text-slate-500 hover:text-[#1E971D]"
-            }`}
-        >
-          <LinkIcon className="w-3.5 h-3.5" /> Links
-        </button>
-
         <button
           type="button"
           onClick={() => setActiveTab("settings")}
-          className={`flex-1 py-2.5 rounded-xl text-xs font-extrabold uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 ${activeTab === "settings"
-            ? "bg-[#1E971D] text-white shadow-xs"
-            : "text-slate-500 hover:text-[#1E971D]"
-            }`}
+          className={`flex-grow py-2 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 ${
+            activeTab === "settings" ? "bg-[#24672E] text-white shadow" : "text-slate-500 hover:text-[#24672E]"
+          }`}
         >
-          <BookOpen className="w-3.5 h-3.5" /> Settings
+          <ImageIcon className="w-3.5 h-3.5" /> Settings
+        </button>
+        <button
+          type="button"
+          onClick={() => setActiveTab("links")}
+          className={`flex-grow py-2 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 ${
+            activeTab === "links" ? "bg-[#24672E] text-white shadow" : "text-slate-500 hover:text-[#24672E]"
+          }`}
+        >
+          <LinkIcon className="w-3.5 h-3.5" /> Links
+        </button>
+        <button
+          type="button"
+          onClick={() => setActiveTab("ai")}
+          className={`flex-grow py-2 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 ${
+            activeTab === "ai" ? "bg-[#24672E] text-white shadow" : "text-slate-500 hover:text-[#24672E]"
+          }`}
+        >
+          <Sparkles className="w-3.5 h-3.5" /> AI Panel
         </button>
       </div>
 
-      {/* ────────────────── TAB 1: RANKMATH SEO SUITE ────────────────── */}
+      {/* ── TAB 1: SEO AUDIT ── */}
       {activeTab === "seo" && (
-        <div className="space-y-5">
-          {/* Main RankMath Score & Auto-Generate Box (Exact Match to Screenshot) */}
-          <div className={`bg-white p-5 rounded-2xl border-2 shadow-sm space-y-4 ${
-            rankMathScore >= 90
-              ? "border-emerald-200 bg-emerald-50/5"
-              : rankMathScore >= 50
-                ? "border-amber-200"
-                : "border-rose-200"
-          }`}>
-
-            {/* Top Score Box */}
+        <div className="space-y-4">
+          <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
             <div className="flex items-center gap-4">
-              {/* Numeric Score Box */}
-              <div
-                className={`w-14 h-14 rounded-2xl flex items-center justify-center text-2xl font-black text-white shadow-sm shrink-0 ${rankMathScore >= 90
-                  ? "bg-[#24672E]"
-                  : rankMathScore >= 50
-                    ? "bg-amber-500"
-                    : "bg-rose-600"
-                  }`}
-              >
-                {rankMathScore}
+              <div className={`w-14 h-14 rounded-2xl flex items-center justify-center text-xl font-black text-white shadow ${
+                seoScore >= 90 ? "bg-[#24672E]" : seoScore >= 60 ? "bg-amber-500" : "bg-rose-500"
+              }`}>
+                {seoScore}%
               </div>
-
-              {/* Title & Audit Progress */}
-              <div className="flex-1 overflow-hidden">
-                <div className="flex items-center gap-1.5 text-xs font-black text-slate-900">
-                  <Sparkles className="w-4 h-4 text-[#24672E]" />
-                  <span>SEO Score</span>
-                </div>
-                {/* Progress Bar */}
-                <div className="w-full bg-slate-100 rounded-full h-2 mt-2 overflow-hidden">
+              <div className="flex-1">
+                <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest block">RankMath Optimization Status</span>
+                <div className="w-full bg-slate-100 rounded-full h-2 mt-1.5 overflow-hidden">
                   <div
-                    className={`h-full transition-all duration-500 ${rankMathScore >= 90
-                      ? "bg-[#24672E]"
-                      : rankMathScore >= 50
-                        ? "bg-amber-500"
-                        : "bg-rose-500"
-                      }`}
-                    style={{ width: `${rankMathScore}%` }}
+                    className={`h-full transition-all duration-500 ${
+                      seoScore >= 90 ? "bg-[#24672E]" : seoScore >= 60 ? "bg-amber-500" : "bg-rose-500"
+                    }`}
+                    style={{ width: `${seoScore}%` }}
                   />
                 </div>
-                <span className="text-[10px] font-bold text-slate-500 mt-1 block">
-                  {passedCount}/{auditRules.length} audits passed
-                </span>
               </div>
             </div>
 
-            {/* Hit Blog Score above 90% Warning/Guidance Box */}
-            {rankMathScore < 90 && (
-              <div className="bg-amber-50 border border-amber-200 p-3.5 rounded-xl text-[11px] font-bold text-amber-800 flex items-start gap-2 shadow-xs" style={{ borderLeft: '4px solid #d97706' }}>
-                <AlertCircle className="w-4 h-4 text-amber-600 mt-0.5 shrink-0" />
-                <div>
-                  <span className="font-extrabold uppercase tracking-wide text-amber-950 block mb-0.5">Optimize to hit 90%+ Score</span>
-                  Fix links to focus keywords, add at least 2 internal & 2 external links, insert a Table of Contents, and add image captions.
-                </div>
+            {/* Keyword setup fields */}
+            <div className="space-y-3 pt-3 border-t border-slate-100">
+              <div className="flex flex-col gap-1">
+                <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Focus Keyword</label>
+                <input
+                  type="text"
+                  className="w-full border-2 border-slate-100 rounded-xl p-2.5 text-xs font-semibold focus:border-[#24672E] outline-none transition-colors"
+                  value={focusKeyword}
+                  onChange={(e) => setFocusKeyword(e.target.value)}
+                  placeholder="e.g. sesame oil health benefits"
+                />
               </div>
-            )}
 
-            {/* OwnFresh Auto-Generate SEO Fields Button */}
-            <button
-              type="button"
-              onClick={handleAutoGenerateSEO}
-              className="w-full bg-[#24672E] text-white hover:bg-slate-900 py-3 px-4 rounded-xl font-extrabold text-xs uppercase tracking-wider transition-all shadow-md flex items-center justify-center gap-2 group"
-            >
-              <Sparkles className="w-4 h-4 text-[#FFDD00] group-hover:rotate-12 transition-transform" />
-              <span>Auto-Generate SEO Fields</span>
-            </button>
-
-            {/* Focus Keyword Section */}
-            <div className="pt-2 space-y-1.5 border-t border-slate-100">
-              <label className="text-[10px] font-black text-slate-600 uppercase tracking-widest block">
-                FOCUS KEYWORD
-              </label>
-              <input
-                type="text"
-                placeholder="e.g. cold pressed sesame oil benefits"
-                value={focusKeyword}
-                onChange={(e) => setFocusKeyword(e.target.value)}
-                className="w-full border-2 border-slate-200 rounded-xl p-3 text-xs font-semibold text-slate-900 focus:border-[#24672E] outline-none transition-colors"
-              />
-              <span className="text-[10px] text-slate-400 font-medium block">
-                The keyword you want this article to rank for on Google.
-              </span>
-            </div>
-
-            {/* Issues to Fix Checklist (Exact Screenshot Match) */}
-            {failedRules.length > 0 && (
-              <div className="space-y-3 pt-2">
-                <div className="text-[11px] font-black text-rose-600 uppercase tracking-wider flex items-center gap-1.5">
-                  <AlertCircle className="w-3.5 h-3.5" />
-                  <span>ISSUES TO FIX ({failedRules.length})</span>
-                </div>
-
-                <div className="space-y-2.5 max-h-72 overflow-y-auto pr-1">
-                  {failedRules.map((rule) => (
-                    <div
-                      key={rule.id}
-                      className="bg-rose-50 border border-rose-200 p-3 rounded-xl flex items-start gap-2.5"
-                    >
-                      <XCircle className="w-4 h-4 text-rose-600 mt-0.5 shrink-0" />
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center justify-between">
-                          <p className="text-xs font-extrabold text-slate-900">{rule.label}</p>
-                          <span className="text-[10px] font-black text-rose-600 font-mono">
-                            0/{rule.score}
-                          </span>
-                        </div>
-                        <p className="text-[11px] text-rose-700 font-medium mt-0.5">{rule.tip}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+              <div className="flex flex-col gap-1">
+                <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Secondary Keywords (comma separated)</label>
+                <input
+                  type="text"
+                  className="w-full border-2 border-slate-100 rounded-xl p-2.5 text-xs font-semibold focus:border-[#24672E] outline-none transition-colors"
+                  value={secondaryKeywords}
+                  onChange={(e) => setSecondaryKeywords(e.target.value)}
+                  placeholder="e.g. cold pressed, healthy recipes"
+                />
               </div>
-            )}
-
-            {/* Passed Audits Accordion */}
-            {passedRules.length > 0 && (
-              <div className="bg-emerald-50 border border-emerald-200 p-3 rounded-xl flex items-center justify-between text-xs font-extrabold text-emerald-800">
-                <div className="flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                  <span>{passedRules.length} checks passed ✓</span>
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Focus Keyword & Slug Input Card */}
-          <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
-            <h3 className="text-xs font-extrabold text-slate-900 uppercase tracking-widest border-b border-slate-100 pb-3 flex items-center gap-2">
-              <Target className="w-4 h-4 text-[#24672E]" /> Permalink & URL Slug
-            </h3>
-
-            {/* Permalink Slug */}
-            <div className="flex flex-col gap-1.5">
-              <div className="flex items-center justify-between">
-                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">
-                  URL Permalink Slug
-                </label>
-                <button
-                  type="button"
-                  onClick={() => {
-                    const suggested = (focusKeyword || title || "")
-                      .toLowerCase()
-                      .trim()
-                      .replace(/[^\w\s-]/g, "")
-                      .replace(/[\s_-]+/g, "-");
-                    setSlug(suggested);
-                  }}
-                  className="text-[9px] font-black text-[#24672E] hover:underline"
-                >
-                  Auto-Suggest
-                </button>
-              </div>
-              <input
-                type="text"
-                placeholder="e.g. cold-pressed-sesame-oil-benefits"
-                value={slug}
-                onChange={(e) => setSlug(e.target.value)}
-                className="w-full border-2 border-slate-200 rounded-xl p-3 text-xs font-semibold text-slate-900 focus:border-[#24672E] outline-none transition-colors"
-              />
-              <span className="text-[10px] text-slate-400 font-mono truncate">
-                Preview: https://ownfresh.com/blog/<strong>{generatedSlug || "post-slug"}</strong>
-              </span>
             </div>
           </div>
 
-          {/* Meta Description & Google Search Preview Card */}
-          <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <h3 className="text-xs font-extrabold text-slate-900 uppercase tracking-widest flex items-center gap-2">
-                <Globe className="w-4 h-4 text-sky-600" /> Google Search Snippet
-              </h3>
-              {/* Desktop / Mobile Switch */}
-              <div className="flex items-center bg-slate-100 p-1 rounded-xl">
+          {/* Audit listing */}
+          <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-3">
+            <h4 className="text-[10px] font-black text-slate-900 uppercase tracking-widest border-b border-slate-100 pb-2">SEO Checklist Audits</h4>
+            <div className="space-y-2.5 max-h-80 overflow-y-auto pr-1">
+              {auditRules.map(rule => (
+                <div key={rule.id} className="flex items-start gap-2 text-xs">
+                  {rule.passed ? (
+                    <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+                  ) : (
+                    <XCircle className="w-4 h-4 text-rose-500 shrink-0 mt-0.5" />
+                  )}
+                  <div>
+                    <p className={`font-bold ${rule.passed ? "text-slate-800" : "text-rose-950"}`}>{rule.label}</p>
+                    {!rule.passed && <p className="text-[10px] text-slate-400 mt-0.5">{rule.tip}</p>}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Google Preview */}
+          <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-3">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+              <span className="text-[10px] font-black text-slate-900 uppercase tracking-widest">Google Snippet Preview</span>
+              <div className="flex items-center bg-slate-100 p-0.5 rounded-lg">
                 <button
                   type="button"
                   onClick={() => setDevicePreview("desktop")}
-                  className={`p-1.5 rounded-lg text-xs transition-all ${devicePreview === "desktop" ? "bg-white text-slate-900 shadow-xs" : "text-slate-400"
-                    }`}
-                  title="Desktop Preview"
+                  className={`p-1 rounded text-slate-500 ${devicePreview === "desktop" ? "bg-white shadow" : "opacity-50"}`}
                 >
-                  <Monitor className="w-3.5 h-3.5" />
+                  <Monitor size={12} />
                 </button>
                 <button
                   type="button"
                   onClick={() => setDevicePreview("mobile")}
-                  className={`p-1.5 rounded-lg text-xs transition-all ${devicePreview === "mobile" ? "bg-white text-slate-900 shadow-xs" : "text-slate-400"
-                    }`}
-                  title="Mobile Preview"
+                  className={`p-1 rounded text-slate-500 ${devicePreview === "mobile" ? "bg-white shadow" : "opacity-50"}`}
                 >
-                  <Smartphone className="w-3.5 h-3.5" />
+                  <Smartphone size={12} />
                 </button>
               </div>
             </div>
 
-            {/* Google Search Result Card Mockup */}
-            <div
-              className={`bg-white p-4 border border-slate-200 rounded-2xl shadow-xs space-y-1.5 font-sans ${devicePreview === "mobile" ? "max-w-xs mx-auto" : "w-full"
-                }`}
-            >
-              <div className="flex items-center gap-2 text-xs text-slate-700">
-                <div className="w-5 h-5 bg-[#FFDD00] rounded-full flex items-center justify-center text-[10px] font-black text-slate-900 border border-amber-300">
-                  O
-                </div>
-                <div className="flex flex-col leading-tight">
-                  <span className="font-bold text-slate-900 text-[11px]">Own Fresh</span>
-                  <span className="text-[10px] text-slate-500 truncate max-w-xs">
-                    https://ownfresh.com › blog › {generatedSlug || "your-slug"}
-                  </span>
-                </div>
-              </div>
+            <div className={`p-3 bg-white border border-slate-200 rounded-xl space-y-1 ${devicePreview === "mobile" ? "max-w-xs" : ""}`}>
+              <p className="text-[10px] text-slate-400 font-mono truncate">https://ownfresh.com › blog › {slug || "url-slug"}</p>
+              <h5 className="text-sky-850 font-bold text-sm hover:underline cursor-pointer line-clamp-1">{title || "Post Title"}</h5>
+              <p className="text-slate-500 text-[11px] leading-snug line-clamp-2">{searchDescription || "Snippet description..."}</p>
+            </div>
+          </div>
+        </div>
+      )}
 
-              <h4 className="text-sky-800 text-sm font-bold hover:underline cursor-pointer line-clamp-1">
-                {title || "Enter Blog Post Title Here"}
-              </h4>
-
-              <p className="text-slate-600 text-xs line-clamp-2 leading-relaxed">
-                {searchDescription ||
-                  "Provide a compelling search description to attract readers from Google search results."}
-              </p>
+      {/* ── TAB 2: SETTINGS ── */}
+      {activeTab === "settings" && (
+        <div className="space-y-4">
+          <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+            <h4 className="text-[10px] font-black text-slate-900 uppercase tracking-widest border-b border-slate-100 pb-2">Publishing settings</h4>
+            
+            <div className="flex flex-col gap-1.5">
+              <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Publish Date</label>
+              <input
+                type="date"
+                className="w-full border border-slate-200 rounded-xl p-2.5 text-xs outline-none focus:border-slate-400"
+                value={publishedAt}
+                onChange={(e) => setPublishedAt(e.target.value)}
+              />
             </div>
 
-            {/* Meta Description Textarea */}
-            <div className="flex flex-col gap-1.5 pt-2">
-              <div className="flex items-center justify-between">
-                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">
-                  Search Meta Description
-                </label>
-                <span
-                  className={`text-[10px] font-bold ${searchDescription.length >= 120 && searchDescription.length <= 160
-                    ? "text-emerald-600"
-                    : "text-amber-600"
-                    }`}
-                >
-                  {searchDescription.length} / 160 chars
-                </span>
-              </div>
+            <div className="flex flex-col gap-1.5">
+              <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">URL Slug</label>
+              <input
+                type="text"
+                className="w-full border border-slate-200 rounded-xl p-2.5 text-xs outline-none focus:border-slate-400"
+                value={slug}
+                onChange={(e) => setSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-_]/g, ""))}
+              />
+            </div>
+
+            <div className="flex flex-col gap-1.5">
+              <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Meta Description</label>
               <textarea
-                placeholder="Write an attractive meta description containing your focus keyphrase..."
+                className="w-full border border-slate-200 rounded-xl p-2.5 text-xs outline-none resize-none focus:border-slate-400"
                 rows={3}
                 value={searchDescription}
                 onChange={(e) => setSearchDescription(e.target.value)}
-                className="w-full border-2 border-slate-200 rounded-xl p-3 text-xs font-medium focus:border-[#24672E] outline-none resize-none transition-colors"
+                maxLength={160}
+                placeholder="Google meta tag description..."
               />
+              <span className="text-[9px] text-slate-400 text-right">{searchDescription?.length || 0}/160 characters</span>
             </div>
-          </div>
-
-          {/* 90+ Detailed SEO Audits Accordions */}
-          <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-3">
-            <h3 className="text-xs font-extrabold text-slate-900 uppercase tracking-widest border-b border-slate-100 pb-3 flex items-center gap-2">
-              <Sparkles className="w-4 h-4 text-amber-500" /> Complete Audit Categories
-            </h3>
-
-            {/* Basic SEO Accordion */}
-            <div className="border border-slate-200 rounded-xl overflow-hidden">
-              <button
-                type="button"
-                onClick={() => toggleAccordion("basic")}
-                className="w-full bg-slate-50 px-4 py-3 flex items-center justify-between text-xs font-bold text-slate-900 hover:bg-slate-100 transition-colors"
-              >
-                <span>Basic SEO Protocol Audit</span>
-                {accordionOpen.basic ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-              </button>
-
-              {accordionOpen.basic && (
-                <div className="p-4 space-y-3 bg-white">
-                  {auditRules
-                    .filter((r) => r.category === "basic")
-                    .map((rule) => (
-                      <div key={rule.id} className="flex items-start gap-2.5">
-                        {rule.passed ? (
-                          <CheckCircle2 className="w-4 h-4 text-emerald-500 mt-0.5 shrink-0" />
-                        ) : (
-                          <XCircle className="w-4 h-4 text-rose-500 mt-0.5 shrink-0" />
-                        )}
-                        <div>
-                          <p className="text-xs font-bold text-slate-800">{rule.label}</p>
-                          <p className="text-[11px] text-slate-500">{rule.tip}</p>
-                        </div>
-                      </div>
-                    ))}
-                </div>
-              )}
-            </div>
-
-            {/* Additional SEO Accordion */}
-            <div className="border border-slate-200 rounded-xl overflow-hidden">
-              <button
-                type="button"
-                onClick={() => toggleAccordion("additional")}
-                className="w-full bg-slate-50 px-4 py-3 flex items-center justify-between text-xs font-bold text-slate-900 hover:bg-slate-100 transition-colors"
-              >
-                <span>Additional & Media SEO</span>
-                {accordionOpen.additional ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-              </button>
-
-              {accordionOpen.additional && (
-                <div className="p-4 space-y-3 bg-white">
-                  {auditRules
-                    .filter((r) => r.category === "additional")
-                    .map((rule) => (
-                      <div key={rule.id} className="flex items-start gap-2.5">
-                        {rule.passed ? (
-                          <CheckCircle2 className="w-4 h-4 text-emerald-500 mt-0.5 shrink-0" />
-                        ) : (
-                          <AlertCircle className="w-4 h-4 text-amber-500 mt-0.5 shrink-0" />
-                        )}
-                        <div>
-                          <p className="text-xs font-bold text-slate-800">{rule.label}</p>
-                          <p className="text-[11px] text-slate-500">{rule.tip}</p>
-                        </div>
-                      </div>
-                    ))}
-                </div>
-              )}
-            </div>
-
-            {/* Title Readability Accordion */}
-            <div className="border border-slate-200 rounded-xl overflow-hidden">
-              <button
-                type="button"
-                onClick={() => toggleAccordion("titleReadability")}
-                className="w-full bg-slate-50 px-4 py-3 flex items-center justify-between text-xs font-bold text-slate-900 hover:bg-slate-100 transition-colors"
-              >
-                <span>Title Readability</span>
-                {accordionOpen.titleReadability ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-              </button>
-
-              {accordionOpen.titleReadability && (
-                <div className="p-4 space-y-3 bg-white">
-                  {auditRules
-                    .filter((r) => r.category === "titleReadability")
-                    .map((rule) => (
-                      <div key={rule.id} className="flex items-start gap-2.5">
-                        {rule.passed ? (
-                          <CheckCircle2 className="w-4 h-4 text-emerald-500 mt-0.5 shrink-0" />
-                        ) : (
-                          <AlertCircle className="w-4 h-4 text-amber-500 mt-0.5 shrink-0" />
-                        )}
-                        <div>
-                          <p className="text-xs font-bold text-slate-800">{rule.label}</p>
-                          <p className="text-[11px] text-slate-500">{rule.tip}</p>
-                        </div>
-                      </div>
-                    ))}
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ────────────────── TAB 2: LINK AUDITOR ────────────────── */}
-      {activeTab === "links" && (
-        <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm space-y-4">
-          <h3 className="text-xs font-bold text-gray-900 uppercase tracking-widest border-b border-gray-100 pb-3 flex items-center gap-2">
-            <LinkIcon className="w-4 h-4 text-emerald-600" /> Internal & External Link Auditor
-          </h3>
-
-          <div className="grid grid-cols-2 gap-3">
-            <div className="bg-emerald-50 border border-emerald-200 p-4 rounded-xl text-center">
-              <span className="text-2xl font-black text-emerald-800">{linkAnalysis.internal}</span>
-              <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-600 block mt-0.5">
-                Internal Links
-              </span>
-            </div>
-
-            <div className="bg-sky-50 border border-sky-200 p-4 rounded-xl text-center">
-              <span className="text-2xl font-black text-sky-800">{linkAnalysis.external}</span>
-              <span className="text-[10px] font-bold uppercase tracking-wider text-sky-600 block mt-0.5">
-                External Links
-              </span>
-            </div>
-          </div>
-
-          <div className="space-y-2 pt-2">
-            <p className="text-xs text-gray-600 leading-relaxed">
-              {linkAnalysis.internal > 0
-                ? "✅ Excellent! You have included internal links to connect readers with other site pages."
-                : "💡 Recommended: Add internal links pointing to /shop, products, or other blog posts."}
-            </p>
-            <p className="text-xs text-gray-600 leading-relaxed">
-              {linkAnalysis.external > 0
-                ? "✅ Great! External links build authority according to RankMath standards."
-                : "💡 Recommended: Add relevant external links to trusted sources."}
-            </p>
-          </div>
-        </div>
-      )}
-
-      {/* ────────────────── TAB 3: SETTINGS ────────────────── */}
-      {activeTab === "settings" && (
-        <div className="space-y-6">
-          {/* General Blog Settings */}
-          <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm space-y-4">
-            <h3 className="text-xs font-bold text-gray-900 uppercase tracking-widest border-b border-gray-100 pb-3">
-              Publishing Settings
-            </h3>
 
             <div className="flex flex-col gap-1.5">
-              <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">
-                Category
-              </label>
+              <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Category</label>
               <input
                 type="text"
-                placeholder="e.g. Health, Cooking..."
-                className="w-full border-2 border-gray-100 rounded-xl p-3 text-xs font-bold uppercase tracking-wider focus:border-black outline-none transition-colors"
+                className="w-full border border-slate-200 rounded-xl p-2.5 text-xs outline-none focus:border-slate-400"
                 value={category}
                 onChange={(e) => setCategory(e.target.value)}
               />
             </div>
 
             <div className="flex flex-col gap-1.5">
-              <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">
-                Labels / Tags (comma separated)
-              </label>
+              <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Labels / Tags (comma separated)</label>
               <input
                 type="text"
-                placeholder="e.g. Organic, Sesame, Health"
-                className="w-full border-2 border-gray-100 rounded-xl p-3 text-xs font-bold uppercase tracking-wider focus:border-black outline-none transition-colors"
+                className="w-full border border-slate-200 rounded-xl p-2.5 text-xs outline-none focus:border-slate-400"
                 value={labels}
                 onChange={(e) => setLabels(e.target.value)}
               />
             </div>
 
             <div className="flex flex-col gap-1.5">
-              <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">
-                Publishing Status
-              </label>
-              <div className="flex items-center bg-gray-100 p-1 rounded-xl">
-                <button
-                  type="button"
-                  onClick={() => setStatus("LIVE")}
-                  className={`flex-1 py-2 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all ${status === "LIVE" ? "bg-white text-black shadow-xs" : "text-gray-400"
-                    }`}
-                >
-                  Live
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setStatus("DRAFT")}
-                  className={`flex-1 py-2 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all ${status === "DRAFT" ? "bg-white text-black shadow-xs" : "text-gray-400"
-                    }`}
-                >
-                  Draft
-                </button>
-              </div>
-            </div>
-
-            <div className="flex flex-col gap-1.5">
-              <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">
-                Location
-              </label>
+              <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Author</label>
               <input
                 type="text"
-                placeholder="e.g. Mumbai, India"
-                className="w-full border-2 border-gray-100 rounded-xl p-3 text-xs font-bold uppercase tracking-wider focus:border-black outline-none transition-colors"
-                value={location}
-                onChange={(e) => setLocation(e.target.value)}
-              />
-            </div>
-
-            <div className="flex flex-col gap-1.5">
-              <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">
-                Author Name
-              </label>
-              <input
-                type="text"
-                placeholder="Author name..."
-                className="w-full border-2 border-gray-100 rounded-xl p-3 text-xs font-bold uppercase tracking-wider focus:border-black outline-none transition-colors"
+                className="w-full border border-slate-200 rounded-xl p-2.5 text-xs outline-none focus:border-slate-400"
                 value={author}
                 onChange={(e) => setAuthor(e.target.value)}
               />
             </div>
 
             <div className="flex flex-col gap-1.5">
-              <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">
-                Publish Date
-              </label>
+              <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Location Context</label>
               <input
-                type="date"
-                className="w-full border-2 border-gray-100 rounded-xl p-3 text-xs font-bold uppercase tracking-wider focus:border-black outline-none transition-colors"
-                value={publishedAt}
-                onChange={(e) => setPublishedAt(e.target.value)}
+                type="text"
+                className="w-full border border-slate-200 rounded-xl p-2.5 text-xs outline-none focus:border-slate-400"
+                value={location}
+                onChange={(e) => setLocation(e.target.value)}
               />
             </div>
           </div>
 
-          {/* Featured Cover Image */}
-          <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm space-y-4">
-            <h3 className="text-xs font-bold text-gray-900 uppercase tracking-widest border-b border-gray-100 pb-3 flex items-center gap-2">
-              <ImageIcon className="w-4 h-4 text-emerald-600" /> Featured Cover Image
-            </h3>
-
-            <label className="cursor-pointer group flex flex-col items-center justify-center p-6 border-2 border-dashed border-gray-300 bg-gray-50 rounded-xl hover:border-[#EFDB27] transition-all">
-              <input
-                type="file"
-                className="hidden"
-                onChange={(e) => handleImageChange(e, setImage, setPreview)}
-                accept="image/*"
-              />
-              {preview ? (
-                <img
-                  src={preview}
-                  alt="Featured"
-                  className="w-full h-auto object-contain max-h-40 rounded-lg shadow-xs"
-                />
-              ) : (
-                <div className="flex flex-col items-center gap-2 text-gray-400 group-hover:text-black">
-                  <Upload size={24} />
-                  <span className="text-[10px] uppercase font-bold tracking-widest text-center mt-2">
-                    Upload Main<br />Cover Image
-                  </span>
-                </div>
+          {/* Featured cover image card */}
+          <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-3">
+            <div className="flex justify-between items-center border-b border-slate-100 pb-2">
+              <span className="text-[10px] font-black text-slate-900 uppercase tracking-widest flex items-center gap-1"><ImageIcon className="w-3.5 h-3.5 text-emerald-700" /> Featured Cover</span>
+              {preview && (
+                <button
+                  type="button"
+                  onClick={() => { setImage(null); setPreview(null); }}
+                  className="text-[9px] font-bold text-rose-600 hover:underline"
+                >
+                  Remove Cover
+                </button>
               )}
-            </label>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <div className="w-16 h-16 rounded-xl bg-slate-100 border border-slate-200 overflow-hidden shrink-0 flex items-center justify-center">
+                {preview ? (
+                  <img src={preview} alt="Featured" className="w-full h-full object-cover" />
+                ) : (
+                  <Upload className="w-5 h-5 text-slate-400" />
+                )}
+              </div>
+              <div className="flex flex-col gap-1">
+                <label className="bg-slate-900 text-white text-[9px] font-black uppercase tracking-wider px-3 py-1.5 rounded-xl cursor-pointer text-center hover:bg-slate-800">
+                  Upload file
+                  <input
+                    type="file"
+                    className="hidden"
+                    accept="image/*"
+                    onChange={(e) => handleImageChange(e, setImage, setPreview)}
+                  />
+                </label>
+                <button
+                  type="button"
+                  onClick={() => setOpenImagePickerField("cover")}
+                  className="border border-slate-200 text-slate-700 text-[9px] font-black uppercase tracking-wider px-3 py-1.5 rounded-xl hover:bg-slate-50"
+                >
+                  Gallery Picker
+                </button>
+              </div>
+            </div>
           </div>
 
-          {/* Gallery Images */}
-          <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm space-y-4">
-            <h3 className="text-xs font-bold text-gray-900 uppercase tracking-widest border-b border-gray-100 pb-3">
-              Gallery Images
-            </h3>
-
-            <div className="grid grid-cols-2 gap-3">
-              {galleryImages.map((item) => (
-                <div
-                  key={item.num}
-                  className="group flex items-center justify-center h-24 border border-gray-200 bg-gray-50 rounded-xl hover:border-[#EFDB27] transition-all overflow-hidden relative"
-                >
-                  {item.prev ? (
-                    <div className="w-full h-full relative">
-                      <img
-                        src={item.prev}
-                        alt={`Gallery ${item.num}`}
-                        className="w-full h-full object-cover animate-fade-in"
-                      />
+          {/* Gallery items list */}
+          <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-3">
+            <h4 className="text-[10px] font-black text-slate-900 uppercase tracking-widest border-b border-slate-100 pb-2">Image Gallery Slider Assets</h4>
+            <div className="grid grid-cols-2 gap-2">
+              {galleryImages.map((g) => (
+                <div key={g.num} className="border border-slate-200 rounded-xl overflow-hidden aspect-video relative group bg-slate-50 flex items-center justify-center">
+                  {g.prev ? (
+                    <>
+                      <img src={g.prev} alt="Gallery item" className="w-full h-full object-cover" />
                       <button
                         type="button"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          item.onClear();
-                        }}
-                        className="absolute top-1.5 right-1.5 w-6 h-6 bg-red-650 hover:bg-red-700 text-white rounded-full flex items-center justify-center shadow-md transition-all active:scale-90 z-20 cursor-pointer border-0"
-                        title="Remove image"
+                        onClick={g.onClear}
+                        className="absolute top-1.5 right-1.5 bg-rose-600 hover:bg-rose-700 text-white p-1 rounded-full shadow"
                       >
-                        <X size={12} className="stroke-[3]" />
+                        <X size={10} />
+                      </button>
+                    </>
+                  ) : (
+                    <div className="flex flex-col items-center gap-1">
+                      <span className="text-[9px] font-bold text-slate-400">Slot {g.num}</span>
+                      <button
+                        type="button"
+                        onClick={() => setOpenImagePickerField(g.num)}
+                        className="text-[8px] bg-slate-900 hover:bg-slate-800 text-white font-black uppercase px-2 py-1 rounded-lg"
+                      >
+                        Add Photo
                       </button>
                     </div>
-                  ) : (
-                    <label className="w-full h-full flex flex-col items-center justify-center cursor-pointer">
-                      <input
-                        type="file"
-                        className="hidden"
-                        onChange={(e) => handleImageChange(e, item.setImg, item.setPrv, item.onSelect)}
-                        accept="image/*"
-                      />
-                      <div className="text-[10px] text-gray-400 font-bold tracking-widest uppercase">
-                        Img {item.num}
-                      </div>
-                    </label>
                   )}
                 </div>
               ))}
@@ -1019,6 +750,221 @@ const RankMathSEOSidebar = ({
           </div>
         </div>
       )}
+
+      {/* ── TAB 3: LINKS AUDITOR ── */}
+      {activeTab === "links" && (
+        <div className="space-y-4">
+          <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+            <div className="flex justify-between items-center border-b border-slate-100 pb-2">
+              <h4 className="text-[10px] font-black text-slate-900 uppercase tracking-widest flex items-center gap-1.5">
+                <LinkIcon className="w-3.5 h-3.5 text-sky-600" /> Links Auditor
+              </h4>
+              <button
+                type="button"
+                onClick={recheckAllLinks}
+                disabled={checkingLinks || linksInArticle.length === 0}
+                className="bg-sky-50 hover:bg-sky-100 disabled:opacity-50 text-sky-700 text-[10px] font-black uppercase tracking-wider px-3.5 py-1.5 rounded-xl flex items-center gap-1 cursor-pointer transition-colors"
+              >
+                {checkingLinks ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <RefreshCw className="w-3.5 h-3.5" />}
+                Recheck All
+              </button>
+            </div>
+
+            <div className="grid grid-cols-3 gap-2">
+              <div className="bg-slate-50 p-2 text-center rounded-xl border border-slate-150">
+                <span className="text-lg font-black text-slate-800">{linkAnalysis.total}</span>
+                <span className="text-[8px] font-black uppercase text-slate-400 block">Total</span>
+              </div>
+              <div className="bg-emerald-50/50 p-2 text-center rounded-xl border border-emerald-150">
+                <span className="text-lg font-black text-emerald-800">{linkAnalysis.internal}</span>
+                <span className="text-[8px] font-black uppercase text-emerald-500 block">Internal</span>
+              </div>
+              <div className="bg-sky-50/50 p-2 text-center rounded-xl border border-sky-150">
+                <span className="text-lg font-black text-sky-800">{linkAnalysis.external}</span>
+                <span className="text-[8px] font-black uppercase text-sky-500 block">External</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Links List Checked */}
+          <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-3">
+            <h4 className="text-[10px] font-black text-slate-900 uppercase tracking-widest border-b border-slate-100 pb-2">Links Verified</h4>
+            <div className="space-y-2.5 max-h-60 overflow-y-auto pr-1">
+              {linksInArticle.length === 0 ? (
+                <p className="text-xs text-slate-400 italic text-center py-4">No hyperlinks found in post body text.</p>
+              ) : (
+                linksInArticle.map((link, idx) => {
+                  const statusInfo = linksStatus[link.url] || { status: "unchecked", message: "Click Recheck All to test URL" };
+                  return (
+                    <div key={idx} className="bg-slate-50 border border-slate-200/60 p-2.5 rounded-xl text-xs space-y-1">
+                      <div className="flex justify-between items-start gap-2">
+                        <span className="font-semibold text-slate-800 truncate flex-1 block">{link.text || "[Empty anchor text]"}</span>
+                        <span className={`text-[8px] font-black uppercase px-1.5 py-0.5 rounded ${
+                          statusInfo.status === "working" ? "bg-emerald-150 text-emerald-850" : 
+                          statusInfo.status === "broken" ? "bg-rose-150 text-rose-850" : "bg-slate-200 text-slate-650"
+                        }`}>
+                          {statusInfo.status.toUpperCase()}
+                        </span>
+                      </div>
+                      <a href={link.url} target="_blank" rel="noopener noreferrer" className="text-[10px] text-slate-400 hover:text-emerald-700 flex items-center gap-1 break-all">
+                        {link.url} <ExternalLink size={10} />
+                      </a>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── TAB 4: AI PANEL Presets ── */}
+      {activeTab === "ai" && (
+        <div className="space-y-4">
+          <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+            <h4 className="text-[10px] font-black text-slate-900 uppercase tracking-widest border-b border-slate-100 pb-2 flex items-center gap-1.5">
+              <Sparkles className="w-4 h-4 text-amber-500" /> GenAI Presets Assistant
+            </h4>
+
+            {/* Presets */}
+            <div className="grid grid-cols-2 gap-2">
+              {[
+                { id: "outline", label: "Blog Outline" },
+                { id: "post", label: "Blog Post" },
+                { id: "article", label: "Article" },
+                { id: "faq", label: "FAQ Generator" },
+                { id: "brief", label: "SEO Brief" },
+                { id: "keywords", label: "Keyword Ideas" }
+              ].map(p => (
+                <button
+                  key={p.id}
+                  type="button"
+                  onClick={() => { setAiPreset(p.id); setAiResult(null); }}
+                  className={`py-2 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all border ${
+                    aiPreset === p.id 
+                      ? "bg-[#24672E] border-[#24672E] text-white" 
+                      : "bg-white border-slate-200 text-slate-700 hover:bg-slate-50"
+                  }`}
+                >
+                  {p.label}
+                </button>
+              ))}
+            </div>
+
+            {/* Instructions */}
+            <div className="flex flex-col gap-1.5 pt-2">
+              <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Additional instructions / Tone</label>
+              <textarea
+                className="w-full border border-slate-200 rounded-xl p-2.5 text-xs outline-none resize-none focus:border-[#24672E]"
+                rows={3}
+                placeholder="e.g. Write in a conversational tone. Focus on cold pressed groundnut oil benefits..."
+                value={aiInstructions}
+                onChange={(e) => setAiInstructions(e.target.value)}
+              />
+            </div>
+
+            <button
+              type="button"
+              onClick={executeAiGeneration}
+              disabled={aiLoading}
+              className="w-full bg-[#24672E] hover:bg-slate-950 text-white font-bold py-3 rounded-xl text-xs uppercase tracking-widest flex items-center justify-center gap-2 shadow-lg disabled:opacity-50 transition-colors"
+            >
+              {aiLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4 text-[#FFDD00]" />}
+              Generate {
+                aiPreset === "outline" ? "Blog Outline" :
+                aiPreset === "post" ? "Blog Post" :
+                aiPreset === "article" ? "Article" :
+                aiPreset === "faq" ? "FAQ Generator" :
+                aiPreset === "brief" ? "SEO Brief" :
+                aiPreset === "keywords" ? "Keyword Ideas" : "Content"
+              }
+            </button>
+          </div>
+
+          {/* AI Result preview */}
+          {aiResult && (
+            <div className="bg-[#FEFDF8] border-2 border-[#24672E]/30 p-5 rounded-2xl shadow space-y-4">
+              <h4 className="text-[10px] font-black text-slate-900 uppercase tracking-widest border-b border-[#24672E]/10 pb-2 flex items-center gap-1.5">
+                <Sparkles className="w-4 h-4 text-emerald-700" /> AI Output Preview
+              </h4>
+
+              <div className="max-h-60 overflow-y-auto pr-1 text-xs text-slate-800 leading-relaxed font-medium space-y-3">
+                {aiPreset === "outline" && aiResult.outline?.sections && (
+                  <ul className="space-y-3">
+                    {aiResult.outline.sections.map((s, i) => (
+                      <li key={i} className="border-l-2 border-slate-350 pl-3">
+                        <strong className="text-slate-900 block text-xs">{s.heading}</strong>
+                        <span className="text-[10px] text-slate-500">{s.description}</span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+                {aiPreset === "faq" && aiResult.faq?.faqs && (
+                  <div className="space-y-3">
+                    {aiResult.faq.faqs.map((f, i) => (
+                      <div key={i} className="bg-slate-50 border p-2 rounded-lg">
+                        <strong>Q: {f.question}</strong>
+                        <p className="mt-1 text-slate-650">A: {f.answer}</p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                {aiPreset === "keywords" && aiResult.keywords?.keywords && (
+                  <p className="font-mono bg-slate-50 p-2.5 rounded-lg border">{aiResult.keywords.keywords.join(", ")}</p>
+                )}
+                {aiPreset === "brief" && aiResult.brief && (
+                  <div className="space-y-2">
+                    <p><strong>Audience:</strong> {aiResult.brief.targetAudience}</p>
+                    <p><strong>Target Word Count:</strong> {aiResult.brief.recommendedLength}</p>
+                    <p><strong>Keywords:</strong> {aiResult.brief.keyPhrases?.join(", ")}</p>
+                  </div>
+                )}
+                {aiResult.article && (
+                  <div dangerouslySetInnerHTML={{ __html: aiResult.article }} />
+                )}
+              </div>
+
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => setAiResult(null)}
+                  className="flex-1 border border-slate-200 text-slate-500 hover:bg-slate-50 py-2 rounded-xl text-[10px] font-black uppercase tracking-wider"
+                >
+                  Discard
+                </button>
+                <button
+                  type="button"
+                  onClick={handleInsertAiContent}
+                  className="flex-1 bg-slate-900 hover:bg-slate-950 text-white font-bold py-2 rounded-xl text-[10px] font-black uppercase tracking-wider shadow"
+                >
+                  Insert to Editor
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ── IMAGE PICKER MODAL INSTANCE ── */}
+      <ImagePickerModal
+        isOpen={openImagePickerField !== null}
+        onClose={() => setOpenImagePickerField(null)}
+        onSelect={(url) => {
+          if (openImagePickerField === "cover") {
+            setPreview(url);
+            // Cloudinary storage URLs are set directly
+            setImage(url); 
+          } else if (typeof openImagePickerField === "number") {
+            const fieldIndex = openImagePickerField - 1;
+            const targetItem = galleryImages[fieldIndex];
+            if (targetItem) {
+              targetItem.setPrv(url);
+              targetItem.setImg(url);
+              targetItem.onSelect();
+            }
+          }
+        }}
+      />
     </div>
   );
 };

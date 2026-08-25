@@ -13,6 +13,7 @@ import {
   ArrowUpRight
 } from "lucide-react";
 import Navbar from "../components/Navbar";
+import SEO from "../components/SEO";
 
 // Framer motion variants for clean scroll animations
 const fadeInUp = {
@@ -34,8 +35,44 @@ const imageReveal = {
 };
 
 const WhyOwnFresh = () => {
+  const certificateSchema = {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    "name": "Own Fresh",
+    "url": "https://myownfresh.com",
+    "logo": "https://res.cloudinary.com/dkhq2wlwg/image/upload/v1774962822/ownfresh_media/ndxvmcpisomjzsghrfjs.png",
+    "award": "ACoHI Culinary ID Certificate - Process-compliant traditional stone-pressing",
+    "hasCredential": [
+      {
+        "@type": "EducationalOccupationalCredential",
+        "name": "ACoHI culinary ID certificate - Process compliant Traditional Stone-Pressing Oil Manufacturing Page 1",
+        "credentialCategory": "Culinary Process ID Certification",
+        "recognizedBy": {
+          "@type": "Organization",
+          "name": "ACoHI (Association of Culinary & Hospitality Industry)"
+        },
+        "image": "https://res.cloudinary.com/dkhq2wlwg/image/upload/v1786011506/static_site/WhatsApp-Image-2024-12-21-at-19.48.42_6ecba840-719x1024.jpg"
+      },
+      {
+        "@type": "EducationalOccupationalCredential",
+        "name": "ACoHI culinary ID certificate - Process compliant Traditional Stone-Pressing Oil Manufacturing Page 2",
+        "credentialCategory": "Accredited Compliance Certification",
+        "recognizedBy": {
+          "@type": "Organization",
+          "name": "ACoHI (Association of Culinary & Hospitality Industry)"
+        },
+        "image": "https://res.cloudinary.com/dkhq2wlwg/image/upload/v1786011508/static_site/WhatsApp-Image-2024-12-21-at-19.55.12_17bcfa25-rotated.jpg"
+      }
+    ]
+  };
+
   return (
     <div className="min-h-screen bg-[#FCFBF7] text-gray-800 font-sans selection:bg-[#FFDD00] selection:text-black">
+      <SEO 
+        title="Why Own Fresh - Verified Culinary Certificates"
+        description="Learn why Own Fresh offers premium stone-pressed oils certified by the ACoHI Prestigious Culinary ID Certificate for accredited manufacturing processes."
+        schemaMarkup={certificateSchema}
+      />
       <Navbar />
 
       {/* HERO SECTION */}
@@ -442,12 +479,14 @@ const WhyOwnFresh = () => {
                 viewport={{ once: true }}
                 variants={fadeInUp}
               >
-                <div className="overflow-hidden rounded-2xl flex-1 bg-gray-50 flex items-center justify-center p-2">
+                <div className="overflow-hidden rounded-2xl flex-1 bg-gray-50 flex items-center justify-center p-2 select-none" onContextMenu={(e) => e.preventDefault()}>
                   <img
                     src="https://res.cloudinary.com/dkhq2wlwg/image/upload/v1786011506/static_site/WhatsApp-Image-2024-12-21-at-19.48.42_6ecba840-719x1024.jpg"
                     alt="ACoHI Culinary ID Certificate Page 1"
-                    className="w-full max-h-[380px] object-contain rounded-xl transform scale-100 group-hover:scale-[1.03] transition-transform duration-500"
+                    className="w-full max-h-[380px] object-contain rounded-xl transform scale-100 group-hover:scale-[1.03] transition-transform duration-500 select-none"
                     loading="lazy"
+                    onContextMenu={(e) => e.preventDefault()}
+                    onDragStart={(e) => e.preventDefault()}
                   />
                 </div>
                 <div className="mt-4 text-center">
@@ -463,12 +502,14 @@ const WhyOwnFresh = () => {
                 viewport={{ once: true }}
                 variants={fadeInUp}
               >
-                <div className="overflow-hidden rounded-2xl flex-1 bg-gray-50 flex items-center justify-center p-2">
+                <div className="overflow-hidden rounded-2xl flex-1 bg-gray-50 flex items-center justify-center p-2 select-none" onContextMenu={(e) => e.preventDefault()}>
                   <img
                     src="https://res.cloudinary.com/dkhq2wlwg/image/upload/v1786011508/static_site/WhatsApp-Image-2024-12-21-at-19.55.12_17bcfa25-rotated.jpg"
                     alt="ACoHI Culinary ID Certificate Page 2"
-                    className="w-full max-h-[380px] object-contain rounded-xl transform scale-100 group-hover:scale-[1.03] transition-transform duration-500"
+                    className="w-full max-h-[380px] object-contain rounded-xl transform scale-100 group-hover:scale-[1.03] transition-transform duration-500 select-none"
                     loading="lazy"
+                    onContextMenu={(e) => e.preventDefault()}
+                    onDragStart={(e) => e.preventDefault()}
                   />
                 </div>
                 <div className="mt-4 text-center">

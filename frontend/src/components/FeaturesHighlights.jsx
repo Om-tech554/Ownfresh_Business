@@ -6,7 +6,7 @@ const FeaturesHighlights = () => {
     {
       icon: FaShoppingCart,
       title: "Free Shipping",
-      subtitle: "On all orders over ₹500",
+      subtitle: "On all orders over ₹999",
     },
     {
       icon: FaHeadset,
@@ -19,7 +19,6 @@ const FeaturesHighlights = () => {
       subtitle: "For Damaged Orders",
     },
   ];
-
   // Subtle repeating diagonal line pattern (light gray) background style
   const diagonalPatternStyle = {
     backgroundColor: "#ffffff",
