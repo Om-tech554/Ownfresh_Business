@@ -100,7 +100,7 @@ const ReviewModal = ({ isOpen, onClose, productId = null, productName = "", onRe
               </div>
               <h4 className="text-lg font-bold text-gray-900">Review Us on Google Business</h4>
               <p className="text-gray-600 text-xs leading-relaxed max-w-sm mx-auto">
-                Love OwnFresh? Help others discover 100% pure stone pressed oils by leaving a 5-star review on Google!
+                Love OwnFresh? Help others discover authentic stone pressed oils by leaving a 5-star review on Google!
               </p>
               <a
                 href={GOOGLE_BUSINESS_REVIEW_URL}

@@ -48,7 +48,7 @@ const Footer = () => {
   };
 
   return (
-    <footer className="print:hidden bg-[#f5f5f5] text-gray-600 pt-16 pb-8 px-6 md:px-20">
+    <footer className="print:hidden bg-[#f5f5f5] text-gray-600 pt-16 pb-24 lg:pb-8 px-6 md:px-20">
       <div className="grid sm:grid-cols-2 md:grid-cols-4 gap-12">
 
         {/* Column 1 */}

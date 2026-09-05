@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from "react";
 import { Link } from "react-router-dom";
-import { Star, ShoppingCart } from "lucide-react";
+import { Star, ShoppingCart, Award, Flame, Leaf, ShieldCheck, Tag as TagIcon, Sparkles } from "lucide-react";
 import SLink from "./SLink";
 
 const ProductCard = ({ product, user, onAddToCart }) => {
@@ -35,6 +35,17 @@ const ProductCard = ({ product, user, onAddToCart }) => {
 
   const [isAdded, setIsAdded] = useState(false);
 
+  // Compute dynamic image based on selected bottle size
+  const displayImage = useMemo(() => {
+    if (selectedVariant && selectedVariant.image) {
+      return selectedVariant.image;
+    }
+    if (selectedVariant && selectedVariant.images && selectedVariant.images.length > 0) {
+      return selectedVariant.images[0];
+    }
+    return product.image || "https://res.cloudinary.com/dkhq2wlwg/image/upload/v1786009742/products/banner.png";
+  }, [selectedVariant, product.image]);
+
   // Compute dynamic name based on selected variant size
   const displayName = useMemo(() => {
     if (!product.name) return "";
@@ -64,11 +75,11 @@ const ProductCard = ({ product, user, onAddToCart }) => {
     };
   }, [selectedVariant, product.price]);
 
-  // Ratings simulator (using product ID hash to make ratings stable/consistent per product)
+  // Ratings simulator
   const ratingDetails = useMemo(() => {
     const hash = product._id ? product._id.split("").reduce((acc, char) => acc + char.charCodeAt(0), 0) : 100;
-    const rating = (4.5 + (hash % 6) * 0.1).toFixed(1); // 4.5 to 5.0
-    const reviewsCount = 45 + (hash % 150); // 45 to 195 reviews
+    const rating = (4.5 + (hash % 6) * 0.1).toFixed(1);
+    const reviewsCount = 45 + (hash % 150);
     return { rating: parseFloat(rating), reviewsCount };
   }, [product._id]);
 
@@ -82,22 +93,55 @@ const ProductCard = ({ product, user, onAddToCart }) => {
     setTimeout(() => setIsAdded(false), 2000);
   };
 
+  const renderBadgeIcon = (iconName) => {
+    switch (iconName) {
+      case "Flame": return <Flame size={10} />;
+      case "Award": return <Award size={10} />;
+      case "Leaf": return <Leaf size={10} />;
+      case "ShieldCheck": return <ShieldCheck size={10} />;
+      case "Sparkles": return <Sparkles size={10} />;
+      default: return null;
+    }
+  };
+
   return (
     <SLink
       to={`/product/${product._id}`}
-      className="group relative bg-white border border-slate-200 rounded-2xl sm:rounded-3xl p-3.5 sm:p-5 transition-all duration-300 hover:shadow-2xl hover:border-yellow-400/80 flex flex-col cursor-pointer w-full text-left"
+      className="group relative bg-white border border-slate-200/90 rounded-2xl sm:rounded-3xl p-3.5 sm:p-5 transition-all duration-300 hover:shadow-2xl hover:border-[#1E971D]/60 flex flex-col cursor-pointer w-full text-left"
     >
-      {/* Discount Tag */}
-      {priceDetails.isDiscounted && (
-        <span className="absolute top-2.5 left-2.5 sm:top-4 sm:left-4 bg-red-600 text-white text-[8px] sm:text-[10px] font-black px-2 sm:px-3 py-0.5 sm:py-1 rounded-full uppercase tracking-wider z-10 shadow-sm">
-          Save {priceDetails.discountPercent}%
-        </span>
-      )}
+      {/* BADGES & DISCOUNT TAG */}
+      <div className="absolute top-2.5 left-2.5 sm:top-4 sm:left-4 flex flex-col gap-1.5 z-10">
+        {priceDetails.isDiscounted && (
+          <span className="bg-red-600 text-white text-[8px] sm:text-[10px] font-black px-2 sm:px-2.5 py-0.5 rounded-full uppercase tracking-wider shadow-sm">
+            Save {priceDetails.discountPercent}%
+          </span>
+        )}
+
+        {/* Dynamic Product Badges */}
+        {product.tags && product.tags.slice(0, 2).map((tag, idx) => {
+          if (!tag) return null;
+          const tagName = typeof tag === 'object' ? tag.name : tag;
+          const tagBg = typeof tag === 'object' ? tag.bgColor : "#1E971D";
+          const tagColor = typeof tag === 'object' ? tag.textColor : "#ffffff";
+          const tagIcon = typeof tag === 'object' ? tag.icon : null;
+          return (
+            <span
+              key={idx}
+              style={{ backgroundColor: tagBg, color: tagColor }}
+              className="inline-flex items-center gap-1 text-[8px] sm:text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider shadow-xs"
+            >
+              {tagIcon && renderBadgeIcon(tagIcon)}
+              {tagName}
+            </span>
+          );
+        })}
+      </div>
 
       {/* Product Image Wrapper */}
-      <div className="relative h-32 sm:h-44 w-full rounded-xl sm:rounded-2xl overflow-hidden bg-slate-50 border border-slate-100 mb-3 sm:mb-4 flex items-center justify-center p-2 sm:p-4">
+      <div className="relative h-36 sm:h-48 w-full rounded-xl sm:rounded-2xl overflow-hidden bg-slate-50 border border-slate-100 mb-3 sm:mb-4 flex items-center justify-center p-2 sm:p-4">
         <img
-          src={product.image}
+          key={displayImage}
+          src={displayImage}
           alt={displayName}
           onError={(e) => {
             e.target.onerror = null;
@@ -118,7 +162,7 @@ const ProductCard = ({ product, user, onAddToCart }) => {
 
       {/* Category */}
       <span className="text-[9px] sm:text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 sm:mb-1.5">
-        {product.category?.name || "Premium Oil"}
+        {product.category?.name || "Traditional Stone Pressed"}
       </span>
 
       {/* Title */}
@@ -132,10 +176,11 @@ const ProductCard = ({ product, user, onAddToCart }) => {
           {[...Array(5)].map((_, i) => (
             <Star
               key={i}
-              className={`w-3 h-3 sm:w-3.5 sm:h-3.5 ${i < Math.floor(ratingDetails.rating)
-                ? "fill-amber-500 stroke-amber-500"
-                : "stroke-slate-300"
-                }`}
+              className={`w-3 h-3 sm:w-3.5 sm:h-3.5 ${
+                i < Math.floor(ratingDetails.rating)
+                  ? "fill-amber-500 stroke-amber-500"
+                  : "stroke-slate-300"
+              }`}
             />
           ))}
         </div>
@@ -143,7 +188,7 @@ const ProductCard = ({ product, user, onAddToCart }) => {
         <span className="text-[8px] sm:text-[10px] text-slate-400 font-semibold">({ratingDetails.reviewsCount})</span>
       </div>
 
-      {/* Variant Pills / Selectors */}
+      {/* Dynamic Variant Bottle Size Selectors */}
       {activeVariants.length > 1 && (
         <div className="flex flex-wrap gap-1 sm:gap-1.5 mb-3 sm:mb-4" onClick={(e) => e.preventDefault()}>
           {activeVariants.map((variant) => {
@@ -155,10 +200,11 @@ const ProductCard = ({ product, user, onAddToCart }) => {
                   e.stopPropagation();
                   setSelectedVariant(variant);
                 }}
-                className={`px-2 sm:px-3 py-0.5 sm:py-1 rounded-md sm:rounded-lg text-[8px] sm:text-[10px] font-black uppercase tracking-wider border transition-all ${isSelected
-                  ? "bg-slate-900 border-slate-900 text-white"
-                  : "bg-slate-50 border-slate-200 text-slate-500 hover:bg-slate-100 hover:border-slate-300"
-                  }`}
+                className={`px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-lg text-[8px] sm:text-[10px] font-black uppercase tracking-wider border transition-all cursor-pointer ${
+                  isSelected
+                    ? "bg-[#1E971D] border-[#1E971D] text-white shadow-sm scale-105"
+                    : "bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100 hover:border-slate-300"
+                }`}
               >
                 {variant.name}
               </button>
@@ -174,8 +220,8 @@ const ProductCard = ({ product, user, onAddToCart }) => {
       <div className="mt-auto pt-3 sm:pt-4 border-t border-slate-100 w-full">
         {/* Low Stock Warning */}
         {selectedVariant && selectedVariant.stockQuantity > 0 && selectedVariant.stockQuantity <= 10 && (
-          <p className="text-[8px] sm:text-[10px] font-bold text-orange-600 mb-1.5 sm:mb-2 uppercase tracking-wide animate-pulse">
-            Only {selectedVariant.stockQuantity} left - order soon.
+          <p className="text-[8px] sm:text-[10px] font-bold text-orange-600 mb-1.5 uppercase tracking-wide animate-pulse">
+            Only {selectedVariant.stockQuantity} left in stock
           </p>
         )}
 
@@ -200,12 +246,13 @@ const ProductCard = ({ product, user, onAddToCart }) => {
             <button
               onClick={handleCartClick}
               disabled={isAdded || selectedVariant?.stockQuantity <= 0}
-              className={`p-2.5 sm:p-3.5 rounded-xl sm:rounded-2xl flex items-center justify-center transition-all duration-300 ${isAdded
-                ? "bg-green-500 text-white"
-                : selectedVariant?.stockQuantity <= 0
+              className={`p-2.5 sm:p-3 rounded-xl sm:rounded-2xl flex items-center justify-center transition-all duration-300 cursor-pointer ${
+                isAdded
+                  ? "bg-green-600 text-white"
+                  : selectedVariant?.stockQuantity <= 0
                   ? "bg-slate-100 text-slate-400 cursor-not-allowed"
-                  : "bg-slate-900 text-white hover:bg-yellow-400 hover:text-black active:scale-95 shadow-md hover:shadow-lg hover:shadow-yellow-100"
-                }`}
+                  : "bg-slate-900 text-white hover:bg-[#1E971D] hover:text-white active:scale-95 shadow-sm hover:shadow-md"
+              }`}
               title={selectedVariant?.stockQuantity <= 0 ? "Out of Stock" : "Add to Cart"}
             >
               <ShoppingCart className="w-3.5 h-3.5 sm:w-4 sm:h-4" />

@@ -44,7 +44,7 @@ const BusinessIntelligenceDashboard = () => {
   const [products, setProducts] = useState([]);
   const [customers, setCustomers] = useState([]);
 
-  const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
+  const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:10000";
 
   // Fetch Live Analytics Data from Backend
   const fetchDashboardData = async () => {

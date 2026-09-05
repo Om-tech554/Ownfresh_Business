@@ -1,0 +1,32 @@
+{
+  "timestamp": "2026-09-03T04:45:01.560Z",
+  "databaseName": "OwnFresh",
+  "totalCollections": 25,
+  "collectionsSummary": {
+    "users": 0,
+    "coupons": 0,
+    "reviews": 0,
+    "wallettransactions": 0,
+    "contacts": 0,
+    "tickets": 0,
+    "notifications": 0,
+    "galleries": 0,
+    "products": 27,
+    "membershipplans": 0,
+    "referralcodes": 0,
+    "commissionlogs": 0,
+    "auditlogs": 0,
+    "productvariants": 108,
+    "newsletters": 0,
+    "transactions": 0,
+    "blogs": 38,
+    "categories": 7,
+    "referralusages": 0,
+    "carriers": 0,
+    "pricehistories": 0,
+    "wallets": 0,
+    "settings": 0,
+    "orders": 0,
+    "campaigns": 0
+  }
+}

@@ -6,7 +6,7 @@ import Category from "../models/categoryModel.js";
 // Add a variant
 export const addVariant = async (req, res) => {
   try {
-    const { productId, name, sku, price, salePrice, stockQuantity, status } = req.body;
+    const { productId, name, size, sku, price, salePrice, stockQuantity, weight, image, images, labelImage, tags, status } = req.body;
 
     if (!productId || !name || !price) {
       return res.status(400).json({ success: false, message: "Product ID, Name, and Price are required" });
@@ -14,11 +14,17 @@ export const addVariant = async (req, res) => {
 
     const variant = await ProductVariant.create({
       product: productId,
-      name,
-      sku,
-      price,
-      salePrice: salePrice || null,
-      stockQuantity: stockQuantity || 0,
+      name: name.trim(),
+      size: size || name.trim(),
+      sku: sku || "",
+      price: Number(price),
+      salePrice: salePrice ? Number(salePrice) : null,
+      stockQuantity: Number(stockQuantity) || 0,
+      weight: weight || "",
+      image: image || (images && images.length > 0 ? images[0] : ""),
+      images: Array.isArray(images) ? images : (image ? [image] : []),
+      labelImage: labelImage || "",
+      tags: Array.isArray(tags) ? tags : [],
       status: status || 'Active'
     });
 
@@ -32,7 +38,7 @@ export const addVariant = async (req, res) => {
 export const updateVariant = async (req, res) => {
   try {
     const { id } = req.params;
-    const { name, sku, price, salePrice, stockQuantity, status } = req.body;
+    const { name, size, sku, price, salePrice, stockQuantity, weight, image, images, labelImage, tags, status } = req.body;
 
     const variant = await ProductVariant.findById(id);
     if (!variant) {
@@ -40,20 +46,29 @@ export const updateVariant = async (req, res) => {
     }
 
     // Check if price changed to record history
-    if (price && price !== variant.price) {
+    if (price && Number(price) !== variant.price) {
       await PriceHistory.create({
         variant: variant._id,
         oldPrice: variant.price,
-        newPrice: price,
+        newPrice: Number(price),
         reason: "Manual Adjustment"
       });
     }
 
-    if (name) variant.name = name;
-    if (sku) variant.sku = sku;
-    if (price) variant.price = price;
-    if (salePrice !== undefined) variant.salePrice = salePrice;
-    if (stockQuantity !== undefined) variant.stockQuantity = stockQuantity;
+    if (name) {
+      variant.name = name.trim();
+      if (!size) variant.size = name.trim();
+    }
+    if (size !== undefined) variant.size = size;
+    if (sku !== undefined) variant.sku = sku;
+    if (price !== undefined) variant.price = Number(price);
+    if (salePrice !== undefined) variant.salePrice = salePrice ? Number(salePrice) : null;
+    if (stockQuantity !== undefined) variant.stockQuantity = Number(stockQuantity);
+    if (weight !== undefined) variant.weight = weight;
+    if (image !== undefined) variant.image = image;
+    if (images !== undefined) variant.images = Array.isArray(images) ? images : (image ? [image] : []);
+    if (labelImage !== undefined) variant.labelImage = labelImage;
+    if (tags !== undefined) variant.tags = Array.isArray(tags) ? tags : [];
     if (status) variant.status = status;
 
     await variant.save();
@@ -63,6 +78,7 @@ export const updateVariant = async (req, res) => {
     res.status(500).json({ success: false, message: error.message });
   }
 };
+
 
 // Delete a variant
 export const deleteVariant = async (req, res) => {

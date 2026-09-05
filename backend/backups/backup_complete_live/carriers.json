@@ -1,0 +1,92 @@
+[
+  {
+    "_id": "6a9be81691bec29ea736c35c",
+    "name": "Blue Dart",
+    "baseTrackingUrl": "https://www.bluedart.com/tracking?track={trackingNumber}",
+    "active": true,
+    "__v": 0,
+    "createdAt": "2026-09-05T09:59:50.013Z",
+    "updatedAt": "2026-09-05T09:59:50.013Z"
+  },
+  {
+    "_id": "6a9be81691bec29ea736c35d",
+    "name": "Delhivery",
+    "baseTrackingUrl": "https://www.delhivery.com/track/package/{trackingNumber}",
+    "active": true,
+    "__v": 0,
+    "createdAt": "2026-09-05T09:59:50.013Z",
+    "updatedAt": "2026-09-05T09:59:50.013Z"
+  },
+  {
+    "_id": "6a9be81691bec29ea736c35e",
+    "name": "DTDC",
+    "baseTrackingUrl": "https://www.dtdc.in/tracking/shipment-tracking.asp?strCnNo={trackingNumber}",
+    "active": true,
+    "__v": 0,
+    "createdAt": "2026-09-05T09:59:50.013Z",
+    "updatedAt": "2026-09-05T09:59:50.013Z"
+  },
+  {
+    "_id": "6a9be81691bec29ea736c35f",
+    "name": "Ekart Logistics",
+    "baseTrackingUrl": "https://ekartlogistics.com/shipmenttrack/{trackingNumber}",
+    "active": true,
+    "__v": 0,
+    "createdAt": "2026-09-05T09:59:50.013Z",
+    "updatedAt": "2026-09-05T09:59:50.013Z"
+  },
+  {
+    "_id": "6a9be81691bec29ea736c360",
+    "name": "Shadowfax",
+    "baseTrackingUrl": "https://tracker.shadowfax.in/#/track/{trackingNumber}",
+    "active": true,
+    "__v": 0,
+    "createdAt": "2026-09-05T09:59:50.013Z",
+    "updatedAt": "2026-09-05T09:59:50.013Z"
+  },
+  {
+    "_id": "6a9be81691bec29ea736c361",
+    "name": "Xpressbees",
+    "baseTrackingUrl": "https://www.xpressbees.com/track?isawb=Yes&trackid={trackingNumber}",
+    "active": true,
+    "__v": 0,
+    "createdAt": "2026-09-05T09:59:50.013Z",
+    "updatedAt": "2026-09-05T09:59:50.013Z"
+  },
+  {
+    "_id": "6a9be81691bec29ea736c362",
+    "name": "India Post",
+    "baseTrackingUrl": "https://www.indiapost.gov.in/_layouts/15/dop.portal.tracking/trackconsignment.aspx",
+    "active": true,
+    "__v": 0,
+    "createdAt": "2026-09-05T09:59:50.014Z",
+    "updatedAt": "2026-09-05T09:59:50.014Z"
+  },
+  {
+    "_id": "6a9be81691bec29ea736c363",
+    "name": "Amazon Shipping",
+    "baseTrackingUrl": "https://track.amazon.in/tracking/{trackingNumber}",
+    "active": true,
+    "__v": 0,
+    "createdAt": "2026-09-05T09:59:50.014Z",
+    "updatedAt": "2026-09-05T09:59:50.014Z"
+  },
+  {
+    "_id": "6a9be81691bec29ea736c364",
+    "name": "Ecom Express",
+    "baseTrackingUrl": "https://ecomexpress.in/tracking/?awb_field={trackingNumber}",
+    "active": true,
+    "__v": 0,
+    "createdAt": "2026-09-05T09:59:50.014Z",
+    "updatedAt": "2026-09-05T09:59:50.014Z"
+  },
+  {
+    "_id": "6a9be81691bec29ea736c365",
+    "name": "Smartr Logistics",
+    "baseTrackingUrl": "https://smartr.in/tracking?awb={trackingNumber}",
+    "active": true,
+    "__v": 0,
+    "createdAt": "2026-09-05T09:59:50.014Z",
+    "updatedAt": "2026-09-05T09:59:50.014Z"
+  }
+]

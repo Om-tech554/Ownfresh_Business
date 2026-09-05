@@ -1,0 +1,402 @@
+[
+  {
+    "title": "MSME Registration Certificate",
+    "imageUrl": "/media/wordpress_photos/4-CERTIFICATE-MSME-REGISTRATION.pdf.png",
+    "category": "Certifications",
+    "description": "Government of India MSME Udyam Registration for Authentic Agro Production",
+    "displayOrder": 1,
+    "isActive": true
+  },
+  {
+    "title": "Government Trademark Registration",
+    "imageUrl": "/media/wordpress_photos/6-CERTIFICATE-TRADEMARK-REGISTRATION.pdf.png",
+    "category": "Certifications",
+    "description": "Registered Trademark Guaranteeing 100% Genuine OwnFresh Purity",
+    "displayOrder": 2,
+    "isActive": true
+  },
+  {
+    "title": "APX Laboratories Affiliation & Testing",
+    "imageUrl": "/media/wordpress_photos/10-AFFILIATION-APX-LABORATORIES.pdf.png",
+    "category": "Certifications",
+    "description": "Certified NABL Laboratory Testing for Zero Chemical Adulteration",
+    "displayOrder": 3,
+    "isActive": true
+  },
+  {
+    "title": "FSSAI Registered Quality Assurance",
+    "imageUrl": "https://res.cloudinary.com/dkhq2wlwg/image/upload/v1774961102/ownfresh_media/vwylvev18xuvlp7pdak8.jpg",
+    "category": "Certifications",
+    "description": "FSSAI Certified Food Safety and Standards Compliance",
+    "displayOrder": 4,
+    "isActive": true
+  },
+  {
+    "title": "Botanic Purity Verified Mark",
+    "imageUrl": "https://res.cloudinary.com/dkhq2wlwg/image/upload/v1774961250/ownfresh_media/y7denrhgp9vpmbxjk5om.png",
+    "category": "Certifications",
+    "description": "Botanic Purity Verification for 100% Single-Origin Raw Seeds",
+    "displayOrder": 5,
+    "isActive": true
+  },
+  {
+    "title": "Master Oil Artisan at the Wooden Ghani",
+    "imageUrl": "/media/wordpress_photos/DSC08274-scaled.jpg",
+    "category": "Extraction",
+    "description": "Handcrafted traditional wood & stone ghani operated by master artisans",
+    "displayOrder": 10,
+    "isActive": true
+  },
+  {
+    "title": "Slow Pestle Crushing without Heat",
+    "imageUrl": "/media/wordpress_photos/DSC08278-scaled.jpg",
+    "category": "Extraction",
+    "description": "Gentle low-RPM stone crushing ensuring vital natural nutrients remain unburnt",
+    "displayOrder": 11,
+    "isActive": true
+  },
+  {
+    "title": "Golden First-Press Oil Stream",
+    "imageUrl": "/media/wordpress_photos/DSC08279-scaled.jpg",
+    "category": "Extraction",
+    "description": "Pure virgin cold-pressed oil trickling straight from the natural wooden press",
+    "displayOrder": 12,
+    "isActive": true
+  },
+  {
+    "title": "Heritage Pressing Facility",
+    "imageUrl": "/media/wordpress_photos/DSC08288-scaled.jpg",
+    "category": "Extraction",
+    "description": "Clean, solar-powered artisanal oil mill honoring ancient Indian oil wisdom",
+    "displayOrder": 13,
+    "isActive": true
+  },
+  {
+    "title": "Artisanal Quality Inspection",
+    "imageUrl": "/media/wordpress_photos/DSC08321-scaled.jpg",
+    "category": "Extraction",
+    "description": "Rigorous visual and aroma check of every freshly pressed batch",
+    "displayOrder": 14,
+    "isActive": true
+  },
+  {
+    "title": "From Soil to Purity: Our Heritage",
+    "imageUrl": "/media/wordpress_photos/OUR-HERITAGE.png",
+    "category": "Extraction",
+    "description": "Reconnecting modern households with age-old Ayurvedic cold pressing",
+    "displayOrder": 15,
+    "isActive": true
+  },
+  {
+    "title": "Traditional Stone Ghani Mechanism",
+    "imageUrl": "/media/wordpress_photos/ligin.png",
+    "category": "Extraction",
+    "description": "Natural granite stone and seasoned wood crushing mechanism",
+    "displayOrder": 16,
+    "isActive": true
+  },
+  {
+    "title": "Zero-Heat Kachi Ghani Method",
+    "imageUrl": "/media/wordpress_photos/Kachi-Ghani-Traditional-oil-extraction-method.png",
+    "category": "Extraction",
+    "description": "Cold extraction preserving active bio-compounds, antioxidants & natural color",
+    "displayOrder": 17,
+    "isActive": true
+  },
+  {
+    "title": "Natural Sesame Stone Pressing",
+    "imageUrl": "/media/wordpress_photos/Stone-pressed-sesame-oil-process.png",
+    "category": "Extraction",
+    "description": "Slow stone-pressing of natural black and white til seeds",
+    "displayOrder": 18,
+    "isActive": true
+  },
+  {
+    "title": "Wood-Pressed Pure Kacchi Ghani",
+    "imageUrl": "/media/wordpress_photos/Traditional-oil-press-and-Kacchi-Ghani-oils.jpg",
+    "category": "Extraction",
+    "description": "Zero synthetic solvents, zero bleaching, and zero chemical deodorization",
+    "displayOrder": 19,
+    "isActive": true
+  },
+  {
+    "title": "Pungent Mustard Seeds & Cold Pressed Oil",
+    "imageUrl": "/media/wordpress_photos/Mustard-with-props.jpg",
+    "category": "Ingredients",
+    "description": "Hand-cleaned bold mustard seeds selected for authentic aroma and flavor",
+    "displayOrder": 20,
+    "isActive": true
+  },
+  {
+    "title": "Premium Groundnuts & Pure Peanut Oil",
+    "imageUrl": "/media/wordpress_photos/Groundnut-with-props.jpg",
+    "category": "Ingredients",
+    "description": "Crisp sun-dried Saurashtra groundnuts packed with natural Vitamin E",
+    "displayOrder": 21,
+    "isActive": true
+  },
+  {
+    "title": "Nutrient-Dense Natural Sesame Seeds",
+    "imageUrl": "/media/wordpress_photos/Sesame-with-props.jpg",
+    "category": "Ingredients",
+    "description": "Calcium and zinc-rich sesame seeds sourced directly from ethical farmers",
+    "displayOrder": 22,
+    "isActive": true
+  },
+  {
+    "title": "First-Grade Golden Sunflower Seeds",
+    "imageUrl": "/media/wordpress_photos/Sunflower-with-props.jpg",
+    "category": "Ingredients",
+    "description": "Naturally dried organic sunflower seeds giving light, heart-healthy oil",
+    "displayOrder": 23,
+    "isActive": true
+  },
+  {
+    "title": "Heart-Healthy Safflower (Kardi) Seeds",
+    "imageUrl": "/media/wordpress_photos/Safflower-with-props.jpg",
+    "category": "Ingredients",
+    "description": "High-linoleic safflower seeds known for cholesterol balancing benefits",
+    "displayOrder": 24,
+    "isActive": true
+  },
+  {
+    "title": "Fresh Coastal Sun-Dried Copra",
+    "imageUrl": "/media/wordpress_photos/Coconut-with-props.jpg",
+    "category": "Ingredients",
+    "description": "Sulfur-free sun-ripened coconut copra for pure botanic grade coconut oil",
+    "displayOrder": 25,
+    "isActive": true
+  },
+  {
+    "title": "Whole Coconut Botanical Selection",
+    "imageUrl": "/media/wordpress_photos/COCONUT-DRUPE-scaled.jpg",
+    "category": "Ingredients",
+    "description": "Single-origin premium coconuts harvested at peak maturity",
+    "displayOrder": 26,
+    "isActive": true
+  },
+  {
+    "title": "Seeds of Flavor: Mustard Oil Guide",
+    "imageUrl": "/media/wordpress_photos/Seeds-of-flavor-mustard-oil-guide.png",
+    "category": "Ingredients",
+    "description": "Selecting the highest quality mustard crop for maximum bioactive benefits",
+    "displayOrder": 27,
+    "isActive": true
+  },
+  {
+    "title": "Stone Pressed Groundnut Oil (5 Litre)",
+    "imageUrl": "/media/wordpress_photos/Groundnut-Oil-5.png",
+    "category": "Our Oils",
+    "description": "100% Pure Kacchi Ghani Groundnut Oil - Family Value Pack",
+    "displayOrder": 30,
+    "isActive": true
+  },
+  {
+    "title": "Traditional Kacchi Ghani Mustard Oil (5 Litre)",
+    "imageUrl": "/media/wordpress_photos/Mustard-Oil-5.png",
+    "category": "Our Oils",
+    "description": "Authentic pungent mustard oil for immunity, joint health and daily cooking",
+    "displayOrder": 31,
+    "isActive": true
+  },
+  {
+    "title": "Pure Stone Pressed Sesame Oil (5 Litre)",
+    "imageUrl": "/media/wordpress_photos/sesame-Oil-5.png",
+    "category": "Our Oils",
+    "description": "Antioxidant-dense Til oil for Ayurveda, culinary richness & oil pulling",
+    "displayOrder": 32,
+    "isActive": true
+  },
+  {
+    "title": "Pure Stone Pressed Coconut Oil (5 Litre)",
+    "imageUrl": "/media/wordpress_photos/Coconut-5Ltr.png",
+    "category": "Our Oils",
+    "description": "Virgin copra oil for cooking, skin hydration and deep hair conditioning",
+    "displayOrder": 33,
+    "isActive": true
+  },
+  {
+    "title": "Cold Pressed Safflower / Kardi Oil (5 Litre)",
+    "imageUrl": "/media/wordpress_photos/Safflower-Oil-5.png",
+    "category": "Our Oils",
+    "description": "Light, heart-friendly unrefined safflower cooking oil",
+    "displayOrder": 34,
+    "isActive": true
+  },
+  {
+    "title": "Natural Cold Pressed Sunflower Oil (5 Litre)",
+    "imageUrl": "/media/wordpress_photos/sunflower-oil-5.png",
+    "category": "Our Oils",
+    "description": "Vitamin E rich everyday cooking oil without chemical solvents",
+    "displayOrder": 35,
+    "isActive": true
+  },
+  {
+    "title": "Wellness Trio Combo Pack (Groundnut + Coconut + Sesame)",
+    "imageUrl": "/media/wordpress_photos/Groundnut-coconut-sesame-Combo-1.png",
+    "category": "Our Oils",
+    "description": "Complete nutrition sampler combo covering daily cooking, skincare & immunity",
+    "displayOrder": 36,
+    "isActive": true
+  },
+  {
+    "title": "Essential Kitchen Combo (Safflower + Groundnut + Sunflower 1L)",
+    "imageUrl": "/media/wordpress_photos/Safflower-Groundnut-sunflower-Combo-1L.png",
+    "category": "Our Oils",
+    "description": "3-Bottle rotation pack for a balanced fatty-acid profile",
+    "displayOrder": 37,
+    "isActive": true
+  },
+  {
+    "title": "OwnFresh 250ml Multi-Oil Sampler Set",
+    "imageUrl": "/media/wordpress_photos/Combo-250-ml.png",
+    "category": "Our Oils",
+    "description": "Trial discovery pack containing 4 pure stone-pressed varieties",
+    "displayOrder": 38,
+    "isActive": true
+  },
+  {
+    "title": "Groundnut, Sunflower & Sesame 1L Heritage Combo",
+    "imageUrl": "/media/wordpress_photos/Groundnut-sunflower-sesame-Combo-1L.png",
+    "category": "Our Oils",
+    "description": "Everyday healthy family pack designed for versatile Indian cooking",
+    "displayOrder": 39,
+    "isActive": true
+  },
+  {
+    "title": "Authentic Chana Masala in Cold-Pressed Oil",
+    "imageUrl": "/media/wordpress_photos/Traditional-chana-masala-recipe-made-with-home-style-Indian-cooking-methods.png",
+    "category": "Culinary",
+    "description": "Slow-cooked Punjabi Chana Masala tempered in stone-pressed mustard oil",
+    "displayOrder": 40,
+    "isActive": true
+  },
+  {
+    "title": "Sizzling Indian Vegetable Stir-Fry",
+    "imageUrl": "/media/wordpress_photos/Traditional-Indian-stir-fry-in-action.png",
+    "category": "Culinary",
+    "description": "High-heat nutrient-preserving vegetable stir-fry with fragrant tadka",
+    "displayOrder": 41,
+    "isActive": true
+  },
+  {
+    "title": "Home-Style Indian Cooking with Purity",
+    "imageUrl": "/media/wordpress_photos/Traditional-stone-pressed-oil-in-kitchen.png",
+    "category": "Culinary",
+    "description": "Preserving heritage family recipes with raw, chemical-free oils",
+    "displayOrder": 42,
+    "isActive": true
+  },
+  {
+    "title": "Wholesome Meals for Child Nutrition",
+    "imageUrl": "/media/wordpress_photos/Cooking-together-for-a-healthy-future.png",
+    "category": "Culinary",
+    "description": "Clean essential fats supporting cognitive development and growing immunity",
+    "displayOrder": 43,
+    "isActive": true
+  },
+  {
+    "title": "Cozy Kitchen Family Cooking",
+    "imageUrl": "/media/wordpress_photos/Cooking-together-in-a-cozy-kitchen.png",
+    "category": "Culinary",
+    "description": "Sharing the joy of honest, unrefined food prepared with love",
+    "displayOrder": 44,
+    "isActive": true
+  },
+  {
+    "title": "Heart-Healthy Cooking Habits",
+    "imageUrl": "/media/wordpress_photos/Healthy-cooking-in-an-Indian-kitchen.png",
+    "category": "Culinary",
+    "description": "Balanced traditional Indian diet supporting cardiovascular longevity",
+    "displayOrder": 45,
+    "isActive": true
+  },
+  {
+    "title": "Balancing Spices & Smoke Point in Tadka",
+    "imageUrl": "/media/wordpress_photos/Balancing-flavors-in-stir-frying.png",
+    "category": "Culinary",
+    "description": "Mastering high-smoke point natural oils for crispy, grease-free sauteing",
+    "displayOrder": 46,
+    "isActive": true
+  },
+  {
+    "title": "Diabetic-Friendly Indian Meals",
+    "imageUrl": "/media/wordpress_photos/Diabetic-friendly-Indian-cooking-with-OwnFresh-oils.png",
+    "category": "Culinary",
+    "description": "Nutritious recipes with cold-pressed oils supporting steady blood glucose",
+    "displayOrder": 47,
+    "isActive": true
+  },
+  {
+    "title": "Everyday Cooking with Pure Cold-Pressed Fats",
+    "imageUrl": "/media/wordpress_photos/Everyday-cooking-tips.png",
+    "category": "Culinary",
+    "description": "Simple changes in daily cooking habits that boost everyday vitality",
+    "displayOrder": 48,
+    "isActive": true
+  },
+  {
+    "title": "Diwali Delights with Pure Oils",
+    "imageUrl": "/media/wordpress_photos/Diwali.png",
+    "category": "Community",
+    "description": "Festive home-made sweets and savories fried safely in fresh stone-pressed oil",
+    "displayOrder": 50,
+    "isActive": true
+  },
+  {
+    "title": "Ganesh Chaturthi Sacred Prasad",
+    "imageUrl": "/media/wordpress_photos/Ganesh-Chaturthi-4.png",
+    "category": "Community",
+    "description": "Traditional Modaks and festive feast prepared with pure unadulterated oils",
+    "displayOrder": 51,
+    "isActive": true
+  },
+  {
+    "title": "Navratri Celebration with Pure Nutrition",
+    "imageUrl": "/media/wordpress_photos/Navratri-banners-ownF.png",
+    "category": "Community",
+    "description": "Vrat recipes cooked in pure cold-pressed groundnut and coconut oils",
+    "displayOrder": 52,
+    "isActive": true
+  },
+  {
+    "title": "Artisanal Production & Batch Packing",
+    "imageUrl": "/media/wordpress_photos/WhatsApp-Image-2024-12-21-at-19.55.12_17bcfa25-rotated.jpg",
+    "category": "Community",
+    "description": "Sealing fresh batches daily with rigorous hygiene and tamper-evident caps",
+    "displayOrder": 53,
+    "isActive": true
+  },
+  {
+    "title": "OwnFresh Community & Farm Workshops",
+    "imageUrl": "/media/wordpress_photos/WhatsApp-Image-2024-12-21-at-19.48.42_6ecba840.jpg",
+    "category": "Community",
+    "description": "Engaging with farmers and consumers on natural chemical-free farming",
+    "displayOrder": 54,
+    "isActive": true
+  },
+  {
+    "title": "Empowering Rural Farmers & Oil Artisans",
+    "imageUrl": "/media/wordpress_photos/Frame-211.png",
+    "category": "Community",
+    "description": "Fair-trade partnerships supporting traditional Indian oil pressing communities",
+    "displayOrder": 55,
+    "isActive": true
+  },
+  {
+    "title": "Dedicated to Pure Stone-Pressed Oils",
+    "imageUrl": "/media/wordpress_photos/Why-Choose-OwnFresh.png",
+    "category": "Community",
+    "description": "Our promise: 100% Transparency, 100% Purity, 0% Compromise",
+    "displayOrder": 56,
+    "isActive": true
+  },
+  {
+    "title": "Join the OwnFresh Distribution Network",
+    "imageUrl": "/media/wordpress_photos/Become-a-Distributor.png",
+    "category": "Community",
+    "description": "Bringing authentic cold-pressed purity to homes across every state in India",
+    "displayOrder": 57,
+    "isActive": true
+  }
+]

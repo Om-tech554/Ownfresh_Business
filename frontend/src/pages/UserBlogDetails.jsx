@@ -2,8 +2,25 @@ import React, { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
-import { ArrowLeft, Loader2, Calendar, Clock, ChevronUp, Share2, BookOpen, Leaf } from "lucide-react";
-import { Helmet } from "react-helmet-async";
+import {
+  ArrowLeft,
+  Loader2,
+  Calendar,
+  Clock,
+  ChevronUp,
+  Share2,
+  Leaf,
+  ShieldCheck,
+  Star,
+  ShoppingBag,
+  Send,
+  CheckCircle2,
+  Sparkles,
+  Link as LinkIcon,
+  ArrowRight
+} from "lucide-react";
+import { FaWhatsapp, FaFacebookF, FaXTwitter, FaLinkedinIn } from "react-icons/fa6";
+import Navbar from "../components/Navbar";
 import SLink from "../components/SLink";
 import SEO from "../components/SEO";
 
@@ -16,16 +33,6 @@ const readingTime = (text = "") => {
   return Math.max(1, Math.round(words / 200));
 };
 
-/* ─── share helper ─── */
-const handleShare = (title) => {
-  if (navigator.share) {
-    navigator.share({ title, url: window.location.href }).catch(() => { });
-  } else {
-    navigator.clipboard.writeText(window.location.href);
-    toast.success("Link copied to clipboard!");
-  }
-};
-
 const UserBlogDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -33,6 +40,9 @@ const UserBlogDetails = () => {
   const [loading, setLoading] = useState(true);
   const [showTopBtn, setShowTopBtn] = useState(false);
   const [recommendations, setRecommendations] = useState([]);
+  const [featuredProduct, setFeaturedProduct] = useState(null);
+  const [newsletterEmail, setNewsletterEmail] = useState("");
+  const [subscribing, setSubscribing] = useState(false);
 
   useEffect(() => {
     const fn = () => setShowTopBtn(window.scrollY > 400);
@@ -44,7 +54,7 @@ const UserBlogDetails = () => {
 
   const fetchBlog = async () => {
     try {
-      const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
+      const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:10000";
       const res = await axios.get(`${API_BASE_URL}/api/blog/${id}`);
       setBlog(res.data.blog);
     } catch (error) {
@@ -54,12 +64,16 @@ const UserBlogDetails = () => {
     }
   };
 
-  const fetchRecommendations = async () => {
+  const fetchRecommendationsAndProducts = async () => {
     try {
-      const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
-      const res = await axios.get(`${API_BASE_URL}/api/blog/all?limit=1000`);
-      const allBlogs = res.data.blogs || [];
-      const filtered = allBlogs.filter((b) => b._id !== id && b.id !== id).slice(0, 3);
+      const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:10000";
+      const [blogRes, productRes] = await Promise.all([
+        axios.get(`${API_BASE_URL}/api/blog/all?limit=1000`),
+        axios.get(`${API_BASE_URL}/api/product/all?limit=10`)
+      ]);
+
+      const allBlogs = blogRes.data.blogs || [];
+      const filtered = allBlogs.filter((b) => b._id !== id && b.id !== id && b.slug !== id).slice(0, 3);
       setRecommendations(
         filtered.map((post) => ({
           id: post.slug || post._id || post.id,
@@ -69,30 +83,99 @@ const UserBlogDetails = () => {
             month: "long",
             day: "numeric",
           }),
-          description:
-            stripHtml(post.description || "").substring(0, 150) + "...",
+          description: stripHtml(post.description || "").substring(0, 150) + "...",
           image:
             post.image ||
             "https://images.unsplash.com/photo-1620706857370-e1b9770e8bb1",
         }))
       );
+
+      const prods = productRes.data.products || [];
+      if (prods.length > 0) {
+        setFeaturedProduct(prods[0]);
+      }
     } catch (error) {
-      console.log("recommendations error", error);
+      console.log("Recommendations/products error", error);
     }
   };
 
   useEffect(() => {
     setLoading(true);
     fetchBlog();
-    fetchRecommendations();
+    fetchRecommendationsAndProducts();
   }, [id]);
+
+  const handleShare = (network) => {
+    const url = encodeURIComponent(window.location.href);
+    const title = encodeURIComponent(blog?.title || "OwnFresh Stone Pressed Oils Article");
+
+    if (network === "copy") {
+      navigator.clipboard.writeText(window.location.href);
+      toast.success("Article link copied to clipboard!");
+      return;
+    }
+
+    let shareUrl = "";
+    switch (network) {
+      case "whatsapp":
+        shareUrl = `https://api.whatsapp.com/send?text=${title}%20${url}`;
+        break;
+      case "twitter":
+        shareUrl = `https://twitter.com/intent/tweet?text=${title}&url=${url}`;
+        break;
+      case "facebook":
+        shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${url}`;
+        break;
+      case "linkedin":
+        shareUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${url}`;
+        break;
+      default:
+        if (navigator.share) {
+          navigator.share({ title: blog?.title, url: window.location.href }).catch(() => {});
+          return;
+        }
+        navigator.clipboard.writeText(window.location.href);
+        toast.success("Link copied to clipboard!");
+        return;
+    }
+
+    if (shareUrl) {
+      window.open(shareUrl, "_blank", "noopener,noreferrer");
+    }
+  };
+
+  const handleNewsletterSubscribe = async (e) => {
+    e.preventDefault();
+    if (!newsletterEmail) {
+      return toast.error("Please enter your email address");
+    }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(newsletterEmail)) {
+      return toast.error("Please enter a valid email address");
+    }
+    try {
+      setSubscribing(true);
+      const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:10000";
+      const res = await axios.post(`${API_BASE_URL}/api/newsletter/subscribe`, {
+        email: newsletterEmail
+      });
+      toast.success(res.data?.message || "Subscribed successfully! Welcome to OwnFresh.");
+      setNewsletterEmail("");
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Unable to subscribe. Please try again.");
+    } finally {
+      setSubscribing(false);
+    }
+  };
 
   /* ── Loading ── */
   if (loading)
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-[#FEFDF8]">
-        <Loader2 className="w-12 h-12 animate-spin text-[#FFDD00]" />
-        <p className="mt-4 text-gray-500 font-medium">Fetching the story…</p>
+        <Loader2 className="w-12 h-12 animate-spin text-[#1E971D]" />
+        <p className="mt-4 text-slate-600 font-bold uppercase tracking-wider text-xs">
+          Loading Insights & Science…
+        </p>
       </div>
     );
 
@@ -100,12 +183,12 @@ const UserBlogDetails = () => {
   if (!blog)
     return (
       <div className="min-h-screen flex flex-col items-center justify-center p-6 bg-[#FEFDF8]">
-        <h2 className="text-2xl font-bold">Blog not found</h2>
+        <h2 className="text-2xl font-black text-slate-900 uppercase">Article Not Found</h2>
         <button
           onClick={() => navigate(-1)}
-          className="text-[#24672E] mt-4 flex items-center gap-2"
+          className="text-[#1E971D] font-bold mt-4 flex items-center gap-2 uppercase tracking-wider text-xs cursor-pointer"
         >
-          <ArrowLeft size={18} /> Back
+          <ArrowLeft size={16} /> Return to Articles
         </button>
       </div>
     );
@@ -113,15 +196,14 @@ const UserBlogDetails = () => {
   /* ── Meta helpers ── */
   const cleanDescription = blog.searchDescription || stripHtml(blog.description).substring(0, 160);
   const cleanTitle = blog.title;
-
   const mins = readingTime(blog.description);
 
-  /* ── Image interleave (non-WP only) ── */
   let renderedHTML = blog.description || "";
+  const images = [blog.image1, blog.image2, blog.image3, blog.image4].filter(Boolean);
+  const alreadyHasImages = /<img|<figure/i.test(renderedHTML);
   let leftoverImages = [];
 
-  const images = [blog.image1, blog.image2, blog.image3, blog.image4].filter(Boolean);
-  if (images.length > 0) {
+  if (images.length > 0 && !alreadyHasImages) {
     const parts = renderedHTML.split("</p>");
     let newContent = "";
     let imgIndex = 0;
@@ -130,7 +212,7 @@ const UserBlogDetails = () => {
       if (i < parts.length - 1) {
         newContent += "</p>";
         if (imgIndex < images.length && stripHtml(parts[i]).trim().length > 15) {
-          newContent += `<figure class="my-10 w-full overflow-hidden rounded-2xl shadow border border-gray-100 bg-gray-50 flex items-center justify-center p-2"><img src="${images[imgIndex]}" class="w-full object-contain max-h-[500px] rounded-xl" alt="Blog image ${imgIndex + 1}" /></figure>`;
+          newContent += `<figure class="my-10 w-full overflow-hidden rounded-2xl shadow-sm border border-slate-100 bg-slate-50 flex items-center justify-center p-2"><img src="${images[imgIndex]}" class="w-full object-contain max-h-[500px] rounded-xl" alt="Blog illustration ${imgIndex + 1}" /></figure>`;
           imgIndex++;
         }
       }
@@ -148,15 +230,12 @@ const UserBlogDetails = () => {
     "dateModified": blog.updatedAt || blog.createdAt,
     "author": [{
       "@type": "Person",
-      "name": blog.author || "Own Fresh Team",
+      "name": blog.author || "OwnFresh Research Team",
     }]
   };
 
-  /* ════════════════════════════════════════════════════
-      RENDER
-  ════════════════════════════════════════════════════ */
   return (
-    <div className="bg-[#FEFDF8] min-h-screen relative">
+    <div className="bg-[#FEFDF8] min-h-screen relative font-sans">
       <SEO
         title={cleanTitle}
         description={cleanDescription}
@@ -166,23 +245,26 @@ const UserBlogDetails = () => {
         schemaMarkup={schemaMarkup}
       />
 
-      {/* ── HERO ── */}
-      <div className="w-full bg-[#1a1a1a]">
+      {/* ── STICKY NAVBAR ── */}
+      <Navbar />
 
-        {/* Back button row */}
-        <div className="max-w-7xl mx-auto px-4 md:px-8 lg:px-12 pt-6 pb-3">
+      {/* ── HERO BANNER ── */}
+      <div className="w-full bg-[#111827] text-white">
+
+        {/* Top navigation row */}
+        <div className="max-w-7xl mx-auto px-4 md:px-8 lg:px-12 pt-6 pb-4">
           <button
             onClick={() => navigate(-1)}
-            className="flex items-center gap-2 text-white/70 hover:text-white transition-colors text-sm font-semibold"
+            className="inline-flex items-center gap-2 text-white/70 hover:text-white transition-colors text-xs font-black uppercase tracking-widest cursor-pointer bg-white/10 px-4 py-2 rounded-full border border-white/10"
           >
-            <ArrowLeft size={18} />
+            <ArrowLeft size={14} />
             Back to Articles
           </button>
         </div>
 
-        {/* Image — full width, natural height, no crop */}
+        {/* Full natural featured image */}
         {blog.image && (
-          <div className="w-full flex items-center justify-center bg-[#111] px-0">
+          <div className="w-full flex items-center justify-center bg-black/40 px-0">
             <img
               src={blog.image}
               alt={cleanTitle}
@@ -190,103 +272,106 @@ const UserBlogDetails = () => {
                 e.target.onerror = null;
                 e.target.src = "https://res.cloudinary.com/dkhq2wlwg/image/upload/v1786009742/products/banner.png";
               }}
-              className="w-full max-h-[70vh] object-contain block"
-              style={{ display: "block" }}
+              className="w-full max-h-[65vh] object-contain block"
             />
           </div>
         )}
 
-        {/* Title band below the image */}
-        <div className="bg-gradient-to-b from-[#1a1a1a] to-[#0d0d0d] px-4 md:px-8 lg:px-12 pt-7 pb-10">
+        {/* Title and metadata banner */}
+        <div className="bg-gradient-to-b from-[#111827] to-[#0b0f17] px-4 md:px-8 lg:px-12 pt-8 pb-12 border-b border-white/10">
           <div className="max-w-7xl mx-auto">
             <div className="flex flex-wrap items-center gap-3 mb-4">
-              <span className="inline-flex items-center gap-1.5 bg-[#FFDD00] text-black text-xs font-black uppercase tracking-widest px-3 py-1 rounded-full">
+              <span className="inline-flex items-center gap-1.5 bg-[#1E971D] text-white text-xs font-black uppercase tracking-widest px-3.5 py-1 rounded-full shadow-sm">
                 <Calendar size={12} />
-                {new Date(blog.publishedAt || blog.createdAt).toLocaleDateString(undefined, { dateStyle: "long" })}
+                {new Date(blog.publishedAt || blog.createdAt).toLocaleDateString("en-IN", {
+                  dateStyle: "long"
+                })}
               </span>
-              <span className="inline-flex items-center gap-1.5 bg-white/15 text-white text-xs font-bold uppercase tracking-widest px-3 py-1 rounded-full">
+              <span className="inline-flex items-center gap-1.5 bg-white/15 text-white text-xs font-bold uppercase tracking-widest px-3.5 py-1 rounded-full">
                 <Clock size={12} />
                 {mins} min read
               </span>
+              <span className="inline-flex items-center gap-1.5 bg-[#EFDB27] text-slate-900 text-xs font-black uppercase tracking-widest px-3.5 py-1 rounded-full">
+                <Leaf size={12} />
+                {(() => {
+                  let cat = blog.category ? blog.category.trim() : "General";
+                  return cat.charAt(0).toUpperCase() + cat.slice(1).toLowerCase();
+                })()}
+              </span>
             </div>
             <h1
-              className="text-3xl md:text-5xl font-black text-white leading-tight"
+              className="text-2xl sm:text-4xl lg:text-5xl font-black text-white leading-tight tracking-tight uppercase"
               dangerouslySetInnerHTML={{ __html: blog.title }}
             />
           </div>
         </div>
       </div>
 
-      {/* ── TWO-COLUMN LAYOUT ── */}
-      <div className="max-w-7xl mx-auto px-4 md:px-8 lg:px-12 py-12">
-        <div className="flex flex-col lg:flex-row gap-10 lg:gap-16 items-start">
+      {/* ── TWO-COLUMN MAIN ARTICLE & STICKY LAPTOP SIDEBAR ── */}
+      <div className="max-w-7xl mx-auto px-4 md:px-8 lg:px-12 py-12 pb-24">
+        <div className="flex flex-col lg:flex-row gap-10 lg:gap-12 items-start">
 
-          {/* ═══ LEFT: Article body ═══ */}
-          <article className="w-full lg:w-[68%] min-w-0">
+          {/* ═══ LEFT: Article Body (67%) ═══ */}
+          <article className="w-full lg:w-[67%] min-w-0">
 
-            {/* decorative accent line */}
+            {/* Decorative organic accent line */}
             <div className="flex items-center gap-3 mb-8">
-              <div className="w-10 h-1 bg-[#FFDD00]" />
-              <Leaf size={16} className="text-[#FFDD00]" />
-              <div className="flex-1 h-px bg-gray-200" />
+              <div className="w-12 h-1 bg-[#1E971D] rounded-full" />
+              <Leaf size={18} className="text-[#1E971D]" />
+              <span className="text-xs font-black uppercase tracking-widest text-[#1E971D]">
+                OwnFresh Certified Knowledge
+              </span>
+              <div className="flex-1 h-px bg-slate-200" />
             </div>
 
-            {/* Blog content */}
-            {/* Blog content styling including Tables, Lists, and TOC blocks */}
+            {/* Styles for article typography, tables and content */}
             <style dangerouslySetInnerHTML={{
               __html: `
               .wp-blog-content {
                 font-family: system-ui, -apple-system, sans-serif !important;
               }
               .wp-blog-content p {
-                margin-top: 0.85rem !important;
-                margin-bottom: 0.85rem !important;
-                line-height: 1.8 !important;
+                margin-top: 1rem !important;
+                margin-bottom: 1rem !important;
+                line-height: 1.85 !important;
                 font-size: 1.05rem !important;
                 color: #334155 !important;
               }
               .wp-blog-content h1 {
-                font-size: 2.25rem !important;
+                font-size: 2.2rem !important;
                 font-weight: 900 !important;
                 color: #0f172a !important;
-                margin-top: 2rem !important;
+                margin-top: 2.2rem !important;
                 margin-bottom: 1rem !important;
                 line-height: 1.25 !important;
               }
               .wp-blog-content h2 {
-                font-size: 1.75rem !important;
+                font-size: 1.65rem !important;
                 font-weight: 900 !important;
                 color: #0f172a !important;
-                margin-top: 2rem !important;
-                margin-bottom: 1rem !important;
+                margin-top: 2.2rem !important;
+                margin-bottom: 0.85rem !important;
                 line-height: 1.3 !important;
+                border-left: 4px solid #1E971D;
+                padding-left: 0.75rem;
               }
               .wp-blog-content h3 {
-                font-size: 1.4rem !important;
+                font-size: 1.3rem !important;
                 font-weight: 850 !important;
                 color: #0f172a !important;
                 margin-top: 1.75rem !important;
                 margin-bottom: 0.75rem !important;
                 line-height: 1.35 !important;
               }
-              .wp-blog-content h4 {
-                font-size: 1.2rem !important;
-                font-weight: 800 !important;
-                color: #0f172a !important;
-                margin-top: 1.5rem !important;
-                margin-bottom: 0.5rem !important;
-                line-height: 1.4 !important;
-              }
-              /* Tables formatting */
               .wp-blog-content table {
                 width: 100%;
                 border-collapse: collapse;
                 margin: 2rem 0;
                 background-color: #ffffff;
-                border-radius: 12px;
+                border-radius: 16px;
                 overflow: hidden;
-                box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.05);
-                border: 1px solid #f1f5f9;
+                box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05);
+                border: 1px solid #e2e8f0;
               }
               .wp-blog-content th {
                 background-color: #f8fafc;
@@ -294,8 +379,8 @@ const UserBlogDetails = () => {
                 font-weight: 800;
                 text-align: left;
                 padding: 14px 18px;
-                border-bottom: 2px solid #e2e8f0;
-                font-size: 0.95rem;
+                border-bottom: 2px solid #cbd5e1;
+                font-size: 0.85rem;
                 text-transform: uppercase;
                 letter-spacing: 0.05em;
               }
@@ -309,10 +394,6 @@ const UserBlogDetails = () => {
               .wp-blog-content tr:last-child td {
                 border-bottom: none;
               }
-              .wp-blog-content tr:hover td {
-                background-color: #faf5d9/20;
-              }
-              /* Lists formatting (Unordered & Ordered) */
               .wp-blog-content ul {
                 list-style-type: disc !important;
                 padding-left: 2rem !important;
@@ -331,70 +412,33 @@ const UserBlogDetails = () => {
                 line-height: 1.8 !important;
                 color: #334155;
               }
-              /* Table of Contents card container */
-              .wp-blog-content .toc, 
-              .wp-blog-content [id*="toc"],
-              .wp-blog-content [class*="toc"] {
-                background-color: #fafbf8 !important;
-                border-left: 4px solid #24672E !important;
-                padding: 1.75rem !important;
-                border-radius: 16px !important;
-                margin: 2.5rem 0 !important;
-                box-shadow: inset 0 2px 4px 0 rgb(0 0 0 / 0.02) !important;
-                border: 1px solid #f1f5f9 !important;
-              }
-              .wp-blog-content .toc-title, 
-              .wp-blog-content [class*="toc-title"] {
-                font-size: 1.1rem !important;
-                font-weight: 900 !important;
-                color: #0f172a !important;
-                margin-bottom: 1rem !important;
-                text-transform: uppercase !important;
-                letter-spacing: 0.05em !important;
-              }
-              /* Links styling */
               .wp-blog-content a {
-                color: #24672E !important;
+                color: #1E971D !important;
                 font-weight: 700 !important;
-                text-decoration: none !important;
-                transition: all 0.2s ease !important;
-              }
-              .wp-blog-content a:hover {
-                color: #163f1c !important;
                 text-decoration: underline !important;
               }
             ` }} />
+
             <div
-              className="
-                prose prose-lg max-w-none
-                space-y-2
-                prose-headings:font-black prose-headings:text-gray-900
-                prose-h2:text-2xl prose-h2:mt-10 prose-h2:mb-4
-                prose-p:text-gray-700 prose-p:leading-[1.9] prose-p:text-lg prose-p:my-2
-                prose-a:text-[#24672E] prose-a:no-underline hover:prose-a:underline
-                prose-img:rounded-xl prose-img:shadow-md
-                prose-strong:text-gray-900
-                prose-ul:text-gray-700 prose-li:my-1
-                wp-blog-content
-              "
+              className="prose prose-lg max-w-none space-y-2 wp-blog-content"
               dangerouslySetInnerHTML={{ __html: renderedHTML }}
             />
 
             {/* Leftover gallery images */}
             {leftoverImages.length > 0 && (
-              <div className="mt-14 pt-10 border-t border-gray-100">
-                <h3 className="text-2xl font-black text-gray-900 mb-6 uppercase tracking-wide">
-                  More Images
+              <div className="mt-14 pt-10 border-t border-slate-200">
+                <h3 className="text-xl font-black text-slate-900 mb-6 uppercase tracking-wide">
+                  Visual Gallery
                 </h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                   {leftoverImages.map((imgUrl, idx) => (
                     <div
                       key={idx}
-                      className="rounded-2xl shadow border border-gray-100 overflow-hidden bg-gray-50 flex items-center justify-center p-2"
+                      className="rounded-2xl shadow-xs border border-slate-200 overflow-hidden bg-slate-50 flex items-center justify-center p-2"
                     >
                       <img
                         src={imgUrl}
-                        alt={`Gallery ${idx + 1}`}
+                        alt={`Gallery photo ${idx + 1}`}
                         className="w-full object-contain max-h-[360px]"
                       />
                     </div>
@@ -402,105 +446,258 @@ const UserBlogDetails = () => {
                 </div>
               </div>
             )}
+
+            {/* Author Footer Bio */}
+            <div className="mt-14 p-6 sm:p-8 bg-white border border-slate-200 rounded-3xl flex flex-col sm:flex-row items-center sm:items-start gap-6 shadow-xs">
+              <div className="w-16 h-16 rounded-full bg-[#1E971D] text-white flex items-center justify-center font-black text-xl shrink-0 shadow-md">
+                OF
+              </div>
+              <div className="flex-1 text-center sm:text-left">
+                <span className="text-[10px] font-black uppercase tracking-widest text-[#1E971D] bg-emerald-50 px-2.5 py-0.5 rounded-full inline-block mb-1">
+                  Written by
+                </span>
+                <h4 className="text-base font-black text-slate-900 uppercase">
+                  {blog.author || "OwnFresh Culinary Science Team"}
+                </h4>
+                <p className="text-xs text-slate-500 mt-1 leading-relaxed">
+                  Dedicated to reviving India's ancient wood/stone Kolhu churning heritage, bringing 100% pure, chemical-free cold pressed nutrition to modern families.
+                </p>
+              </div>
+            </div>
+
           </article>
 
-          {/* ═══ RIGHT: Sticky Sidebar ═══ */}
-          <aside className="w-full lg:w-[32%] lg:sticky lg:top-8 flex flex-col gap-6 shrink-0">
+          {/* ═══ RIGHT: Rich Sticky Laptop Sidebar (33%) ═══ */}
+          <aside className="w-full lg:w-[33%] lg:sticky lg:top-28 flex flex-col gap-6 shrink-0 h-fit">
 
-            {/* Article at-a-glance card */}
-            <div className="bg-white border border-gray-100 rounded-2xl shadow-sm p-6">
-              <p className="text-xs font-black uppercase tracking-widest text-gray-400 mb-4">
-                At a Glance
+            {/* 1. AT A GLANCE FACT CARD */}
+            <div className="bg-white border border-slate-200/90 rounded-3xl shadow-xs p-6">
+              <p className="text-xs font-black uppercase tracking-widest text-slate-900 mb-4 pb-3 border-b border-slate-100 flex items-center justify-between">
+                <span>Article Overview</span>
+                <span className="text-[10px] text-[#1E971D] font-bold">Verified</span>
               </p>
-              <ul className="flex flex-col gap-4">
+              <ul className="flex flex-col gap-3.5 text-xs">
                 <li className="flex items-start gap-3">
-                  <Calendar size={18} className="text-[#FFDD00] mt-0.5 shrink-0" />
+                  <Calendar size={16} className="text-[#1E971D] mt-0.5 shrink-0" />
                   <div>
-                    <p className="text-xs text-gray-400 font-semibold uppercase tracking-widest">Published</p>
-                    <p className="text-sm font-bold text-gray-800">
-                      {new Date(blog.publishedAt || blog.createdAt).toLocaleDateString(undefined, { dateStyle: "long" })}
+                    <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Published</p>
+                    <p className="font-bold text-slate-800">
+                      {new Date(blog.publishedAt || blog.createdAt).toLocaleDateString("en-IN", { dateStyle: "long" })}
                     </p>
                   </div>
                 </li>
                 <li className="flex items-start gap-3">
-                  <Leaf size={18} className="text-[#FFDD00] mt-0.5 shrink-0" />
+                  <Clock size={16} className="text-[#1E971D] mt-0.5 shrink-0" />
                   <div>
-                    <p className="text-xs text-gray-400 font-semibold uppercase tracking-widest">Author</p>
-                    <p className="text-sm font-bold text-gray-800">{blog.author || "Own Fresh Team"}</p>
-                  </div>
-                </li>
-                {blog.location && (
-                  <li className="flex items-start gap-3">
-                    <Leaf size={18} className="text-[#FFDD00] mt-0.5 shrink-0" />
-                    <div>
-                      <p className="text-xs text-gray-400 font-semibold uppercase tracking-widest">Location</p>
-                      <p className="text-sm font-bold text-gray-800">
-                        {typeof blog.location === 'object' ? blog.location.name : blog.location}
-                      </p>
-                    </div>
-                  </li>
-                )}
-                <li className="flex items-start gap-3">
-                  <BookOpen size={18} className="text-[#FFDD00] mt-0.5 shrink-0" />
-                  <div>
-                    <p className="text-xs text-gray-400 font-semibold uppercase tracking-widest">Read Time</p>
-                    <p className="text-sm font-bold text-gray-800">{mins} minute{mins !== 1 ? "s" : ""}</p>
+                    <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Reading Time</p>
+                    <p className="font-bold text-slate-800">{mins} minutes</p>
                   </div>
                 </li>
                 <li className="flex items-start gap-3">
-                  <Leaf size={18} className="text-[#FFDD00] mt-0.5 shrink-0" />
+                  <ShieldCheck size={16} className="text-[#1E971D] mt-0.5 shrink-0" />
                   <div>
-                    <p className="text-xs text-gray-400 font-semibold uppercase tracking-widest">Category</p>
-                    <p className="text-sm font-bold text-gray-800">
-                      {(() => {
-                        let cat = blog.category ? blog.category.trim() : 'General';
-                        return cat.charAt(0).toUpperCase() + cat.slice(1).toLowerCase();
-                      })()}
+                    <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Standard</p>
+                    <p className="font-bold text-slate-800">ACoHI Certified Stone Press</p>
+                  </div>
+                </li>
+                <li className="flex items-start gap-3">
+                  <Leaf size={16} className="text-[#1E971D] mt-0.5 shrink-0" />
+                  <div>
+                    <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Topic</p>
+                    <p className="font-bold text-slate-800">
+                      {blog.category || "Stone-Pressed Health"}
                     </p>
                   </div>
                 </li>
               </ul>
             </div>
 
-            {/* Share card */}
-            <div className="bg-black rounded-2xl p-6 flex flex-col items-center text-center gap-4">
-              <Share2 size={28} className="text-[#FFDD00]" />
-              <p className="text-white font-bold text-base leading-snug">
-                Found this useful?<br />Share it with someone!
+            {/* 2. RECOMMENDED STONE-PRESSED OIL PRODUCT CARD */}
+            {featuredProduct && (
+              <div className="bg-gradient-to-br from-emerald-900 via-slate-900 to-black text-white p-6 rounded-3xl shadow-xl relative overflow-hidden group">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-[#1E971D]/20 rounded-full blur-2xl pointer-events-none" />
+
+                <div className="flex items-center justify-between mb-3 relative z-10">
+                  <span className="text-[9px] font-black uppercase tracking-widest bg-[#1E971D] text-white px-2.5 py-0.5 rounded-full">
+                    Recommended Oil
+                  </span>
+                  <div className="flex items-center gap-1 text-amber-400 text-xs">
+                    <Star size={12} className="fill-amber-400" />
+                    <span className="font-bold text-white text-[11px]">4.9 (180+ Reviews)</span>
+                  </div>
+                </div>
+
+                <div className="relative z-10">
+                  <div className="w-full h-36 bg-white/5 rounded-2xl p-2 mb-3 flex items-center justify-center border border-white/10 group-hover:border-[#1E971D]/40 transition-colors">
+                    <img
+                      src={featuredProduct.variants?.[0]?.image || featuredProduct.image}
+                      alt={featuredProduct.name}
+                      className="h-full w-auto object-contain transition-transform duration-500 group-hover:scale-105"
+                    />
+                  </div>
+                  <h4 className="text-sm font-black uppercase text-white leading-tight mb-1 line-clamp-1">
+                    {featuredProduct.name}
+                  </h4>
+                  <p className="text-[11px] text-slate-300 font-medium line-clamp-2 mb-3">
+                    {featuredProduct.shortDesc || "100% Pure, unrefined stone-pressed oil churned at 14–16 RPM."}
+                  </p>
+                  <div className="flex items-center justify-between pt-2 border-t border-white/10">
+                    <div>
+                      <span className="text-[10px] text-slate-400 uppercase font-bold block">From</span>
+                      <span className="text-base font-black text-[#EFDB27] font-mono">
+                        ₹{Math.round(featuredProduct.variants?.[0]?.salePrice || featuredProduct.variants?.[0]?.price || featuredProduct.price)}
+                      </span>
+                    </div>
+                    <SLink
+                      to={`/product/${featuredProduct._id}`}
+                      className="px-4 py-2 bg-[#EFDB27] hover:bg-white text-slate-900 rounded-xl text-xs font-black uppercase tracking-wider transition-colors flex items-center gap-1.5 cursor-pointer shadow-md"
+                    >
+                      <ShoppingBag size={13} />
+                      Shop Now
+                    </SLink>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* 3. SOCIAL SHARING & COMMUNITY BAR */}
+            <div className="bg-white border border-slate-200/90 rounded-3xl shadow-xs p-6">
+              <h3 className="text-xs font-black uppercase tracking-widest text-slate-900 mb-2 flex items-center gap-2">
+                <Share2 size={15} className="text-[#1E971D]" />
+                Share This Article
+              </h3>
+              <p className="text-xs text-slate-500 mb-4">
+                Know someone who loves healthy traditional cooking? Pass it on!
               </p>
-              <button
-                onClick={() => handleShare(cleanTitle)}
-                className="w-full bg-[#EFDB27] hover:bg-yellow-300 text-black font-black uppercase tracking-widest text-xs px-6 py-3 transition-colors rounded-lg"
-              >
-                Share Article
-              </button>
+              <div className="grid grid-cols-5 gap-2">
+                <button
+                  onClick={() => handleShare("whatsapp")}
+                  className="p-3 rounded-2xl bg-emerald-50 hover:bg-emerald-100 text-emerald-600 flex items-center justify-center transition-colors cursor-pointer"
+                  title="Share on WhatsApp"
+                >
+                  <FaWhatsapp size={18} />
+                </button>
+                <button
+                  onClick={() => handleShare("twitter")}
+                  className="p-3 rounded-2xl bg-slate-50 hover:bg-slate-100 text-slate-800 flex items-center justify-center transition-colors cursor-pointer"
+                  title="Share on X"
+                >
+                  <FaXTwitter size={18} />
+                </button>
+                <button
+                  onClick={() => handleShare("facebook")}
+                  className="p-3 rounded-2xl bg-blue-50 hover:bg-blue-100 text-blue-600 flex items-center justify-center transition-colors cursor-pointer"
+                  title="Share on Facebook"
+                >
+                  <FaFacebookF size={18} />
+                </button>
+                <button
+                  onClick={() => handleShare("linkedin")}
+                  className="p-3 rounded-2xl bg-sky-50 hover:bg-sky-100 text-sky-700 flex items-center justify-center transition-colors cursor-pointer"
+                  title="Share on LinkedIn"
+                >
+                  <FaLinkedinIn size={18} />
+                </button>
+                <button
+                  onClick={() => handleShare("copy")}
+                  className="p-3 rounded-2xl bg-yellow-50 hover:bg-yellow-100 text-amber-700 flex items-center justify-center transition-colors cursor-pointer"
+                  title="Copy Link"
+                >
+                  <LinkIcon size={18} />
+                </button>
+              </div>
             </div>
 
-            {/* Back to blog button */}
-            <button
-              onClick={() => navigate(-1)}
-              className="group flex items-center justify-center gap-2 border border-gray-200 bg-white hover:border-[#EFDB27] hover:bg-[#FEFDF8] text-gray-600 hover:text-black font-bold text-sm px-6 py-3.5 rounded-xl transition-all"
+            {/* 4. THE OWNFRESH STANDARD / WHY STONE-PRESSED MATTERS */}
+            <div className="bg-amber-50/80 border border-amber-200/80 p-6 rounded-3xl">
+              <h4 className="text-xs font-black uppercase text-amber-900 tracking-widest mb-3 flex items-center gap-2">
+                <ShieldCheck size={16} className="text-amber-700" />
+                The OwnFresh Standard
+              </h4>
+              <ul className="space-y-2.5 text-xs font-semibold text-amber-950">
+                <li className="flex items-start gap-2">
+                  <CheckCircle2 size={14} className="text-emerald-600 mt-0.5 shrink-0" />
+                  <span>Unheated friction extraction (&lt;40°C)</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <CheckCircle2 size={14} className="text-emerald-600 mt-0.5 shrink-0" />
+                  <span>Zero Hexane solvents or chemical bleach</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <CheckCircle2 size={14} className="text-emerald-600 mt-0.5 shrink-0" />
+                  <span>Micro-filtered via cotton cloth settling</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <CheckCircle2 size={14} className="text-emerald-600 mt-0.5 shrink-0" />
+                  <span>100% Native Whole Seeds</span>
+                </li>
+              </ul>
+            </div>
+
+            {/* 5. VIP NEWSLETTER */}
+            <div className="bg-slate-900 text-white p-6 rounded-3xl border border-slate-800 shadow-md">
+              <div className="flex items-center gap-2 mb-2">
+                <Sparkles size={16} className="text-[#EFDB27]" />
+                <h4 className="text-xs font-black uppercase text-white tracking-widest">
+                  VIP Health Updates
+                </h4>
+              </div>
+              <p className="text-xs text-slate-300 font-medium mb-4 leading-relaxed">
+                Receive weekly science-backed wellness advice and members-only discounts.
+              </p>
+              <form onSubmit={handleNewsletterSubscribe} className="flex flex-col gap-2">
+                <input
+                  type="email"
+                  placeholder="Your email address"
+                  value={newsletterEmail}
+                  onChange={(e) => setNewsletterEmail(e.target.value)}
+                  className="w-full bg-white/10 border border-white/15 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder:text-slate-400 outline-none focus:border-[#EFDB27] transition-all"
+                />
+                <button
+                  type="submit"
+                  disabled={subscribing}
+                  className="w-full py-2.5 bg-[#EFDB27] hover:bg-white text-slate-900 rounded-xl text-xs font-black uppercase tracking-wider transition-colors flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-60"
+                >
+                  <Send size={12} />
+                  {subscribing ? "Subscribing..." : "Join Free"}
+                </button>
+              </form>
+            </div>
+
+            {/* 6. ASK OUR EXPERT / WHATSAPP ASSIST */}
+            <a
+              href="https://wa.me/918999773438?text=Hello%20OwnFresh%2C%20I%20have%20a%20question%20about%20your%20stone%20pressed%20oils."
+              target="_blank"
+              rel="noopener noreferrer"
+              className="bg-emerald-600 hover:bg-emerald-700 text-white p-5 rounded-3xl flex items-center justify-between shadow-lg shadow-emerald-600/20 transition-all duration-300 group cursor-pointer"
             >
-              <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" />
-              Back to Articles
-            </button>
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-white text-emerald-600 flex items-center justify-center shadow-xs">
+                  <FaWhatsapp size={22} />
+                </div>
+                <div>
+                  <h5 className="text-xs font-black uppercase tracking-wider">Oil Question?</h5>
+                  <p className="text-[11px] text-emerald-100 font-medium">Chat with our Master Churner</p>
+                </div>
+              </div>
+              <ArrowRight size={16} className="text-white group-hover:translate-x-1 transition-transform" />
+            </a>
 
           </aside>
+
         </div>
       </div>
 
-      {/* ── RECOMMENDED READING ── */}
+      {/* ── RECOMMENDED ARTICLES SECTION ── */}
       {recommendations.length > 0 && (
-        <section className="bg-[#FEF7DC] border-t border-[#EFDB27]/30 py-16 px-4 md:px-8 lg:px-12 mt-4">
+        <section className="bg-slate-50 border-t border-slate-200 py-16 px-4 md:px-8 lg:px-12">
           <div className="max-w-7xl mx-auto">
-            {/* heading */}
             <div className="text-center mb-12">
-              <p className="text-xs font-black uppercase tracking-[0.25em] text-gray-400 mb-3">
-                Continue Reading
-              </p>
-              <h3 className="text-3xl md:text-4xl font-black text-black uppercase">
-                Recommended{" "}
-                <span className="bg-[#EFDB27] px-2 inline-block">Reading</span>
+              <span className="text-[10px] font-black uppercase tracking-widest text-[#1E971D] bg-emerald-50 border border-emerald-100 px-3 py-1 rounded-full inline-block mb-2">
+                Keep Exploring
+              </span>
+              <h3 className="text-2xl sm:text-3xl font-black text-slate-900 uppercase">
+                Recommended <span className="text-[#1E971D]">Articles</span>
               </h3>
             </div>
 
@@ -509,28 +706,26 @@ const UserBlogDetails = () => {
                 <SLink
                   key={rec.id}
                   to={`/blog/${rec.id}`}
-                  className="group bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden flex flex-col hover:shadow-md hover:-translate-y-1 transition-all duration-300"
+                  className="group bg-white rounded-3xl shadow-xs border border-slate-200/90 overflow-hidden flex flex-col hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
                 >
-                  {/* image */}
-                  <div className="w-full h-48 overflow-hidden bg-gray-50 flex items-center justify-center">
+                  <div className="w-full h-48 overflow-hidden bg-slate-50 flex items-center justify-center p-2 border-b border-slate-100">
                     <img
                       src={rec.image}
                       alt={rec.title}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      className="w-full h-full object-contain mix-blend-multiply group-hover:scale-105 transition-transform duration-500"
                     />
                   </div>
 
-                  {/* text */}
-                  <div className="p-5 flex flex-col flex-1 gap-2">
-                    <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
+                  <div className="p-6 flex flex-col flex-1 gap-2">
+                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
                       {rec.date}
                     </span>
                     <h4
-                      className="text-base font-black text-gray-900 leading-snug group-hover:text-[#ff4d2d] transition-colors line-clamp-2"
+                      className="text-base font-black text-slate-900 leading-snug group-hover:text-[#1E971D] transition-colors line-clamp-2 uppercase"
                       dangerouslySetInnerHTML={{ __html: rec.title }}
                     />
-                    <p className="text-sm text-gray-500 line-clamp-2 mt-1">{rec.description}</p>
-                    <span className="mt-auto text-xs font-bold text-[#ff4d2d] uppercase tracking-widest">
+                    <p className="text-xs text-slate-500 line-clamp-2 mt-1 leading-relaxed">{rec.description}</p>
+                    <span className="mt-auto pt-3 text-xs font-black text-[#1E971D] uppercase tracking-widest flex items-center gap-1">
                       Read Article →
                     </span>
                   </div>
@@ -543,12 +738,13 @@ const UserBlogDetails = () => {
 
       {/* ── SCROLL-TO-TOP FAB ── */}
       <div
-        className={`fixed bottom-24 right-8 transition-all duration-300 transform ${showTopBtn ? "translate-y-0 opacity-100" : "translate-y-10 opacity-0 pointer-events-none"
-          }`}
+        className={`fixed bottom-24 right-8 transition-all duration-300 transform z-40 ${
+          showTopBtn ? "translate-y-0 opacity-100" : "translate-y-10 opacity-0 pointer-events-none"
+        }`}
       >
         <button
           onClick={goToTop}
-          className="p-3.5 bg-[#EFDB27] text-black rounded-full shadow-lg hover:bg-yellow-300 hover:scale-110 active:scale-95 transition-all"
+          className="p-3.5 bg-[#1E971D] text-white rounded-full shadow-lg hover:bg-slate-900 hover:scale-110 active:scale-95 transition-all cursor-pointer"
           title="Go to top"
         >
           <ChevronUp size={22} />

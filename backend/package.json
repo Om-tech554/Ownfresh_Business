@@ -7,6 +7,10 @@
   "scripts": {
     "start": "node index.js",
     "dev": "nodemon index.js",
+    "backup-wp": "node scripts/backupWordpressData.js",
+    "backup-db": "node scripts/backupDatabase.js",
+    "restore-db": "node scripts/restoreDatabase.js",
+    "import-data": "node scripts/importAllDataToMongo.js",
     "build": "npm install && cd ../frontend && npm install && npm run build"
   },
   "author": "TechNewitty",

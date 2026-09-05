@@ -1,0 +1,25 @@
+[
+  {
+    "_id": "6a9be596a25b280376ce81c3",
+    "fullName": "OwnFresh Official",
+    "userName": "ownfresh_admin",
+    "email": "admin@myownfresh.com",
+    "mobile": "+918999773438",
+    "role": "admin",
+    "referralCode": "OWNFRESH",
+    "wallet": 0,
+    "walletBalance": 0,
+    "referralPoints": 0,
+    "hasRedeemedReferral": false,
+    "subscriptionActive": false,
+    "isMember": false,
+    "membershipExpiresAt": null,
+    "membershipPlanName": "",
+    "commissionCoins": 0,
+    "isOtpVerified": false,
+    "clientType": "Non-GST",
+    "createdAt": "2026-09-05T09:49:10.882Z",
+    "updatedAt": "2026-09-05T09:49:10.882Z",
+    "__v": 0
+  }
+]

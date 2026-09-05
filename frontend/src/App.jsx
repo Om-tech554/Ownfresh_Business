@@ -11,33 +11,46 @@ import useGetCity from './hooks/useGetCity';
 import AdminRoute from "./components/AdminRoute";
 import Footer from './components/Footer';
 import FloatingContact from './components/FloatingContact';
+import MobileBottomNav from './components/MobileBottomNav';
 import AOS from 'aos';
 import 'aos/dist/aos.css';
 
+// Resilient lazy loader with auto-retry for dynamic imports
+const lazyRetry = (componentImport) =>
+  lazy(async () => {
+    try {
+      return await componentImport();
+    } catch (error) {
+      console.warn("Dynamic import failed, retrying once...", error);
+      // If module failed to load due to stale cache/HMR, retry loading
+      return await componentImport();
+    }
+  });
+
 // Lazy-loaded routes for code splitting
-const BlogList = lazy(() => import('./components/admin/BlogList'));
-const AdminDashboard = lazy(() => import('./components/AdminDashboard'));
-const UserBlogDetails = lazy(() => import("./pages/UserBlogDetails"));
-const CartPage = lazy(() => import('./pages/CartPage'));
-const AdminBlogDetails = lazy(() => import('./pages/BlogDetails'));
-const Shop = lazy(() => import('./components/Shop'));
-const OilInsights = lazy(() => import('./pages/OilInsights'));
-const CheckOut = lazy(() => import('./pages/CheckOut'));
-const OrderSuccess = lazy(() => import('./pages/OrderSuccess'));
-const WhyOwnFresh = lazy(() => import('./pages/WhyOwnFresh'));
-const ProductDetails = lazy(() => import("./pages/ProductDetails"));
-const Contact = lazy(() => import("./pages/Contact"));
-const GalleryPage = lazy(() => import("./pages/GalleryPage"));
-const AdminBlogEditor = lazy(() => import("./pages/admin/AdminBlogEditor"));
-const AdminProductEditor = lazy(() => import("./pages/admin/AdminProductEditor"));
-const MyOrders = lazy(() => import("./pages/MyOrders"));
-const OrderDetails = lazy(() => import("./pages/OrderDetails"));
-const ReferralDashboard = lazy(() => import("./pages/ReferralDashboard"));
-const PrivacyPolicy = lazy(() => import('./pages/PrivacyPolicy'));
-const TermsAndConditions = lazy(() => import('./pages/TermsAndConditions'));
-const RefundPolicy = lazy(() => import('./pages/RefundPolicy'));
-const ShippingPolicy = lazy(() => import('./pages/ShippingPolicy'));
-const MembershipPage = lazy(() => import('./pages/MembershipPage'));
+const BlogList = lazyRetry(() => import('./components/admin/BlogList'));
+const AdminDashboard = lazyRetry(() => import('./components/AdminDashboard'));
+const UserBlogDetails = lazyRetry(() => import("./pages/UserBlogDetails"));
+const CartPage = lazyRetry(() => import('./pages/CartPage'));
+const AdminBlogDetails = lazyRetry(() => import('./pages/BlogDetails'));
+const Shop = lazyRetry(() => import('./components/Shop'));
+const OilInsights = lazyRetry(() => import('./pages/OilInsights'));
+const CheckOut = lazyRetry(() => import('./pages/CheckOut'));
+const OrderSuccess = lazyRetry(() => import('./pages/OrderSuccess'));
+const WhyOwnFresh = lazyRetry(() => import('./pages/WhyOwnFresh'));
+const ProductDetails = lazyRetry(() => import("./pages/ProductDetails"));
+const Contact = lazyRetry(() => import("./pages/Contact"));
+const GalleryPage = lazyRetry(() => import("./pages/GalleryPage"));
+const AdminBlogEditor = lazyRetry(() => import("./pages/admin/AdminBlogEditor"));
+const AdminProductEditor = lazyRetry(() => import("./pages/admin/AdminProductEditor"));
+const MyOrders = lazyRetry(() => import("./pages/MyOrders"));
+const OrderDetails = lazyRetry(() => import("./pages/OrderDetails"));
+const ReferralDashboard = lazyRetry(() => import("./pages/ReferralDashboard"));
+const PrivacyPolicy = lazyRetry(() => import('./pages/PrivacyPolicy'));
+const TermsAndConditions = lazyRetry(() => import('./pages/TermsAndConditions'));
+const RefundPolicy = lazyRetry(() => import('./pages/RefundPolicy'));
+const ShippingPolicy = lazyRetry(() => import('./pages/ShippingPolicy'));
+const MembershipPage = lazyRetry(() => import('./pages/MembershipPage'));
 
 export const serverUrl = import.meta.env.VITE_API_URL || "http://localhost:10000";
 
@@ -183,6 +196,9 @@ const App = () => {
         !location.pathname.startsWith("/blogs") &&
         !(location.pathname === "/" && (userData?.role === "admin" || userData?.role === "blogger")) &&
         <FloatingContact />}
+
+      {/* ✅ Native Mobile Bottom Navigation Bar (iOS / Android) */}
+      <MobileBottomNav />
     </>
   );
 };

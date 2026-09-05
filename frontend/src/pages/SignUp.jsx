@@ -1,252 +1,243 @@
-// import React, { useState } from "react";
-// import axios from "axios";
-// import { useNavigate } from "react-router-dom";
-// import { Eye, EyeOff, User, Mail, Lock, Phone, Loader2, ArrowLeft } from "lucide-react";
-// import { serverUrl } from "../App";
-// import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
-// import { auth } from "../../firebase";
-// import toast from "react-hot-toast";
-
-// const SignUp = () => {
-//   const navigate = useNavigate();
-
-//   const [showPassword, setShowPassword] = useState(false);
-//   const [loading, setLoading] = useState(false);
-
-//   const [fullName, setFullName] = useState("");
-//   const [mobile, setMobile] = useState("");
-//   const [email, setEmail] = useState("");
-//   const [password, setPassword] = useState("");
-//   const role = "user";
-
-//   const primaryColor = "#FFD700";
-
-//   // --------------------------
-//   // NORMAL SIGNUP
-//   // --------------------------
-//   const handleSignUp = async (e) => {
-//     e.preventDefault();
-
-//     if (mobile.length < 10)
-//       return toast.error("Enter valid 10-digit mobile number");
-
-//     setLoading(true);
-//     try {
-//       await axios.post(
-//         `${serverUrl}/api/auth/signup`,
-//         { fullName, email, password, mobile, role },
-//         { withCredentials: true }
-//       );
-
-//       toast.success("Account created successfully!", { duration: 1500 });
-
-//       setTimeout(() => navigate("/signin"), 1500);
-
-//     } catch (error) {
-//       toast.error(error.response?.data?.message || "Signup failed",{ duration: 1500 });
-//     } finally {
-//       setLoading(false);
-//     }
-//   };
-
-//   // --------------------------
-//   // GOOGLE SIGNUP
-//   // --------------------------
-//   const handleGoogleAuth = async () => {
-//     if (mobile.length < 10)
-//       return toast.error("Enter mobile number before Google signup",{ duration: 1500 });
-
-//     const provider = new GoogleAuthProvider();
-
-//     setLoading(true);
-//     try {
-//       const googleData = await signInWithPopup(auth, provider);
-
-//       await axios.post(
-//         `${serverUrl}/api/auth/google-auth`,
-//         {
-//           fullName: googleData.user.displayName,
-//           email: googleData.user.email,
-//           mobile,
-//           role,
-//         },
-//         { withCredentials: true }
-//       );
-
-//       toast.success("Google signup completed",{duaration:1500});
-//       navigate("/");
-//     } catch (error) {
-//       toast.error(error.response?.data?.message || "Google signup failed",{ duration: 1500 });
-//     } finally {
-//       setLoading(false);
-//     }
-//   };
-
-//   return (
-//     <div className="min-h-screen flex items-center justify-center p-4 bg-[#FFFDF2] relative">
-
-//       <button
-//         onClick={() => navigate("/")}
-//         className="absolute top-8 left-8 flex items-center gap-2 text-gray-500 hover:text-black"
-//       >
-//         <ArrowLeft size={20} /> Back
-//       </button>
-
-//       <div className="bg-white p-10 rounded-2xl shadow-lg w-full max-w-md">
-
-//         <h1 className="text-4xl text-center font-black mb-2" style={{ color: primaryColor }}>
-//           OwnFresh
-//         </h1>
-//         <p className="text-gray-500 text-center mb-6">Create your account</p>
-
-//         {/* GOOGLE SIGNUP */}
-//         <button
-//           onClick={handleGoogleAuth}
-//           className="w-full flex items-center justify-center gap-3 border py-3 rounded-xl mb-6 shadow-yellow-200 transition-all active:scale-[0.98]"
-//         >
-//           <img src="https://www.svgrepo.com/show/475656/google-color.svg" className="w-5 h-5" />
-//           Sign up with Google
-//         </button>
-
-//         <form onSubmit={handleSignUp} className="space-y-4">
-
-//           <div>
-//             <label>Full Name</label>
-//             <div className="relative">
-//               <User className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-//               <input className="w-full pl-10 pr-3 py-3 border rounded-xl"
-//                 required onChange={(e) => setFullName(e.target.value)} />
-//             </div>
-//           </div>
-
-//           <div>
-//             <label>Whatapp Number</label>
-//             <div className="relative">
-//               <Phone className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-//               <input className="w-full pl-10 pr-3 py-3 border rounded-xl"
-//                 required onChange={(e) => setMobile(e.target.value)} />
-//             </div>
-//           </div>
-
-//           <div>
-//             <label>Email</label>
-//             <div className="relative">
-//               <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-//               <input className="w-full pl-10 pr-3 py-3 border rounded-xl"
-//                 required type="email" onChange={(e) => setEmail(e.target.value)} />
-//             </div>
-//           </div>
-
-//           <div>
-//             <label>Creat Password</label>
-//             <div className="relative">
-//               <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-//               <input
-//                 className="w-full pl-10 pr-10 py-3 border rounded-xl"
-//                 required
-//                 type={showPassword ? "text" : "password"}
-//                 onChange={(e) => setPassword(e.target.value)}
-//               />
-//               <button type="button"
-//                 className="absolute right-3 top-1/2 -translate-y-1/2"
-//                 onClick={() => setShowPassword(!showPassword)}
-//               >
-//                 {showPassword ? <EyeOff /> : <Eye />}
-//               </button>
-//             </div>
-//           </div>
-
-//           <button className="w-full py-3 rounded-xl font-bold shadow-yellow-200 transition-all active:scale-[0.98]"
-//             style={{ backgroundColor: primaryColor }}>
-//             {loading ? <Loader2 className="animate-spin mx-auto" /> : "Create Account"}
-//           </button>
-
-//         </form>
-
-//         <p className="text-center mt-6 text-gray-500">
-//           Already have an account?{" "}
-//           <span
-//             className="font-bold cursor-pointer"
-//             style={{ color: primaryColor }}
-//             onClick={() => navigate("/signin")}
-//           >
-//             Sign In
-//           </span>
-//         </p>
-//       </div>
-//     </div>
-//   );
-// };
-
-// export default SignUp;
-
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import {
-  Eye, EyeOff, User, Mail, Lock, Phone, Loader2, ArrowLeft, Ticket
+  Eye,
+  EyeOff,
+  User,
+  Mail,
+  Lock,
+  Phone,
+  Loader2,
+  ArrowLeft,
+  Ticket,
+  Smartphone,
+  ShieldCheck,
+  RotateCcw,
+  Sparkles
 } from "lucide-react";
 import { serverUrl } from "../App";
-import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
+import {
+  auth,
+  appCheck,
+  setUpRecaptcha,
+  signInWithPhoneNumber,
+  GoogleAuthProvider,
+  signInWithPopup
+} from "../../firebase";
 import { getToken } from "firebase/app-check";
-import { auth, appCheck } from "../../firebase";
 import toast from "react-hot-toast";
 import { useDispatch } from "react-redux";
-import { AnimatePresence, motion } from "framer-motion";
-import { setUserData, clearCart } from "../redux/userslice";  // ⭐ ADDED
+import { setUserData, clearCart } from "../redux/userslice";
+import SEO from "../components/SEO";
+
 const SignUp = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const dispatch = useDispatch();
 
-  const [showPassword, setShowPassword] = useState(false);
-  const [loading, setLoading] = useState(false);
+  // Tab: "phone" | "email"
+  const [authMethod, setAuthMethod] = useState("phone");
+
+  // Referral code from query param if available
+  const queryRefCode = searchParams.get("ref") || "";
+
+  // Form Fields
   const [fullName, setFullName] = useState("");
-  const [countryCode, setCountryCode] = useState("+91");
   const [mobile, setMobile] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [referralCode, setReferralCode] = useState(queryRefCode);
+  const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-  const role = "user";
+  // Phone OTP Flow State
+  const [otpSent, setOtpSent] = useState(false);
+  const [otpCode, setOtpCode] = useState(["", "", "", "", "", ""]);
+  const [confirmationResult, setConfirmationResult] = useState(null);
+  const [countdown, setCountdown] = useState(0);
+  const [otpSending, setOtpSending] = useState(false);
+  const [otpVerifying, setOtpVerifying] = useState(false);
+
+  // Domain signup email OTP modal
+  const [showEmailOtpModal, setShowEmailOtpModal] = useState(false);
+  const [emailOtp, setEmailOtp] = useState("");
+  const [emailVerifying, setEmailVerifying] = useState(false);
+
+  const otpInputsRef = useRef([]);
   const primaryColor = "#FFD700";
+  const hoverColor = "#E6B800";
 
-  const [showOtpModal, setShowOtpModal] = useState(false);
-  const [otpCode, setOtpCode] = useState("");
-  const [verifying, setVerifying] = useState(false);
-  const [resending, setResending] = useState(false);
+  // Countdown timer for Resend OTP
+  useEffect(() => {
+    let timer;
+    if (countdown > 0) {
+      timer = setInterval(() => setCountdown((prev) => prev - 1), 1000);
+    }
+    return () => clearInterval(timer);
+  }, [countdown]);
 
-  // -------------------------
-  // NORMAL SIGNUP
-  // -------------------------
-  const handleSignUp = async (e) => {
+  // -----------------------------------------
+  // 1. PHONE NUMBER OTP SIGNUP
+  // -----------------------------------------
+  const handleSendPhoneOtp = async (e) => {
+    if (e) e.preventDefault();
+
+    if (!fullName || fullName.trim().length < 2) {
+      return toast.error("Please enter your Full Name");
+    }
+
+    const cleanMobile = mobile.replace(/\D/g, "");
+    if (cleanMobile.length !== 10) {
+      return toast.error("Please enter a valid 10-digit Indian mobile number");
+    }
+
+    const formattedPhone = `+91${cleanMobile}`;
+
+    try {
+      setOtpSending(true);
+      const appVerifier = setUpRecaptcha("recaptcha-container");
+      if (!appVerifier) {
+        throw new Error("reCAPTCHA failed to initialize. Please refresh the page.");
+      }
+
+      const result = await signInWithPhoneNumber(auth, formattedPhone, appVerifier);
+      setConfirmationResult(result);
+      setOtpSent(true);
+      setCountdown(30);
+      toast.success(`SMS OTP sent to ${formattedPhone}!`);
+
+      setTimeout(() => {
+        if (otpInputsRef.current[0]) {
+          otpInputsRef.current[0].focus();
+        }
+      }, 300);
+    } catch (err) {
+      console.error("Phone signup OTP error:", err);
+      const msg = err.message || "Failed to send SMS OTP";
+      if (msg.includes("too-many-requests")) {
+        toast.error("Too many attempts. Please wait a few minutes.");
+      } else {
+        toast.error(msg);
+      }
+    } finally {
+      setOtpSending(false);
+    }
+  };
+
+  const handleOtpChange = (index, value) => {
+    if (isNaN(value)) return;
+    const newOtp = [...otpCode];
+    newOtp[index] = value.slice(-1);
+    setOtpCode(newOtp);
+
+    if (value && index < 5) {
+      otpInputsRef.current[index + 1]?.focus();
+    }
+  };
+
+  const handleOtpKeyDown = (index, e) => {
+    if (e.key === "Backspace" && !otpCode[index] && index > 0) {
+      otpInputsRef.current[index - 1]?.focus();
+    }
+  };
+
+  const handleVerifyPhoneOtp = async (e) => {
+    if (e) e.preventDefault();
+    const enteredOtp = otpCode.join("");
+    if (enteredOtp.length !== 6) {
+      return toast.error("Please enter the complete 6-digit OTP");
+    }
+
+    if (!confirmationResult) {
+      return toast.error("Session expired. Please request a new OTP.");
+    }
+
+    try {
+      setOtpVerifying(true);
+      const userCredential = await confirmationResult.confirm(enteredOtp);
+      const idToken = await userCredential.user.getIdToken();
+
+      let appCheckToken = "";
+      if (appCheck) {
+        try {
+          const tokenRes = await getToken(appCheck, false);
+          appCheckToken = tokenRes.token;
+        } catch (e) {
+          console.warn("App Check token omitted", e);
+        }
+      }
+
+      const { data } = await axios.post(
+        `${serverUrl}/api/auth/phone-auth`,
+        {
+          idToken,
+          fullName,
+          referralCode: referralCode ? referralCode.trim().toUpperCase() : undefined
+        },
+        {
+          withCredentials: true,
+          headers: appCheckToken ? { "X-Firebase-AppCheck": appCheckToken } : {}
+        }
+      );
+
+      dispatch(setUserData(data));
+      dispatch(clearCart());
+      localStorage.setItem("oil_user", JSON.stringify(data));
+      if (data?.token) {
+        localStorage.setItem("oil_token", data.token);
+      }
+
+      toast.success("Account created and signed in successfully!");
+      setTimeout(() => navigate("/"), 1000);
+    } catch (err) {
+      console.error("Phone OTP verification error:", err);
+      toast.error(err.response?.data?.message || "Invalid or expired OTP code.");
+    } finally {
+      setOtpVerifying(false);
+    }
+  };
+
+  // -----------------------------------------
+  // 2. EMAIL / PASSWORD SIGNUP
+  // -----------------------------------------
+  const handleEmailSignUp = async (e) => {
     e.preventDefault();
 
-    if (mobile.length < 10) {
-      return toast.error("Enter valid 10-digit mobile number");
+    const cleanMobile = mobile.replace(/\D/g, "");
+    if (cleanMobile.length !== 10) {
+      return toast.error("Please enter a valid 10-digit mobile number");
     }
 
     setLoading(true);
     try {
       const { data } = await axios.post(
         `${serverUrl}/api/auth/signup`,
-        { fullName, email, password, mobile: countryCode + mobile, role },
+        {
+          fullName,
+          email,
+          password,
+          mobile: cleanMobile,
+          referralCode: referralCode ? referralCode.trim().toUpperCase() : undefined,
+          role: "user"
+        },
         { withCredentials: true }
       );
 
       if (data.requiresVerification) {
-        toast.success("Verification OTP sent to your company email!");
-        setShowOtpModal(true);
+        toast.success("Verification OTP sent to your email!");
+        setShowEmailOtpModal(true);
       } else {
-        // ⭐ NEW: Automatically log user in after signup
         dispatch(setUserData(data));
-        dispatch(clearCart()); // ⭐ NEW: Cart resets to 0 for new user
+        dispatch(clearCart());
         localStorage.setItem("oil_user", JSON.stringify(data));
+        if (data?.token) {
+          localStorage.setItem("oil_token", data.token);
+        }
 
-        toast.success("Account created!", { duration: 1500 });
-
+        toast.success("Account created successfully!");
         setTimeout(() => navigate("/"), 1000);
       }
-
     } catch (error) {
       toast.error(error.response?.data?.message || "Signup failed");
     } finally {
@@ -254,17 +245,17 @@ const SignUp = () => {
     }
   };
 
-  const handleVerifyOtp = async (e) => {
+  const handleVerifyEmailOtp = async (e) => {
     e.preventDefault();
-    if (!otpCode || otpCode.trim().length !== 6) {
-      return toast.error("Please enter a valid 6-digit OTP code");
+    if (!emailOtp || emailOtp.trim().length !== 6) {
+      return toast.error("Please enter a valid 6-digit OTP");
     }
 
-    setVerifying(true);
+    setEmailVerifying(true);
     try {
       const { data } = await axios.post(
         `${serverUrl}/api/auth/verify-signup-otp`,
-        { email, otp: otpCode },
+        { email, otp: emailOtp },
         { withCredentials: true }
       );
 
@@ -272,86 +263,59 @@ const SignUp = () => {
       dispatch(clearCart());
       localStorage.setItem("oil_user", JSON.stringify(data));
 
-      toast.success("Account verified and created successfully!");
-      setShowOtpModal(false);
-
-      if (data.role === "admin" || data.role === "blogger") {
-        setTimeout(() => navigate("/admin"), 1000);
-      } else {
-        setTimeout(() => navigate("/"), 1000);
-      }
+      toast.success("Account verified successfully!");
+      setShowEmailOtpModal(false);
+      setTimeout(() => navigate("/"), 1000);
     } catch (error) {
       toast.error(error.response?.data?.message || "Verification failed");
     } finally {
-      setVerifying(false);
+      setEmailVerifying(false);
     }
   };
 
-  const handleResendOtp = async () => {
-    setResending(true);
-    try {
-      await axios.post(
-        `${serverUrl}/api/auth/resend-signup-otp`,
-        { email },
-        { withCredentials: true }
-      );
-      toast.success("OTP resent successfully!");
-    } catch (error) {
-      toast.error(error.response?.data?.message || "Failed to resend OTP");
-    } finally {
-      setResending(false);
-    }
-  };
-
-  // -------------------------
-  // GOOGLE SIGNUP
-  // -------------------------
+  // -----------------------------------------
+  // 3. GOOGLE 1-CLICK SIGNUP (PRESERVED)
+  // -----------------------------------------
   const handleGoogleAuth = async () => {
-    if (mobile && mobile.length < 10)
-      return toast.error("Enter a valid 10-digit mobile number or leave it blank");
-
     const provider = new GoogleAuthProvider();
-    setLoading(true);
 
     try {
-      const google = await signInWithPopup(auth, provider);
-      const idToken = await google.user.getIdToken();
+      setLoading(true);
+      const googleUser = await signInWithPopup(auth, provider);
+      const idToken = await googleUser.user.getIdToken();
 
       let appCheckToken = "";
       if (appCheck) {
-          try {
-              const tokenResponse = await getToken(appCheck, false);
-              appCheckToken = tokenResponse.token;
-          } catch (e) {
-              console.warn("App Check token fetch failed", e);
-          }
+        try {
+          const tokenRes = await getToken(appCheck, false);
+          appCheckToken = tokenRes.token;
+        } catch (e) {
+          console.warn("App Check token omitted", e);
+        }
       }
 
       const { data } = await axios.post(
         `${serverUrl}/api/auth/google-auth`,
+        { idToken },
         {
-          idToken,
-          mobile: mobile ? (countryCode + mobile) : undefined,
-          role,
-        },
-        { 
           withCredentials: true,
-          headers: appCheckToken ? { 'X-Firebase-AppCheck': appCheckToken } : {}
+          headers: appCheckToken ? { "X-Firebase-AppCheck": appCheckToken } : {}
         }
       );
 
       dispatch(setUserData(data));
-      dispatch(clearCart()); // ⭐ for new google users
+      dispatch(clearCart());
       localStorage.setItem("oil_user", JSON.stringify(data));
+      if (data?.token) {
+        localStorage.setItem("oil_token", data.token);
+      }
 
-      toast.success("Google signup completed");
-      
-      // Remove query params from browser history for security
-      window.history.replaceState({}, document.title, window.location.pathname);
-      navigate("/");
-
+      toast.success("Google signup successful!");
+      setTimeout(() => navigate("/"), 1000);
     } catch (error) {
-      toast.error(error.response?.data?.message || "Google signup failed");
+      console.error("Google Signup Error:", error);
+      const errMsg = error.response?.data?.message || error.message || "Google Sign-In failed";
+      toast.error(errMsg);
     } finally {
       setLoading(false);
     }
@@ -359,26 +323,48 @@ const SignUp = () => {
 
   return (
     <div className="min-h-screen flex w-full font-sans bg-[#FFFDF2] relative">
-      
-      {/* LEFT COLUMN: BACKGROUND IMAGE */}
+      <SEO
+        title="Sign Up | Join OwnFresh Stone Pressed Oils"
+        description="Create your OwnFresh account with instant Mobile SMS OTP or Google Sign-In. Enjoy 1% Prime reward coins and traditional stone-pressed oils."
+        keywords="sign up, ownfresh register, phone otp signup, pure wood pressed oil, buy stone pressed oils india"
+      />
+
+      <div id="recaptcha-container"></div>
+
+      {/* LEFT COLUMN: HERO IMAGE */}
       <div className="hidden lg:flex w-1/2 relative bg-black">
-        <img 
-          src="/auth-bg.png" 
-          alt="OwnFresh background" 
-          className="absolute inset-0 w-full h-full object-cover opacity-80"
+        <img
+          src="/auth-signin-bg.jpg"
+          alt="OwnFresh Pure Oils"
+          className="absolute inset-0 w-full h-full object-cover opacity-90"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-black/10"></div>
-        
+        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-black/20"></div>
+
         <div className="absolute top-12 left-12">
-          <h1 className="text-5xl font-black text-white tracking-widest uppercase" style={{ fontFamily: 'Playfair Display, serif' }}>
-            Own<span className="text-[#FFD700]">Fresh</span>
+          <h1
+            className="text-5xl font-black text-white tracking-widest uppercase drop-shadow-md"
+            style={{ fontFamily: "Playfair Display, serif" }}
+          >
+            Own<span className="text-[#EFDB27]">Fresh</span>
           </h1>
-          <div className="h-1 w-16 bg-[#FFD700] mt-4 rounded-full"></div>
+          <div className="h-1 w-16 bg-[#EFDB27] mt-3 rounded-full"></div>
         </div>
 
-        <div className="absolute bottom-12 left-12 right-12 text-white">
-          <h2 className="text-4xl font-bold mb-4" style={{ fontFamily: 'Playfair Display, serif' }}>Discover the Essence of Nature</h2>
-          <p className="text-lg text-gray-200">Join OwnFresh to explore premium, stone-pressed oils and natural wellness products tailored for you.</p>
+        <div className="absolute bottom-12 left-12 right-12 bg-white/95 backdrop-blur-md p-8 rounded-3xl border border-white/50 text-slate-800 shadow-xl">
+          <span className="inline-block px-3 py-1 bg-emerald-50 text-[#24672E] border border-emerald-200 text-[10px] font-black uppercase tracking-wider rounded-full mb-3">
+            Welcome to the Pure Oil Revolution
+          </span>
+          <h2 className="text-2xl font-black mb-2.5 leading-tight uppercase tracking-tight text-slate-900 font-playfair">
+            Join Thousands of <span className="text-[#24672E]">Healthy Families</span>
+          </h2>
+          <p className="text-xs font-semibold text-slate-600 mb-4 leading-relaxed">
+            Create an account to unlock 1% Prime rewards on every order, fast delivery tracking, and farm-fresh stone-pressed purity.
+          </p>
+          <div className="flex flex-wrap gap-2">
+            <span className="px-2.5 py-1.5 bg-slate-100 text-slate-700 rounded-lg text-[9px] font-extrabold uppercase">Stone Pressed</span>
+            <span className="px-2.5 py-1.5 bg-slate-100 text-slate-700 rounded-lg text-[9px] font-extrabold uppercase">Instant SMS Access</span>
+            <span className="px-2.5 py-1.5 bg-slate-100 text-slate-700 rounded-lg text-[9px] font-extrabold uppercase">1% Cashback Coins</span>
+          </div>
         </div>
       </div>
 
@@ -386,235 +372,391 @@ const SignUp = () => {
       <div className="w-full lg:w-1/2 flex items-center justify-center p-4 sm:p-8 lg:p-12 relative">
         <button
           onClick={() => navigate("/")}
-          className="absolute top-6 left-6 flex items-center gap-1.5 text-gray-500 hover:text-[#24672E] transition-colors cursor-pointer bg-white py-2 px-4.5 rounded-full shadow-xs hover:shadow-sm border border-slate-150 text-xs font-black uppercase tracking-wider z-50 animate-fade-in"
+          className="absolute top-6 left-6 flex items-center gap-1.5 text-gray-500 hover:text-[#24672E] transition-colors cursor-pointer bg-white py-2 px-4.5 rounded-full shadow-xs hover:shadow-sm border border-slate-200 text-xs font-black uppercase tracking-wider z-50"
         >
           <ArrowLeft size={14} /> Back
         </button>
 
         <div className="w-full max-w-md bg-white sm:bg-transparent p-7 sm:p-0 rounded-3xl sm:rounded-none border border-slate-100 sm:border-0 shadow-sm sm:shadow-none transition-all duration-300">
-          
-          {/* MOBILE LOGO HEADER */}
-          <div className="flex flex-col items-center mb-6 lg:hidden">
-            <img
-              src="https://res.cloudinary.com/dkhq2wlwg/image/upload/v1774962822/ownfresh_media/ndxvmcpisomjzsghrfjs.png"
-              alt="OwnFresh Logo"
-              className="h-10 w-auto object-contain mb-2"
-            />
-            <span className="text-[9px] font-black uppercase tracking-widest text-[#24672E] bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-100">
-              Pure Stone-Pressed Oils
-            </span>
-          </div>
-
           <div className="text-center mb-6">
             <h1
               className="text-3xl sm:text-4xl font-black tracking-tight mb-1.5 font-playfair uppercase"
               style={{ color: "#2F5D50" }}
             >
-              Botanic Purity
+              Create Account
             </h1>
-            <p className="text-slate-400 text-xs sm:text-sm font-semibold">Create your account</p>
+            <p className="text-slate-500 text-xs sm:text-sm font-semibold">
+              Sign up in seconds to start shopping pure oils:
+            </p>
           </div>
 
-          {/* GOOGLE SIGNUP */}
+          {/* GOOGLE SIGNUP (PRESERVED) */}
           <button
+            type="button"
+            className="w-full flex items-center justify-center gap-3 border border-slate-200 py-3 rounded-xl mb-4 hover:bg-slate-50 transition-all active:scale-[0.98] cursor-pointer shadow-xs bg-white text-xs sm:text-sm font-bold text-slate-700"
             onClick={handleGoogleAuth}
-            className="w-full flex items-center justify-center gap-3 border border-slate-200 py-3.5 rounded-xl mb-3 hover:bg-slate-50 transition-all active:scale-[0.98] cursor-pointer shadow-xs bg-white text-xs sm:text-sm font-bold text-slate-700"
+            disabled={loading}
           >
-            <img src="https://www.svgrepo.com/show/475656/google-color.svg" className="w-5 h-5" alt="Google" />
+            <img
+              src="https://www.svgrepo.com/show/475656/google-color.svg"
+              alt="Google"
+              className="w-5 h-5"
+            />
             <span>Sign up with Google</span>
           </button>
 
           {/* Divider */}
-          <div className="flex items-center gap-4 mb-6">
-            <div className="flex-1 h-[1px] bg-slate-100" />
-            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">or</span>
-            <div className="flex-1 h-[1px] bg-slate-100" />
+          <div className="flex items-center gap-4 mb-5">
+            <div className="flex-1 h-[1px] bg-slate-200" />
+            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+              OR REGISTER WITH
+            </span>
+            <div className="flex-1 h-[1px] bg-slate-200" />
           </div>
 
-          <form onSubmit={handleSignUp} className="space-y-4">
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* Full Name */}
+          {/* TAB SELECTOR */}
+          <div className="grid grid-cols-2 p-1 bg-slate-100/90 rounded-2xl mb-6 border border-slate-200/80">
+            <button
+              type="button"
+              onClick={() => {
+                setAuthMethod("phone");
+                setOtpSent(false);
+              }}
+              className={`py-2.5 text-xs font-black uppercase tracking-wider rounded-xl transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+                authMethod === "phone"
+                  ? "bg-white text-[#24672E] shadow-sm font-extrabold"
+                  : "text-slate-500 hover:text-slate-800"
+              }`}
+            >
+              <Smartphone className="w-3.5 h-3.5" /> Mobile OTP
+            </button>
+            <button
+              type="button"
+              onClick={() => setAuthMethod("email")}
+              className={`py-2.5 text-xs font-black uppercase tracking-wider rounded-xl transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+                authMethod === "email"
+                  ? "bg-white text-[#24672E] shadow-sm font-extrabold"
+                  : "text-slate-500 hover:text-slate-800"
+              }`}
+            >
+              <Mail className="w-3.5 h-3.5" /> Email & Password
+            </button>
+          </div>
+
+          {/* ─────────────────────────────────────────────────────────────
+              TAB 1: FAST PHONE OTP SIGNUP
+             ───────────────────────────────────────────────────────────── */}
+          {authMethod === "phone" && (
+            <div className="space-y-4">
+              {!otpSent ? (
+                <form onSubmit={handleSendPhoneOtp} className="space-y-4">
+                  {/* Full Name */}
+                  <div>
+                    <label className="block text-xs font-black text-slate-700 uppercase tracking-wider mb-1.5 ml-1">
+                      Full Name
+                    </label>
+                    <div className="relative">
+                      <User className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+                      <input
+                        type="text"
+                        placeholder="Omkar Chandra"
+                        className="w-full pl-10 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#24672E] focus:border-[#24672E] focus:bg-white transition-all text-xs sm:text-sm font-semibold text-slate-800"
+                        value={fullName}
+                        required
+                        onChange={(e) => setFullName(e.target.value)}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Mobile Number */}
+                  <div>
+                    <label className="block text-xs font-black text-slate-700 uppercase tracking-wider mb-1.5 ml-1">
+                      Mobile Number
+                    </label>
+                    <div className="relative flex items-center">
+                      <div className="absolute left-3.5 top-1/2 -translate-y-1/2 flex items-center gap-1 text-slate-700 font-bold text-xs sm:text-sm border-r border-slate-200 pr-2.5 pointer-events-none">
+                        <span>🇮🇳</span>
+                        <span>+91</span>
+                      </div>
+                      <input
+                        type="tel"
+                        maxLength="10"
+                        placeholder="98765 43210"
+                        className="w-full pl-22 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#24672E] focus:border-[#24672E] focus:bg-white transition-all text-xs sm:text-sm font-bold text-slate-900 tracking-wider font-mono"
+                        value={mobile}
+                        required
+                        onChange={(e) => setMobile(e.target.value.replace(/\D/g, ""))}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Referral Code */}
+                  <div>
+                    <label className="block text-xs font-black text-slate-700 uppercase tracking-wider mb-1.5 ml-1">
+                      Referral Code <span className="text-gray-400 font-normal">(Optional)</span>
+                    </label>
+                    <div className="relative">
+                      <Ticket className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+                      <input
+                        type="text"
+                        placeholder="e.g. OWN1234"
+                        className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#24672E] focus:bg-white uppercase font-mono text-xs font-bold text-slate-800 tracking-wider"
+                        value={referralCode}
+                        onChange={(e) => setReferralCode(e.target.value.toUpperCase())}
+                      />
+                    </div>
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={otpSending || mobile.length < 10 || !fullName}
+                    className="w-full py-4 mt-2 rounded-xl font-black text-[#422006] shadow-md shadow-yellow-500/20 hover:shadow-lg transition-all active:scale-[0.98] flex items-center justify-center gap-2 cursor-pointer border-0 text-xs sm:text-sm uppercase tracking-widest disabled:opacity-50 disabled:cursor-not-allowed"
+                    style={{ backgroundColor: primaryColor }}
+                    onMouseOver={(e) => (e.currentTarget.style.backgroundColor = hoverColor)}
+                    onMouseOut={(e) => (e.currentTarget.style.backgroundColor = primaryColor)}
+                  >
+                    {otpSending ? (
+                      <Loader2 className="animate-spin" size={18} />
+                    ) : (
+                      <Smartphone size={16} />
+                    )}
+                    {otpSending ? "Sending SMS OTP..." : "Get OTP & Register"}
+                  </button>
+                </form>
+              ) : (
+                <form onSubmit={handleVerifyPhoneOtp} className="space-y-5">
+                  <div className="bg-emerald-50/70 border border-emerald-200 p-3.5 rounded-2xl flex items-center justify-between">
+                    <div>
+                      <span className="text-[10px] font-black uppercase tracking-wider text-emerald-800 block">
+                        SMS OTP Sent to
+                      </span>
+                      <span className="text-xs font-bold text-slate-800 font-mono">
+                        +91 {mobile}
+                      </span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setOtpSent(false);
+                        setOtpCode(["", "", "", "", "", ""]);
+                      }}
+                      className="text-xs text-emerald-700 font-black hover:underline cursor-pointer"
+                    >
+                      Change Details
+                    </button>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-black text-slate-700 uppercase tracking-wider mb-2 text-center">
+                      Enter 6-Digit SMS Code
+                    </label>
+                    <div className="flex justify-center gap-2 sm:gap-2.5">
+                      {otpCode.map((digit, idx) => (
+                        <input
+                          key={idx}
+                          ref={(el) => (otpInputsRef.current[idx] = el)}
+                          type="text"
+                          inputMode="numeric"
+                          maxLength="1"
+                          value={digit}
+                          onChange={(e) => handleOtpChange(idx, e.target.value)}
+                          onKeyDown={(e) => handleOtpKeyDown(idx, e)}
+                          className="w-10 sm:w-12 h-12 text-center font-mono font-black text-lg sm:text-xl bg-white border-2 border-slate-200 rounded-xl focus:border-[#24672E] focus:ring-2 focus:ring-[#24672E]/20 focus:outline-none transition-all"
+                        />
+                      ))}
+                    </div>
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={otpVerifying || otpCode.join("").length < 6}
+                    className="w-full py-4 rounded-xl font-black text-[#422006] shadow-md shadow-yellow-500/20 hover:shadow-lg transition-all active:scale-[0.98] flex items-center justify-center gap-2 cursor-pointer border-0 text-xs sm:text-sm uppercase tracking-widest disabled:opacity-50 disabled:cursor-not-allowed"
+                    style={{ backgroundColor: primaryColor }}
+                    onMouseOver={(e) => (e.currentTarget.style.backgroundColor = hoverColor)}
+                    onMouseOut={(e) => (e.currentTarget.style.backgroundColor = primaryColor)}
+                  >
+                    {otpVerifying ? (
+                      <Loader2 className="animate-spin" size={18} />
+                    ) : (
+                      <ShieldCheck size={18} />
+                    )}
+                    {otpVerifying ? "Verifying..." : "Complete Registration"}
+                  </button>
+
+                  <div className="text-center pt-1">
+                    {countdown > 0 ? (
+                      <span className="text-xs text-gray-400 font-semibold">
+                        Resend OTP in <strong className="text-slate-700 font-mono">{countdown}s</strong>
+                      </span>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={handleSendPhoneOtp}
+                        className="text-xs font-black text-[#24672E] hover:underline cursor-pointer inline-flex items-center gap-1"
+                      >
+                        <RotateCcw className="w-3.5 h-3.5" /> Resend SMS OTP
+                      </button>
+                    )}
+                  </div>
+                </form>
+              )}
+            </div>
+          )}
+
+          {/* ─────────────────────────────────────────────────────────────
+              TAB 2: EMAIL / PASSWORD SIGNUP
+             ───────────────────────────────────────────────────────────── */}
+          {authMethod === "email" && (
+            <form onSubmit={handleEmailSignUp} className="space-y-4">
               <div>
-                <label className="block text-xs font-black text-slate-700 uppercase tracking-wider mb-1.5 ml-1">Full Name</label>
+                <label className="block text-xs font-black text-slate-700 uppercase tracking-wider mb-1.5 ml-1">
+                  Full Name
+                </label>
                 <div className="relative">
                   <User className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
                   <input
-                    className="w-full pl-10 pr-3 py-3.5 bg-slate-50/70 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#24672E] focus:border-[#24672E] focus:bg-white transition-all text-xs sm:text-sm font-semibold text-slate-800"
-                    placeholder="John Doe"
+                    type="text"
+                    placeholder="Full Name"
+                    className="w-full pl-10 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#24672E] focus:bg-white text-xs sm:text-sm font-semibold text-slate-800"
+                    value={fullName}
                     required
                     onChange={(e) => setFullName(e.target.value)}
                   />
                 </div>
               </div>
 
-              {/* Email */}
               <div>
-                <label className="block text-xs font-black text-slate-700 uppercase tracking-wider mb-1.5 ml-1">Email</label>
+                <label className="block text-xs font-black text-slate-700 uppercase tracking-wider mb-1.5 ml-1">
+                  Email Address
+                </label>
                 <div className="relative">
                   <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
                   <input
-                    className="w-full pl-10 pr-3 py-3.5 bg-slate-50/70 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#24672E] focus:border-[#24672E] focus:bg-white transition-all text-xs sm:text-sm font-semibold text-slate-800"
                     type="email"
-                    placeholder="name@mail.com"
+                    placeholder="name@example.com"
+                    className="w-full pl-10 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#24672E] focus:bg-white text-xs sm:text-sm font-semibold text-slate-800"
+                    value={email}
                     required
                     onChange={(e) => setEmail(e.target.value)}
                   />
                 </div>
               </div>
-            </div>
 
-            <div className="grid grid-cols-1 gap-4">
-              {/* Mobile */}
               <div>
-                <label className="block text-xs font-black text-slate-700 uppercase tracking-wider mb-1.5 ml-1">WhatsApp</label>
-                <div className="flex bg-slate-50/70 border border-slate-200 rounded-xl focus-within:ring-2 focus-within:ring-[#24672E] focus-within:border-[#24672E] focus-within:bg-white transition-all overflow-hidden">
-                  <div className="flex items-center pl-3.5 border-r border-slate-200 pr-2 bg-slate-50 shrink-0">
-                    <Phone className="text-slate-400 mr-2" size={16} />
-                    <select
-                      className="bg-transparent text-xs font-black text-slate-700 focus:outline-none cursor-pointer"
-                      value={countryCode}
-                      onChange={(e) => setCountryCode(e.target.value)}
-                    >
-                      <option value="+91">🇮🇳 +91</option>
-                      <option value="+1">🇺🇸 +1</option>
-                      <option value="+44">🇬🇧 +44</option>
-                      <option value="+971">🇦🇪 +971</option>
-                      <option value="+61">🇦🇺 +61</option>
-                      <option value="+65">🇸🇬 +65</option>
-                    </select>
-                  </div>
+                <label className="block text-xs font-black text-slate-700 uppercase tracking-wider mb-1.5 ml-1">
+                  Mobile Number
+                </label>
+                <div className="relative">
+                  <Phone className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
                   <input
-                    className="w-full px-3 py-3.5 bg-transparent focus:outline-none text-xs sm:text-sm font-semibold text-slate-800"
                     type="tel"
-                    placeholder="1234567890"
+                    maxLength="10"
+                    placeholder="10-digit Mobile Number"
+                    className="w-full pl-10 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#24672E] focus:bg-white text-xs sm:text-sm font-semibold text-slate-800"
+                    value={mobile}
                     required
-                    onChange={(e) => setMobile(e.target.value)}
+                    onChange={(e) => setMobile(e.target.value.replace(/\D/g, ""))}
                   />
                 </div>
               </div>
-            </div>
 
-            {/* Password */}
-            <div>
-              <label className="block text-xs font-black text-slate-700 uppercase tracking-wider mb-1.5 ml-1">Create Password</label>
-              <div className="relative">
-                <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
-                <input
-                  className="w-full pl-10 pr-10 py-3.5 bg-slate-50/70 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#24672E] focus:border-[#24672E] focus:bg-white transition-all text-xs sm:text-sm font-semibold text-slate-800"
-                  required
-                  placeholder="••••••••"
-                  type={showPassword ? "text" : "password"}
-                  onChange={(e) => setPassword(e.target.value)}
-                />
-                <button
-                  type="button"
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-650 transition-colors"
-                  onClick={() => setShowPassword(!showPassword)}
-                >
-                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                </button>
+              <div>
+                <label className="block text-xs font-black text-slate-700 uppercase tracking-wider mb-1.5 ml-1">
+                  Password
+                </label>
+                <div className="relative">
+                  <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    placeholder="Password"
+                    className="w-full pl-10 pr-12 py-3.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#24672E] focus:bg-white text-xs sm:text-sm font-semibold text-slate-800"
+                    value={password}
+                    required
+                    onChange={(e) => setPassword(e.target.value)}
+                  />
+                  <button
+                    type="button"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-650 cursor-pointer"
+                    onClick={() => setShowPassword(!showPassword)}
+                  >
+                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  </button>
+                </div>
               </div>
-            </div>
 
-            {/* SUBMIT */}
-            <button
-              className="w-full py-4 mt-4 rounded-xl font-black text-[#422006] shadow-md shadow-yellow-500/20 hover:shadow-lg transition-all active:scale-[0.98] flex items-center justify-center gap-2 text-xs sm:text-sm uppercase tracking-widest cursor-pointer border-0"
-              style={{ backgroundColor: primaryColor }}
-            >
-              {loading ? <Loader2 className="animate-spin" size={18} /> : "Create Account"}
-            </button>
+              <div>
+                <label className="block text-xs font-black text-slate-700 uppercase tracking-wider mb-1.5 ml-1">
+                  Referral Code <span className="text-gray-400 font-normal">(Optional)</span>
+                </label>
+                <div className="relative">
+                  <Ticket className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+                  <input
+                    type="text"
+                    placeholder="e.g. OWN1234"
+                    className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#24672E] uppercase font-mono text-xs font-bold text-slate-800"
+                    value={referralCode}
+                    onChange={(e) => setReferralCode(e.target.value.toUpperCase())}
+                  />
+                </div>
+              </div>
 
-          </form>
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full py-4 mt-4 rounded-xl font-black text-[#422006] shadow-md shadow-yellow-500/20 hover:shadow-lg transition-all active:scale-[0.98] flex items-center justify-center gap-2 cursor-pointer border-0 text-xs sm:text-sm uppercase tracking-widest disabled:opacity-50"
+                style={{ backgroundColor: primaryColor }}
+                onMouseOver={(e) => (e.currentTarget.style.backgroundColor = hoverColor)}
+                onMouseOut={(e) => (e.currentTarget.style.backgroundColor = primaryColor)}
+              >
+                {loading ? <Loader2 className="animate-spin" size={18} /> : "Sign Up with Email"}
+              </button>
+            </form>
+          )}
 
-          <p className="text-xs sm:text-sm text-center text-slate-400 mt-8 font-semibold">
+          {/* Footer Link */}
+          <p className="text-xs sm:text-sm text-center text-slate-500 mt-8 font-semibold">
             Already have an account?{" "}
             <span
               className="font-black cursor-pointer transition-colors text-[#24672E] hover:underline"
               onClick={() => navigate("/signin")}
             >
-              Sign In
+              Sign in
             </span>
           </p>
-
         </div>
       </div>
 
-      {/* OTP Verification Modal */}
-      <AnimatePresence>
-        {showOtpModal && (
-          <div className="fixed inset-0 z-[2500] flex items-center justify-center p-4">
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"
-              onClick={() => setShowOtpModal(false)}
-            />
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              transition={{ type: "spring", duration: 0.4 }}
-              className="bg-white w-full max-w-md rounded-3xl overflow-hidden shadow-2xl relative z-10 p-8 border border-gray-100"
-            >
-              <div className="text-center mb-6">
-                <div className="w-16 h-16 bg-yellow-50 rounded-full flex items-center justify-center mx-auto mb-4 border border-yellow-200 shadow-sm">
-                  <Ticket className="text-[#2F5D50]" size={32} />
-                </div>
-                <h3 className="text-2xl font-black text-slate-800 mb-2">Verify Your Email</h3>
-                <p className="text-sm font-semibold text-slate-500 leading-relaxed">
-                  We've sent a 6-digit OTP code to <span className="font-bold text-slate-800">{email}</span>.
-                </p>
-              </div>
-
-              <form onSubmit={handleVerifyOtp} className="space-y-6">
-                <div>
-                  <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2 text-center">
-                    Enter Verification Code
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    maxLength={6}
-                    placeholder="e.g. 123456"
-                    className="w-full text-center tracking-[0.5em] text-2xl font-black p-4 bg-slate-50 border border-slate-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:bg-white transition-all text-slate-800"
-                    value={otpCode}
-                    onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, ""))}
-                  />
-                </div>
-
-                <button
-                  type="submit"
-                  disabled={verifying}
-                  className="w-full py-4 rounded-2xl font-bold text-[#422006] shadow-lg shadow-yellow-200 transition-all active:scale-[0.98] flex items-center justify-center gap-2"
-                  style={{ backgroundColor: primaryColor }}
-                >
-                  {verifying ? <Loader2 className="animate-spin" size={20} /> : "Verify & Complete Signup"}
-                </button>
-
-                <div className="flex items-center justify-between text-xs font-bold pt-2 border-t border-slate-100">
-                  <button
-                    type="button"
-                    onClick={handleResendOtp}
-                    disabled={resending}
-                    className="text-[#2F5D50] hover:text-[#2F5D50]/80 transition-colors uppercase tracking-wider disabled:opacity-50"
-                  >
-                    {resending ? "Sending..." : "Resend OTP"}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setShowOtpModal(false)}
-                    className="text-slate-400 hover:text-slate-600 transition-colors uppercase tracking-wider"
-                  >
-                    Cancel
-                  </button>
-                </div>
-              </form>
-            </motion.div>
+      {/* Modal for domain email OTP verification */}
+      {showEmailOtpModal && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl p-8 max-w-sm w-full space-y-4 shadow-2xl border border-gray-100">
+            <h3 className="text-lg font-black text-slate-900 uppercase text-center">
+              Verify Email OTP
+            </h3>
+            <p className="text-xs text-gray-500 text-center">
+              A 6-digit verification code was sent to <b>{email}</b>.
+            </p>
+            <form onSubmit={handleVerifyEmailOtp} className="space-y-4">
+              <input
+                type="text"
+                maxLength="6"
+                placeholder="Enter 6-digit OTP"
+                value={emailOtp}
+                onChange={(e) => setEmailOtp(e.target.value)}
+                className="w-full text-center tracking-widest font-mono text-xl py-3 border-2 border-gray-200 rounded-xl focus:border-[#24672E] focus:outline-none"
+                required
+              />
+              <button
+                type="submit"
+                disabled={emailVerifying}
+                className="w-full py-3.5 bg-[#EFDB27] text-black font-black uppercase tracking-wider text-xs rounded-xl shadow cursor-pointer"
+              >
+                {emailVerifying ? "Verifying..." : "Verify & Sign In"}
+              </button>
+            </form>
           </div>
-        )}
-      </AnimatePresence>
+        </div>
+      )}
     </div>
   );
 };

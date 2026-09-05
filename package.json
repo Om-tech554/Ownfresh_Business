@@ -2,7 +2,12 @@
   "name": "ownfresh",
   "version": "1.0.0",
   "scripts": {
-    "build": "cd backend && npm install --include=dev && cd ../frontend && npm install --include=dev && npm run build",
-    "start": "node backend/index.js"
+    "dev": "npm --prefix frontend run dev",
+    "frontend": "npm --prefix frontend run dev",
+    "backend": "npm --prefix backend run dev",
+    "start": "node backend/index.js",
+    "import-data": "npm --prefix backend run import-data",
+    "backup-wp": "npm --prefix backend run backup-wp",
+    "build": "cd backend && npm install --include=dev && cd ../frontend && npm install --include=dev && npm run build"
   }
 }

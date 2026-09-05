@@ -15,7 +15,7 @@ const AdminBlogDetails = () => {
   const [showTopBtn, setShowTopBtn] = useState(false);
 
   const userData = useSelector((state) => state.user.userData);
-  const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
+  const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:10000";
 
   // SECURITY: If not admin → redirect
   useEffect(() => {

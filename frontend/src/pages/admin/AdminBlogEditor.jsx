@@ -8,7 +8,7 @@ import RankMathSEOSidebar from "../../components/admin/seo/RankMathSEOSidebar";
 import BlogBlockEditor from "../../components/admin/BlogBlockEditor";
 import { parseHtmlToBlocks, serializeBlocksToHtml } from "../../utils/HtmlBlockConverter";
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
+const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:10000";
 
 const AdminBlogEditor = () => {
   const { id } = useParams();

@@ -1,0 +1,79 @@
+[
+  {
+    "_id": "6a9be81191bec29ea736c244",
+    "name": "Coconut Oil",
+    "slug": "coconut-oil",
+    "image": "https://res.cloudinary.com/dkhq2wlwg/image/upload/v1786879035/categories/vhjtwmpe2c4qx66i1hee.png",
+    "description": "100% Pure Botanic Grade Stone Pressed Coconut Oil.",
+    "status": "Active",
+    "__v": 0,
+    "createdAt": "2026-09-05T09:59:45.389Z",
+    "updatedAt": "2026-09-05T09:59:45.389Z"
+  },
+  {
+    "_id": "6a9be81191bec29ea736c245",
+    "name": "Groundnut Oil",
+    "slug": "groundnut-oil",
+    "image": "https://res.cloudinary.com/dkhq2wlwg/image/upload/v1786879625/categories/zkm2aghx5vxaywyci5mb.jpg",
+    "description": "100% Pure Kacchi Ghani Cold Stone Pressed Groundnut Oil.",
+    "status": "Active",
+    "__v": 0,
+    "createdAt": "2026-09-05T09:59:45.391Z",
+    "updatedAt": "2026-09-05T09:59:45.391Z"
+  },
+  {
+    "_id": "6a9be81191bec29ea736c246",
+    "name": "Mustard Oil",
+    "slug": "mustard-oil",
+    "image": "https://res.cloudinary.com/dkhq2wlwg/image/upload/v1786879541/categories/d3ofwmwxykutjomgcppj.jpg",
+    "description": "Pungent & Authentic Kacchi Ghani Mustard Oil for authentic cooking & immunity.",
+    "status": "Active",
+    "__v": 0,
+    "createdAt": "2026-09-05T09:59:45.391Z",
+    "updatedAt": "2026-09-05T09:59:45.391Z"
+  },
+  {
+    "_id": "6a9be81191bec29ea736c247",
+    "name": "Sesame Oil",
+    "slug": "sesame-oil",
+    "image": "https://res.cloudinary.com/dkhq2wlwg/image/upload/v1786879726/categories/azjqsir4twk8ew2lgrvr.jpg",
+    "description": "Antioxidant-rich Pure Stone Pressed Til / Sesame Oil.",
+    "status": "Active",
+    "__v": 0,
+    "createdAt": "2026-09-05T09:59:45.392Z",
+    "updatedAt": "2026-09-05T09:59:45.392Z"
+  },
+  {
+    "_id": "6a9be81191bec29ea736c248",
+    "name": "Safflower Oil",
+    "slug": "safflower-oil",
+    "image": "https://res.cloudinary.com/dkhq2wlwg/image/upload/v1786879472/categories/pviimo18id5ikzxtwkql.jpg",
+    "description": "Heart-healthy Kacchi Ghani Safflower / Kardi Oil.",
+    "status": "Active",
+    "__v": 0,
+    "createdAt": "2026-09-05T09:59:45.392Z",
+    "updatedAt": "2026-09-05T09:59:45.392Z"
+  },
+  {
+    "_id": "6a9be81191bec29ea736c249",
+    "name": "Sunflower Oil",
+    "slug": "sunflower-oil",
+    "image": "https://res.cloudinary.com/dkhq2wlwg/image/upload/v1786879251/categories/y7cf5slfmhl97o4immkl.png",
+    "description": "Light & Vitamin-E Rich Cold Pressed Sunflower Oil.",
+    "status": "Active",
+    "__v": 0,
+    "createdAt": "2026-09-05T09:59:45.392Z",
+    "updatedAt": "2026-09-05T09:59:45.392Z"
+  },
+  {
+    "_id": "6a9be81191bec29ea736c24a",
+    "name": "Combo Value Packs",
+    "slug": "combo-value-packs",
+    "image": "https://res.cloudinary.com/dkhq2wlwg/image/upload/v1786880060/categories/k8bm8xmpwd4gy2tmsloz.jpg",
+    "description": "Multi-oil Sampler & Family Value Combo Packs.",
+    "status": "Active",
+    "__v": 0,
+    "createdAt": "2026-09-05T09:59:45.392Z",
+    "updatedAt": "2026-09-05T09:59:45.392Z"
+  }
+]

@@ -1,6 +1,7 @@
 import dotenv from "dotenv"
 dotenv.config() // Load env vars FIRST before anything else
 import express from "express"
+import axios from "axios"
 import connectDB from "./config/db.js"
 import cookieParser from "cookie-parser"
 import authRouter from "./routes/authrouter.js"
@@ -31,8 +32,10 @@ import settingsRoutes from "./routes/settingsRoutes.js";
 import membershipRoutes from "./routes/membershipRoutes.js";
 import sitemapRoutes from "./routes/sitemapRoutes.js";
 import reviewRoutes from "./routes/reviewRoutes.js";
+import tagRoutes from "./routes/tagRoutes.js";
 
 import { deactivateAllExistingMembers } from "./controllers/membershipController.js";
+
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -81,9 +84,12 @@ app.use(cors({
 app.use(express.json())
 app.use(cookieParser())
 
-// Protect API routes with App Check
-app.use("/api", verifyAppCheck)
-app.use("/api/auth", authRouter)
+import { apiGlobalLimiter } from "./middleware/rateLimiter.js";
+
+// Protect API routes with Global Limiter & App Check
+app.use("/api", apiGlobalLimiter);
+app.use("/api", verifyAppCheck);
+app.use("/api/auth", authRouter);
 app.use("/api/user", userRouter)
 app.use("/api/product", productRoutes);
 app.use("/api/blog", blogRoutes);
@@ -103,7 +109,22 @@ app.use("/api/fulfillment", fulfillmentRoutes);
 app.use("/api/settings", settingsRoutes);
 app.use("/api/membership", membershipRoutes);
 app.use("/api/review", reviewRoutes);
+app.use("/api/tag", tagRoutes);
 app.use("/", sitemapRoutes);
+
+
+// --- STATIC MEDIA & WORDPRESS PHOTOS SERVING ---
+const __mediaDir = path.join(__dirname, "media");
+app.use("/media", express.static(__mediaDir));
+
+// Fallback for legacy WordPress media URLs
+app.use("/wp-content/uploads", (req, res, next) => {
+    const filename = path.basename(req.path);
+    const photoPath = path.join(__mediaDir, "wordpress_photos", filename);
+    res.sendFile(photoPath, (err) => {
+        if (err) next();
+    });
+});
 
 // --- STATIC FILES & SPA ROUTING FIX ---
 const __frontendDir = path.join(__dirname, "../frontend/dist");

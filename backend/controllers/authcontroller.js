@@ -1,391 +1,245 @@
-import User from "../models/usermodel.js"
-import bcrypt from "bcryptjs"
-import genToken from "../utils/token.js"
-import { sendOtpMail } from "../utils/mail.js"
-import Wallet from "../models/walletModel.js"
-import adminApp from "../config/firebaseAdmin.js"
-import { getAuth } from "firebase-admin/auth"
-import { generateUniqueCode } from "./referralController.js"
-import ReferralCode from "../models/referralCodeModel.js"
+import User from "../models/usermodel.js";
+import bcrypt from "bcryptjs";
+import { sendOtpMail } from "../utils/mail.js";
+import {
+  handlePhoneAuth,
+  handleGoogleAuth,
+  handleSignUp,
+  handleSignIn
+} from "../services/authService.js";
+
+// Helper to set cookie
+const setAuthCookie = (res, token) => {
+  res.cookie("token", token, {
+    secure: true,
+    sameSite: "none",
+    maxAge: 7 * 24 * 60 * 60 * 1000,
+    httpOnly: true
+  });
+};
 
 //--------------signUp----------------//
 export const signUp = async (req, res) => {
-    try {
-        const { fullName, email, password, mobile, role, deviceFingerprint } = req.body;
+  try {
+    const ip = req.headers["x-forwarded-for"] || req.ip || req.socket.remoteAddress;
+    const result = await handleSignUp({
+      ...req.body,
+      ip
+    });
 
-        if (!fullName || !email || !password || !mobile) {
-            return res.status(400).json({ message: "All fields are required" });
-        }
-
-        const normalizedEmail = email.toLowerCase().trim();
-        const existingUser = await User.findOne({ email: normalizedEmail });
-
-        // Enforce OTP verification for company domain
-        if (normalizedEmail.endsWith("@myownfresh.com")) {
-            if (existingUser && existingUser.isOtpVerified) {
-                return res.status(409).json({ message: "Email already exists" });
-            }
-
-            const hashedPassword = await bcrypt.hash(password, 10);
-            let user = existingUser;
-
-            if (user) {
-                user.fullName = fullName;
-                user.password = hashedPassword;
-                user.mobile = mobile;
-                user.role = "user";
-                user.lastIpAddress = req.headers['x-forwarded-for'] || req.ip || req.socket.remoteAddress;
-                user.lastDeviceFingerprint = deviceFingerprint || req.headers['user-agent'];
-            } else {
-                user = new User({
-                    fullName,
-                    email: normalizedEmail,
-                    password: hashedPassword,
-                    mobile,
-                    role: "user",
-                    isOtpVerified: false,
-                    lastIpAddress: req.headers['x-forwarded-for'] || req.ip || req.socket.remoteAddress,
-                    lastDeviceFingerprint: deviceFingerprint || req.headers['user-agent']
-                });
-            }
-
-            const otp = Math.floor(100000 + Math.random() * 900000).toString();
-            user.resetOtp = otp;
-            user.otpExpires = Date.now() + 5 * 60 * 1000;
-            await user.save();
-
-            await sendOtpMail(normalizedEmail, otp);
-
-            return res.status(200).json({
-                requiresVerification: true,
-                email: normalizedEmail,
-                message: "Verification OTP sent to your email"
-            });
-        }
-
-        // Standard Sign Up
-        if (existingUser) {
-            return res.status(409).json({ message: "Email already exists" });
-        }
-
-        const hashedPassword = await bcrypt.hash(password, 10);
-
-        const user = await User.create({
-            fullName,
-            email: normalizedEmail,
-            password: hashedPassword,
-            mobile,
-            role: "user", // Default role
-            isOtpVerified: true,
-            lastIpAddress: req.headers['x-forwarded-for'] || req.ip || req.socket.remoteAddress,
-            lastDeviceFingerprint: deviceFingerprint || req.headers['user-agent']
-        });
-
-        // Create wallet for the new user
-        await Wallet.create({ userId: user._id, balance: 0, totalEarned: 0, totalRedeemed: 0 });
-
-        // Auto-generate Referral Code
-        const code = await generateUniqueCode(fullName);
-        await new ReferralCode({ userId: user._id, code }).save();
-        user.referralCode = code;
-        await user.save();
-
-        const token = await genToken(user._id);
-
-        res.cookie("token", token, {
-            secure: true,
-            sameSite: "none",
-            maxAge: 7 * 24 * 60 * 60 * 1000,
-            httpOnly: true
-        });
-
-        const userObj = user.toObject ? user.toObject() : { ...user };
-        userObj.token = token;
-        return res.status(201).json(userObj);
-    } catch (error) {
-        console.error("Signup error:", error);
-        return res.status(500).json({ message: "Signup failed" });
+    if (result.requiresVerification) {
+      return res.status(200).json(result);
     }
+
+    setAuthCookie(res, result.token);
+    return res.status(201).json(result.user);
+  } catch (error) {
+    console.error("Signup error:", error);
+    return res.status(error.statusCode || 500).json({ message: error.message || "Signup failed" });
+  }
 };
 
 //--------------signIn------------------//
 export const signIn = async (req, res) => {
-    try {
-        const { email, password } = req.body;
-        if (!email || !password) {
-            return res.status(400).json({ message: "Email and password are required" });
-        }
+  try {
+    const ip = req.headers["x-forwarded-for"] || req.ip || req.socket.remoteAddress;
+    const { email, password, deviceFingerprint } = req.body;
 
-        const normalizedEmail = email.toLowerCase().trim();
-        const user = await User.findOne({ email: normalizedEmail });
+    const result = await handleSignIn({ email, password, deviceFingerprint, ip });
 
-        if (!user) {
-            return res.status(400).json({ message: "User does not exist. Please sign up." });
-        }
-
-        if (user.email.endsWith("@myownfresh.com") && !user.isOtpVerified) {
-            return res.status(400).json({ message: "Email verification is pending. Please verify your email." });
-        }
-
-        const isMatch = await bcrypt.compare(password, user.password);
-        if (!isMatch) {
-            return res.status(400).json({ message: "Incorrect password. Please try again." });
-        }
-        const token = await genToken(user._id);
-
-        // Update tracking info
-        user.lastIpAddress = req.headers['x-forwarded-for'] || req.ip || req.socket.remoteAddress;
-        user.lastDeviceFingerprint = req.body.deviceFingerprint || req.headers['user-agent'];
-        await user.save();
-
-        res.cookie("token", token, {
-            secure: true,
-            sameSite: "none",
-            maxAge: 7 * 24 * 60 * 60 * 1000,
-            httpOnly: true
-        });
-
-        const userObj = user.toObject ? user.toObject() : { ...user };
-        userObj.token = token;
-        return res.status(200).json(userObj);
-    } catch (error) {
-        console.error("SIGN_IN_ERROR:", error.message);
-        return res.status(500).json({ message: "Internal Server Error" });
-    }
+    setAuthCookie(res, result.token);
+    return res.status(200).json(result.user);
+  } catch (error) {
+    console.error("SIGN_IN_ERROR:", error.message);
+    return res.status(error.statusCode || 500).json({ message: error.message || "Internal Server Error" });
+  }
 };
 
 //--------------signOut----------------//
 export const signOut = async (req, res) => {
-    try {
-        res.clearCookie("token", {
-            secure: true,
-            sameSite: "none",
-            httpOnly: true,
-            path: "/"
-        });
-        return res.status(200).json({ message: "Signed out successfully" });
-    } catch (error) {
-        console.error("SIGN_OUT_ERROR:", error.message);
-        return res.status(500).json({ message: "Internal Server Error" });
-    }
+  try {
+    res.clearCookie("token", {
+      secure: true,
+      sameSite: "none",
+      httpOnly: true,
+      path: "/"
+    });
+    return res.status(200).json({ message: "Signed out successfully" });
+  } catch (error) {
+    console.error("SIGN_OUT_ERROR:", error.message);
+    return res.status(500).json({ message: "Internal Server Error" });
+  }
 };
 
 //--------------sendOtp----------------//
 export const sendOtp = async (req, res) => {
-    try {
-        const { email } = req.body;
-        if (!email) {
-            return res.status(400).json({ message: "Email is required" });
-        }
-        const normalizedEmail = email.toLowerCase().trim();
-        const user = await User.findOne({ email: normalizedEmail });
-        if (!user) {
-            return res.status(400).json({ message: "User with this email does not exist." });
-        }
-        const otp = Math.floor(100000 + Math.random() * 900000).toString();
-        user.resetOtp = otp;
-        user.otpExpires = Date.now() + 5 * 60 * 1000;
-        user.isOtpVerified = false;
-        await user.save();
-        await sendOtpMail(normalizedEmail, otp);
-        return res.status(200).json({ message: "OTP sent successfully to your email" });
-    } catch (error) {
-        console.error("SEND_OTP_ERROR:", error.message);
-        return res.status(500).json({ message: "Internal Server Error" });
+  try {
+    const { email } = req.body;
+    if (!email) {
+      return res.status(400).json({ message: "Email is required" });
     }
+    const normalizedEmail = email.toLowerCase().trim();
+    const user = await User.findOne({ email: normalizedEmail });
+    if (!user) {
+      return res.status(400).json({ message: "User with this email does not exist." });
+    }
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    user.resetOtp = otp;
+    user.otpExpires = Date.now() + 5 * 60 * 1000;
+    user.isOtpVerified = false;
+    await user.save();
+    await sendOtpMail(normalizedEmail, otp);
+    return res.status(200).json({ message: "OTP sent successfully to your email" });
+  } catch (error) {
+    console.error("SEND_OTP_ERROR:", error.message);
+    return res.status(500).json({ message: "Internal Server Error" });
+  }
 };
 
 //--------------VerifyOtp-------------//
 export const verifyOtp = async (req, res) => {
-    try {
-        const { email, otp } = req.body;
-        if (!email || !otp) {
-            return res.status(400).json({ message: "Email and OTP are required" });
-        }
-        const normalizedEmail = email.toLowerCase().trim();
-        const user = await User.findOne({ email: normalizedEmail });
-        if (!user || user.resetOtp !== otp || user.otpExpires < Date.now()) {
-            return res.status(400).json({ message: "Invalid or expired OTP" });
-        }
-        user.isOtpVerified = true;
-        user.resetOtp = undefined;
-        user.otpExpires = undefined;
-        await user.save();
-        return res.status(200).json({ message: "OTP verified successfully" });
-    } catch (error) {
-        console.error("VERIFY_OTP_ERROR:", error.message);
-        return res.status(500).json({ message: "Internal Server Error" });
+  try {
+    const { email, otp } = req.body;
+    if (!email || !otp) {
+      return res.status(400).json({ message: "Email and OTP are required" });
     }
+    const normalizedEmail = email.toLowerCase().trim();
+    const user = await User.findOne({ email: normalizedEmail });
+    if (!user || user.resetOtp !== otp || user.otpExpires < Date.now()) {
+      return res.status(400).json({ message: "Invalid or expired OTP" });
+    }
+    user.isOtpVerified = true;
+    user.resetOtp = undefined;
+    user.otpExpires = undefined;
+    await user.save();
+    return res.status(200).json({ message: "OTP verified successfully" });
+  } catch (error) {
+    console.error("VERIFY_OTP_ERROR:", error.message);
+    return res.status(500).json({ message: "Internal Server Error" });
+  }
 };
 
 //--------------resetPassword---------//
 export const resetPassword = async (req, res) => {
-    try {
-        const { email, password } = req.body;
-        if (!email || !password) {
-            return res.status(400).json({ message: "Email and new password are required" });
-        }
-        const normalizedEmail = email.toLowerCase().trim();
-        const user = await User.findOne({ email: normalizedEmail });
-        if (!user || !user.isOtpVerified) {
-            return res.status(400).json({ message: "OTP verification is required before resetting password" });
-        }
-        const hashedPassword = await bcrypt.hash(password, 10);
-        user.password = hashedPassword;
-        user.isOtpVerified = false;
-        await user.save();
-        return res.status(200).json({ message: "Password reset successfully" });
-
-    } catch (error) {
-        console.error("RESET_PASSWORD_ERROR:", error.message);
-        return res.status(500).json({ message: "Internal Server Error" });
+  try {
+    const { email, password } = req.body;
+    if (!email || !password) {
+      return res.status(400).json({ message: "Email and new password are required" });
     }
+    const normalizedEmail = email.toLowerCase().trim();
+    const user = await User.findOne({ email: normalizedEmail });
+    if (!user || !user.isOtpVerified) {
+      return res.status(400).json({ message: "OTP verification is required before resetting password" });
+    }
+    const hashedPassword = await bcrypt.hash(password, 10);
+    user.password = hashedPassword;
+    user.isOtpVerified = false;
+    await user.save();
+    return res.status(200).json({ message: "Password reset successfully" });
+  } catch (error) {
+    console.error("RESET_PASSWORD_ERROR:", error.message);
+    return res.status(500).json({ message: "Internal Server Error" });
+  }
 };
 
+//--------------googleAuth-------------//
 export const googleAuth = async (req, res) => {
-    try {
-        const { idToken, mobile, role, deviceFingerprint } = req.body;
+  try {
+    const { idToken, mobile, deviceFingerprint } = req.body;
+    const ip = req.headers["x-forwarded-for"] || req.ip || req.socket.remoteAddress;
 
-        if (!idToken) {
-            return res.status(401).json({ message: "Missing Firebase ID Token" });
-        }
+    const result = await handleGoogleAuth({ idToken, mobile, deviceFingerprint, ip });
 
-        let decodedToken;
-        try {
-            decodedToken = await getAuth(adminApp).verifyIdToken(idToken);
-        } catch (authErr) {
-            console.error("Firebase Token Verification Error:", authErr.message);
-            return res.status(401).json({ message: "Unauthorized. Invalid Token." });
-        }
-
-        const { email, name: fullName } = decodedToken;
-        const normalizedEmail = email.toLowerCase().trim();
-
-        let user = await User.findOne({ email: normalizedEmail });
-
-        if (!user) {
-            const generatedUserName = normalizedEmail.split('@')[0] + Math.random().toString(36).substring(2, 6);
-
-            user = await User.create({
-                fullName: fullName || "Google User",
-                userName: generatedUserName,
-                email: normalizedEmail,
-                mobile: mobile || undefined,
-                role: "user",
-                lastIpAddress: req.headers['x-forwarded-for'] || req.ip || req.socket.remoteAddress,
-                lastDeviceFingerprint: deviceFingerprint || req.headers['user-agent']
-            });
-
-            // Create wallet for the new user
-            await Wallet.create({ userId: user._id, balance: 0, totalEarned: 0, totalRedeemed: 0 });
-
-            // Auto-generate Referral Code
-            const code = await generateUniqueCode(fullName || normalizedEmail.split('@')[0]);
-            await new ReferralCode({ userId: user._id, code }).save();
-            user.referralCode = code;
-            await user.save();
-        }
-        const token = await genToken(user._id);
-
-        res.cookie("token", token, {
-            secure: true,
-            sameSite: "none",
-            maxAge: 7 * 24 * 60 * 60 * 1000,
-            httpOnly: true
-        });
-
-        const userObj = user.toObject ? user.toObject() : { ...user };
-        userObj.token = token;
-
-        return res.status(200).json(userObj);
-
-    } catch (error) {
-        console.error("GOOGLE_AUTH_ERROR:", error.message);
-        return res.status(500).json({ message: "Internal Server Error" });
-    }
+    setAuthCookie(res, result.token);
+    return res.status(200).json(result.user);
+  } catch (error) {
+    console.error("GOOGLE_AUTH_ERROR:", error.message);
+    return res.status(error.statusCode || 500).json({ message: error.message || "Google Authentication failed" });
+  }
 };
 
+//--------------phoneAuth (NEW SMS OTP)-------------//
+export const phoneAuth = async (req, res) => {
+  try {
+    const { idToken, fullName, referralCode, deviceFingerprint } = req.body;
+    const ip = req.headers["x-forwarded-for"] || req.ip || req.socket.remoteAddress;
+
+    if (!idToken) {
+      return res.status(400).json({ message: "Missing Firebase Phone ID token" });
+    }
+
+    const result = await handlePhoneAuth({
+      idToken,
+      fullName,
+      referralCode,
+      deviceFingerprint,
+      ip
+    });
+
+    setAuthCookie(res, result.token);
+    return res.status(200).json(result.user);
+  } catch (error) {
+    console.error("PHONE_AUTH_ERROR:", error.message);
+    return res.status(error.statusCode || 500).json({ message: error.message || "Phone Authentication failed" });
+  }
+};
+
+//--------------verifySignupOtp-------------//
 export const verifySignupOtp = async (req, res) => {
-    try {
-        const { email, otp } = req.body;
-        if (!email || !otp) {
-            return res.status(400).json({ message: "Email and OTP are required" });
-        }
-        const normalizedEmail = email.toLowerCase().trim();
-        const user = await User.findOne({ email: normalizedEmail });
-        if (!user) {
-            return res.status(404).json({ message: "User not found" });
-        }
-        if (user.isOtpVerified) {
-            return res.status(400).json({ message: "Email already verified" });
-        }
-        if (user.resetOtp !== otp || user.otpExpires < Date.now()) {
-            return res.status(400).json({ message: "Invalid or expired OTP" });
-        }
-
-        user.isOtpVerified = true;
-        user.resetOtp = undefined;
-        user.otpExpires = undefined;
-        await user.save();
-
-        // Create wallet for the new user
-        const wallet = await Wallet.findOne({ userId: user._id });
-        if (!wallet) {
-            await Wallet.create({ userId: user._id, balance: 0, totalEarned: 0, totalRedeemed: 0 });
-        }
-
-        // Auto-generate Referral Code
-        let code = user.referralCode;
-        if (!code) {
-            code = await generateUniqueCode(user.fullName);
-            await new ReferralCode({ userId: user._id, code }).save();
-            user.referralCode = code;
-            await user.save();
-        }
-
-        // Sign in immediately
-        const token = await genToken(user._id);
-        res.cookie("token", token, {
-            secure: true,
-            sameSite: "none",
-            maxAge: 7 * 24 * 60 * 60 * 1000,
-            httpOnly: true
-        });
-
-        const userObj = user.toObject ? user.toObject() : { ...user };
-        userObj.token = token;
-
-        return res.status(200).json(userObj);
-    } catch (error) {
-        console.error("Verify signup OTP error:", error);
-        return res.status(500).json({ message: "Verification failed" });
+  try {
+    const { email, otp } = req.body;
+    if (!email || !otp) {
+      return res.status(400).json({ message: "Email and OTP are required" });
     }
+    const normalizedEmail = email.toLowerCase().trim();
+    const user = await User.findOne({ email: normalizedEmail });
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    if (user.isOtpVerified) {
+      return res.status(400).json({ message: "Email already verified" });
+    }
+    if (user.resetOtp !== otp || !user.otpExpires || user.otpExpires < Date.now()) {
+      return res.status(400).json({ message: "Invalid or expired OTP" });
+    }
+
+    user.isOtpVerified = true;
+    user.resetOtp = undefined;
+    user.otpExpires = undefined;
+    await user.save();
+
+    return res.status(200).json({ message: "Email verified successfully! You can now sign in." });
+  } catch (error) {
+    console.error("VERIFY_SIGNUP_OTP_ERROR:", error.message);
+    return res.status(500).json({ message: "Internal Server Error" });
+  }
 };
 
+//--------------resendSignupOtp-------------//
 export const resendSignupOtp = async (req, res) => {
-    try {
-        const { email } = req.body;
-        if (!email) {
-            return res.status(400).json({ message: "Email is required" });
-        }
-        const normalizedEmail = email.toLowerCase().trim();
-        const user = await User.findOne({ email: normalizedEmail });
-        if (!user) {
-            return res.status(404).json({ message: "User not found" });
-        }
-        if (user.isOtpVerified) {
-            return res.status(400).json({ message: "Email already verified" });
-        }
-
-        const otp = Math.floor(100000 + Math.random() * 900000).toString();
-        user.resetOtp = otp;
-        user.otpExpires = Date.now() + 5 * 60 * 1000;
-        await user.save();
-
-        await sendOtpMail(normalizedEmail, otp);
-        return res.status(200).json({ message: "OTP sent successfully" });
-    } catch (error) {
-        console.error("Resend signup OTP error:", error);
-        return res.status(500).json({ message: "Failed to resend OTP" });
+  try {
+    const { email } = req.body;
+    if (!email) {
+      return res.status(400).json({ message: "Email is required" });
     }
+    const normalizedEmail = email.toLowerCase().trim();
+    const user = await User.findOne({ email: normalizedEmail });
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    if (user.isOtpVerified) {
+      return res.status(400).json({ message: "Email already verified" });
+    }
+
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    user.resetOtp = otp;
+    user.otpExpires = Date.now() + 5 * 60 * 1000;
+    await user.save();
+
+    await sendOtpMail(normalizedEmail, otp);
+    return res.status(200).json({ message: "Verification OTP resent successfully" });
+  } catch (error) {
+    console.error("RESEND_SIGNUP_OTP_ERROR:", error.message);
+    return res.status(500).json({ message: "Internal Server Error" });
+  }
 };

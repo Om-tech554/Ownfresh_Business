@@ -3,12 +3,12 @@ import axios from "axios";
 import { Settings, Save, AlertCircle } from "lucide-react";
 import toast from "react-hot-toast";
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
+const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:10000";
 
 const SettingsManager = () => {
   const [announcements, setAnnouncements] = useState({
     announcement1: "🎉 FREE SHIPPING ON ORDERS ABOVE ₹999",
-    announcement2: "🌿 100% PURE & STONE PRESSED BOTANIC OILS",
+    announcement2: "🌿 AUTHENTIC TRADITIONAL STONE PRESSED BOTANIC OILS",
     announcement3: "👑 JOIN PRIME 1% TO EARN REDEEMABLE COIN COMMISSIONS",
     announcement4: "📦 EXPRESS 2-DAY DELIVERY ACROSS INDIA"
   });
@@ -118,7 +118,7 @@ const SettingsManager = () => {
             <div className="space-y-4">
               {[
                 { key: "announcement1", label: "Sentence 1 (Main Promotional Banner)", ph: "🎉 FREE SHIPPING ON ORDERS ABOVE ₹999" },
-                { key: "announcement2", label: "Sentence 2 (Product Quality Highlight)", ph: "🌿 100% PURE & COLD PRESSED BOTANIC OILS" },
+                { key: "announcement2", label: "Sentence 2 (Product Quality Highlight)", ph: "🌿 AUTHENTIC TRADITIONAL STONE PRESSED BOTANIC OILS" },
                 { key: "announcement3", label: "Sentence 3 (Prime 1% Commission Reward)", ph: "👑 JOIN PRIME 1% TO EARN REDEEMABLE COIN COMMISSIONS" },
                 { key: "announcement4", label: "Sentence 4 (Delivery / Special Offer)", ph: "📦 EXPRESS 2-DAY DELIVERY ACROSS INDIA" }
               ].map((item, idx) => (

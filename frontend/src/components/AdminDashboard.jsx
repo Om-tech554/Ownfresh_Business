@@ -6,7 +6,7 @@ import BlogList from './admin/BlogList';
 import AdminOrders from './admin/AdminOrders';
 import AdminCustomers from './admin/AdminCustomers';
 import { useSelector } from 'react-redux';
-import { Package, BookOpen, Ticket, ShoppingCart, Layers, Users, Image as ImageIcon, Settings, BarChart3, Crown, Star, Sparkles } from "lucide-react";
+import { Package, BookOpen, Ticket, ShoppingCart, Layers, Users, Image as ImageIcon, Settings, BarChart3, Crown, Star, Sparkles, Tag } from "lucide-react";
 import CouponManager from './admin/CouponManager';
 import CampaignManager from './admin/CampaignManager';
 import CategoryManager from './admin/CategoryManager';
@@ -17,6 +17,8 @@ import SettingsManager from './admin/SettingsManager';
 import PrimeMembershipManager from './admin/PrimeMembershipManager';
 import ReviewManager from './admin/ReviewManager';
 import SupportTicketManager from './admin/SupportTicketManager';
+import TagManager from './admin/TagManager';
+
 
 function AdminDashboard() {
   const userData = useSelector((state) => state.user.userData);
@@ -100,6 +102,18 @@ function AdminDashboard() {
                 <Layers className="w-4 h-4" />
                 Categories
               </button>
+
+              <button
+                onClick={() => setActiveTab("tags")}
+                className={`flex items-center gap-2 px-6 py-2.5 rounded-xl font-bold transition-all whitespace-nowrap ${activeTab === "tags"
+                    ? "bg-[#1E971D] text-white shadow-lg shadow-[#1E971D]/20"
+                    : "text-slate-500 hover:bg-slate-50"
+                  }`}
+              >
+                <Tag className="w-4 h-4" />
+                Tags & Badges
+              </button>
+
 
               <button
                 onClick={() => setActiveTab("settings")}
@@ -227,7 +241,9 @@ function AdminDashboard() {
         {activeTab === "coupons" && userData?.role === "admin" && <CouponManager />}
         {activeTab === "campaigns" && userData?.role === "admin" && <CampaignManager />}
         {activeTab === "categories" && userData?.role === "admin" && <CategoryManager />}
+        {activeTab === "tags" && userData?.role === "admin" && <TagManager />}
         {activeTab === "orders" && userData?.role === "admin" && <AdminOrders />}
+
         {activeTab === "customers" && userData?.role === "admin" && <AdminCustomers />}
         {activeTab === "prime" && userData?.role === "admin" && <PrimeMembershipManager />}
         {activeTab === "partners" && userData?.role === "admin" && <ReferralManager />}

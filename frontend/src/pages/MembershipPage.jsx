@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { serverUrl } from "../App";
 import { useSelector } from "react-redux";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import {
   Crown,
   Coins,
@@ -17,21 +17,29 @@ import {
   ShieldCheck,
   Zap,
   Info,
-  Loader2
+  Loader2,
+  CreditCard,
+  Smartphone,
+  ShieldAlert,
+  RefreshCw,
+  Gift
 } from "lucide-react";
 import toast from "react-hot-toast";
 import { motion } from "framer-motion";
 import Navbar from "../components/Navbar";
 
 const MembershipPage = () => {
-  const user = useSelector((state) => state.user.userData);
+  const user = useSelector((state) => state.user?.userData);
   const navigate = useNavigate();
+  const location = useLocation();
 
   const [loading, setLoading] = useState(true);
   const [purchasing, setPurchasing] = useState(false);
   const [plans, setPlans] = useState([]);
+  const [selectedPlanIndex, setSelectedPlanIndex] = useState(0);
+
   const [membershipStatus, setMembershipStatus] = useState({
-    isMember: true,
+    isMember: false,
     membershipPlanName: "None",
     membershipExpiresAt: null,
     commissionCoins: 0,
@@ -47,7 +55,7 @@ const MembershipPage = () => {
   useEffect(() => {
     fetchData();
     checkPaymentReturn();
-  }, [user]);
+  }, [user, location.search]);
 
   const checkPaymentReturn = async () => {
     const searchParams = new URLSearchParams(window.location.search);
@@ -79,7 +87,7 @@ const MembershipPage = () => {
       setLoading(true);
       // Fetch Plans
       const { data: planData } = await axios.get(`${serverUrl}/api/membership/plans`);
-      if (planData.success) {
+      if (planData.success && Array.isArray(planData.plans) && planData.plans.length > 0) {
         setPlans(planData.plans);
       }
 
@@ -91,6 +99,16 @@ const MembershipPage = () => {
         if (statusData.success) {
           setMembershipStatus(statusData);
         }
+      } else {
+        // Reset to non-member state if logged out
+        setMembershipStatus((prev) => ({
+          ...prev,
+          isMember: false,
+          membershipPlanName: "None",
+          membershipExpiresAt: null,
+          commissionCoins: 0,
+          canRedeem: false
+        }));
       }
     } catch (err) {
       console.error("Failed to load membership data:", err);
@@ -102,7 +120,7 @@ const MembershipPage = () => {
 
   const handlePurchaseMembership = async (planId) => {
     if (!user) {
-      toast.error("Please sign in to buy a membership plan!");
+      toast.error("Please sign in to buy or activate a membership plan!");
       navigate("/signin?redirect=/membership");
       return;
     }
@@ -131,16 +149,20 @@ const MembershipPage = () => {
 
   if (loading) {
     return (
-      <div className="min-h-[70vh] flex flex-col items-center justify-center bg-gray-50">
-        <Loader2 className="w-12 h-12 text-[#24672E] animate-spin mb-3" />
-        <p className="text-xs font-bold uppercase tracking-widest text-gray-500">
-          Loading Membership & Commission Dashboard...
-        </p>
+      <div className="min-h-screen bg-[#FDFBF7] font-sans">
+        <Navbar />
+        <div className="min-h-[70vh] flex flex-col items-center justify-center">
+          <Loader2 className="w-12 h-12 text-[#24672E] animate-spin mb-3" />
+          <p className="text-xs font-bold uppercase tracking-widest text-gray-500">
+            Loading Membership & Payment Details...
+          </p>
+        </div>
       </div>
     );
   }
 
-  const defaultPlan = plans[0] || {
+  const activePlans = plans.length > 0 ? plans : [{
+    _id: "default-prime-plan",
     name: "OwnFresh Prime Membership",
     price: 299,
     durationDays: 365,
@@ -148,10 +170,12 @@ const MembershipPage = () => {
     features: [
       "Earn 1% Commission Credit Coins on all orders",
       "Redeem coins directly at checkout (150 coins threshold)",
-      "45-day reset cycle for max rewards",
-      "Exclusive Prime member offers & priority support"
+      "45-day rolling reset cycle for maximum earnings",
+      "Exclusive Prime member deals & fast priority shipping"
     ]
-  };
+  }];
+
+  const currentSelectedPlan = activePlans[selectedPlanIndex] || activePlans[0];
 
   return (
     <div className="min-h-screen bg-[#FDFBF7] font-sans pb-16">
@@ -159,13 +183,13 @@ const MembershipPage = () => {
       <div className="max-w-6xl mx-auto space-y-10 pt-8 px-4 sm:px-6 lg:px-8">
 
         {/* ── HERO BANNER ── */}
-        <div className="bg-gradient-to-r from-slate-900 via-emerald-950 to-slate-900 rounded-3xl p-8 md:p-12 text-white shadow-xl relative overflow-hidden">
+        <div className="bg-gradient-to-r from-slate-950 via-emerald-950 to-slate-900 rounded-3xl p-8 md:p-12 text-white shadow-xl relative overflow-hidden">
           <div className="absolute top-0 right-0 w-96 h-96 bg-[#EFDB27] opacity-10 rounded-full blur-3xl -mr-20 -mt-20 pointer-events-none" />
 
           <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-8">
             <div className="space-y-4 max-w-2xl text-center md:text-left">
               <div className="inline-flex items-center gap-2 bg-emerald-500/20 border border-emerald-400/30 text-emerald-300 px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-widest">
-                <Crown className="w-4 h-4 text-[#EFDB27]" /> Commission Rewards Program
+                <Crown className="w-4 h-4 text-[#EFDB27]" /> Official 1% Prime Rewards Program
               </div>
 
               <h1 className="text-3xl md:text-5xl font-black uppercase tracking-tight text-white leading-tight">
@@ -173,12 +197,12 @@ const MembershipPage = () => {
               </h1>
 
               <p className="text-gray-300 text-sm md:text-base font-medium leading-relaxed">
-                Join our exclusive Membership Plan. Every purchase earns you 1% redeemable Credit Coins in your wallet. Coins reset every 45 days and can be redeemed at checkout when reaching 150 coins!
+                Join our exclusive Prime Membership. Every purchase earns you 1% redeemable Credit Coins in your wallet. Coins can be redeemed directly at checkout once you reach 150 coins!
               </p>
             </div>
 
             {/* Member Status Badge */}
-            <div className="bg-white/10 backdrop-blur-md border border-white/20 p-6 rounded-2xl text-center min-w-[260px] shrink-0">
+            <div className="bg-white/10 backdrop-blur-md border border-white/20 p-6 rounded-2xl text-center min-w-[260px] shrink-0 shadow-lg">
               <div className="w-14 h-14 rounded-2xl bg-[#EFDB27] text-black flex items-center justify-center mx-auto mb-3 shadow-md">
                 <Crown className="w-7 h-7" />
               </div>
@@ -186,14 +210,21 @@ const MembershipPage = () => {
                 Your Status
               </span>
               <h3 className="text-xl font-black text-white uppercase tracking-wider mt-0.5">
-                {membershipStatus.isMember ? membershipStatus.membershipPlanName : "Non-Member"}
+                {membershipStatus.isMember ? (membershipStatus.membershipPlanName || "Prime Member") : "Non-Member"}
               </h3>
               {membershipStatus.isMember ? (
-                <span className="inline-block mt-2 text-xs font-bold text-emerald-400 bg-emerald-950/60 border border-emerald-500/30 px-3 py-1 rounded-full">
-                  ✓ Member Active
-                </span>
+                <div className="space-y-1 mt-2">
+                  <span className="inline-block text-xs font-bold text-emerald-400 bg-emerald-950/80 border border-emerald-500/40 px-3 py-1 rounded-full">
+                    ✓ Member Active
+                  </span>
+                  {membershipStatus.membershipExpiresAt && (
+                    <p className="text-[10px] text-gray-300">
+                      Expires: {new Date(membershipStatus.membershipExpiresAt).toLocaleDateString()}
+                    </p>
+                  )}
+                </div>
               ) : (
-                <span className="inline-block mt-2 text-xs font-bold text-amber-300 bg-amber-950/60 border border-amber-500/30 px-3 py-1 rounded-full">
+                <span className="inline-block mt-2 text-xs font-bold text-amber-300 bg-amber-950/80 border border-amber-500/40 px-3 py-1 rounded-full">
                   Upgrade to Earn 1%
                 </span>
               )}
@@ -201,98 +232,101 @@ const MembershipPage = () => {
           </div>
         </div>
 
-        {/* ── COMMISSION COINS WALLET DASHBOARD (FOR ALL USERS) ── */}
+        {/* ── COMMISSION COINS WALLET DASHBOARD & PAYMENT CARD ── */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
 
           {/* LEFT: Coins Balance & 150 Threshold Card (7 cols) */}
-          <div className="lg:col-span-7 bg-white p-8 rounded-3xl border border-gray-200 shadow-xs space-y-6">
-            <div className="flex items-center justify-between border-b border-gray-100 pb-4">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center font-black">
-                  <Coins className="w-5 h-5" />
-                </div>
-                <div>
-                  <h3 className="text-base font-black text-slate-900 uppercase tracking-wider">
-                    Commission Credit Coins
-                  </h3>
-                  <p className="text-xs text-gray-500 font-medium">
-                    Earned via 1% purchase cashback for active members
-                  </p>
-                </div>
-              </div>
-
-              <span className="text-xs font-bold bg-amber-50 text-amber-800 border border-amber-200 px-3 py-1.5 rounded-full flex items-center gap-1.5">
-                <Clock className="w-3.5 h-3.5" /> 45-Day Reset Cycle
-              </span>
-            </div>
-
-            {/* Coins Balance Gauge */}
-            <div className="bg-gradient-to-br from-amber-500/10 via-yellow-50 to-emerald-500/10 border border-amber-200 p-6 rounded-2xl flex flex-col md:flex-row items-center justify-between gap-6">
-              <div>
-                <span className="text-[10px] font-black uppercase tracking-widest text-amber-800 block">
-                  Active Commission Coins
-                </span>
-                <div className="flex items-baseline gap-2 mt-1">
-                  <span className="text-4xl font-black text-slate-900 font-mono">
-                    {membershipStatus.commissionCoins}
-                  </span>
-                  <span className="text-sm font-bold text-gray-600">Coins</span>
-                </div>
-                <p className="text-xs text-gray-500 font-medium mt-1">
-                  Value: <strong className="text-slate-900">₹{membershipStatus.commissionCoins}</strong> (1 Coin = ₹1)
-                </p>
-              </div>
-
-              {/* Threshold Status Lock */}
-              <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-xs text-center min-w-[200px]">
-                {membershipStatus.canRedeem ? (
-                  <div className="space-y-1">
-                    <div className="w-8 h-8 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center mx-auto">
-                      <Unlock className="w-4 h-4" />
-                    </div>
-                    <span className="text-xs font-black uppercase text-emerald-700 block">
-                      Redemption Unlocked
-                    </span>
-                    <p className="text-[10px] text-gray-500">Ready to redeem at Checkout!</p>
+          <div className="lg:col-span-7 bg-white p-8 rounded-3xl border border-gray-200 shadow-sm space-y-6 flex flex-col justify-between">
+            <div>
+              <div className="flex items-center justify-between border-b border-gray-100 pb-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center font-black">
+                    <Coins className="w-5 h-5" />
                   </div>
-                ) : (
-                  <div className="space-y-1">
-                    <div className="w-8 h-8 rounded-full bg-amber-100 text-amber-700 flex items-center justify-center mx-auto">
-                      <Lock className="w-4 h-4" />
-                    </div>
-                    <span className="text-xs font-black uppercase text-amber-800 block">
-                      150 Coins Threshold
-                    </span>
-                    <p className="text-[10px] text-gray-500">
-                      Need {membershipStatus.coinsNeededToRedeem} more coins
+                  <div>
+                    <h3 className="text-base font-black text-slate-900 uppercase tracking-wider">
+                      Commission Credit Coins
+                    </h3>
+                    <p className="text-xs text-gray-500 font-medium">
+                      Earned via 1% purchase cashback for active members
                     </p>
                   </div>
-                )}
-              </div>
-            </div>
+                </div>
 
-            {/* Threshold Progress Bar */}
-            <div className="space-y-2">
-              <div className="flex justify-between items-center text-xs font-bold">
-                <span className="text-gray-600">
-                  Threshold Progress (Min 150 Coins required)
-                </span>
-                <span className="text-slate-900 font-mono">
-                  {membershipStatus.commissionCoins} / 150 Coins ({membershipStatus.progressPercentage}%)
+                <span className="text-xs font-bold bg-amber-50 text-amber-800 border border-amber-200 px-3 py-1.5 rounded-full flex items-center gap-1.5">
+                  <Clock className="w-3.5 h-3.5" /> 45-Day Cycle
                 </span>
               </div>
-              <div className="w-full bg-gray-100 rounded-full h-3 overflow-hidden p-0.5 border border-gray-200">
-                <div
-                  className={`h-full rounded-full transition-all duration-700 ${membershipStatus.canRedeem ? "bg-emerald-500" : "bg-amber-400"
+
+              {/* Coins Balance Gauge */}
+              <div className="bg-gradient-to-br from-amber-500/10 via-yellow-50 to-emerald-500/10 border border-amber-200 p-6 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-6 mt-6">
+                <div>
+                  <span className="text-[10px] font-black uppercase tracking-widest text-amber-800 block">
+                    Active Commission Coins
+                  </span>
+                  <div className="flex items-baseline gap-2 mt-1">
+                    <span className="text-4xl font-black text-slate-900 font-mono">
+                      {membershipStatus.commissionCoins}
+                    </span>
+                    <span className="text-sm font-bold text-gray-600">Coins</span>
+                  </div>
+                  <p className="text-xs text-gray-500 font-medium mt-1">
+                    Value: <strong className="text-slate-900">₹{membershipStatus.commissionCoins}</strong> (1 Coin = ₹1)
+                  </p>
+                </div>
+
+                {/* Threshold Status Lock */}
+                <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-xs text-center min-w-[200px] w-full sm:w-auto">
+                  {membershipStatus.canRedeem ? (
+                    <div className="space-y-1">
+                      <div className="w-8 h-8 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center mx-auto">
+                        <Unlock className="w-4 h-4" />
+                      </div>
+                      <span className="text-xs font-black uppercase text-emerald-700 block">
+                        Redemption Unlocked
+                      </span>
+                      <p className="text-[10px] text-gray-500">Ready to redeem at Checkout!</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-1">
+                      <div className="w-8 h-8 rounded-full bg-amber-100 text-amber-700 flex items-center justify-center mx-auto">
+                        <Lock className="w-4 h-4" />
+                      </div>
+                      <span className="text-xs font-black uppercase text-amber-800 block">
+                        150 Coins Threshold
+                      </span>
+                      <p className="text-[10px] text-gray-500">
+                        Need {membershipStatus.coinsNeededToRedeem} more coins
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Threshold Progress Bar */}
+              <div className="space-y-2 mt-6">
+                <div className="flex justify-between items-center text-xs font-bold">
+                  <span className="text-gray-600">
+                    Threshold Progress (Min 150 Coins required)
+                  </span>
+                  <span className="text-slate-900 font-mono">
+                    {membershipStatus.commissionCoins} / 150 Coins ({membershipStatus.progressPercentage}%)
+                  </span>
+                </div>
+                <div className="w-full bg-gray-100 rounded-full h-3.5 overflow-hidden p-0.5 border border-gray-200">
+                  <div
+                    className={`h-full rounded-full transition-all duration-700 ${
+                      membershipStatus.canRedeem ? "bg-emerald-500" : "bg-amber-400"
                     }`}
-                  style={{ width: `${membershipStatus.progressPercentage}%` }}
-                />
+                    style={{ width: `${Math.min(membershipStatus.progressPercentage || 0, 100)}%` }}
+                  />
+                </div>
+                <p className="text-[11px] text-gray-500 italic">
+                  {membershipStatus.canRedeem
+                    ? "🎉 You have reached the 150 coins threshold! Apply your coins at checkout for an instant ₹ discount."
+                    : `🔒 Minimum threshold is 150 coins. Earn ${membershipStatus.coinsNeededToRedeem} more coins on your orders to unlock instant redemption at checkout.`}
+                </p>
               </div>
-              <p className="text-[11px] text-gray-500 italic">
-                {membershipStatus.canRedeem
-                  ? "🎉 You have reached the 150 coins threshold! Apply your coins at checkout for an instant discount."
-                  : `🔒 Minimum threshold is 150 coins. Earn ${membershipStatus.coinsNeededToRedeem} more coins on your next orders to unlock redemption at checkout.`}
-              </p>
             </div>
 
             {/* 45-day Expiration info */}
@@ -310,49 +344,140 @@ const MembershipPage = () => {
             )}
           </div>
 
-          {/* RIGHT: Membership Plan Selector Card (5 cols) */}
-          <div className="lg:col-span-5 bg-white p-8 rounded-3xl border border-gray-200 shadow-xs flex flex-col justify-between space-y-6">
-            <div className="space-y-4">
+          {/* RIGHT: Membership Plan & Payment Gateway Card (5 cols) */}
+          <div className="lg:col-span-5 bg-white p-8 rounded-3xl border border-gray-200 shadow-sm flex flex-col justify-between space-y-6">
+            <div className="space-y-5">
+              
+              {/* Header */}
               <div className="flex items-center justify-between border-b border-gray-100 pb-4">
                 <div>
                   <span className="text-[10px] font-black uppercase tracking-widest text-emerald-600">
-                    Exclusive Tier
+                    Membership Plan
                   </span>
                   <h3 className="text-lg font-black text-slate-900 uppercase tracking-tight">
-                    {defaultPlan.name}
+                    {currentSelectedPlan.name}
                   </h3>
                 </div>
-                <span className="text-2xl font-black text-slate-900 font-mono">
-                  ₹{defaultPlan.price}
-                  <span className="text-xs text-gray-400 font-normal">/year</span>
-                </span>
+                <div className="text-right">
+                  <span className="text-3xl font-black text-slate-900 font-mono">
+                    ₹{currentSelectedPlan.price}
+                  </span>
+                  <span className="text-xs text-gray-400 font-normal block">
+                    /{currentSelectedPlan.durationDays || 365} Days
+                  </span>
+                </div>
               </div>
 
+              {/* Multiple Plans selector if available */}
+              {activePlans.length > 1 && (
+                <div className="grid grid-cols-2 gap-2">
+                  {activePlans.map((p, idx) => (
+                    <button
+                      key={p._id || idx}
+                      type="button"
+                      onClick={() => setSelectedPlanIndex(idx)}
+                      className={`p-3 rounded-xl text-left border text-xs transition-all cursor-pointer ${
+                        selectedPlanIndex === idx
+                          ? "border-[#24672E] bg-emerald-50/60 ring-2 ring-[#24672E]/20"
+                          : "border-gray-200 bg-gray-50 hover:bg-white"
+                      }`}
+                    >
+                      <div className="font-bold text-slate-900 truncate">{p.name}</div>
+                      <div className="text-emerald-700 font-mono font-black mt-0.5">₹{p.price}</div>
+                    </button>
+                  ))}
+                </div>
+              )}
+
               <p className="text-xs text-gray-600 leading-relaxed font-medium">
-                {defaultPlan.description}
+                {currentSelectedPlan.description}
               </p>
 
-              <div className="space-y-2.5 pt-2">
-                {defaultPlan.features?.map((feat, idx) => (
+              {/* Plan Features */}
+              <div className="space-y-2.5 pt-1">
+                {currentSelectedPlan.features?.map((feat, idx) => (
                   <div key={idx} className="flex items-start gap-2 text-xs font-semibold text-gray-700">
                     <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
                     <span>{feat}</span>
                   </div>
                 ))}
               </div>
+
+              {/* PAYMENT WAYS ACCEPTED BADGES */}
+              <div className="bg-slate-50 border border-slate-200/80 rounded-2xl p-4 space-y-3">
+                <div className="flex items-center justify-between text-[11px] font-bold text-slate-700">
+                  <span className="flex items-center gap-1.5">
+                    <CreditCard className="w-3.5 h-3.5 text-[#24672E]" /> Accepted Payment Modes:
+                  </span>
+                  <span className="text-[10px] text-emerald-700 font-extrabold uppercase bg-emerald-100/70 px-2 py-0.5 rounded">
+                    Instant Activation
+                  </span>
+                </div>
+
+                <div className="flex flex-wrap items-center gap-1.5 text-[10px] font-bold text-gray-600">
+                  <span className="bg-white border border-gray-200 px-2.5 py-1 rounded-lg shadow-2xs text-[#5f259f] font-black">
+                    PhonePe
+                  </span>
+                  <span className="bg-white border border-gray-200 px-2.5 py-1 rounded-lg shadow-2xs text-[#4285F4] font-black">
+                    Google Pay
+                  </span>
+                  <span className="bg-white border border-gray-200 px-2.5 py-1 rounded-lg shadow-2xs text-[#00b9f1] font-black">
+                    Paytm
+                  </span>
+                  <span className="bg-white border border-gray-200 px-2.5 py-1 rounded-lg shadow-2xs text-slate-800">
+                    Any UPI / QR
+                  </span>
+                  <span className="bg-white border border-gray-200 px-2.5 py-1 rounded-lg shadow-2xs text-slate-800">
+                    Debit / Credit Cards
+                  </span>
+                  <span className="bg-white border border-gray-200 px-2.5 py-1 rounded-lg shadow-2xs text-slate-800">
+                    Net Banking
+                  </span>
+                </div>
+
+                <div className="flex items-center gap-1.5 text-[10px] text-gray-500 font-medium pt-1 border-t border-gray-200/60">
+                  <ShieldCheck className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                  <span>256-bit SSL encrypted official payment gateway</span>
+                </div>
+              </div>
+
             </div>
 
-            <div className="pt-4">
-              {membershipStatus.isMember ? (
+            {/* ACTION BUTTON */}
+            <div className="pt-2 space-y-3">
+              {!user ? (
                 <button
-                  disabled
-                  className="w-full bg-emerald-100 border border-emerald-300 text-emerald-800 font-black py-4 rounded-2xl uppercase tracking-widest text-xs flex items-center justify-center gap-2 cursor-default"
+                  type="button"
+                  onClick={() => navigate("/signin?redirect=/membership")}
+                  className="w-full bg-[#EFDB27] hover:bg-slate-900 hover:text-white text-black font-black py-4 rounded-2xl uppercase tracking-widest text-xs transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer"
                 >
-                  <ShieldCheck className="w-4 h-4" /> Membership Active
+                  <Crown className="w-4 h-4" />
+                  Sign In to Join Prime (₹{currentSelectedPlan.price}/Year)
                 </button>
+              ) : membershipStatus.isMember ? (
+                <div className="space-y-2">
+                  <div className="w-full bg-emerald-50 border border-emerald-300 text-emerald-800 font-bold py-3.5 rounded-2xl text-xs text-center flex items-center justify-center gap-2">
+                    <ShieldCheck className="w-4 h-4 text-emerald-600" />
+                    <span>Prime Membership is Active!</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => handlePurchaseMembership(currentSelectedPlan._id)}
+                    disabled={purchasing}
+                    className="w-full bg-white hover:bg-gray-50 border border-gray-300 text-slate-700 font-bold py-2.5 rounded-xl uppercase tracking-wider text-[11px] transition-all flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50"
+                  >
+                    {purchasing ? (
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    ) : (
+                      <RefreshCw className="w-3.5 h-3.5" />
+                    )}
+                    {purchasing ? "Processing..." : `Extend / Renew for 1 Year (₹${currentSelectedPlan.price})`}
+                  </button>
+                </div>
               ) : (
                 <button
-                  onClick={() => handlePurchaseMembership(defaultPlan._id)}
+                  type="button"
+                  onClick={() => handlePurchaseMembership(currentSelectedPlan._id)}
                   disabled={purchasing}
                   className="w-full bg-[#EFDB27] hover:bg-slate-900 hover:text-white text-black font-black py-4 rounded-2xl uppercase tracking-widest text-xs transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
                 >
@@ -361,16 +486,17 @@ const MembershipPage = () => {
                   ) : (
                     <Zap className="w-4 h-4" />
                   )}
-                  {purchasing ? "Activating Membership..." : `Activate Membership (₹${defaultPlan.price}/Year)`}
+                  {purchasing ? "Opening Payment Gateway..." : `Pay ₹${currentSelectedPlan.price} & Activate Prime`}
                 </button>
               )}
             </div>
+
           </div>
 
         </div>
 
         {/* ── COMMISSION TRANSACTION HISTORY LOGS ── */}
-        <div className="bg-white p-8 rounded-3xl border border-gray-200 shadow-xs space-y-4">
+        <div className="bg-white p-8 rounded-3xl border border-gray-200 shadow-sm space-y-4">
           <div className="flex items-center justify-between border-b border-gray-100 pb-4">
             <h3 className="text-base font-black text-slate-900 uppercase tracking-wider flex items-center gap-2">
               <TrendingUp className="w-5 h-5 text-emerald-600" /> Commission Coins Activity & 45-Day Expiration Log
@@ -380,12 +506,12 @@ const MembershipPage = () => {
             </span>
           </div>
 
-          {membershipStatus.historyLogs?.length === 0 ? (
+          {!membershipStatus.historyLogs || membershipStatus.historyLogs.length === 0 ? (
             <div className="py-12 text-center text-gray-400 font-medium">
               <Coins className="w-10 h-10 mx-auto mb-2 opacity-40" />
               <p className="text-xs uppercase font-bold tracking-wider">No Commission Activity Yet</p>
               <p className="text-[11px] text-gray-400">
-                Activate your membership and place an order to earn 1% commission coins!
+                Activate your Prime membership and place an order to earn 1% commission coins!
               </p>
             </div>
           ) : (
@@ -403,7 +529,7 @@ const MembershipPage = () => {
                 </thead>
                 <tbody className="divide-y divide-gray-100 font-medium">
                   {membershipStatus.historyLogs.map((log) => (
-                    <tr key={log._id} className="hover:bg-gray-50/50 transition-colors">
+                    <tr key={log._id || Math.random()} className="hover:bg-gray-50/50 transition-colors">
                       <td className="p-3 text-gray-600 font-mono">
                         {new Date(log.createdAt).toLocaleDateString()}
                       </td>
@@ -421,12 +547,13 @@ const MembershipPage = () => {
                       </td>
                       <td className="p-3 text-center">
                         <span
-                          className={`inline-block px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider ${log.status === "ACTIVE"
-                            ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
-                            : log.status === "EXPIRED"
+                          className={`inline-block px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider ${
+                            log.status === "ACTIVE"
+                              ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                              : log.status === "EXPIRED"
                               ? "bg-rose-50 text-rose-600 border border-rose-200"
                               : "bg-gray-100 text-gray-600 border border-gray-200"
-                            }`}
+                          }`}
                         >
                           {log.status}
                         </span>

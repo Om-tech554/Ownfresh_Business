@@ -20,7 +20,7 @@
 //   // Fetch blogs
 //   const fetchBlogs = async () => {
 //     try {
-//       const res = await axios.get("http://localhost:8000/api/blog/all", {
+//       const res = await axios.get("http://localhost:10000/api/blog/all", {
 //         params: {
 //           page,
 //           limit: 6,
@@ -45,7 +45,7 @@
 //     if (!window.confirm("Delete this blog?")) return;
 
 //     try {
-//       await axios.delete(`http://localhost:8000/api/blog/delete/${id}`);
+//       await axios.delete(`http://localhost:10000/api/blog/delete/${id}`);
 //       alert("Blog deleted");
 //       fetchBlogs();
 //     } catch (err) {
@@ -73,7 +73,7 @@
 
 //     try {
 //       await axios.put(
-//         `http://localhost:8000/api/blog/update/${editData._id}`,
+//         `http://localhost:10000/api/blog/update/${editData._id}`,
 //         formData
 //       );
 //       alert("Blog updated");
@@ -236,7 +236,7 @@ import { useSelector } from "react-redux";
 import JoditEditor from "jodit-react";
 import toast from "react-hot-toast";
 import { useConfirm } from "../../hooks/ConfirmContext.jsx";
-const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
+const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:10000";
 
 import {
   Search,

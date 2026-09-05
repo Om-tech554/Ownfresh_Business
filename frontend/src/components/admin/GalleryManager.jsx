@@ -20,7 +20,7 @@ import toast from "react-hot-toast";
 import { AnimatePresence, motion } from "framer-motion";
 import { useConfirm } from "../../hooks/ConfirmContext.jsx";
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
+const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:10000";
 const CATEGORIES = ["Our Oils", "Extraction", "Ingredients", "Culinary", "Community"];
 
 const GalleryManager = () => {

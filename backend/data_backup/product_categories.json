@@ -1,0 +1,90 @@
+[
+  {
+    "id": 40,
+    "name": "Coconut Oil",
+    "slug": "coconut-oil",
+    "description": "",
+    "parent": 0,
+    "count": 4,
+    "image": null,
+    "review_count": 0,
+    "permalink": "https://myownfresh.com/product-category/coconut-oil/"
+  },
+  {
+    "id": 60,
+    "name": "Combo",
+    "slug": "combo",
+    "description": "",
+    "parent": 0,
+    "count": 8,
+    "image": null,
+    "review_count": 0,
+    "permalink": "https://myownfresh.com/product-category/combo/"
+  },
+  {
+    "id": 49,
+    "name": "Groundnut Oil",
+    "slug": "groundnut-oil",
+    "description": "",
+    "parent": 0,
+    "count": 4,
+    "image": null,
+    "review_count": 0,
+    "permalink": "https://myownfresh.com/product-category/groundnut-oil/"
+  },
+  {
+    "id": 54,
+    "name": "Mustard Oil",
+    "slug": "mustard-oil",
+    "description": "",
+    "parent": 0,
+    "count": 4,
+    "image": null,
+    "review_count": 0,
+    "permalink": "https://myownfresh.com/product-category/mustard-oil/"
+  },
+  {
+    "id": 18,
+    "name": "onelitre",
+    "slug": "onelitre",
+    "description": "",
+    "parent": 0,
+    "count": 6,
+    "image": null,
+    "review_count": 0,
+    "permalink": "https://myownfresh.com/product-category/onelitre/"
+  },
+  {
+    "id": 51,
+    "name": "Safflower Oil",
+    "slug": "safflower-oil",
+    "description": "",
+    "parent": 0,
+    "count": 4,
+    "image": null,
+    "review_count": 0,
+    "permalink": "https://myownfresh.com/product-category/safflower-oil/"
+  },
+  {
+    "id": 57,
+    "name": "Sesame Oil",
+    "slug": "sesame-oil",
+    "description": "",
+    "parent": 0,
+    "count": 4,
+    "image": null,
+    "review_count": 0,
+    "permalink": "https://myownfresh.com/product-category/sesame-oil/"
+  },
+  {
+    "id": 45,
+    "name": "Sunflower Oil",
+    "slug": "sunflower-oil",
+    "description": "",
+    "parent": 0,
+    "count": 4,
+    "image": null,
+    "review_count": 0,
+    "permalink": "https://myownfresh.com/product-category/sunflower-oil/"
+  }
+]

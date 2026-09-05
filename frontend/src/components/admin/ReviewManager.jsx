@@ -9,7 +9,7 @@ const ReviewManager = () => {
   const [search, setSearch] = useState("");
   const [filterStatus, setFilterStatus] = useState("ALL"); // 'ALL' | 'APPROVED' | 'PENDING' | 'REJECTED'
 
-  const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
+  const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:10000";
 
   const fetchReviews = async () => {
     try {

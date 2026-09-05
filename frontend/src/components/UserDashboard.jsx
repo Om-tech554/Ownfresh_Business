@@ -5,6 +5,9 @@ import ProductSection from "../components/ProductSection";
 import HeroSection from './HeroSection';
 import FestivalBanner from "./FestivalBanner";
 import MarketingPopUp from "./MarketingPopUp";
+import ShopByPurpose from './ShopByPurpose';
+import StonePressProcessTimeline from './StonePressProcessTimeline';
+import OilSelectionChart from './OilSelectionChart';
 import { OurStorySnippet, Gallery, FAQSection } from './HomeExtras';
 import PartnersSection from './PartnersSection';
 import FeaturesHighlights from './FeaturesHighlights';
@@ -26,13 +29,28 @@ const UserDashboard = () => {
       <HeroSection />
       <FestivalBanner />
 
-      {/* Featured Products with Mobile Swiper & Filters */}
+      {/* 1. Shop By Purpose Intent Cards */}
+      <ShopByPurpose />
+
+      {/* 2. Featured Products with Mobile Swiper & Filters */}
       <ProductSection limit={8} />
 
-      {/* Inserted Homepage Extras replicating myownfresh.com */}
+      {/* 3. Our Story Snippet */}
       <OurStorySnippet />
+
+      {/* 4. Traditional Stone-Pressing Farm-to-Bottle Process Timeline */}
+      <StonePressProcessTimeline />
+
+      {/* 5. Testimonials & Customer Moments */}
       <Testimonials />
+
+      {/* 6. Photo & Video Gallery */}
       <Gallery />
+
+      {/* 7. Oil Smoke Point & Selection Guide */}
+      <OilSelectionChart />
+
+      {/* 8. Frequently Asked Questions */}
       <FAQSection />
 
       {/* Original Blog Section Integration */}

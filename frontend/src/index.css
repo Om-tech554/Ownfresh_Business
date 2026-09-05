@@ -15,6 +15,11 @@
 html, body {
   font-family: "Poppins", "Montserrat", sans-serif;
   color: #181818;
+  overflow-x: clip;
+  -webkit-tap-highlight-color: transparent;
+  scroll-behavior: smooth;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
 }
 
 h1, h2, h3, .font-serif, .logo-title {
@@ -25,22 +30,47 @@ p, button, input, select, textarea, label, span, table, .font-sans {
   font-family: "Poppins", "Montserrat", sans-serif;
 }
 
+/* Mobile input zoom prevention (iOS zooms in if font-size < 16px) */
+@media screen and (max-width: 768px) {
+  input, select, textarea {
+    font-size: 16px !important;
+  }
+}
+
 /* Base custom utilities for consistent brand UI */
 @utility btn-primary {
-  @apply bg-[#F9DD19] text-[#181818] font-black uppercase tracking-widest px-8 py-3 rounded-full transition-all duration-300 hover:bg-[#1E971D] hover:text-white cursor-pointer;
+  @apply bg-[#F9DD19] text-[#181818] font-black uppercase tracking-widest px-6 sm:px-8 py-3 rounded-full transition-all duration-300 hover:bg-[#1E971D] hover:text-white cursor-pointer active:scale-95;
 }
 
 @utility btn-secondary {
-  @apply bg-[#181818] text-white font-black uppercase tracking-widest px-8 py-3 rounded-full transition-all duration-300 hover:bg-[#F9DD19] hover:text-[#181818] cursor-pointer;
+  @apply bg-[#181818] text-white font-black uppercase tracking-widest px-6 sm:px-8 py-3 rounded-full transition-all duration-300 hover:bg-[#F9DD19] hover:text-[#181818] cursor-pointer active:scale-95;
 }
 
 @utility btn-brand-green {
-  @apply bg-[#1E971D] text-white font-black uppercase tracking-widest px-8 py-3 rounded-full transition-all duration-300 hover:bg-[#181818] cursor-pointer;
+  @apply bg-[#1E971D] text-white font-black uppercase tracking-widest px-6 sm:px-8 py-3 rounded-full transition-all duration-300 hover:bg-[#181818] cursor-pointer active:scale-95;
 }
 
 /* Typography refinements */
 @utility heading-premium {
   @apply text-[#181818] font-bold tracking-tight leading-tight uppercase font-serif;
+}
+
+/* Safe Area Inset Helpers for iPhone Home Bar / Notch */
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom, 16px);
+}
+
+.pt-safe {
+  padding-top: env(safe-area-inset-top, 0px);
+}
+
+/* Hide scrollbar utility */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
 
 /* 🔥 Remove browser password eye (Chrome / Edge) */

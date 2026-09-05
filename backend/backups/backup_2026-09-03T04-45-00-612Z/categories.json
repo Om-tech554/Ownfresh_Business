@@ -1,0 +1,72 @@
+[
+  {
+    "_id": "6a9454a6d35aa959b2aecf59",
+    "name": "Groundnut Oil",
+    "slug": "groundnut-oil",
+    "description": "Pure Wood Pressed Groundnut Oil",
+    "status": "Active",
+    "createdAt": "2026-08-30T16:04:54.192Z",
+    "updatedAt": "2026-08-30T16:04:54.192Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a9454a6d35aa959b2aecf5a",
+    "name": "Coconut Oil",
+    "slug": "coconut-oil",
+    "description": "Pure Stone Pressed Coconut Oil",
+    "status": "Active",
+    "createdAt": "2026-08-30T16:04:54.254Z",
+    "updatedAt": "2026-08-30T16:04:54.254Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a9454a6d35aa959b2aecf5b",
+    "name": "Mustard Oil",
+    "slug": "mustard-oil",
+    "description": "Traditional Kacchi Ghani Mustard Oil",
+    "status": "Active",
+    "createdAt": "2026-08-30T16:04:54.271Z",
+    "updatedAt": "2026-08-30T16:04:54.271Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a9454a6d35aa959b2aecf5c",
+    "name": "Sesame Oil",
+    "slug": "sesame-oil",
+    "description": "Pure Cold Pressed Sesame (Gingelly) Oil",
+    "status": "Active",
+    "createdAt": "2026-08-30T16:04:54.294Z",
+    "updatedAt": "2026-08-30T16:04:54.294Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a9454a6d35aa959b2aecf5d",
+    "name": "Safflower Oil",
+    "slug": "safflower-oil",
+    "description": "Healthy Cold Pressed Safflower (Kardi) Oil",
+    "status": "Active",
+    "createdAt": "2026-08-30T16:04:54.311Z",
+    "updatedAt": "2026-08-30T16:04:54.311Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a9454a6d35aa959b2aecf5e",
+    "name": "Sunflower Oil",
+    "slug": "sunflower-oil",
+    "description": "Natural Cold Pressed Sunflower Oil",
+    "status": "Active",
+    "createdAt": "2026-08-30T16:04:54.326Z",
+    "updatedAt": "2026-08-30T16:04:54.326Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a9454a6d35aa959b2aecf5f",
+    "name": "Combo Value Packs",
+    "slug": "combo-value-packs",
+    "description": "Money saving combo packs",
+    "status": "Active",
+    "createdAt": "2026-08-30T16:04:54.351Z",
+    "updatedAt": "2026-08-30T16:04:54.351Z",
+    "__v": 0
+  }
+]

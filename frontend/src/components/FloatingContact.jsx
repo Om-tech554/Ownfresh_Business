@@ -31,7 +31,7 @@ const FloatingContact = () => {
   ];
 
   return (
-    <div className="print:hidden fixed bottom-6 right-6 z-[9999] flex flex-col items-end gap-3 font-sans">
+    <div className="print:hidden fixed bottom-20 lg:bottom-6 right-4 lg:right-6 z-[45] flex flex-col items-end gap-3 font-sans">
       {/* Expanded Menu */}
       <AnimatePresence>
         {isOpen && (

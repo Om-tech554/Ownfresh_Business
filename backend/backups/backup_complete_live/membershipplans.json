@@ -1,0 +1,20 @@
+[
+  {
+    "_id": "6a9be81591bec29ea736c353",
+    "name": "OwnFresh Prime Membership",
+    "price": 499,
+    "durationDays": 365,
+    "commissionRatePercentage": 1,
+    "description": "Join OwnFresh Prime to earn 1% Commission Coins on every transaction. Coins reset in 45 days. Minimum 150 coins to redeem.",
+    "features": [
+      "Earn 1% Commission Credit Coins on all orders",
+      "Redeem coins directly at checkout (150 threshold)",
+      "Coins reset after 45 days of earning",
+      "Exclusive Prime member offers & priority support"
+    ],
+    "status": "Active",
+    "createdAt": "2026-09-05T09:59:49.904Z",
+    "updatedAt": "2026-09-05T09:59:49.904Z",
+    "__v": 0
+  }
+]

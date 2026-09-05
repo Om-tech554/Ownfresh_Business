@@ -7,7 +7,7 @@ import axios from 'axios';
 import { AnimatePresence, motion } from 'framer-motion';
 import SEO from '../components/SEO';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
+const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:10000";
 
 /* Gallery Data */
 /* Certifications (Kept separate and static per requirements) */
@@ -86,7 +86,7 @@ const Lightbox = ({ images, index, onClose }) => {
         </button>
 
         {/* Image */}
-        <div 
+        <div
           className="relative w-full"
           onContextMenu={img.category === 'Certifications' ? (e) => e.preventDefault() : undefined}
         >
@@ -209,7 +209,7 @@ const GalleryPage = () => {
       {
         "@type": "EducationalOccupationalCredential",
         "name": "Process Standard Certification",
-        "credentialCategory": "Standardized Traditional Cold-Pressing Extraction Practices Certification",
+        "credentialCategory": "Standardized Traditional Stone-Pressing Extraction Practices Certification",
         "recognizedBy": {
           "@type": "Organization",
           "name": "Own Fresh Manufacturing Standards"

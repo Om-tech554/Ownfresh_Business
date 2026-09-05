@@ -6,7 +6,7 @@ import SLink from "../components/SLink";
 const BlogSection = ({ limit = null }) => {
   const [blogs, setBlogs] = useState([]);
 
-  const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
+  const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:10000";
 
   const fetchBlogs = async () => {
     try {

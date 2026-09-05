@@ -26,7 +26,7 @@ import axios from "axios";
 import toast from "react-hot-toast";
 import ImagePickerModal from "../ImagePickerModal";
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
+const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:10000";
 
 const RankMathSEOSidebar = ({
   title,
@@ -534,7 +534,7 @@ const RankMathSEOSidebar = ({
                   className="w-full border-2 border-slate-100 rounded-xl p-2.5 text-xs font-semibold focus:border-[#24672E] outline-none transition-colors"
                   value={secondaryKeywords}
                   onChange={(e) => setSecondaryKeywords(e.target.value)}
-                  placeholder="e.g. cold pressed, healthy recipes"
+                  placeholder="e.g. stone pressed, healthy recipes"
                 />
               </div>
             </div>
@@ -857,7 +857,7 @@ const RankMathSEOSidebar = ({
               <textarea
                 className="w-full border border-slate-200 rounded-xl p-2.5 text-xs outline-none resize-none focus:border-[#24672E]"
                 rows={3}
-                placeholder="e.g. Write in a conversational tone. Focus on cold pressed groundnut oil benefits..."
+                placeholder="e.g. Write in a conversational tone. Focus on stone pressed groundnut oil benefits..."
                 value={aiInstructions}
                 onChange={(e) => setAiInstructions(e.target.value)}
               />
