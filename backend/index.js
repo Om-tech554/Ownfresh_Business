@@ -22,6 +22,7 @@ import galleryRoutes from "./routes/galleryRoutes.js";
 import inventoryRoutes from "./routes/inventoryRoutes.js";
 import fulfillmentRoutes from "./routes/fulfillmentRoutes.js";
 import path from "path";
+import fs from "fs";
 import helmet from "helmet";
 import { fileURLToPath } from "url";
 import { initCronJobs } from "./utils/cronJobs.js";
@@ -128,15 +129,28 @@ app.use("/wp-content/uploads", (req, res, next) => {
 
 // --- STATIC FILES & SPA ROUTING FIX ---
 const __frontendDir = path.join(__dirname, "../frontend/dist");
-app.use(express.static(__frontendDir));
+const __indexPath = path.join(__frontendDir, "index.html");
 
-// This catch-all middleware must be the LAST one
+if (fs.existsSync(__frontendDir)) {
+    app.use(express.static(__frontendDir));
+}
+
+// Catch-all middleware for client routing & API health status
 app.use((req, res) => {
-    // If it's an API request that wasn't caught, return 404 instead of index.html
+    // If it's an API request that wasn't caught, return 404
     if (req.url.startsWith("/api/")) {
         return res.status(404).json({ message: "API route not found" });
     }
-    res.sendFile(path.join(__frontendDir, "index.html"));
+    // If frontend build exists, serve it
+    if (fs.existsSync(__indexPath)) {
+        return res.sendFile(__indexPath);
+    }
+    // Fallback if backend is hosted as standalone API service on Render
+    return res.status(200).json({
+        success: true,
+        message: "OwnFresh Backend API is live and running",
+        environment: process.env.NODE_ENV || "development"
+    });
 });
 
 app.listen(port, async () => {
