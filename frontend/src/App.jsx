@@ -123,6 +123,7 @@ const App = () => {
           <Route path="/signin" element={<Signin />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/Oilinsights" element={<OilInsights />} />
+          <Route path="/oilinsights" element={<OilInsights />} />
           <Route path="/checkout" element={<CheckOut />} />
           <Route path="/order-success" element={<OrderSuccess />} />
           <Route path="/product/:id" element={<ProductDetails />} />
@@ -180,6 +181,8 @@ const App = () => {
           <Route path="/terms-and-conditions" element={<TermsAndConditions />} />
           <Route path="/refund-policy" element={<RefundPolicy />} />
           <Route path="/shipping-policy" element={<ShippingPolicy />} />
+          {/* Catch-all route to prevent blank screens on unmatched paths */}
+          <Route path="*" element={<Home />} />
         </Routes>
       </Suspense>
 
