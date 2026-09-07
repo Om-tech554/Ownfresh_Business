@@ -315,7 +315,15 @@ const SignUp = () => {
     } catch (error) {
       console.error("Google Signup Error:", error);
       const errMsg = error.response?.data?.message || error.message || "Google Sign-In failed";
-      toast.error(errMsg);
+      if (errMsg.includes("unauthorized-domain") || errMsg.includes("unauthorized domain")) {
+        toast.error(`Domain "${window.location.hostname}" not authorized in Firebase! Add "${window.location.hostname}" to Firebase Console -> Authentication -> Settings -> Authorized Domains.`, { duration: 6000 });
+      } else if (errMsg.includes("popup-closed-by-user")) {
+        toast.error("Sign-in popup was closed before completing.");
+      } else if (errMsg.includes("popup-blocked")) {
+        toast.error(`Popup was blocked by browser. Please allow popups for ${window.location.hostname}.`);
+      } else {
+        toast.error(errMsg);
+      }
     } finally {
       setLoading(false);
     }
