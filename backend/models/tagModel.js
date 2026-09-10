@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 
 const tagSchema = new mongoose.Schema(
   {
-    name: { type: String, required: true, trim: true },
+    name: { type: String, default: "", trim: true },
     slug: { type: String, lowercase: true, trim: true },
     icon: { type: String, default: "" }, // e.g., "Star", "Flame", "Leaf", "Award", "ShieldCheck"
     imageUrl: { type: String, default: "" }, // Custom badge/sticker image

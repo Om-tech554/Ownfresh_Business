@@ -35,7 +35,7 @@ const MobileBottomNav = () => {
       label: "Home",
       icon: Home,
       path: "/",
-      isActive: location.pathname === "/",
+      isActive: location.pathname === "/" && !location.hash,
     },
     {
       id: "shop",
@@ -48,16 +48,16 @@ const MobileBottomNav = () => {
       id: "purpose",
       label: "Purpose",
       icon: Sparkles,
-      action: () => {
+      path: "/#purpose-section",
+      onClick: (e) => {
         if (location.pathname === "/") {
-          const el = document.getElementById("purpose-section") || document.querySelector("section");
-          el?.scrollIntoView({ behavior: "smooth" });
-        } else {
-          navigate("/shop");
+          const el = document.getElementById("purpose-section");
+          if (el) {
+            el.scrollIntoView({ behavior: "smooth" });
+          }
         }
       },
-      path: "/shop",
-      isActive: false,
+      isActive: location.pathname === "/" && location.hash === "#purpose-section",
     },
     {
       id: "cart",
@@ -83,27 +83,12 @@ const MobileBottomNav = () => {
           const Icon = item.icon;
           const isCurrent = item.isActive;
 
-          if (item.action) {
-            return (
-              <button
-                key={item.id}
-                onClick={item.action}
-                className="flex flex-col items-center justify-center h-full w-full relative py-1 text-slate-500 active:scale-95 transition-transform cursor-pointer"
-              >
-                <div className="relative">
-                  <Icon size={19} className="text-slate-600" />
-                </div>
-                <span className="text-[9px] font-black uppercase tracking-wider mt-1 text-slate-500">
-                  {item.label}
-                </span>
-              </button>
-            );
-          }
-
           return (
             <SLink
               key={item.id}
               to={item.path}
+              onClick={item.onClick}
+              scroll={item.id !== "purpose"}
               className={`flex flex-col items-center justify-center h-full w-full relative py-1 active:scale-95 transition-all ${
                 isCurrent ? "text-[#1E971D]" : "text-slate-500 hover:text-slate-900"
               }`}

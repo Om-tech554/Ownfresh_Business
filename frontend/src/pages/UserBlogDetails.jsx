@@ -738,16 +738,17 @@ const UserBlogDetails = () => {
 
       {/* ── SCROLL-TO-TOP FAB ── */}
       <div
-        className={`fixed bottom-24 right-8 transition-all duration-300 transform z-40 ${
-          showTopBtn ? "translate-y-0 opacity-100" : "translate-y-10 opacity-0 pointer-events-none"
+        className={`fixed bottom-36 lg:bottom-8 right-4 lg:right-24 transition-all duration-300 transform z-50 ${
+          showTopBtn ? "translate-y-0 opacity-100 scale-100" : "translate-y-10 opacity-0 scale-75 pointer-events-none"
         }`}
       >
         <button
           onClick={goToTop}
-          className="p-3.5 bg-[#1E971D] text-white rounded-full shadow-lg hover:bg-slate-900 hover:scale-110 active:scale-95 transition-all cursor-pointer"
-          title="Go to top"
+          className="p-3 sm:p-3.5 bg-[#FFDD00] text-slate-950 hover:bg-slate-900 hover:text-[#FFDD00] rounded-full shadow-2xl border-2 border-slate-950/20 hover:border-[#FFDD00] hover:scale-110 active:scale-95 transition-all cursor-pointer flex items-center justify-center font-black"
+          title="Tap to scroll upward"
+          aria-label="Scroll to top"
         >
-          <ChevronUp size={22} />
+          <ChevronUp size={22} className="stroke-[3]" />
         </button>
       </div>
     </div>

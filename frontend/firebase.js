@@ -5,12 +5,12 @@ import { initializeAppCheck, ReCaptchaV3Provider } from "firebase/app-check";
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_APIKEY,
+  apiKey: import.meta.env.VITE_FIREBASE_APIKEY || "AIzaSyDUiB88CyOD9dDGKY4j0SmJzQY5IFgW7fw",
   authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || "myownfresh-169f0.firebaseapp.com",
   projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || "myownfresh-169f0",
   storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || "myownfresh-169f0.firebasestorage.app",
-  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || "250708106658",
-  appId: import.meta.env.VITE_FIREBASE_APP_ID || "1:250708106658:web:eeb5462a2e073a481d26fb"
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || "149379070666",
+  appId: import.meta.env.VITE_FIREBASE_APP_ID || "1:149379070666:web:d371c78669a599801dd233"
 };
 
 // Initialize Firebase
@@ -23,7 +23,7 @@ if (typeof window !== "undefined") {
   if (import.meta.env.DEV) {
     self.FIREBASE_APPCHECK_DEBUG_TOKEN = true;
   }
-  
+
   if (import.meta.env.VITE_RECAPTCHA_SITE_KEY) {
     appCheck = initializeAppCheck(app, {
       provider: new ReCaptchaV3Provider(import.meta.env.VITE_RECAPTCHA_SITE_KEY),

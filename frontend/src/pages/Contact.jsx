@@ -124,7 +124,7 @@ const Contact = () => {
                             <a href="https://x.com/ownfresh_off" target="_blank" rel="noopener noreferrer" title="X (Twitter)" className="w-8 h-8 rounded-full bg-black text-white flex items-center justify-center hover:bg-[#FFDD00] hover:text-black cursor-pointer transition-all duration-300 hover:scale-110">
                                 <FaXTwitter size={14} />
                             </a>
-                            <a href="https://www.youtube.com/@ownfresh_official" target="_blank" rel="noopener noreferrer" title="YouTube" className="w-8 h-8 rounded-full bg-black text-white flex items-center justify-center hover:bg-[#FFDD00] hover:text-black cursor-pointer transition-all duration-300 hover:scale-110">
+                            <a href="https://www.youtube.com/@OwnFreshOfficial" target="_blank" rel="noopener noreferrer" title="YouTube" className="w-8 h-8 rounded-full bg-black text-white flex items-center justify-center hover:bg-[#FFDD00] hover:text-black cursor-pointer transition-all duration-300 hover:scale-110">
                                 <FaYoutube size={14} />
                             </a>
                             <a href="https://www.linkedin.com/company/ownfresh/" target="_blank" rel="noopener noreferrer" title="LinkedIn" className="w-8 h-8 rounded-full bg-black text-white flex items-center justify-center hover:bg-[#FFDD00] hover:text-black cursor-pointer transition-all duration-300 hover:scale-110">

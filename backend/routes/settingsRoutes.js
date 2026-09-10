@@ -10,7 +10,8 @@ const DEFAULTS = {
   announcement1: "🎉 FREE SHIPPING ON ORDERS ABOVE ₹999",
   announcement2: "🌿 AUTHENTIC TRADITIONAL STONE PRESSED BOTANIC OILS",
   announcement3: "👑 JOIN PRIME 1% TO EARN REDEEMABLE COIN COMMISSIONS",
-  announcement4: "📦 EXPRESS 2-DAY DELIVERY ACROSS INDIA"
+  announcement4: "📦 EXPRESS 2-DAY DELIVERY ACROSS INDIA",
+  announcement_weight: "black"
 };
 
 // GET setting by key

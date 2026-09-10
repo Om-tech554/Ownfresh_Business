@@ -1,4 +1,5 @@
-import React from 'react'
+import React, { useEffect } from 'react'
+import { useLocation } from 'react-router-dom';
 import Navbar from "../components/Navbar";
 import BlogSection from "../components/BlogSection";
 import ProductSection from "../components/ProductSection";
@@ -16,6 +17,19 @@ import Testimonials from './Testimonials';
 import SEO from './SEO';
 
 const UserDashboard = () => {
+  const location = useLocation();
+
+  useEffect(() => {
+    if (location.hash === "#purpose-section") {
+      const timer = setTimeout(() => {
+        const el = document.getElementById("purpose-section");
+        if (el) {
+          el.scrollIntoView({ behavior: "smooth" });
+        }
+      }, 200);
+      return () => clearTimeout(timer);
+    }
+  }, [location.hash, location.pathname]);
   return (
     <div className="w-full">
       <MarketingPopUp />

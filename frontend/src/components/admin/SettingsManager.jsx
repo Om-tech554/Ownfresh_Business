@@ -1,9 +1,40 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { Settings, Save, AlertCircle } from "lucide-react";
+import { Settings, Save, AlertCircle, Type, Check } from "lucide-react";
 import toast from "react-hot-toast";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:10000";
+
+const FONT_WEIGHT_OPTIONS = [
+  {
+    id: "low",
+    label: "Low (Normal - 400)",
+    shortLabel: "Normal / Low",
+    className: "font-normal",
+    desc: "Light & clean normal weight"
+  },
+  {
+    id: "medium",
+    label: "Medium (Semibold - 600)",
+    shortLabel: "Medium",
+    className: "font-semibold",
+    desc: "Balanced & clear weight"
+  },
+  {
+    id: "high",
+    label: "High (Bold - 700)",
+    shortLabel: "High (Bold)",
+    className: "font-bold",
+    desc: "Strong prominent emphasis"
+  },
+  {
+    id: "ultra",
+    label: "Ultra (Extra Bold - 900)",
+    shortLabel: "Ultra / Extra Bold",
+    className: "font-black",
+    desc: "Maximum bold visual impact"
+  }
+];
 
 const SettingsManager = () => {
   const [announcements, setAnnouncements] = useState({
@@ -12,13 +43,14 @@ const SettingsManager = () => {
     announcement3: "👑 JOIN PRIME 1% TO EARN REDEEMABLE COIN COMMISSIONS",
     announcement4: "📦 EXPRESS 2-DAY DELIVERY ACROSS INDIA"
   });
+  const [announcementWeight, setAnnouncementWeight] = useState("ultra");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
   const fetchSettings = async () => {
     try {
       setLoading(true);
-      const keys = ["announcement1", "announcement2", "announcement3", "announcement4"];
+      const keys = ["announcement1", "announcement2", "announcement3", "announcement4", "announcement_weight"];
       const results = await Promise.all(
         keys.map(k => axios.get(`${API_BASE_URL}/api/settings/${k}`))
       );
@@ -26,7 +58,11 @@ const SettingsManager = () => {
       const updated = { ...announcements };
       results.forEach((res, i) => {
         if (res.data?.success && res.data?.value) {
-          updated[`announcement${i + 1}`] = res.data.value;
+          if (keys[i] === "announcement_weight") {
+            setAnnouncementWeight(res.data.value);
+          } else {
+            updated[`announcement${i + 1}`] = res.data.value;
+          }
         }
       });
 
@@ -47,15 +83,20 @@ const SettingsManager = () => {
     try {
       setSaving(true);
       const keys = ["announcement1", "announcement2", "announcement3", "announcement4"];
-      await Promise.all(
-        keys.map(k =>
+      await Promise.all([
+        ...keys.map(k =>
           axios.put(
             `${API_BASE_URL}/api/settings/${k}`,
             { value: announcements[k] },
             { withCredentials: true }
           )
+        ),
+        axios.put(
+          `${API_BASE_URL}/api/settings/announcement_weight`,
+          { value: announcementWeight },
+          { withCredentials: true }
         )
-      );
+      ]);
 
       // Also sync combined string to legacy key for backward compatibility
       const combined = keys.map(k => announcements[k]).filter(Boolean).join(" • ");
@@ -65,11 +106,30 @@ const SettingsManager = () => {
         { withCredentials: true }
       );
 
-      toast.success("All 4 Announcement lines updated successfully!");
+      toast.success("Announcement text & font boldness updated successfully!");
     } catch (error) {
       toast.error(error.response?.data?.message || "Failed to update settings");
     } finally {
       setSaving(false);
+    }
+  };
+
+  const getPreviewWeightClass = () => {
+    switch (announcementWeight) {
+      case "low":
+      case "normal":
+        return "font-normal";
+      case "medium":
+      case "semibold":
+        return "font-semibold";
+      case "high":
+      case "bold":
+        return "font-bold";
+      case "ultra":
+      case "black":
+      case "extrabold":
+      default:
+        return "font-black";
     }
   };
 
@@ -84,8 +144,6 @@ const SettingsManager = () => {
 
   return (
     <div className="max-w-4xl mx-auto px-6 py-8 font-sans">
-
-
       {/* Header */}
       <div className="flex items-center gap-3 mb-8">
         <div className="w-12 h-12 rounded-2xl bg-[#24672E] text-white flex items-center justify-center shadow-md">
@@ -94,14 +152,16 @@ const SettingsManager = () => {
         <div>
           <h2 className="text-2xl font-black text-slate-900">Site Configuration</h2>
           <p className="text-slate-500 text-xs font-medium mt-0.5">
-            Manage top bar announcement ticker lines, global banners, and website features.
+            Manage top bar announcement ticker lines, font boldness, and website features.
           </p>
         </div>
       </div>
 
       {/* Main Settings Card */}
-      <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden p-8 space-y-6">
-        <form onSubmit={handleSave} className="space-y-6">
+      <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden p-8 space-y-8">
+        <form onSubmit={handleSave} className="space-y-8">
+          
+          {/* 1. ANNOUNCEMENT TEXT LINES */}
           <div>
             <div className="flex items-center justify-between mb-2">
               <label className="block text-xs font-black text-slate-900 uppercase tracking-widest">
@@ -112,7 +172,7 @@ const SettingsManager = () => {
               </span>
             </div>
             <p className="text-xs text-slate-500 mb-4">
-              Enter up to 4 unique announcement sentences below. They will stream continuously across the top of all website pages separated by stylish bullet badges.
+              Enter up to 4 unique announcement sentences below. They stream continuously across the top of all website pages.
             </p>
 
             <div className="space-y-4">
@@ -144,18 +204,71 @@ const SettingsManager = () => {
             </div>
           </div>
 
-          {/* Live Preview Card */}
-          <div className="bg-slate-900 text-white p-4 rounded-2xl space-y-2 border border-slate-800">
-            <span className="text-[10px] font-black uppercase tracking-widest text-[#FFDD00] block">
-              Live Top Scroll Bar Preview
-            </span>
-            <div className="overflow-hidden whitespace-nowrap bg-black/40 py-2 px-4 rounded-xl text-xs font-extrabold text-slate-200 font-mono flex items-center gap-3">
+          {/* 2. ANNOUNCEMENT FONT BOLDNESS CONTROLLER */}
+          <div className="pt-6 border-t border-slate-100">
+            <div className="flex items-center justify-between mb-2">
+              <label className="text-xs font-black text-slate-900 uppercase tracking-widest flex items-center gap-2">
+                <Type size={16} className="text-[#24672E]" /> Announcement Font Boldness Level
+              </label>
+              <span className="text-[10px] font-bold text-[#24672E] bg-emerald-50 px-2.5 py-1 rounded-full uppercase tracking-wider">
+                Current: {FONT_WEIGHT_OPTIONS.find(o => o.id === announcementWeight)?.shortLabel || "Extra Bold"}
+              </span>
+            </div>
+            <p className="text-xs text-slate-500 mb-4">
+              Select the font thickness / weight for the top announcement ticker bar across all pages:
+            </p>
+
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              {FONT_WEIGHT_OPTIONS.map((opt) => {
+                const isSelected = announcementWeight === opt.id || (opt.id === "ultra" && (announcementWeight === "black" || announcementWeight === "extrabold"));
+                return (
+                  <button
+                    key={opt.id}
+                    type="button"
+                    onClick={() => setAnnouncementWeight(opt.id)}
+                    className={`p-4 rounded-2xl border text-left flex flex-col justify-between transition-all cursor-pointer ${
+                      isSelected
+                        ? "bg-slate-900 text-white border-slate-900 shadow-md scale-102 ring-2 ring-[#FFDD00]/60"
+                        : "bg-slate-50 hover:bg-slate-100 text-slate-700 border-slate-200"
+                    }`}
+                  >
+                    <div className="flex items-center justify-between w-full mb-2">
+                      <span className={`text-base tracking-wide ${opt.className} ${isSelected ? "text-[#FFDD00]" : "text-slate-900"}`}>
+                        Aa
+                      </span>
+                      {isSelected && <Check size={16} className="text-[#FFDD00]" />}
+                    </div>
+                    <div>
+                      <h4 className={`text-xs font-bold leading-tight ${isSelected ? "text-white" : "text-slate-900"}`}>
+                        {opt.shortLabel}
+                      </h4>
+                      <p className={`text-[10px] mt-1 leading-snug ${isSelected ? "text-slate-300" : "text-slate-400"}`}>
+                        {opt.desc}
+                      </p>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* 3. LIVE TOP SCROLL BAR PREVIEW */}
+          <div className="bg-[#F9DD19] text-[#181818] p-4 rounded-2xl space-y-2 border border-yellow-300 shadow-sm">
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] font-black uppercase tracking-widest text-slate-900 block">
+                Live Top Announcement Bar Preview
+              </span>
+              <span className={`text-[10px] uppercase tracking-wider bg-slate-900 text-[#FFDD00] px-2 py-0.5 rounded-md font-bold`}>
+                {getPreviewWeightClass()}
+              </span>
+            </div>
+            <div className={`overflow-hidden whitespace-nowrap bg-white/60 py-2.5 px-4 rounded-xl text-xs ${getPreviewWeightClass()} tracking-[0.1em] uppercase text-slate-900 flex items-center gap-3 border border-yellow-400/50 shadow-inner`}>
               <span>{announcements.announcement1 || "Sentence 1"}</span>
-              <span className="text-[#FFDD00]">•</span>
+              <span className="text-slate-900 font-black">•</span>
               <span>{announcements.announcement2 || "Sentence 2"}</span>
-              <span className="text-[#FFDD00]">•</span>
+              <span className="text-slate-900 font-black">•</span>
               <span>{announcements.announcement3 || "Sentence 3"}</span>
-              <span className="text-[#FFDD00]">•</span>
+              <span className="text-slate-900 font-black">•</span>
               <span>{announcements.announcement4 || "Sentence 4"}</span>
             </div>
           </div>
@@ -163,7 +276,7 @@ const SettingsManager = () => {
           <div className="bg-emerald-50 border border-emerald-100 p-4 rounded-2xl flex gap-3 text-xs text-emerald-800 font-medium">
             <AlertCircle className="w-4 h-4 text-emerald-600 flex-shrink-0" />
             <p>
-              Changes take effect immediately for all visitors browsing MyOwnFresh. Use emojis and ALL CAPS for maximum visual impact.
+              Changes take effect immediately for all visitors browsing MyOwnFresh.
             </p>
           </div>
 
@@ -171,10 +284,10 @@ const SettingsManager = () => {
             <button
               type="submit"
               disabled={saving}
-              className="px-6 py-3 bg-[#24672E] text-white rounded-2xl font-black uppercase text-xs tracking-widest flex items-center gap-2 hover:bg-slate-900 shadow-md transition-all disabled:opacity-50"
+              className="px-6 py-3 bg-[#24672E] text-white rounded-2xl font-black uppercase text-xs tracking-widest flex items-center gap-2 hover:bg-slate-900 shadow-md transition-all disabled:opacity-50 cursor-pointer"
             >
               <Save className="w-4 h-4 text-[#FFDD00]" />
-              {saving ? "Saving All 4 Lines..." : "Save Announcement Settings"}
+              {saving ? "Saving Configuration..." : "Save Announcement Settings"}
             </button>
           </div>
         </form>

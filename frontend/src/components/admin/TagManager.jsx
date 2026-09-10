@@ -121,15 +121,15 @@ const TagManager = () => {
 
   const handleSave = async (e) => {
     e.preventDefault();
-    if (!formData.name.trim()) {
-      toast.error("Tag name is required");
+    if (!formData.name.trim() && !formData.icon && !imageFile && !formData.imageUrl) {
+      toast.error("Please enter a badge name, choose an icon, or upload an image.");
       return;
     }
 
     try {
       const data = new FormData();
       data.append("name", formData.name.trim());
-      data.append("icon", formData.icon);
+      data.append("icon", formData.icon || "");
       data.append("bgColor", formData.bgColor);
       data.append("textColor", formData.textColor);
       data.append("description", formData.description);
@@ -261,14 +261,22 @@ const TagManager = () => {
                   <div className="flex items-center gap-2">
                     <span
                       style={{ backgroundColor: tag.bgColor, color: tag.textColor }}
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-black uppercase tracking-wider shadow-sm"
+                      className={`inline-flex items-center justify-center font-black uppercase tracking-wider shadow-sm ${
+                        tag.name?.trim()
+                          ? "gap-1.5 px-3 py-1.5 rounded-full text-xs"
+                          : "w-8 h-8 rounded-full p-0 aspect-square shrink-0"
+                      }`}
                     >
                       {tag.imageUrl ? (
-                        <img src={tag.imageUrl} alt={tag.name} className="w-4 h-4 object-contain rounded" />
+                        <img
+                          src={tag.imageUrl}
+                          alt={tag.name || "Badge"}
+                          className={tag.name?.trim() ? "w-4 h-4 object-contain rounded" : "w-5 h-5 object-contain rounded-full"}
+                        />
                       ) : (
-                        renderIcon(tag.icon, 14)
+                        renderIcon(tag.icon, tag.name?.trim() ? 14 : 16)
                       )}
-                      {tag.name}
+                      {tag.name?.trim() && <span>{tag.name}</span>}
                     </span>
                   </div>
 
@@ -281,7 +289,9 @@ const TagManager = () => {
                   </span>
                 </div>
 
-                <h3 className="text-base font-extrabold text-slate-800 mb-1">{tag.name}</h3>
+                <h3 className="text-base font-extrabold text-slate-800 mb-1">
+                  {tag.name || `${tag.icon || "Custom"} Icon Badge`}
+                </h3>
                 <p className="text-xs text-slate-500 line-clamp-2 mb-4 leading-relaxed">
                   {tag.description || "No description provided."}
                 </p>
@@ -289,7 +299,7 @@ const TagManager = () => {
 
               <div className="pt-4 border-t border-slate-100 flex items-center justify-between">
                 <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">
-                  Slug: {tag.slug || tag.name.toLowerCase()}
+                  Slug: {tag.slug || (tag.name ? tag.name.toLowerCase() : tag._id)}
                 </span>
                 <div className="flex items-center gap-2">
                   <button
@@ -359,30 +369,40 @@ const TagManager = () => {
                   <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Live Preview:</span>
                   <span
                     style={{ backgroundColor: formData.bgColor, color: formData.textColor }}
-                    className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider shadow-sm"
+                    className={`inline-flex items-center justify-center font-black uppercase tracking-wider shadow-sm ${
+                      formData.name.trim()
+                        ? "gap-1.5 px-3 py-1 rounded-full text-xs"
+                        : "w-8 h-8 rounded-full p-0 aspect-square shrink-0"
+                    }`}
                   >
                     {imagePreview ? (
-                      <img src={imagePreview} alt="Badge" className="w-4 h-4 object-contain rounded" />
+                      <img
+                        src={imagePreview}
+                        alt="Badge"
+                        className={formData.name.trim() ? "w-4 h-4 object-contain rounded" : "w-5 h-5 object-contain rounded-full"}
+                      />
                     ) : (
-                      renderIcon(formData.icon, 14)
+                      renderIcon(formData.icon, formData.name.trim() ? 14 : 16)
                     )}
-                    {formData.name || "Badge Text"}
+                    {formData.name.trim() && <span>{formData.name}</span>}
                   </span>
                 </div>
 
                 {/* Badge Name */}
                 <div>
                   <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-1.5">
-                    Badge Title / Text *
+                    Badge Title / Text (Optional)
                   </label>
                   <input
                     type="text"
-                    required
-                    placeholder="e.g. Best Seller, Stone Pressed, Organic, Special Offer"
+                    placeholder="e.g. Best Seller, Organic (or leave blank for icon-only badge)"
                     value={formData.name}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                     className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-[#1E971D] font-bold text-slate-800"
                   />
+                  <p className="text-[10px] text-slate-400 mt-1 font-medium">
+                    Leave blank to show only the selected icon or uploaded sticker.
+                  </p>
                 </div>
 
                 {/* Icon Selection */}

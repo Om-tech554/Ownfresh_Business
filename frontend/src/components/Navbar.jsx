@@ -26,19 +26,43 @@ const Navbar = () => {
     const [searchResults, setSearchResults] = useState([]);
     const [showDropdown, setShowDropdown] = useState(false);
     const [announcement, setAnnouncement] = useState("🎉 FREE SHIPPING ON ORDERS ABOVE ₹999 • 🌿 PREMIUM GRADE PURE OIL & STONE PRESSED BOTANIC OILS • 👑 JOIN PRIME 1% TO EARN REDEEMABLE COIN COMMISSIONS • 📦 EXPRESS 2-DAY DELIVERY ACROSS INDIA");
+    const [announcementWeight, setAnnouncementWeight] = useState("ultra");
+
+    const getAnnouncementFontWeightClass = (weight) => {
+        switch (weight) {
+            case "low":
+            case "normal":
+                return "font-normal";
+            case "medium":
+            case "semibold":
+                return "font-semibold";
+            case "high":
+            case "bold":
+                return "font-bold";
+            case "ultra":
+            case "black":
+            case "extrabold":
+            default:
+                return "font-black";
+        }
+    };
 
     useEffect(() => {
         const fetchAnnouncement = async () => {
             try {
-                const keys = ["announcement1", "announcement2", "announcement3", "announcement4"];
+                const keys = ["announcement1", "announcement2", "announcement3", "announcement4", "announcement_weight"];
                 const results = await Promise.allSettled(
                     keys.map(k => axios.get(`${serverUrl}/api/settings/${k}`))
                 );
 
                 const lines = [];
-                results.forEach(r => {
+                results.forEach((r, idx) => {
                     if (r.status === "fulfilled" && r.value.data?.success && r.value.data?.value) {
-                        lines.push(r.value.data.value.trim());
+                        if (keys[idx] === "announcement_weight") {
+                            setAnnouncementWeight(r.value.data.value);
+                        } else {
+                            lines.push(r.value.data.value.trim());
+                        }
                     }
                 });
 
@@ -225,7 +249,7 @@ const Navbar = () => {
     return (
         <React.Fragment>
             <div className="sticky top-0 z-[1000] w-full flex flex-col shadow-sm bg-white">
-                <div className="w-full bg-[#F9DD19] text-[#181818] py-2.5 text-xs font-extrabold tracking-[0.1em] uppercase overflow-hidden whitespace-nowrap relative">
+                <div className={`w-full bg-[#F9DD19] text-[#181818] py-2.5 text-xs ${getAnnouncementFontWeightClass(announcementWeight)} tracking-[0.1em] uppercase overflow-hidden whitespace-nowrap relative`}>
                     <div className="inline-block animate-marquee whitespace-nowrap">
                         <span className="mx-12">{announcement}</span>
                         <span className="mx-12">{announcement}</span>

@@ -15,7 +15,12 @@ import {
   Tag,
   Check,
   Eye,
-  Info
+  Info,
+  Flame,
+  Award,
+  ShieldCheck,
+  Leaf,
+  Sparkles
 } from "lucide-react";
 import toast from "react-hot-toast";
 import ImagePickerModal from "../../components/admin/ImagePickerModal";
@@ -431,6 +436,17 @@ const AdminProductEditor = () => {
             <div className="flex flex-wrap gap-2.5">
               {availableTags.map((tag) => {
                 const isSelected = selectedTagIds.includes(tag._id);
+                const renderTagIcon = (iconName) => {
+                  switch (iconName) {
+                    case "Flame": return <Flame size={13} />;
+                    case "Award": return <Award size={13} />;
+                    case "Leaf": return <Leaf size={13} />;
+                    case "ShieldCheck": return <ShieldCheck size={13} />;
+                    case "Sparkles": return <Sparkles size={13} />;
+                    default: return <Tag size={13} />;
+                  }
+                };
+
                 return (
                   <button
                     key={tag._id}
@@ -446,7 +462,12 @@ const AdminProductEditor = () => {
                     }`}
                   >
                     {isSelected ? <Check size={13} /> : <Plus size={13} />}
-                    {tag.name}
+                    {tag.imageUrl ? (
+                      <img src={tag.imageUrl} alt="" className="w-3.5 h-3.5 object-contain rounded" />
+                    ) : (
+                      tag.icon && renderTagIcon(tag.icon)
+                    )}
+                    {tag.name ? <span>{tag.name}</span> : <span>{tag.icon || "Badge"}</span>}
                   </button>
                 );
               })}

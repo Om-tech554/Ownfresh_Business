@@ -258,27 +258,27 @@ const OIL_KNOWLEDGE_BASE = {
     themeColor: "#1E971D",
     smokePoint: "177°C – 250°C (Variety-dependent)",
     shelfLife: "9 to 12 Months",
-    origin: "Curated Handpicked Seeds Across Farms",
+    origin: "Curated Single-Origin Seeds From Sustainable Farms",
     extractionType: "Dedicated Stone Kolhu Batches Per Oil Variety",
     fatProfile: "Balanced Blend of MUFA, PUFA, MCTs, Lauric Acid & Sesamol",
-    aromaProfile: "Authentic varietal aromas tailored for every Indian dish",
-    bestFor: ["All-in-One Family Cooking", "Frying (Groundnut/Mustard)", "South Indian & Hair Care (Coconut)", "Tempering & Massage (Sesame)"],
+    aromaProfile: "Authentic varietal aromas tailored for every traditional Indian dish",
+    bestFor: ["All-in-One Family Cooking", "Deep Frying (Groundnut/Mustard)", "South Indian & Hair Care (Coconut)", "Tempering & Massage (Sesame)"],
     keyNutrients: ["Broad Spectrum Antioxidants", "Vitamin E & Lignans", "Omega-3, 6, 9 & MCTs", "Zero Additives or Blending Agents"],
     steps: [
       { step: "01", title: "Multi-Seed Sourcing", desc: "Finest single-origin seeds for each specific oil variety." },
       { step: "02", title: "Dedicated Stone Presses", desc: "Extracted separately in stone Kolhu to prevent cross-flavoring." },
       { step: "03", title: "Zero Heat Processing", desc: "Cold unheated extraction under 40°C across all bottles." },
-      { step: "04", title: "Cloth Filtration", desc: "Natural gravity settling and cotton cloth filtration." },
-      { step: "05", title: "Protected Bundle Box", desc: "Securely cushioned packaging for doorstep fresh arrival." }
+      { step: "04", title: "Cloth Filtration", desc: "Natural gravity settling and organic cotton cloth filtration." },
+      { step: "05", title: "Pure Fresh Bottling", desc: "Sealed in food-grade airtight bottles for doorstep freshness." }
     ],
     faqs: [
       {
         q: "Why should my kitchen use different stone-pressed oils instead of just one?",
-        a: "Different culinary dishes require specific smoke points and fatty acid compositions. For example, Groundnut/Mustard oils are ideal for high-heat frying, Coconut oil for Kerala curries and hair health, and Sesame oil for rasams and tempering."
+        a: "Different culinary dishes require specific smoke points and fatty acid compositions. For example, Groundnut and Mustard oils are ideal for high-heat frying and tadkas, Coconut oil for coastal curries and wellness, and Sesame oil for tempering and rasams."
       },
       {
-        q: "Do the bottles arrive securely packed together?",
-        a: "Yes, each combo box comes with custom-molded shock-absorbing padding to ensure zero leakage or breakage during transit."
+        q: "What oil varieties are included in the combo pack?",
+        a: "OwnFresh combo packs feature our bestselling 100% stone-pressed oils including Groundnut, Mustard, Coconut, Sesame, Safflower, and Sunflower oils to satisfy all your daily kitchen cooking needs."
       }
     ]
   }
@@ -620,14 +620,15 @@ const ProductDetails = () => {
     );
   }
 
-  const renderBadgeIcon = (iconName) => {
+  const renderBadgeIcon = (iconName, size = 12) => {
     switch (iconName) {
-      case "Flame": return <Flame size={12} />;
-      case "Award": return <Award size={12} />;
-      case "Leaf": return <Leaf size={12} />;
-      case "ShieldCheck": return <ShieldCheck size={12} />;
-      case "Sparkles": return <Sparkles size={12} />;
-      default: return <Award size={12} />;
+      case "Flame": return <Flame size={size} />;
+      case "Award": return <Award size={size} />;
+      case "Leaf": return <Leaf size={size} />;
+      case "ShieldCheck": return <ShieldCheck size={size} />;
+      case "Sparkles": return <Sparkles size={size} />;
+      case "Star": return <Star size={size} />;
+      default: return <Award size={size} />;
     }
   };
 
@@ -664,25 +665,34 @@ const ProductDetails = () => {
                 
                 {/* Badges Overlay */}
                 <div className="absolute top-3 left-3 sm:top-4 sm:left-4 flex flex-col gap-1 z-10">
-                  {isDiscounted && (
-                    <span className="bg-red-600 text-white text-[9px] sm:text-[10px] font-black px-2.5 sm:px-3 py-0.5 sm:py-1 rounded-full uppercase tracking-wider shadow-sm">
-                      Save {discountPercent}% OFF
-                    </span>
-                  )}
                   {product.tags && product.tags.map((tag, idx) => {
                     if (!tag) return null;
-                    const tagName = typeof tag === "object" ? tag.name : tag;
+                    const rawName = typeof tag === "object" ? tag.name : tag;
+                    const tagName = rawName && typeof rawName === "string" ? rawName.trim() : "";
                     const tagBg = typeof tag === "object" ? tag.bgColor : "#1E971D";
                     const tagColor = typeof tag === "object" ? tag.textColor : "#ffffff";
                     const tagIcon = typeof tag === "object" ? tag.icon : null;
+                    const tagImage = typeof tag === "object" ? tag.imageUrl : null;
                     return (
                       <span
                         key={idx}
                         style={{ backgroundColor: tagBg, color: tagColor }}
-                        className="inline-flex items-center gap-1 sm:gap-1.5 text-[8px] sm:text-[10px] font-black px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-full uppercase tracking-wider shadow-xs"
+                        className={`inline-flex items-center justify-center font-black shadow-xs ${
+                          tagName
+                            ? "gap-1 sm:gap-1.5 text-[8px] sm:text-[10px] px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-full uppercase tracking-wider"
+                            : "w-6 h-6 sm:w-7 sm:h-7 rounded-full p-0 aspect-square shrink-0"
+                        }`}
                       >
-                        {tagIcon && renderBadgeIcon(tagIcon)}
-                        {tagName}
+                        {tagImage ? (
+                          <img
+                            src={tagImage}
+                            alt=""
+                            className={tagName ? "w-3.5 h-3.5 object-contain rounded" : "w-4 h-4 sm:w-4.5 sm:h-4.5 object-contain rounded-full"}
+                          />
+                        ) : (
+                          tagIcon && renderBadgeIcon(tagIcon, tagName ? 12 : 14)
+                        )}
+                        {tagName && <span>{tagName}</span>}
                       </span>
                     );
                   })}
@@ -807,11 +817,11 @@ const ProductDetails = () => {
                 {product.shortDesc}
               </p>
 
-              {/* ── BOTTLE SIZE SELECTOR ── */}
+              {/* ── BOTTLE SIZE / PACK SELECTOR ── */}
               <div className="mt-8">
                 <div className="flex items-center justify-between mb-3">
                   <h3 className="font-extrabold text-sm uppercase tracking-wider text-slate-900 flex items-center gap-2">
-                    <Package size={16} className="text-[#1E971D]" /> Available Bottle Sizes:
+                    <Package size={16} className="text-[#1E971D]" /> {product.name?.toLowerCase().includes("combo") ? "Pack Options:" : "Available Bottle Sizes:"}
                   </h3>
                   <span className="text-xs text-slate-400 font-bold">
                     Selected: <strong className="text-slate-800">{selectedVariant?.name}</strong>
@@ -819,7 +829,7 @@ const ProductDetails = () => {
                 </div>
 
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-                  {product.variants?.filter((v) => v.status === "Active").map((variant) => {
+                  {product.variants?.filter((v) => v.status === "Active" && !v.name?.toLowerCase().includes("gift") && !v.name?.toLowerCase().includes("eco packaging")).map((variant) => {
                     const isSelected = selectedVariant?._id === variant._id;
                     const vPrice = variant.salePrice || variant.price;
                     return (

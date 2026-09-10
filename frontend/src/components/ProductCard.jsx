@@ -6,7 +6,7 @@ import SLink from "./SLink";
 const ProductCard = ({ product, user, onAddToCart }) => {
   // Get active variants
   const activeVariants = useMemo(() => {
-    return product.variants?.filter((v) => v.status === "Active") || [];
+    return product.variants?.filter((v) => v.status === "Active" && !v.name?.toLowerCase().includes("gift") && !v.name?.toLowerCase().includes("eco packaging")) || [];
   }, [product.variants]);
 
   // Set initial selected variant
@@ -93,14 +93,15 @@ const ProductCard = ({ product, user, onAddToCart }) => {
     setTimeout(() => setIsAdded(false), 2000);
   };
 
-  const renderBadgeIcon = (iconName) => {
+  const renderBadgeIcon = (iconName, size = 10) => {
     switch (iconName) {
-      case "Flame": return <Flame size={10} />;
-      case "Award": return <Award size={10} />;
-      case "Leaf": return <Leaf size={10} />;
-      case "ShieldCheck": return <ShieldCheck size={10} />;
-      case "Sparkles": return <Sparkles size={10} />;
-      default: return null;
+      case "Flame": return <Flame size={size} />;
+      case "Award": return <Award size={size} />;
+      case "Leaf": return <Leaf size={size} />;
+      case "ShieldCheck": return <ShieldCheck size={size} />;
+      case "Sparkles": return <Sparkles size={size} />;
+      case "Star": return <Star size={size} />;
+      default: return <TagIcon size={size} />;
     }
   };
 
@@ -109,29 +110,37 @@ const ProductCard = ({ product, user, onAddToCart }) => {
       to={`/product/${product._id}`}
       className="group relative bg-white border border-slate-200/90 rounded-2xl sm:rounded-3xl p-3.5 sm:p-5 transition-all duration-300 hover:shadow-2xl hover:border-[#1E971D]/60 flex flex-col cursor-pointer w-full text-left"
     >
-      {/* BADGES & DISCOUNT TAG */}
+      {/* BADGES */}
       <div className="absolute top-2.5 left-2.5 sm:top-4 sm:left-4 flex flex-col gap-1.5 z-10">
-        {priceDetails.isDiscounted && (
-          <span className="bg-red-600 text-white text-[8px] sm:text-[10px] font-black px-2 sm:px-2.5 py-0.5 rounded-full uppercase tracking-wider shadow-sm">
-            Save {priceDetails.discountPercent}%
-          </span>
-        )}
-
         {/* Dynamic Product Badges */}
         {product.tags && product.tags.slice(0, 2).map((tag, idx) => {
           if (!tag) return null;
-          const tagName = typeof tag === 'object' ? tag.name : tag;
+          const rawName = typeof tag === 'object' ? tag.name : tag;
+          const tagName = rawName && typeof rawName === 'string' ? rawName.trim() : "";
           const tagBg = typeof tag === 'object' ? tag.bgColor : "#1E971D";
           const tagColor = typeof tag === 'object' ? tag.textColor : "#ffffff";
           const tagIcon = typeof tag === 'object' ? tag.icon : null;
+          const tagImage = typeof tag === 'object' ? tag.imageUrl : null;
           return (
             <span
               key={idx}
               style={{ backgroundColor: tagBg, color: tagColor }}
-              className="inline-flex items-center gap-1 text-[8px] sm:text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider shadow-xs"
+              className={`inline-flex items-center justify-center font-black shadow-xs ${
+                tagName
+                  ? "gap-1 text-[8px] sm:text-[9px] px-2 py-0.5 rounded-full uppercase tracking-wider"
+                  : "w-5 h-5 sm:w-6 sm:h-6 rounded-full p-0 aspect-square shrink-0"
+              }`}
             >
-              {tagIcon && renderBadgeIcon(tagIcon)}
-              {tagName}
+              {tagImage ? (
+                <img
+                  src={tagImage}
+                  alt=""
+                  className={tagName ? "w-3 h-3 object-contain rounded" : "w-3.5 h-3.5 sm:w-4 sm:h-4 object-contain rounded-full"}
+                />
+              ) : (
+                tagIcon && renderBadgeIcon(tagIcon, tagName ? 10 : 12)
+              )}
+              {tagName && <span>{tagName}</span>}
             </span>
           );
         })}

@@ -13,7 +13,7 @@ const Footer = () => {
     { Icon: FaInstagram, url: "https://www.instagram.com/ownfresh_official/", label: "Instagram" },
     { Icon: FaFacebookF, url: "https://www.facebook.com/ownfresh.official", label: "Facebook" },
     { Icon: FaXTwitter, url: "https://x.com/ownfresh_off", label: "X" },
-    { Icon: FaYoutube, url: "https://www.youtube.com/@ownfresh_official", label: "YouTube" },
+    { Icon: FaYoutube, url: "https://www.youtube.com/@OwnFreshOfficial", label: "YouTube" },
     { Icon: FaLinkedinIn, url: "https://www.linkedin.com/company/ownfresh/", label: "LinkedIn" }
   ];
 
@@ -93,6 +93,7 @@ const Footer = () => {
               { name: "About Us", path: "/whyownfresh" },
               { name: "Blogs", path: "/oilinsights" },
               { name: "Contact", path: "/contact" },
+              { name: "1% Prime", path: "/membership" },
               { name: "WHY OWNFRESH ?", path: "/whyownfresh" },
             ].map((item, index) => (
               <li key={index} className="w-fit">
@@ -161,32 +162,41 @@ const Footer = () => {
         </div>
 
         {/* Newsletter */}
-        <div>
-          <h3 className="text-lg font-semibold text-black mb-6">
+        <div className="w-full">
+          <h3 className="text-lg font-semibold text-black mb-4 sm:mb-6">
             Newsletter
           </h3>
 
-          <p className="mb-6">
+          <p className="mb-4 sm:mb-6 text-sm text-gray-600 leading-relaxed">
             Avail attractive discounts on your orders by joining our Newsletter
           </p>
 
-          <div className="flex flex-row w-full max-w-md bg-white border border-gray-300 rounded-full overflow-hidden shadow-sm">
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="your@email.com"
-              className="flex-1 min-w-0 px-5 py-3 text-sm outline-none bg-white text-black border-none rounded-none focus:ring-0"
-            />
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              handleSubscribe();
+            }}
+            className="w-full max-w-md"
+          >
+            <div className="flex flex-col sm:flex-row w-full bg-white border border-gray-300 rounded-2xl sm:rounded-full overflow-hidden shadow-xs focus-within:border-[#1E971D] focus-within:ring-2 focus-within:ring-[#1E971D]/20 transition-all p-1 sm:p-0">
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="your@email.com"
+                aria-label="Email address for newsletter"
+                className="w-full sm:flex-1 min-w-0 px-4 py-3 text-sm outline-none bg-transparent text-slate-900 placeholder:text-gray-400 rounded-xl sm:rounded-none border-none focus:ring-0"
+              />
 
-            <button
-              onClick={handleSubscribe}
-              disabled={loading}
-              className="px-6 py-3 bg-black text-white text-sm font-semibold rounded-none hover:bg-[#FFDD00] hover:text-black transition duration-300 disabled:opacity-60 cursor-pointer shrink-0"
-            >
-              {loading ? "..." : "SUBSCRIBE"}
-            </button>
-          </div>
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full sm:w-auto px-6 py-3 bg-black text-white text-xs sm:text-sm font-extrabold tracking-wider uppercase rounded-xl sm:rounded-full hover:bg-[#FFDD00] hover:text-black transition-all duration-300 disabled:opacity-60 cursor-pointer shrink-0 text-center active:scale-[0.98]"
+              >
+                {loading ? "..." : "SUBSCRIBE"}
+              </button>
+            </div>
+          </form>
         </div>
 
       </div>

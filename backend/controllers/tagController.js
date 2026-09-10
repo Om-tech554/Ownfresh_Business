@@ -23,31 +23,35 @@ export const getActiveTags = async (req, res) => {
 // CREATE TAG
 export const createTag = async (req, res) => {
   try {
-    const { name, icon, imageUrl, bgColor, textColor, description, isActive } = req.body;
-
-    if (!name || !name.trim()) {
-      return res.status(400).json({ success: false, message: "Tag name is required" });
-    }
+    const { name = "", icon = "", imageUrl = "", bgColor, textColor, description = "", isActive } = req.body;
 
     let finalImageUrl = imageUrl || "";
     if (req.file) {
       finalImageUrl = req.file.path;
     }
 
-    const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)+/g, "");
+    const trimmedName = (name || "").trim();
+    const finalIcon = (icon || "").trim();
+
+    if (!trimmedName && !finalIcon && !finalImageUrl) {
+      return res.status(400).json({ success: false, message: "A badge name, icon, or custom image is required." });
+    }
+
+    const slugBase = trimmedName || finalIcon || "badge";
+    const slug = `${slugBase.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)+/g, "")}-${Date.now().toString(36)}`;
 
     const tag = await Tag.create({
-      name: name.trim(),
+      name: trimmedName,
       slug,
-      icon: icon || "",
+      icon: finalIcon,
       imageUrl: finalImageUrl,
       bgColor: bgColor || "#1E971D",
       textColor: textColor || "#ffffff",
-      description: description || "",
-      isActive: isActive !== undefined ? isActive : true
+      description: description.trim(),
+      isActive: isActive !== undefined ? (isActive === true || isActive === "true") : true
     });
 
-    res.status(201).json({ success: true, tag, message: "Tag created successfully" });
+    res.status(201).json({ success: true, tag, message: "Badge created successfully" });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
@@ -61,14 +65,16 @@ export const updateTag = async (req, res) => {
 
     const tag = await Tag.findById(id);
     if (!tag) {
-      return res.status(404).json({ success: false, message: "Tag not found" });
+      return res.status(404).json({ success: false, message: "Badge not found" });
     }
 
-    if (name) {
+    if (name !== undefined) {
       tag.name = name.trim();
-      tag.slug = name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)+/g, "");
+      if (tag.name) {
+        tag.slug = `${tag.name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)+/g, "")}-${Date.now().toString(36)}`;
+      }
     }
-    if (icon !== undefined) tag.icon = icon;
+    if (icon !== undefined) tag.icon = icon.trim();
     if (req.file) {
       tag.imageUrl = req.file.path;
     } else if (imageUrl !== undefined) {
@@ -77,10 +83,10 @@ export const updateTag = async (req, res) => {
     if (bgColor !== undefined) tag.bgColor = bgColor;
     if (textColor !== undefined) tag.textColor = textColor;
     if (description !== undefined) tag.description = description;
-    if (isActive !== undefined) tag.isActive = isActive;
+    if (isActive !== undefined) tag.isActive = (isActive === true || isActive === "true");
 
     await tag.save();
-    res.json({ success: true, tag, message: "Tag updated successfully" });
+    res.json({ success: true, tag, message: "Badge updated successfully" });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }

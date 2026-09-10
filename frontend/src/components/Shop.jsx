@@ -415,10 +415,11 @@ const Shop = () => {
         </div>
 
         {/* SHOP BY PURPOSE FILTER CHIPS */}
-        <div className="max-w-7xl mx-auto mb-8">
+        <div id="shop-purpose-section" className="max-w-7xl mx-auto mb-8">
           <div className="flex items-center gap-2 overflow-x-auto pb-2 no-scrollbar">
-            <span className="text-[11px] font-black uppercase tracking-wider text-slate-400 whitespace-nowrap mr-1">
-              Purpose:
+            <span className="text-xs font-black uppercase tracking-wider text-slate-900 bg-[#FFDD00]/25 border border-[#FFDD00]/70 px-3 py-1.5 rounded-xl whitespace-nowrap mr-1 flex items-center gap-1.5 shadow-xs">
+              <Sparkles size={13} className="text-slate-900" />
+              <strong>PURPOSE:</strong>
             </span>
             {PURPOSE_CHIPS.map((chip) => {
               const Icon = chip.icon;
@@ -521,7 +522,7 @@ const Shop = () => {
                   <div className="flex justify-center mt-12">
                     <button
                       onClick={() => setVisibleCount((v) => v + 6)}
-                      className="flex items-center justify-center px-10 py-4 rounded-2xl font-black uppercase tracking-[0.2em] text-xs bg-[#1E971D] text-white shadow-lg shadow-[#1E971D]/20 transition-all duration-300 hover:bg-slate-900 active:scale-95 cursor-pointer group"
+                      className="flex items-center justify-center px-10 py-4 rounded-2xl font-black uppercase tracking-[0.2em] text-xs bg-[#FFDD00] text-slate-900 shadow-xl shadow-yellow-200 transition-all duration-300 hover:bg-slate-900 hover:text-white active:scale-95 border-2 border-transparent hover:border-slate-800 cursor-pointer group"
                     >
                       Load More Oils
                       <ArrowRight size={16} className="ml-2 transition-transform group-hover:translate-x-1" />
