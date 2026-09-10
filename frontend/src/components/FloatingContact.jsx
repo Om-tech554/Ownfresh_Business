@@ -1,10 +1,15 @@
 import React, { useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FaWhatsapp, FaPhone, FaEnvelope } from 'react-icons/fa6';
 import { MessageSquare, X } from 'lucide-react';
 
 const FloatingContact = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const location = useLocation();
+
+  const isProductPage = location.pathname.startsWith("/product");
+  const isCheckoutOrCart = location.pathname === "/checkout" || location.pathname === "/cart";
 
   const contactOptions = [
     {
@@ -31,7 +36,13 @@ const FloatingContact = () => {
   ];
 
   return (
-    <div className="print:hidden fixed bottom-20 lg:bottom-6 right-4 lg:right-6 z-[45] flex flex-col items-end gap-3 font-sans">
+    <div
+      className={`print:hidden fixed ${
+        isProductPage || isCheckoutOrCart
+          ? "hidden lg:flex lg:bottom-6"
+          : "bottom-20 lg:bottom-6"
+      } right-4 lg:right-6 z-[35] flex flex-col items-end gap-3 font-sans transition-all duration-300`}
+    >
       {/* Expanded Menu */}
       <AnimatePresence>
         {isOpen && (

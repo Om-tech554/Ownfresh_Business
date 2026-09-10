@@ -403,7 +403,7 @@ const ProductDetails = () => {
           .map((savedId) => allProductsList.find((p) => p._id === savedId))
           .filter(Boolean);
         setRecentlyViewed(matched);
-      } catch (e) {}
+      } catch (e) { }
     }
   }, [id, allProductsList]);
 
@@ -643,7 +643,7 @@ const ProductDetails = () => {
       />
       <Navbar />
 
-      <div className="min-h-screen py-6 sm:py-10 px-3 sm:px-8 md:px-16 lg:px-20 bg-[#fafafa] pb-32 lg:pb-10">
+      <div className="min-h-screen py-6 sm:py-10 px-3 sm:px-8 md:px-16 lg:px-20 bg-[#fafafa] pb-44 lg:pb-12">
         <div className="max-w-7xl mx-auto">
 
           {/* BREADCRUMB */}
@@ -659,10 +659,10 @@ const ProductDetails = () => {
 
             {/* ── LEFT: DYNAMIC MULTI-IMAGE GALLERY (5 COLS) ── */}
             <div className="lg:col-span-6 flex flex-col gap-3 sm:gap-4 lg:sticky lg:top-28">
-              
+
               {/* MAIN HERO IMAGE CONTAINER */}
               <div className="relative w-full h-[300px] xs:h-[360px] sm:h-[480px] bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-10 border border-slate-200/80 shadow-xs flex items-center justify-center overflow-hidden group">
-                
+
                 {/* Badges Overlay */}
                 <div className="absolute top-3 left-3 sm:top-4 sm:left-4 flex flex-col gap-1 z-10">
                   {product.tags && product.tags.map((tag, idx) => {
@@ -677,11 +677,10 @@ const ProductDetails = () => {
                       <span
                         key={idx}
                         style={{ backgroundColor: tagBg, color: tagColor }}
-                        className={`inline-flex items-center justify-center font-black shadow-xs ${
-                          tagName
+                        className={`inline-flex items-center justify-center font-black shadow-xs ${tagName
                             ? "gap-1 sm:gap-1.5 text-[8px] sm:text-[10px] px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-full uppercase tracking-wider"
                             : "w-6 h-6 sm:w-7 sm:h-7 rounded-full p-0 aspect-square shrink-0"
-                        }`}
+                          }`}
                       >
                         {tagImage ? (
                           <img
@@ -740,11 +739,10 @@ const ProductDetails = () => {
                       <button
                         key={idx}
                         onClick={() => setActiveImage(imgUrl)}
-                        className={`w-16 h-16 sm:w-24 sm:h-24 rounded-xl sm:rounded-2xl p-1.5 sm:p-2 bg-white border-2 transition-all flex items-center justify-center shrink-0 cursor-pointer ${
-                          isSelected
+                        className={`w-16 h-16 sm:w-24 sm:h-24 rounded-xl sm:rounded-2xl p-1.5 sm:p-2 bg-white border-2 transition-all flex items-center justify-center shrink-0 cursor-pointer ${isSelected
                             ? "border-[#1E971D] shadow-md scale-102"
                             : "border-slate-200 hover:border-slate-300 opacity-70 hover:opacity-100"
-                        }`}
+                          }`}
                       >
                         <img src={imgUrl} alt="" className="w-full h-full object-contain mix-blend-multiply" />
                       </button>
@@ -756,7 +754,7 @@ const ProductDetails = () => {
 
             {/* ── RIGHT: PRODUCT DETAILS & VARIANT SELECTOR (7 COLS) ── */}
             <div className="lg:col-span-6 flex flex-col justify-center">
-              
+
               {/* Category & Rating */}
               <div className="flex items-center justify-between gap-4 mb-2">
                 <span className="text-[10px] font-black px-3 py-1 rounded-lg bg-emerald-50 text-[#1E971D] border border-emerald-100 uppercase tracking-widest">
@@ -836,11 +834,10 @@ const ProductDetails = () => {
                       <button
                         key={variant._id}
                         onClick={() => handleVariantSelect(variant)}
-                        className={`p-3.5 rounded-2xl border-2 text-left flex flex-col justify-between transition-all cursor-pointer ${
-                          isSelected
+                        className={`p-3.5 rounded-2xl border-2 text-left flex flex-col justify-between transition-all cursor-pointer ${isSelected
                             ? "bg-[#1E971D] border-[#1E971D] text-white shadow-md scale-102"
                             : "bg-white border-slate-200 text-slate-800 hover:border-slate-300 hover:bg-slate-50"
-                        }`}
+                          }`}
                       >
                         <span className="font-black text-xs uppercase tracking-wider block">
                           {variant.name}
@@ -1086,11 +1083,10 @@ const ProductDetails = () => {
             <div className="flex items-center gap-2 sm:gap-4 border-b border-slate-200 pb-2 overflow-x-auto no-scrollbar">
               <button
                 onClick={() => setActiveTab("overview")}
-                className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-black uppercase tracking-wider transition-all whitespace-nowrap cursor-pointer ${
-                  activeTab === "overview"
+                className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-black uppercase tracking-wider transition-all whitespace-nowrap cursor-pointer ${activeTab === "overview"
                     ? "bg-[#1E971D] text-white shadow-md shadow-[#1E971D]/20"
                     : "text-slate-500 hover:text-slate-900 hover:bg-slate-100"
-                }`}
+                  }`}
               >
                 <Leaf size={16} />
                 Overview & Benefits
@@ -1098,11 +1094,10 @@ const ProductDetails = () => {
 
               <button
                 onClick={() => setActiveTab("method")}
-                className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-black uppercase tracking-wider transition-all whitespace-nowrap cursor-pointer ${
-                  activeTab === "method"
+                className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-black uppercase tracking-wider transition-all whitespace-nowrap cursor-pointer ${activeTab === "method"
                     ? "bg-[#1E971D] text-white shadow-md shadow-[#1E971D]/20"
                     : "text-slate-500 hover:text-slate-900 hover:bg-slate-100"
-                }`}
+                  }`}
               >
                 <RotateCcw size={16} />
                 Stone-Pressed (Kolhu) Method
@@ -1110,11 +1105,10 @@ const ProductDetails = () => {
 
               <button
                 onClick={() => setActiveTab("specs")}
-                className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-black uppercase tracking-wider transition-all whitespace-nowrap cursor-pointer ${
-                  activeTab === "specs"
+                className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-black uppercase tracking-wider transition-all whitespace-nowrap cursor-pointer ${activeTab === "specs"
                     ? "bg-[#1E971D] text-white shadow-md shadow-[#1E971D]/20"
                     : "text-slate-500 hover:text-slate-900 hover:bg-slate-100"
-                }`}
+                  }`}
               >
                 <FileText size={16} />
                 Specifications & Uses
@@ -1122,11 +1116,10 @@ const ProductDetails = () => {
 
               <button
                 onClick={() => setActiveTab("faqs")}
-                className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-black uppercase tracking-wider transition-all whitespace-nowrap cursor-pointer ${
-                  activeTab === "faqs"
+                className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-black uppercase tracking-wider transition-all whitespace-nowrap cursor-pointer ${activeTab === "faqs"
                     ? "bg-[#1E971D] text-white shadow-md shadow-[#1E971D]/20"
                     : "text-slate-500 hover:text-slate-900 hover:bg-slate-100"
-                }`}
+                  }`}
               >
                 <HelpCircle size={16} />
                 FAQs ({oilInfo.faqs?.length || 0})
@@ -1135,11 +1128,10 @@ const ProductDetails = () => {
               {product.labelImage && (
                 <button
                   onClick={() => setActiveTab("label")}
-                  className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-black uppercase tracking-wider transition-all whitespace-nowrap cursor-pointer ${
-                    activeTab === "label"
+                  className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-black uppercase tracking-wider transition-all whitespace-nowrap cursor-pointer ${activeTab === "label"
                       ? "bg-[#1E971D] text-white shadow-md shadow-[#1E971D]/20"
                       : "text-slate-500 hover:text-slate-900 hover:bg-slate-100"
-                  }`}
+                    }`}
                 >
                   <Package size={16} />
                   Bottle Label
@@ -1148,11 +1140,10 @@ const ProductDetails = () => {
 
               <button
                 onClick={() => setActiveTab("reviews")}
-                className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-black uppercase tracking-wider transition-all whitespace-nowrap cursor-pointer ${
-                  activeTab === "reviews"
+                className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-black uppercase tracking-wider transition-all whitespace-nowrap cursor-pointer ${activeTab === "reviews"
                     ? "bg-[#1E971D] text-white shadow-md shadow-[#1E971D]/20"
                     : "text-slate-500 hover:text-slate-900 hover:bg-slate-100"
-                }`}
+                  }`}
               >
                 <Star size={16} />
                 Reviews
@@ -1508,8 +1499,8 @@ const ProductDetails = () => {
       </div>
 
       {/* ── MOBILE STICKY PURCHASE BAR (Fixed on iPhone & Android) ── */}
-      <div className="lg:hidden fixed bottom-14 left-0 right-0 z-30 bg-white/95 backdrop-blur-md border-t border-slate-200/90 px-4 py-2.5 shadow-[0_-4px_16px_rgba(0,0,0,0.08)] flex items-center justify-between gap-3">
-        <div className="min-w-0">
+      <div className="lg:hidden fixed bottom-14 left-0 right-0 z-[100] bg-white/95 backdrop-blur-md border-t border-slate-200/90 px-4 py-3 shadow-[0_-4px_20px_rgba(0,0,0,0.12)] flex items-center justify-between gap-3">
+        <div className="min-w-0 flex-1">
           <span className="text-[9px] font-bold text-slate-400 block uppercase tracking-wider truncate">
             {selectedVariant?.name || "Standard Size"}
           </span>
@@ -1522,16 +1513,16 @@ const ProductDetails = () => {
           <button
             onClick={handleAddToCart}
             disabled={selectedVariant?.stockQuantity <= 0}
-            className="px-3.5 py-2.5 bg-slate-900 text-white rounded-xl font-black text-xs uppercase tracking-wider flex items-center gap-1.5 shadow-sm active:scale-95 disabled:opacity-50 cursor-pointer"
+            className="px-3.5 py-2.5 bg-slate-900 hover:bg-black text-white rounded-xl font-black text-xs uppercase tracking-wider flex items-center gap-1.5 shadow-sm active:scale-95 disabled:opacity-50 cursor-pointer"
           >
             <ShoppingCart size={14} /> Add
           </button>
           <button
             onClick={handleBuyNow}
             disabled={selectedVariant?.stockQuantity <= 0}
-            className="px-4 py-2.5 bg-[#1E971D] text-white rounded-xl font-black text-xs uppercase tracking-wider flex items-center gap-1.5 shadow-sm shadow-[#1E971D]/20 active:scale-95 disabled:opacity-50 cursor-pointer"
+            className="px-4 py-2.5 bg-[#1E971D] hover:bg-[#167a17] text-white rounded-xl font-black text-xs uppercase tracking-wider flex items-center gap-1.5 shadow-md shadow-[#1E971D]/25 active:scale-95 disabled:opacity-50 cursor-pointer"
           >
-            <Zap size={14} /> Buy
+            <Zap size={14} /> Buy Now
           </button>
         </div>
       </div>
