@@ -73,7 +73,12 @@ app.use(cors({
         if (allowedOrigins.some(o => o && o.replace(/\/+$/, "") === cleanOrigin)) {
             return callback(null, true);
         }
-        if (cleanOrigin.endsWith("myownfresh.com") || cleanOrigin.endsWith(".onrender.com")) {
+        if (
+            cleanOrigin.endsWith("myownfresh.com") ||
+            cleanOrigin.endsWith(".onrender.com") ||
+            cleanOrigin.endsWith(".railway.app") ||
+            cleanOrigin.endsWith(".up.railway.app")
+        ) {
             return callback(null, true);
         }
         return callback(new Error(`CORS blocked: unauthorized origin ${origin}`));

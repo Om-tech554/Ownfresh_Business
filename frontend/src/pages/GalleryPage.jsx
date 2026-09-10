@@ -7,7 +7,7 @@ import axios from 'axios';
 import { AnimatePresence, motion } from 'framer-motion';
 import SEO from '../components/SEO';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:10000";
+const API_BASE_URL = (import.meta.env.VITE_API_URL || "http://localhost:10000").replace(/\/+$/, "");
 
 /* Gallery Data */
 /* Certifications (Kept separate and static per requirements) */

@@ -332,7 +332,7 @@ const ProductDetails = () => {
     return OIL_KNOWLEDGE_BASE.mustard;
   }, [product]);
 
-  const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:10000";
+  const API_BASE_URL = (import.meta.env.VITE_API_URL || "http://localhost:10000").replace(/\/+$/, "");
 
   /* Fetch Single Product */
   useEffect(() => {

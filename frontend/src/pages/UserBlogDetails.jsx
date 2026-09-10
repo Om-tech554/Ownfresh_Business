@@ -54,7 +54,7 @@ const UserBlogDetails = () => {
 
   const fetchBlog = async () => {
     try {
-      const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:10000";
+      const API_BASE_URL = (import.meta.env.VITE_API_URL || "http://localhost:10000").replace(/\/+$/, "");
       const res = await axios.get(`${API_BASE_URL}/api/blog/${id}`);
       setBlog(res.data.blog);
     } catch (error) {

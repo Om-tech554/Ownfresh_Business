@@ -52,7 +52,7 @@ const RefundPolicy = lazyRetry(() => import('./pages/RefundPolicy'));
 const ShippingPolicy = lazyRetry(() => import('./pages/ShippingPolicy'));
 const MembershipPage = lazyRetry(() => import('./pages/MembershipPage'));
 
-export const serverUrl = import.meta.env.VITE_API_URL || "http://localhost:10000";
+export const serverUrl = (import.meta.env.VITE_API_URL || "http://localhost:10000").replace(/\/+$/, "");
 
 const LoadingFallback = () => (
   <div className="min-h-[70vh] flex flex-col items-center justify-center bg-gray-50">
