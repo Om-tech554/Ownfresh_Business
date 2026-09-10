@@ -83,6 +83,35 @@ input[type="password"]::-webkit-textfield-decoration-container {
   display: none;
 }
 
+/* Mobile Touch & Micro-Interaction Enhancements */
+button, a, input, select, textarea, [role="button"] {
+  touch-action: manipulation;
+}
+
+/* Micro-interaction tap animation */
+.touch-press {
+  transition: transform 0.15s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.15s ease;
+}
+.touch-press:active {
+  transform: scale(0.97);
+}
+
+/* Accessible comfortable touch target */
+.touch-target-44 {
+  min-height: 44px;
+  min-width: 44px;
+}
+
+.touch-target-48 {
+  min-height: 48px;
+  min-width: 48px;
+}
+
+/* Momentum scrolling for iOS */
+.scroll-touch {
+  -webkit-overflow-scrolling: touch;
+}
+
 /* Global styling for Admin Panel */
 .admin-panel,
 .admin-panel *,
