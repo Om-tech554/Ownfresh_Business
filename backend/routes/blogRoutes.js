@@ -19,10 +19,14 @@ import {
   aiImprove,
   aiExpand,
   aiShorten,
-  aiMetaDescription
+  aiMetaDescription,
+  uploadBlogImage
 } from "../controllers/blog.controller.js";
 
 const router = express.Router();
+
+// UPLOAD BLOG INLINE IMAGE (Dedicated for blog content, isolated from gallery)
+router.post("/upload-image", isAuth, isAdmin, upload.single("image"), uploadBlogImage);
 
 // ADD BLOG (supports 5 images)
 router.post(

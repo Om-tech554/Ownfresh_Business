@@ -389,20 +389,16 @@ const BlogBlockEditor = ({ blocks, onChange }) => {
     if (!file) return;
     const formData = new FormData();
     formData.append("image", file);
-    formData.append("title", file.name);
-    formData.append("category", "OTHER");
-    formData.append("description", "Uploaded via blog content editor");
 
     const loadingToast = toast.loading("Uploading image to Cloudinary...");
     try {
-      // Use existing gallery admin upload endpoint to save asset
-      const res = await axios.post(`${API_BASE_URL}/api/gallery/admin/upload`, formData, {
+      const res = await axios.post(`${API_BASE_URL}/api/blog/upload-image`, formData, {
         headers: { "Content-Type": "multipart/form-data" },
         withCredentials: true
       });
       if (res.data.success) {
-        updateBlockData(blockId, { url: res.data.image.imageUrl });
-        toast.success("Image uploaded & stored in media library", { id: loadingToast });
+        updateBlockData(blockId, { url: res.data.imageUrl });
+        toast.success("Image uploaded successfully", { id: loadingToast });
       }
     } catch (error) {
       toast.error("Image upload failed: " + (error.response?.data?.message || error.message), { id: loadingToast });

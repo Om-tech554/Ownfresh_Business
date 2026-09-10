@@ -506,3 +506,25 @@ export const aiMetaDescription = async (req, res) => {
   }
 };
 
+// ===================== UPLOAD BLOG INLINE IMAGE =====================
+export const uploadBlogImage = async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({
+        success: false,
+        message: "No image file uploaded",
+      });
+    }
+
+    const imageUrl = req.file.path || req.file.url;
+    return res.status(200).json({
+      success: true,
+      imageUrl,
+      message: "Blog image uploaded successfully",
+    });
+  } catch (error) {
+    console.error("UPLOAD BLOG IMAGE ERROR:", error);
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
