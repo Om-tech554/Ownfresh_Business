@@ -172,9 +172,9 @@ const UserBlogDetails = () => {
   /* ── Loading ── */
   if (loading)
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-[#FEFDF8]">
-        <Loader2 className="w-12 h-12 animate-spin text-[#1E971D]" />
-        <p className="mt-4 text-slate-600 font-bold uppercase tracking-wider text-xs">
+      <div className="min-h-screen flex flex-col items-center justify-center bg-[#FEFDF8] dark:bg-[#0B0F14] transition-colors duration-250">
+        <Loader2 className="w-12 h-12 animate-spin text-[#1E971D] dark:text-[#FFD600]" />
+        <p className="mt-4 text-slate-600 dark:text-[#818C9B] font-bold uppercase tracking-wider text-xs">
           Loading Insights & Science…
         </p>
       </div>
@@ -183,11 +183,11 @@ const UserBlogDetails = () => {
   /* ── Not found ── */
   if (!blog)
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center p-6 bg-[#FEFDF8]">
-        <h2 className="text-2xl font-black text-slate-900 uppercase">Article Not Found</h2>
+      <div className="min-h-screen flex flex-col items-center justify-center p-6 bg-[#FEFDF8] dark:bg-[#0B0F14] transition-colors duration-250">
+        <h2 className="text-2xl font-black text-slate-900 dark:text-[#F5F7FA] uppercase">Article Not Found</h2>
         <button
           onClick={() => navigate(-1)}
-          className="text-[#1E971D] font-bold mt-4 flex items-center gap-2 uppercase tracking-wider text-xs cursor-pointer"
+          className="text-[#1E971D] dark:text-[#FFD600] font-bold mt-4 flex items-center gap-2 uppercase tracking-wider text-xs cursor-pointer"
         >
           <ArrowLeft size={16} /> Return to Articles
         </button>
@@ -215,7 +215,7 @@ const UserBlogDetails = () => {
   };
 
   return (
-    <div className="bg-[#FEFDF8] min-h-screen relative font-sans">
+    <div className="bg-[#FEFDF8] dark:bg-[#0B0F14] min-h-screen relative font-sans transition-colors duration-250">
       <SEO
         title={cleanTitle}
         description={cleanDescription}
@@ -317,6 +317,9 @@ const UserBlogDetails = () => {
                 font-size: 1.05rem !important;
                 color: #334155 !important;
               }
+              html.dark .wp-blog-content p {
+                color: #B7C1CE !important;
+              }
               .wp-blog-content h1 {
                 font-size: 2.2rem !important;
                 font-weight: 900 !important;
@@ -324,6 +327,9 @@ const UserBlogDetails = () => {
                 margin-top: 2.2rem !important;
                 margin-bottom: 1rem !important;
                 line-height: 1.25 !important;
+              }
+              html.dark .wp-blog-content h1 {
+                color: #F7F9FC !important;
               }
               .wp-blog-content h2 {
                 font-size: 1.65rem !important;
@@ -335,6 +341,10 @@ const UserBlogDetails = () => {
                 border-left: 4px solid #1E971D;
                 padding-left: 0.75rem;
               }
+              html.dark .wp-blog-content h2 {
+                color: #F7F9FC !important;
+                border-left-color: #FFD600 !important;
+              }
               .wp-blog-content h3 {
                 font-size: 1.3rem !important;
                 font-weight: 850 !important;
@@ -342,6 +352,9 @@ const UserBlogDetails = () => {
                 margin-top: 1.75rem !important;
                 margin-bottom: 0.75rem !important;
                 line-height: 1.35 !important;
+              }
+              html.dark .wp-blog-content h3 {
+                color: #F7F9FC !important;
               }
               .wp-blog-content table {
                 width: 100%;
@@ -352,6 +365,10 @@ const UserBlogDetails = () => {
                 overflow: hidden;
                 box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05);
                 border: 1px solid #e2e8f0;
+              }
+              html.dark .wp-blog-content table {
+                background-color: #171D26 !important;
+                border-color: #27313D !important;
               }
               .wp-blog-content th {
                 background-color: #f8fafc;
@@ -364,12 +381,21 @@ const UserBlogDetails = () => {
                 text-transform: uppercase;
                 letter-spacing: 0.05em;
               }
+              html.dark .wp-blog-content th {
+                background-color: #151B23 !important;
+                color: #F5F7FA !important;
+                border-bottom-color: #27313D !important;
+              }
               .wp-blog-content td {
                 padding: 14px 18px;
                 border-bottom: 1px solid #f1f5f9;
                 color: #334155;
                 font-size: 0.95rem;
                 line-height: 1.5;
+              }
+              html.dark .wp-blog-content td {
+                border-bottom-color: #202832 !important;
+                color: #B7C1CE !important;
               }
               .wp-blog-content tr:last-child td {
                 border-bottom: none;
@@ -392,10 +418,16 @@ const UserBlogDetails = () => {
                 line-height: 1.8 !important;
                 color: #334155;
               }
+              html.dark .wp-blog-content li {
+                color: #B7C1CE !important;
+              }
               .wp-blog-content a {
                 color: #1E971D !important;
                 font-weight: 700 !important;
                 text-decoration: underline !important;
+              }
+              html.dark .wp-blog-content a {
+                color: #FFD600 !important;
               }
             ` }} />
 
@@ -406,12 +438,12 @@ const UserBlogDetails = () => {
 
             {/* Interactive Image Gallery Slider */}
             {images.length > 0 && (
-              <div className="mt-12 pt-8 border-t border-slate-200">
+              <div className="mt-12 pt-8 border-t border-slate-200 dark:border-[#27313D]">
                 <div className="flex items-center justify-between gap-2 mb-4">
-                  <h3 className="text-xl font-black text-slate-900 uppercase tracking-wide">
+                  <h3 className="text-xl font-black text-slate-900 dark:text-[#F5F7FA] uppercase tracking-wide">
                     Article Gallery Slider
                   </h3>
-                  <span className="text-[10px] font-black uppercase tracking-widest text-[#1E971D] bg-emerald-50 px-3 py-1 rounded-full border border-emerald-100">
+                  <span className="text-[10px] font-black uppercase tracking-widest text-[#1E971D] dark:text-[#FFD600] bg-emerald-50 dark:bg-[#1D2530] px-3 py-1 rounded-full border border-emerald-100 dark:border-[#2A3440]">
                     {images.length} {images.length === 1 ? "Image" : "Images"}
                   </span>
                 </div>
@@ -420,18 +452,18 @@ const UserBlogDetails = () => {
             )}
 
             {/* Author Footer Bio */}
-            <div className="mt-14 p-6 sm:p-8 bg-white border border-slate-200 rounded-3xl flex flex-col sm:flex-row items-center sm:items-start gap-6 shadow-xs">
-              <div className="w-16 h-16 rounded-full bg-[#1E971D] text-white flex items-center justify-center font-black text-xl shrink-0 shadow-md">
+            <div className="mt-14 p-6 sm:p-8 bg-white dark:bg-[#171D26] border border-slate-200 dark:border-[#27313D] rounded-3xl flex flex-col sm:flex-row items-center sm:items-start gap-6 shadow-xs transition-colors duration-250">
+              <div className="w-16 h-16 rounded-full bg-[#1E971D] dark:bg-[#FFD600] text-white dark:text-[#111318] flex items-center justify-center font-black text-xl shrink-0 shadow-md">
                 OF
               </div>
               <div className="flex-1 text-center sm:text-left">
-                <span className="text-[10px] font-black uppercase tracking-widest text-[#1E971D] bg-emerald-50 px-2.5 py-0.5 rounded-full inline-block mb-1">
+                <span className="text-[10px] font-black uppercase tracking-widest text-[#1E971D] dark:text-[#FFD600] bg-emerald-50 dark:bg-[#1D2530] px-2.5 py-0.5 rounded-full inline-block mb-1">
                   Written by
                 </span>
-                <h4 className="text-base font-black text-slate-900 uppercase">
+                <h4 className="text-base font-black text-slate-900 dark:text-[#F5F7FA] uppercase">
                   {blog.author || "OwnFresh Culinary Science Team"}
                 </h4>
-                <p className="text-xs text-slate-500 mt-1 leading-relaxed">
+                <p className="text-xs text-slate-500 dark:text-[#818C9B] mt-1 leading-relaxed">
                   Dedicated to reviving India's ancient wood/stone Kolhu churning heritage, bringing 100% pure, chemical-free cold pressed nutrition to modern families.
                 </p>
               </div>
@@ -443,40 +475,40 @@ const UserBlogDetails = () => {
           <aside className="w-full lg:w-[33%] lg:sticky lg:top-28 flex flex-col gap-6 shrink-0 h-fit">
 
             {/* 1. AT A GLANCE FACT CARD */}
-            <div className="bg-white border border-slate-200/90 rounded-3xl shadow-xs p-6">
-              <p className="text-xs font-black uppercase tracking-widest text-slate-900 mb-4 pb-3 border-b border-slate-100 flex items-center justify-between">
+            <div className="bg-white dark:bg-[#171D26] border border-slate-200/90 dark:border-[#27313D] rounded-3xl shadow-xs p-6 transition-colors duration-250">
+              <p className="text-xs font-black uppercase tracking-widest text-slate-900 dark:text-[#F5F7FA] mb-4 pb-3 border-b border-slate-100 dark:border-[#27313D] flex items-center justify-between">
                 <span>Article Overview</span>
-                <span className="text-[10px] text-[#1E971D] font-bold">Verified</span>
+                <span className="text-[10px] text-[#1E971D] dark:text-[#19C37D] font-bold">Verified</span>
               </p>
               <ul className="flex flex-col gap-3.5 text-xs">
                 <li className="flex items-start gap-3">
-                  <Calendar size={16} className="text-[#1E971D] mt-0.5 shrink-0" />
+                  <Calendar size={16} className="text-[#1E971D] dark:text-[#FFD600] mt-0.5 shrink-0" />
                   <div>
-                    <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Published</p>
-                    <p className="font-bold text-slate-800">
+                    <p className="text-[10px] text-slate-400 dark:text-[#818C9B] font-bold uppercase tracking-wider">Published</p>
+                    <p className="font-bold text-slate-800 dark:text-[#F5F7FA]">
                       {new Date(blog.publishedAt || blog.createdAt).toLocaleDateString("en-IN", { dateStyle: "long" })}
                     </p>
                   </div>
                 </li>
                 <li className="flex items-start gap-3">
-                  <Clock size={16} className="text-[#1E971D] mt-0.5 shrink-0" />
+                  <Clock size={16} className="text-[#1E971D] dark:text-[#FFD600] mt-0.5 shrink-0" />
                   <div>
-                    <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Reading Time</p>
-                    <p className="font-bold text-slate-800">{mins} minutes</p>
+                    <p className="text-[10px] text-slate-400 dark:text-[#818C9B] font-bold uppercase tracking-wider">Reading Time</p>
+                    <p className="font-bold text-slate-800 dark:text-[#F5F7FA]">{mins} minutes</p>
                   </div>
                 </li>
                 <li className="flex items-start gap-3">
-                  <ShieldCheck size={16} className="text-[#1E971D] mt-0.5 shrink-0" />
+                  <ShieldCheck size={16} className="text-[#1E971D] dark:text-[#19C37D] mt-0.5 shrink-0" />
                   <div>
-                    <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Standard</p>
-                    <p className="font-bold text-slate-800">ACoHI Certified Stone Press</p>
+                    <p className="text-[10px] text-slate-400 dark:text-[#818C9B] font-bold uppercase tracking-wider">Standard</p>
+                    <p className="font-bold text-slate-800 dark:text-[#F5F7FA]">ACoHI Certified Stone Press</p>
                   </div>
                 </li>
                 <li className="flex items-start gap-3">
-                  <Leaf size={16} className="text-[#1E971D] mt-0.5 shrink-0" />
+                  <Leaf size={16} className="text-[#1E971D] dark:text-[#19C37D] mt-0.5 shrink-0" />
                   <div>
-                    <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Topic</p>
-                    <p className="font-bold text-slate-800">
+                    <p className="text-[10px] text-slate-400 dark:text-[#818C9B] font-bold uppercase tracking-wider">Topic</p>
+                    <p className="font-bold text-slate-800 dark:text-[#F5F7FA]">
                       {blog.category || "Stone-Pressed Health"}
                     </p>
                   </div>
@@ -486,43 +518,43 @@ const UserBlogDetails = () => {
 
             {/* 2. RECOMMENDED STONE-PRESSED OIL PRODUCT CARD */}
             {featuredProduct && (
-              <div className="bg-gradient-to-br from-emerald-900 via-slate-900 to-black text-white p-6 rounded-3xl shadow-xl relative overflow-hidden group">
-                <div className="absolute top-0 right-0 w-32 h-32 bg-[#1E971D]/20 rounded-full blur-2xl pointer-events-none" />
+              <div className="bg-gradient-to-br from-emerald-900 via-slate-900 to-black dark:from-[#0B0F14] dark:via-[#111720] dark:to-[#171D26] text-white p-6 rounded-3xl shadow-xl dark:border dark:border-[#27313D] relative overflow-hidden group">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-[#1E971D]/20 dark:bg-[#FFD600]/10 rounded-full blur-2xl pointer-events-none" />
 
                 <div className="flex items-center justify-between mb-3 relative z-10">
-                  <span className="text-[9px] font-black uppercase tracking-widest bg-[#1E971D] text-white px-2.5 py-0.5 rounded-full">
+                  <span className="text-[9px] font-black uppercase tracking-widest bg-[#1E971D] dark:bg-[#19C37D] text-white dark:text-[#111318] px-2.5 py-0.5 rounded-full font-bold">
                     Recommended Oil
                   </span>
                   <div className="flex items-center gap-1 text-amber-400 text-xs">
-                    <Star size={12} className="fill-amber-400" />
+                    <Star size={12} className="fill-amber-400 dark:fill-[#FFD600] text-[#FFD600]" />
                     <span className="font-bold text-white text-[11px]">4.9 (180+ Reviews)</span>
                   </div>
                 </div>
 
                 <div className="relative z-10">
-                  <div className="w-full h-36 bg-white/5 rounded-2xl p-2 mb-3 flex items-center justify-center border border-white/10 group-hover:border-[#1E971D]/40 transition-colors">
+                  <div className="w-full h-36 bg-white/5 dark:bg-[#151B23] rounded-2xl p-2 mb-3 flex items-center justify-center border border-white/10 dark:border-[#27313D] group-hover:border-[#1E971D]/40 dark:group-hover:border-[#FFD600]/40 transition-colors">
                     <img
                       src={featuredProduct.variants?.[0]?.image || featuredProduct.image}
                       alt={featuredProduct.name}
-                      className="h-full w-auto object-contain transition-transform duration-500 group-hover:scale-105"
+                      className="h-full w-auto object-contain transition-transform duration-500 group-hover:scale-105 mix-blend-multiply dark:mix-blend-normal"
                     />
                   </div>
-                  <h4 className="text-sm font-black uppercase text-white leading-tight mb-1 line-clamp-1">
+                  <h4 className="text-sm font-black uppercase text-white dark:text-[#F5F7FA] leading-tight mb-1 line-clamp-1">
                     {featuredProduct.name}
                   </h4>
-                  <p className="text-[11px] text-slate-300 font-medium line-clamp-2 mb-3">
+                  <p className="text-[11px] text-slate-300 dark:text-[#B7C1CE] font-medium line-clamp-2 mb-3">
                     {featuredProduct.shortDesc || "100% Pure, unrefined stone-pressed oil churned at 14–16 RPM."}
                   </p>
-                  <div className="flex items-center justify-between pt-2 border-t border-white/10">
+                  <div className="flex items-center justify-between pt-2 border-t border-white/10 dark:border-[#27313D]">
                     <div>
-                      <span className="text-[10px] text-slate-400 uppercase font-bold block">From</span>
-                      <span className="text-base font-black text-[#EFDB27] font-mono">
+                      <span className="text-[10px] text-slate-400 dark:text-[#818C9B] uppercase font-bold block">From</span>
+                      <span className="text-base font-black text-[#EFDB27] dark:text-[#FFD600] font-mono">
                         ₹{Math.round(featuredProduct.variants?.[0]?.salePrice || featuredProduct.variants?.[0]?.price || featuredProduct.price)}
                       </span>
                     </div>
                     <SLink
                       to={`/product/${featuredProduct._id}`}
-                      className="px-4 py-2 bg-[#EFDB27] hover:bg-white text-slate-900 rounded-xl text-xs font-black uppercase tracking-wider transition-colors flex items-center gap-1.5 cursor-pointer shadow-md"
+                      className="px-4 py-2 bg-[#EFDB27] dark:bg-[#FFD600] hover:bg-white dark:hover:bg-[#FFE45C] text-slate-900 dark:text-[#111318] rounded-xl text-xs font-black uppercase tracking-wider transition-colors flex items-center gap-1.5 cursor-pointer shadow-md"
                     >
                       <ShoppingBag size={13} />
                       Shop Now
@@ -533,46 +565,46 @@ const UserBlogDetails = () => {
             )}
 
             {/* 3. SOCIAL SHARING & COMMUNITY BAR */}
-            <div className="bg-white border border-slate-200/90 rounded-3xl shadow-xs p-6">
-              <h3 className="text-xs font-black uppercase tracking-widest text-slate-900 mb-2 flex items-center gap-2">
-                <Share2 size={15} className="text-[#1E971D]" />
+            <div className="bg-white dark:bg-[#171D26] border border-slate-200/90 dark:border-[#27313D] rounded-3xl shadow-xs p-6 transition-colors duration-250">
+              <h3 className="text-xs font-black uppercase tracking-widest text-slate-900 dark:text-[#F5F7FA] mb-2 flex items-center gap-2">
+                <Share2 size={15} className="text-[#1E971D] dark:text-[#FFD600]" />
                 Share This Article
               </h3>
-              <p className="text-xs text-slate-500 mb-4">
+              <p className="text-xs text-slate-500 dark:text-[#818C9B] mb-4">
                 Know someone who loves healthy traditional cooking? Pass it on!
               </p>
               <div className="grid grid-cols-5 gap-2">
                 <button
                   onClick={() => handleShare("whatsapp")}
-                  className="p-3 rounded-2xl bg-emerald-50 hover:bg-emerald-100 text-emerald-600 flex items-center justify-center transition-colors cursor-pointer"
+                  className="p-3 rounded-2xl bg-emerald-50 dark:bg-[#1D2530] hover:bg-emerald-100 dark:hover:bg-[#222B37] text-emerald-600 dark:text-[#19C37D] flex items-center justify-center transition-colors cursor-pointer border border-transparent dark:border-[#27313D]"
                   title="Share on WhatsApp"
                 >
                   <FaWhatsapp size={18} />
                 </button>
                 <button
                   onClick={() => handleShare("twitter")}
-                  className="p-3 rounded-2xl bg-slate-50 hover:bg-slate-100 text-slate-800 flex items-center justify-center transition-colors cursor-pointer"
+                  className="p-3 rounded-2xl bg-slate-50 dark:bg-[#1D2530] hover:bg-slate-100 dark:hover:bg-[#222B37] text-slate-800 dark:text-[#F5F7FA] flex items-center justify-center transition-colors cursor-pointer border border-transparent dark:border-[#27313D]"
                   title="Share on X"
                 >
                   <FaXTwitter size={18} />
                 </button>
                 <button
                   onClick={() => handleShare("facebook")}
-                  className="p-3 rounded-2xl bg-blue-50 hover:bg-blue-100 text-blue-600 flex items-center justify-center transition-colors cursor-pointer"
+                  className="p-3 rounded-2xl bg-blue-50 dark:bg-[#1D2530] hover:bg-blue-100 dark:hover:bg-[#222B37] text-blue-600 dark:text-blue-400 flex items-center justify-center transition-colors cursor-pointer border border-transparent dark:border-[#27313D]"
                   title="Share on Facebook"
                 >
                   <FaFacebookF size={18} />
                 </button>
                 <button
                   onClick={() => handleShare("linkedin")}
-                  className="p-3 rounded-2xl bg-sky-50 hover:bg-sky-100 text-sky-700 flex items-center justify-center transition-colors cursor-pointer"
+                  className="p-3 rounded-2xl bg-sky-50 dark:bg-[#1D2530] hover:bg-sky-100 dark:hover:bg-[#222B37] text-sky-700 dark:text-sky-400 flex items-center justify-center transition-colors cursor-pointer border border-transparent dark:border-[#27313D]"
                   title="Share on LinkedIn"
                 >
                   <FaLinkedinIn size={18} />
                 </button>
                 <button
                   onClick={() => handleShare("copy")}
-                  className="p-3 rounded-2xl bg-yellow-50 hover:bg-yellow-100 text-amber-700 flex items-center justify-center transition-colors cursor-pointer"
+                  className="p-3 rounded-2xl bg-yellow-50 dark:bg-[#1D2530] hover:bg-yellow-100 dark:hover:bg-[#222B37] text-amber-700 dark:text-[#FFD600] flex items-center justify-center transition-colors cursor-pointer border border-transparent dark:border-[#27313D]"
                   title="Copy Link"
                 >
                   <LinkIcon size={18} />
@@ -581,40 +613,40 @@ const UserBlogDetails = () => {
             </div>
 
             {/* 4. THE OWNFRESH STANDARD / WHY STONE-PRESSED MATTERS */}
-            <div className="bg-amber-50/80 border border-amber-200/80 p-6 rounded-3xl">
-              <h4 className="text-xs font-black uppercase text-amber-900 tracking-widest mb-3 flex items-center gap-2">
-                <ShieldCheck size={16} className="text-amber-700" />
+            <div className="bg-amber-50/80 dark:bg-[#171D26] border border-amber-200/80 dark:border-[#27313D] p-6 rounded-3xl transition-colors duration-250">
+              <h4 className="text-xs font-black uppercase text-amber-900 dark:text-[#FFD600] tracking-widest mb-3 flex items-center gap-2">
+                <ShieldCheck size={16} className="text-amber-700 dark:text-[#FFD600]" />
                 The OwnFresh Standard
               </h4>
-              <ul className="space-y-2.5 text-xs font-semibold text-amber-950">
+              <ul className="space-y-2.5 text-xs font-semibold text-amber-950 dark:text-[#AEB9C8]">
                 <li className="flex items-start gap-2">
-                  <CheckCircle2 size={14} className="text-emerald-600 mt-0.5 shrink-0" />
+                  <CheckCircle2 size={14} className="text-emerald-600 dark:text-[#19C37D] mt-0.5 shrink-0" />
                   <span>Unheated friction extraction (&lt;40°C)</span>
                 </li>
                 <li className="flex items-start gap-2">
-                  <CheckCircle2 size={14} className="text-emerald-600 mt-0.5 shrink-0" />
+                  <CheckCircle2 size={14} className="text-emerald-600 dark:text-[#19C37D] mt-0.5 shrink-0" />
                   <span>Zero Hexane solvents or chemical bleach</span>
                 </li>
                 <li className="flex items-start gap-2">
-                  <CheckCircle2 size={14} className="text-emerald-600 mt-0.5 shrink-0" />
+                  <CheckCircle2 size={14} className="text-emerald-600 dark:text-[#19C37D] mt-0.5 shrink-0" />
                   <span>Micro-filtered via cotton cloth settling</span>
                 </li>
                 <li className="flex items-start gap-2">
-                  <CheckCircle2 size={14} className="text-emerald-600 mt-0.5 shrink-0" />
+                  <CheckCircle2 size={14} className="text-emerald-600 dark:text-[#19C37D] mt-0.5 shrink-0" />
                   <span>100% Native Whole Seeds</span>
                 </li>
               </ul>
             </div>
 
             {/* 5. VIP NEWSLETTER */}
-            <div className="bg-slate-900 text-white p-6 rounded-3xl border border-slate-800 shadow-md">
+            <div className="bg-slate-900 dark:bg-[#171D26] text-white p-6 rounded-3xl border border-slate-800 dark:border-[#27313D] shadow-md transition-colors duration-250">
               <div className="flex items-center gap-2 mb-2">
-                <Sparkles size={16} className="text-[#EFDB27]" />
-                <h4 className="text-xs font-black uppercase text-white tracking-widest">
+                <Sparkles size={16} className="text-[#EFDB27] dark:text-[#FFD600]" />
+                <h4 className="text-xs font-black uppercase text-white dark:text-[#F5F7FA] tracking-widest">
                   VIP Health Updates
                 </h4>
               </div>
-              <p className="text-xs text-slate-300 font-medium mb-4 leading-relaxed">
+              <p className="text-xs text-slate-300 dark:text-[#AEB9C8] font-medium mb-4 leading-relaxed">
                 Receive weekly science-backed wellness advice and members-only discounts.
               </p>
               <form onSubmit={handleNewsletterSubscribe} className="flex flex-col gap-2">
@@ -623,12 +655,12 @@ const UserBlogDetails = () => {
                   placeholder="Your email address"
                   value={newsletterEmail}
                   onChange={(e) => setNewsletterEmail(e.target.value)}
-                  className="w-full bg-white/10 border border-white/15 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder:text-slate-400 outline-none focus:border-[#EFDB27] transition-all"
+                  className="w-full bg-white/10 dark:bg-[#151B23] border border-white/15 dark:border-[#29333F] rounded-xl px-3.5 py-2.5 text-xs text-white dark:text-[#F5F7FA] placeholder:text-slate-400 dark:placeholder:text-[#778393] outline-none focus:border-[#EFDB27] dark:focus:border-[#FFD600] transition-all"
                 />
                 <button
                   type="submit"
                   disabled={subscribing}
-                  className="w-full py-2.5 bg-[#EFDB27] hover:bg-white text-slate-900 rounded-xl text-xs font-black uppercase tracking-wider transition-colors flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-60"
+                  className="w-full py-2.5 bg-[#EFDB27] dark:bg-[#FFD600] hover:bg-white dark:hover:bg-[#FFE45C] text-slate-900 dark:text-[#111318] rounded-xl text-xs font-black uppercase tracking-wider transition-colors flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-60"
                 >
                   <Send size={12} />
                   {subscribing ? "Subscribing..." : "Join Free"}
@@ -641,18 +673,18 @@ const UserBlogDetails = () => {
               href="https://wa.me/918999773438?text=Hello%20OwnFresh%2C%20I%20have%20a%20question%20about%20your%20stone%20pressed%20oils."
               target="_blank"
               rel="noopener noreferrer"
-              className="bg-emerald-600 hover:bg-emerald-700 text-white p-5 rounded-3xl flex items-center justify-between shadow-lg shadow-emerald-600/20 transition-all duration-300 group cursor-pointer"
+              className="bg-emerald-600 dark:bg-[#1D2530] hover:bg-emerald-700 dark:hover:bg-[#222B37] border border-transparent dark:border-[#27313D] text-white p-5 rounded-3xl flex items-center justify-between shadow-lg shadow-emerald-600/20 transition-all duration-300 group cursor-pointer"
             >
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-full bg-white text-emerald-600 flex items-center justify-center shadow-xs">
                   <FaWhatsapp size={22} />
                 </div>
                 <div>
-                  <h5 className="text-xs font-black uppercase tracking-wider">Oil Question?</h5>
-                  <p className="text-[11px] text-emerald-100 font-medium">Chat with our Master Churner</p>
+                  <h5 className="text-xs font-black uppercase tracking-wider dark:text-[#F5F7FA]">Oil Question?</h5>
+                  <p className="text-[11px] text-emerald-100 dark:text-[#19C37D] font-medium">Chat with our Master Churner</p>
                 </div>
               </div>
-              <ArrowRight size={16} className="text-white group-hover:translate-x-1 transition-transform" />
+              <ArrowRight size={16} className="text-white dark:text-[#FFD600] group-hover:translate-x-1 transition-transform" />
             </a>
 
           </aside>
@@ -662,14 +694,14 @@ const UserBlogDetails = () => {
 
       {/* ── RECOMMENDED ARTICLES SECTION ── */}
       {recommendations.length > 0 && (
-        <section className="bg-slate-50 border-t border-slate-200 py-16 px-4 md:px-8 lg:px-12">
+        <section className="bg-slate-50 dark:bg-[#111720] border-t border-slate-200 dark:border-[#202731] py-16 px-4 md:px-8 lg:px-12 transition-colors duration-250">
           <div className="max-w-7xl mx-auto">
             <div className="text-center mb-12">
-              <span className="text-[10px] font-black uppercase tracking-widest text-[#1E971D] bg-emerald-50 border border-emerald-100 px-3 py-1 rounded-full inline-block mb-2">
+              <span className="text-[10px] font-black uppercase tracking-widest text-[#1E971D] dark:text-[#FFD600] bg-emerald-50 dark:bg-[#171D26] border border-emerald-100 dark:border-[#27313D] px-3 py-1 rounded-full inline-block mb-2">
                 Keep Exploring
               </span>
-              <h3 className="text-2xl sm:text-3xl font-black text-slate-900 uppercase">
-                Recommended <span className="text-[#1E971D]">Articles</span>
+              <h3 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-[#F7F9FC] uppercase">
+                Recommended <span className="text-[#1E971D] dark:text-[#FFD600]">Articles</span>
               </h3>
             </div>
 
@@ -678,26 +710,26 @@ const UserBlogDetails = () => {
                 <SLink
                   key={rec.id}
                   to={`/blog/${rec.id}`}
-                  className="group bg-white rounded-3xl shadow-xs border border-slate-200/90 overflow-hidden flex flex-col hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
+                  className="group bg-white dark:bg-[#171D26] rounded-3xl shadow-xs border border-slate-200/90 dark:border-[#27313D] overflow-hidden flex flex-col hover:shadow-xl hover:dark:bg-[#1C232D] hover:dark:border-[#34404E] hover:-translate-y-1 transition-all duration-300"
                 >
-                  <div className="w-full h-48 overflow-hidden bg-slate-50 flex items-center justify-center p-2 border-b border-slate-100">
+                  <div className="w-full h-48 overflow-hidden bg-slate-50 dark:bg-[#151B23] flex items-center justify-center p-2 border-b border-slate-100 dark:border-[#202832]">
                     <img
                       src={rec.image}
                       alt={rec.title}
-                      className="w-full h-full object-contain mix-blend-multiply group-hover:scale-105 transition-transform duration-500"
+                      className="w-full h-full object-contain mix-blend-multiply dark:mix-blend-normal group-hover:scale-105 transition-transform duration-500"
                     />
                   </div>
 
                   <div className="p-6 flex flex-col flex-1 gap-2">
-                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                    <span className="text-[10px] font-black text-slate-400 dark:text-[#818C9B] uppercase tracking-widest">
                       {rec.date}
                     </span>
                     <h4
-                      className="text-base font-black text-slate-900 leading-snug group-hover:text-[#1E971D] transition-colors line-clamp-2 uppercase"
+                      className="text-base font-black text-slate-900 dark:text-[#F5F7FA] leading-snug group-hover:text-[#1E971D] dark:group-hover:text-[#FFD600] transition-colors line-clamp-2 uppercase"
                       dangerouslySetInnerHTML={{ __html: rec.title }}
                     />
-                    <p className="text-xs text-slate-500 line-clamp-2 mt-1 leading-relaxed">{rec.description}</p>
-                    <span className="mt-auto pt-3 text-xs font-black text-[#1E971D] uppercase tracking-widest flex items-center gap-1">
+                    <p className="text-xs text-slate-500 dark:text-[#AEB9C8] line-clamp-2 mt-1 leading-relaxed">{rec.description}</p>
+                    <span className="mt-auto pt-3 text-xs font-black text-[#1E971D] dark:text-[#FFD600] uppercase tracking-widest flex items-center gap-1">
                       Read Article →
                     </span>
                   </div>
@@ -716,7 +748,7 @@ const UserBlogDetails = () => {
       >
         <button
           onClick={goToTop}
-          className="p-3 sm:p-3.5 bg-[#FFDD00] text-slate-950 hover:bg-slate-900 hover:text-[#FFDD00] rounded-full shadow-2xl border-2 border-slate-950/20 hover:border-[#FFDD00] hover:scale-110 active:scale-95 transition-all cursor-pointer flex items-center justify-center font-black"
+          className="p-3 sm:p-3.5 bg-[#FFDD00] dark:bg-[#FFD600] text-slate-950 dark:text-[#111318] hover:bg-slate-900 dark:hover:bg-[#FFE45C] hover:text-[#FFDD00] rounded-full shadow-2xl border-2 border-slate-950/20 hover:border-[#FFDD00] hover:scale-110 active:scale-95 transition-all cursor-pointer flex items-center justify-center font-black"
           title="Tap to scroll upward"
           aria-label="Scroll to top"
         >

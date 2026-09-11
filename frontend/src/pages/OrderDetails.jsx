@@ -78,17 +78,17 @@ const OrderDetails = () => {
     };
 
     if (loading) return (
-        <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <div className="min-h-screen bg-slate-50 dark:bg-[#0B0F14] flex items-center justify-center">
             <div className="w-12 h-12 border-4 border-[#FFDD00] border-t-transparent rounded-full animate-spin"></div>
         </div>
     );
 
     if (!order) return (
-        <div className="min-h-screen bg-slate-50">
+        <div className="min-h-screen bg-slate-50 dark:bg-[#0B0F14]">
             <Navbar />
             <div className="max-w-4xl mx-auto pt-40 px-6 text-center">
-                <h1 className="text-2xl font-black text-slate-900 uppercase">Order Not Found</h1>
-                <Link to="/my-orders" className="mt-6 inline-flex items-center gap-2 text-blue-600 font-bold hover:underline">
+                <h1 className="text-2xl font-black text-slate-900 dark:text-[#F7F9FC] uppercase">Order Not Found</h1>
+                <Link to="/my-orders" className="mt-6 inline-flex items-center gap-2 text-blue-600 dark:text-[#FFD600] font-bold hover:underline">
                     <ChevronLeft size={16} /> Back to My Orders
                 </Link>
             </div>
@@ -234,7 +234,7 @@ const OrderDetails = () => {
                                         <tr key={index} className="text-gray-800">
                                             <td className="py-1.5 px-2">{index + 1}</td>
                                             <td className="py-1.5 px-2">
-                                                <p className="font-bold">{item.name}</p>
+                                                 <p className="font-bold">{item.name}</p>
                                                 {item.variantName && (
                                                     <p className="text-[9px] text-gray-400 uppercase mt-0.5 font-semibold">Variant: {item.variantName}</p>
                                                 )}
@@ -319,29 +319,29 @@ const OrderDetails = () => {
                 </div>
             </div>
 
-            <div className="print:hidden min-h-screen bg-slate-50 pb-20">
+            <div className="print:hidden min-h-screen bg-slate-50 dark:bg-[#0B0F14] pb-20 transition-colors duration-200">
                 <Navbar />
 
                 <div className="max-w-5xl mx-auto pt-32 px-4 md:px-6">
                     {/* ── BREADCRUMBS ── */}
                     <div className="flex items-center gap-2 mb-8">
-                        <Link to="/my-orders" className="text-[10px] font-black text-slate-400 uppercase tracking-widest hover:text-slate-900 transition-colors">My Orders</Link>
-                        <ChevronLeft size={10} className="text-slate-300 rotate-180" />
-                        <span className="text-[10px] font-black text-slate-900 uppercase tracking-widest">Order Details</span>
+                        <Link to="/my-orders" className="text-[10px] font-black text-slate-400 dark:text-[#818C9B] uppercase tracking-widest hover:text-slate-900 dark:hover:text-[#FFD600] transition-colors">My Orders</Link>
+                        <ChevronLeft size={10} className="text-slate-300 dark:text-[#27313D] rotate-180" />
+                        <span className="text-[10px] font-black text-slate-900 dark:text-[#F5F7FA] uppercase tracking-widest">Order Details</span>
                     </div>
 
                     <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10">
                         <div>
-                            <h1 className="text-3xl font-black text-slate-900 uppercase tracking-tight">
-                                Order <span className="text-[#FFDD00]">Details</span>
+                            <h1 className="text-3xl font-black text-slate-900 dark:text-[#F7F9FC] uppercase tracking-tight">
+                                Order <span className="text-[#FFDD00] dark:text-[#FFD600]">Details</span>
                             </h1>
                             <div className="flex flex-wrap items-center gap-x-6 gap-y-2 mt-2">
-                                <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wide">Ordered on {new Date(order.createdAt).toLocaleDateString(undefined, { day: 'numeric', month: 'long', year: 'numeric' })}</p>
-                                <div className="w-1.5 h-1.5 bg-slate-300 rounded-full hidden sm:block"></div>
-                                <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wide font-mono">Order# {(order.customOrderId || order._id).toUpperCase()}</p>
+                                <p className="text-[11px] font-bold text-slate-500 dark:text-[#B7C1CE] uppercase tracking-wide">Ordered on {new Date(order.createdAt).toLocaleDateString(undefined, { day: 'numeric', month: 'long', year: 'numeric' })}</p>
+                                <div className="w-1.5 h-1.5 bg-slate-300 dark:bg-[#27313D] rounded-full hidden sm:block"></div>
+                                <p className="text-[11px] font-bold text-slate-500 dark:text-[#B7C1CE] uppercase tracking-wide font-mono">Order# {(order.customOrderId || order._id).toUpperCase()}</p>
                             </div>
                         </div>
-                        <button onClick={() => window.print()} className="flex items-center gap-2 px-6 py-3 bg-white border border-slate-200 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-[#FFDD00] hover:border-[#FFDD00] transition-all shadow-sm">
+                        <button onClick={() => window.print()} className="flex items-center gap-2 px-6 py-3 bg-white dark:bg-[#171D26] border border-slate-200 dark:border-[#27313D] text-slate-800 dark:text-[#F5F7FA] rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-[#FFDD00] dark:hover:bg-[#FFD600] hover:border-[#FFDD00] dark:hover:border-[#FFD600] dark:hover:text-[#101318] transition-all shadow-sm">
                             <Printer size={14} /> View or Print Invoice
                         </button>
                     </div>
@@ -352,14 +352,14 @@ const OrderDetails = () => {
                         <div className="lg:col-span-2 space-y-8">
 
                             {/* Shipping Address & Payment */}
-                            <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-slate-100">
+                            <div className="bg-white dark:bg-[#171D26] rounded-3xl border border-slate-200 dark:border-[#27313D] shadow-sm overflow-hidden grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-slate-100 dark:divide-[#202832]">
                                 <div className="p-8">
-                                    <h4 className="text-[11px] font-black text-slate-900 uppercase tracking-widest mb-4 flex items-center gap-2">
-                                        <MapPin size={14} className="text-[#24672E]" /> Shipping Address
+                                    <h4 className="text-[11px] font-black text-slate-900 dark:text-[#F7F9FC] uppercase tracking-widest mb-4 flex items-center gap-2">
+                                        <MapPin size={14} className="text-[#24672E] dark:text-[#19C37D]" /> Shipping Address
                                     </h4>
                                     <div className="flex flex-col gap-1 mb-6">
-                                        <span className="text-[10px] font-black text-[#24672E] uppercase">Delivery Address</span>
-                                        <p className="text-xs font-bold text-slate-600 leading-relaxed uppercase">
+                                        <span className="text-[10px] font-black text-[#24672E] dark:text-[#19C37D] uppercase">Delivery Address</span>
+                                        <p className="text-xs font-bold text-slate-600 dark:text-[#B7C1CE] leading-relaxed uppercase">
                                             {order.deliveryAddress?.roomNumber}<br />
                                             {order.deliveryAddress?.areaName}<br />
                                             {order.deliveryAddress?.text}
@@ -367,262 +367,262 @@ const OrderDetails = () => {
                                     </div>
 
                                     {order.trackingId && (
-                                        <div className="bg-blue-50 p-6 rounded-3xl border border-blue-100 flex items-center justify-between">
+                                        <div className="bg-blue-50 dark:bg-[#151B23] p-6 rounded-3xl border border-blue-100 dark:border-[#27313D] flex items-center justify-between">
                                             <div>
-                                                <p className="text-[9px] font-black text-blue-600 uppercase tracking-widest flex items-center gap-2 mb-1">
+                                                <p className="text-[9px] font-black text-blue-600 dark:text-blue-400 uppercase tracking-widest flex items-center gap-2 mb-1">
                                                     <Truck size={12} /> Shipment Tracking
                                                 </p>
-                                                <p className="text-sm font-black text-slate-900 font-mono uppercase">{order.trackingId}</p>
-                                                <p className="text-[10px] font-bold text-slate-500 mt-1 uppercase">Courier: {order.courierPartner}</p>
+                                                <p className="text-sm font-black text-slate-900 dark:text-[#F5F7FA] font-mono uppercase">{order.trackingId}</p>
+                                                <p className="text-[10px] font-bold text-slate-500 dark:text-[#818C9B] mt-1 uppercase">Courier: {order.courierPartner}</p>
                                             </div>
-                                            <button className="bg-white border border-blue-200 text-blue-600 px-5 py-2.5 rounded-xl text-[10px] font-black uppercase hover:bg-blue-600 hover:text-white transition-all">
+                                            <button className="bg-white dark:bg-[#1D2530] border border-blue-200 dark:border-[#303B48] text-blue-600 dark:text-blue-400 px-5 py-2.5 rounded-xl text-[10px] font-black uppercase hover:bg-blue-600 dark:hover:bg-blue-600 hover:text-white transition-all">
                                                 Live Track →
                                             </button>
                                         </div>
                                     )}
                                 </div>
-                                <div className="p-8 bg-slate-50/50">
-                                    <h4 className="text-[11px] font-black text-slate-900 uppercase tracking-widest mb-4 flex items-center gap-2">
-                                        <CreditCard size={14} className="text-indigo-600" /> Payment Mode
+                                <div className="p-8 bg-slate-50/50 dark:bg-[#151B23]/50">
+                                    <h4 className="text-[11px] font-black text-slate-900 dark:text-[#F7F9FC] uppercase tracking-widest mb-4 flex items-center gap-2">
+                                        <CreditCard size={14} className="text-indigo-600 dark:text-[#FFD600]" /> Payment Mode
                                     </h4>
                                     <div className="space-y-4">
                                         <div>
-                                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Method</p>
-                                            <p className="text-xs font-black text-slate-900 uppercase">{order.PaymentMethod}</p>
-                                    </div>
-                                    <div>
-                                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Status</p>
-                                        <span className={`inline-block px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border ${order.paymentStatus === 'completed' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-slate-100 text-slate-600 border-slate-200'
-                                            }`}>
-                                            {order.paymentStatus}
-                                        </span>
+                                            <p className="text-[10px] font-black text-slate-400 dark:text-[#818C9B] uppercase tracking-widest mb-1">Method</p>
+                                            <p className="text-xs font-black text-slate-900 dark:text-[#F5F7FA] uppercase">{order.PaymentMethod}</p>
+                                        </div>
+                                        <div>
+                                            <p className="text-[10px] font-black text-slate-400 dark:text-[#818C9B] uppercase tracking-widest mb-1">Status</p>
+                                            <span className={`inline-block px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border ${order.paymentStatus === 'completed' ? 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:text-[#19C37D] dark:border-emerald-800/40' : 'bg-slate-100 text-slate-600 border-slate-200 dark:bg-[#1D2530] dark:text-[#B7C1CE] dark:border-[#27313D]'
+                                                }`}>
+                                                {order.paymentStatus}
+                                            </span>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
 
-                        {/* Order Fulfillment Progress Timeline */}
-                        <div className="bg-white rounded-3xl border border-slate-200 shadow-sm p-8">
-                            <h4 className="text-[11px] font-black text-slate-900 uppercase tracking-widest mb-8 flex items-center gap-2">
-                                {getStatusIcon(order.status)} Order Status: {order.status}
-                            </h4>
-                            {['cancelled', 'cancellation_requested'].includes(order.status) ? (
-                                <div className="text-center py-6">
-                                    <XCircle className={`w-12 h-12 mx-auto mb-2 ${order.status === 'cancelled' ? 'text-red-500' : 'text-orange-500 animate-pulse'}`} />
-                                    <h5 className={`text-sm font-black uppercase tracking-wider ${order.status === 'cancelled' ? 'text-red-600' : 'text-orange-600'}`}>
-                                        {order.status === 'cancelled' ? 'Order Cancelled / Voided' : 'Cancellation Under Review'}
-                                    </h5>
-                                    <p className="text-[10px] font-bold text-slate-500 mt-2 capitalize leading-relaxed">
-                                        Reason: {order.cancellationReason || "No reason specified."}
-                                    </p>
-                                </div>
-                            ) : (
-                                <div className="space-y-6">
-                                    {[
-                                        { label: "Order Placed", done: true, desc: "We have received your order." },
-                                        { label: "Payment Received", done: order.paymentStatus === 'completed', desc: order.paymentStatus === 'completed' ? "Payment cleared successfully." : "Awaiting payment clearance." },
-                                        { label: "Thank You Email Sent", done: order.paymentStatus === 'completed', desc: "Order confirmation sent to your email." },
-                                        { label: "Packing & Preparing", done: order.labelPrinted, desc: "We are packing your items at our warehouse." },
-                                        { label: "Receipt Uploaded", done: !!order.courierReceiptUrl, desc: "Courier partner receipt received." },
-                                        { label: "Tracking Generated", done: !!order.trackingId, desc: order.trackingId ? `Tracking ID generated: ${order.trackingId}` : "Generating AWB shipment tracking number." },
-                                        { label: "Shipped & Dispatched", done: order.shipmentEmailSent, desc: order.shipmentEmailSent ? "Package handed over to courier." : "Awaiting dispatch." }
-                                    ].map((step, idx) => (
-                                        <div key={idx} className="flex gap-4">
-                                            <div className="flex flex-col items-center">
-                                                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all ${
-                                                    step.done ? 'bg-[#24672E] text-white shadow-md' : 'bg-slate-100 text-slate-300 border border-slate-200'
-                                                }`}>
-                                                    {step.done ? "✓" : idx + 1}
+                            {/* Order Fulfillment Progress Timeline */}
+                            <div className="bg-white dark:bg-[#171D26] rounded-3xl border border-slate-200 dark:border-[#27313D] shadow-sm p-8">
+                                <h4 className="text-[11px] font-black text-slate-900 dark:text-[#F7F9FC] uppercase tracking-widest mb-8 flex items-center gap-2">
+                                    {getStatusIcon(order.status)} Order Status: <span className="capitalize">{order.status}</span>
+                                </h4>
+                                {['cancelled', 'cancellation_requested'].includes(order.status) ? (
+                                    <div className="text-center py-6">
+                                        <XCircle className={`w-12 h-12 mx-auto mb-2 ${order.status === 'cancelled' ? 'text-red-500' : 'text-orange-500 animate-pulse'}`} />
+                                        <h5 className={`text-sm font-black uppercase tracking-wider ${order.status === 'cancelled' ? 'text-red-600 dark:text-red-400' : 'text-orange-600 dark:text-orange-400'}`}>
+                                            {order.status === 'cancelled' ? 'Order Cancelled / Voided' : 'Cancellation Under Review'}
+                                        </h5>
+                                        <p className="text-[10px] font-bold text-slate-500 dark:text-[#818C9B] mt-2 capitalize leading-relaxed">
+                                            Reason: {order.cancellationReason || "No reason specified."}
+                                        </p>
+                                    </div>
+                                ) : (
+                                    <div className="space-y-6">
+                                        {[
+                                            { label: "Order Placed", done: true, desc: "We have received your order." },
+                                            { label: "Payment Received", done: order.paymentStatus === 'completed', desc: order.paymentStatus === 'completed' ? "Payment cleared successfully." : "Awaiting payment clearance." },
+                                            { label: "Thank You Email Sent", done: order.paymentStatus === 'completed', desc: "Order confirmation sent to your email." },
+                                            { label: "Packing & Preparing", done: order.labelPrinted, desc: "We are packing your items at our warehouse." },
+                                            { label: "Receipt Uploaded", done: !!order.courierReceiptUrl, desc: "Courier partner receipt received." },
+                                            { label: "Tracking Generated", done: !!order.trackingId, desc: order.trackingId ? `Tracking ID generated: ${order.trackingId}` : "Generating AWB shipment tracking number." },
+                                            { label: "Shipped & Dispatched", done: order.shipmentEmailSent, desc: order.shipmentEmailSent ? "Package handed over to courier." : "Awaiting dispatch." }
+                                        ].map((step, idx) => (
+                                            <div key={idx} className="flex gap-4">
+                                                <div className="flex flex-col items-center">
+                                                    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all ${
+                                                        step.done ? 'bg-[#24672E] dark:bg-[#19C37D] text-white shadow-md' : 'bg-slate-100 dark:bg-[#151B23] text-slate-300 dark:text-[#5E6875] border border-slate-200 dark:border-[#27313D]'
+                                                    }`}>
+                                                        {step.done ? "✓" : idx + 1}
+                                                    </div>
+                                                    {idx < 6 && (
+                                                        <div className={`w-0.5 h-10 ${
+                                                            step.done ? 'bg-[#24672E] dark:bg-[#19C37D]' : 'bg-slate-100 dark:bg-[#202832]'
+                                                        }`} />
+                                                    )}
                                                 </div>
-                                                {idx < 6 && (
-                                                    <div className={`w-0.5 h-10 ${
-                                                        step.done ? 'bg-[#24672E]' : 'bg-slate-100'
-                                                    }`} />
-                                                )}
+                                                <div className="pt-1">
+                                                    <p className={`text-xs font-black uppercase tracking-wider ${step.done ? 'text-slate-900 dark:text-[#F7F9FC]' : 'text-slate-300 dark:text-[#5E6875]'}`}>
+                                                        {step.label}
+                                                    </p>
+                                                    <p className={`text-[10px] font-bold mt-0.5 ${step.done ? 'text-slate-500 dark:text-[#818C9B]' : 'text-slate-300 dark:text-[#5E6875]'}`}>
+                                                        {step.desc}
+                                                    </p>
+                                                </div>
                                             </div>
-                                            <div className="pt-1">
-                                                <p className={`text-xs font-black uppercase tracking-wider ${step.done ? 'text-slate-900' : 'text-slate-300'}`}>
-                                                    {step.label}
-                                                </p>
-                                                <p className={`text-[10px] font-bold mt-0.5 ${step.done ? 'text-slate-500' : 'text-slate-300'}`}>
-                                                    {step.desc}
-                                                </p>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Items List */}
+                            <div className="bg-white dark:bg-[#171D26] rounded-3xl border border-slate-200 dark:border-[#27313D] shadow-sm overflow-hidden">
+                                <div className="p-8 border-b border-slate-100 dark:border-[#202832]">
+                                    <h4 className="text-[11px] font-black text-slate-900 dark:text-[#F7F9FC] uppercase tracking-widest">Shipment Details</h4>
+                                </div>
+                                <div className="p-0">
+                                    {order.items?.map((item, idx) => (
+                                        <div key={idx} className="flex flex-col sm:flex-row items-center gap-8 p-8 border-b border-slate-100 dark:border-[#202832] last:border-0 hover:bg-slate-50/30 dark:hover:bg-[#1C232D] transition-colors">
+                                            <div className="w-24 h-24 bg-slate-50 dark:bg-[#151B23] rounded-2xl p-3 border border-slate-100 dark:border-[#27313D] overflow-hidden flex-shrink-0">
+                                                <img src={item.image} alt={item.name} className="w-full h-full object-contain mix-blend-multiply dark:mix-blend-normal" />
+                                            </div>
+                                            <div className="flex-1 text-center sm:text-left">
+                                                <h5 className="text-sm font-black text-slate-900 dark:text-[#F7F9FC] uppercase leading-tight mb-2">{item.name}</h5>
+                                                <p className="text-[10px] font-bold text-slate-400 dark:text-[#818C9B] uppercase tracking-widest">Qty: {item.quantity} | ₹{item.price} each</p>
+                                                <div className="mt-4 flex flex-wrap justify-center sm:justify-start gap-3">
+                                                    <Link to={`/product/${item.productId?._id || item.productId}`} className="px-4 py-2 bg-slate-900 dark:bg-[#FFD600] text-white dark:text-[#101318] text-[9px] font-black uppercase tracking-widest rounded-lg hover:bg-slate-800 dark:hover:bg-[#FFE45C] transition-all">Buy it again</Link>
+                                                    <button className="px-4 py-2 bg-white dark:bg-[#1D2530] border border-slate-200 dark:border-[#303B48] text-slate-900 dark:text-[#F5F7FA] text-[9px] font-black uppercase tracking-widest rounded-lg hover:bg-slate-50 dark:hover:bg-[#242E3A] transition-all">View item</button>
+                                                </div>
+                                            </div>
+                                            <div className="text-right whitespace-nowrap min-w-[100px]">
+                                                <p className="text-lg font-black text-slate-900 dark:text-[#F5F7FA] font-mono">₹{item.price * item.quantity}</p>
                                             </div>
                                         </div>
                                     ))}
                                 </div>
-                            )}
+                            </div>
                         </div>
 
-                        {/* Items List */}
-                        <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
-                            <div className="p-8 border-b border-slate-50">
-                                <h4 className="text-[11px] font-black text-slate-900 uppercase tracking-widest">Shipment Details</h4>
-                            </div>
-                            <div className="p-0">
-                                {order.items?.map((item, idx) => (
-                                    <div key={idx} className="flex flex-col sm:flex-row items-center gap-8 p-8 border-b border-slate-50 last:border-0 hover:bg-slate-50/30 transition-colors">
-                                        <div className="w-24 h-24 bg-slate-50 rounded-2xl p-3 border border-slate-100 overflow-hidden flex-shrink-0">
-                                            <img src={item.image} alt={item.name} className="w-full h-full object-contain mix-blend-multiply" />
-                                        </div>
-                                        <div className="flex-1 text-center sm:text-left">
-                                            <h5 className="text-sm font-black text-slate-900 uppercase leading-tight mb-2">{item.name}</h5>
-                                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Qty: {item.quantity} | ₹{item.price} each</p>
-                                            <div className="mt-4 flex flex-wrap justify-center sm:justify-start gap-3">
-                                                <Link to={`/product/${item.productId?._id || item.productId}`} className="px-4 py-2 bg-slate-900 text-white text-[9px] font-black uppercase tracking-widest rounded-lg hover:bg-slate-800 transition-all">Buy it again</Link>
-                                                <button className="px-4 py-2 bg-white border border-slate-200 text-slate-900 text-[9px] font-black uppercase tracking-widest rounded-lg hover:bg-slate-50 transition-all">View item</button>
-                                            </div>
-                                        </div>
-                                        <div className="text-right whitespace-nowrap min-w-[100px]">
-                                            <p className="text-lg font-black text-slate-900 font-mono">₹{item.price * item.quantity}</p>
-                                        </div>
+                        {/* RIGHT COL: SUMMARY */}
+                        <div className="lg:col-span-1">
+                            <div className="bg-slate-900 dark:bg-[#171D26] border dark:border-[#27313D] rounded-[2.5rem] p-8 text-white shadow-xl sticky top-32">
+                                <h4 className="text-[11px] font-black text-[#FFDD00] dark:text-[#FFD600] uppercase tracking-widest mb-8">Order Summary</h4>
+
+                                <div className="space-y-4 mb-8">
+                                    <div className="flex justify-between items-center">
+                                        <span className="text-[10px] font-bold uppercase text-slate-400 dark:text-[#818C9B]">Items Subtotal</span>
+                                        <span className="text-xs font-black font-mono text-white dark:text-[#F5F7FA]">₹{(order.totalAmount + order.discountAmount).toFixed(2)}</span>
                                     </div>
-                                ))}
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* RIGHT COL: SUMMARY */}
-                    <div className="lg:col-span-1">
-                        <div className="bg-slate-900 rounded-[2.5rem] p-8 text-white shadow-xl sticky top-32">
-                            <h4 className="text-[11px] font-black text-[#FFDD00] uppercase tracking-widest mb-8">Order Summary</h4>
-
-                            <div className="space-y-4 mb-8">
-                                <div className="flex justify-between items-center">
-                                    <span className="text-[10px] font-bold uppercase text-slate-400">Items Subtotal</span>
-                                    <span className="text-xs font-black font-mono">₹{(order.totalAmount + order.discountAmount).toFixed(2)}</span>
+                                    <div className="flex justify-between items-center text-emerald-400 dark:text-[#19C37D]">
+                                        <span className="text-[10px] font-bold uppercase">Discount applied</span>
+                                        <span className="text-xs font-black font-mono">-₹{order.discountAmount.toFixed(2)}</span>
+                                    </div>
+                                    <div className="flex justify-between items-center">
+                                        <span className="text-[10px] font-bold uppercase text-slate-400 dark:text-[#818C9B]">Shipping</span>
+                                        <span className="text-xs font-black uppercase text-white dark:text-[#F5F7FA]">FREE</span>
+                                    </div>
                                 </div>
-                                <div className="flex justify-between items-center text-emerald-400">
-                                    <span className="text-[10px] font-bold uppercase">Discount applied</span>
-                                    <span className="text-xs font-black font-mono">-₹{order.discountAmount.toFixed(2)}</span>
-                                </div>
-                                <div className="flex justify-between items-center">
-                                    <span className="text-[10px] font-bold uppercase text-slate-400">Shipping</span>
-                                    <span className="text-xs font-black uppercase">FREE</span>
-                                </div>
-                            </div>
 
-                            <div className="pt-6 border-t border-white/10 mb-8 flex justify-between items-end">
-                                <div>
-                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Grand Total</p>
-                                    <p className="text-3xl font-black text-[#FFDD00] font-mono leading-none mt-2">₹{order.totalAmount.toFixed(2)}</p>
+                                <div className="pt-6 border-t border-white/10 dark:border-[#202832] mb-8 flex justify-between items-end">
+                                    <div>
+                                        <p className="text-[10px] font-black text-slate-400 dark:text-[#818C9B] uppercase tracking-widest">Grand Total</p>
+                                        <p className="text-3xl font-black text-[#FFDD00] dark:text-[#FFD600] font-mono leading-none mt-2">₹{order.totalAmount.toFixed(2)}</p>
+                                    </div>
                                 </div>
-                            </div>
 
-                            <div className="space-y-3">
-                                <button className="w-full bg-[#FFDD00] text-black text-[10px] font-black uppercase tracking-widest py-4 rounded-2xl hover:shadow-xl hover:shadow-yellow-500/20 transition-all active:scale-[0.98]">
-                                    Track My Package
-                                </button>
-                                {['pending', 'processing'].includes(order.status) && (
-                                    order.createdAt && (Date.now() - new Date(order.createdAt).getTime() < 60 * 60 * 1000) ? (
-                                        <div className="space-y-2">
-                                            <button
-                                                onClick={() => setIsCancellingModalOpen(true)}
-                                                className="w-full bg-white/5 border border-white/10 text-red-400 text-[10px] font-black uppercase tracking-widest py-4 rounded-2xl hover:bg-red-500/10 hover:text-red-500 transition-all"
-                                            >
-                                                Request Cancellation
-                                            </button>
-                                            <p className="text-[9px] text-slate-400 font-bold text-center uppercase tracking-widest">
-                                                * Note: You can cancel the order within 1 hour of placing it
-                                            </p>
-                                        </div>
-                                    ) : (
-                                        <div className="w-full bg-white/5 border border-white/10 text-slate-500 text-[9px] font-black uppercase tracking-widest py-4 rounded-2xl text-center">
-                                            Cancellation Window Closed (1 hr limit)
-                                        </div>
-                                    )
-                                )}
-                                {order.status === 'cancelled' && (
-                                    <button
-                                        onClick={handleDeleteOrder}
-                                        className="w-full bg-white/5 border border-white/10 text-slate-400 text-[10px] font-black uppercase tracking-widest py-4 rounded-2xl hover:bg-white/10 hover:text-white transition-all flex items-center justify-center gap-2"
-                                    >
-                                        <Trash2 size={14} /> Clear from History
+                                <div className="space-y-3">
+                                    <button className="w-full bg-[#FFDD00] dark:bg-[#FFD600] text-black text-[10px] font-black uppercase tracking-widest py-4 rounded-2xl hover:bg-[#FFE45C] hover:shadow-xl hover:shadow-yellow-500/20 transition-all active:scale-[0.98]">
+                                        Track My Package
                                     </button>
-                                )}
-                            </div>
+                                    {['pending', 'processing'].includes(order.status) && (
+                                        order.createdAt && (Date.now() - new Date(order.createdAt).getTime() < 60 * 60 * 1000) ? (
+                                            <div className="space-y-2">
+                                                <button
+                                                    onClick={() => setIsCancellingModalOpen(true)}
+                                                    className="w-full bg-white/5 dark:bg-[#151B23] border border-white/10 dark:border-[#27313D] text-red-400 text-[10px] font-black uppercase tracking-widest py-4 rounded-2xl hover:bg-red-500/10 hover:text-red-500 transition-all"
+                                                >
+                                                    Request Cancellation
+                                                </button>
+                                                <p className="text-[9px] text-slate-400 dark:text-[#818C9B] font-bold text-center uppercase tracking-widest">
+                                                    * Note: You can cancel the order within 1 hour of placing it
+                                                </p>
+                                            </div>
+                                        ) : (
+                                            <div className="w-full bg-white/5 dark:bg-[#151B23] border border-white/10 dark:border-[#27313D] text-slate-500 dark:text-[#5E6875] text-[9px] font-black uppercase tracking-widest py-4 rounded-2xl text-center">
+                                                Cancellation Window Closed (1 hr limit)
+                                            </div>
+                                        )
+                                    )}
+                                    {order.status === 'cancelled' && (
+                                        <button
+                                            onClick={handleDeleteOrder}
+                                            className="w-full bg-white/5 dark:bg-[#151B23] border border-white/10 dark:border-[#27313D] text-slate-400 dark:text-[#B7C1CE] text-[10px] font-black uppercase tracking-widest py-4 rounded-2xl hover:bg-white/10 dark:hover:bg-[#222B37] hover:text-white transition-all flex items-center justify-center gap-2"
+                                        >
+                                            <Trash2 size={14} /> Clear from History
+                                        </button>
+                                    )}
+                                </div>
 
-                            <p className="mt-8 text-center text-[9px] font-bold text-slate-500 uppercase tracking-widest">
-                                Transaction ID: {order._id.substring(0, 12).toUpperCase()}
-                            </p>
+                                <p className="mt-8 text-center text-[9px] font-bold text-slate-500 dark:text-[#818C9B] uppercase tracking-widest">
+                                    Transaction ID: {order._id.substring(0, 12).toUpperCase()}
+                                </p>
+                            </div>
                         </div>
+
                     </div>
-
                 </div>
-            </div>
 
-            {/* ── CANCELLATION MODAL ── */}
-            <AnimatePresence>
-                {isCancellingModalOpen && (
-                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-                        <motion.div
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            exit={{ opacity: 0 }}
-                            className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"
-                            onClick={() => setIsCancellingModalOpen(false)}
-                        />
-                        <motion.div
-                            initial={{ opacity: 0, scale: 0.95, y: 20 }}
-                            animate={{ opacity: 1, scale: 1, y: 0 }}
-                            exit={{ opacity: 0, scale: 0.95, y: 20 }}
-                            transition={{ type: "spring", duration: 0.4 }}
-                            className="bg-white w-full max-w-md rounded-[2.5rem] shadow-2xl relative z-10 p-10 max-h-[90vh] overflow-y-auto"
-                        >
-                            <button
+                {/* ── CANCELLATION MODAL ── */}
+                <AnimatePresence>
+                    {isCancellingModalOpen && (
+                        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+                            <motion.div
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                exit={{ opacity: 0 }}
+                                className="absolute inset-0 bg-slate-900/60 dark:bg-black/80 backdrop-blur-sm"
                                 onClick={() => setIsCancellingModalOpen(false)}
-                                className="absolute right-8 top-8 w-10 h-10 flex items-center justify-center rounded-full bg-slate-50 text-slate-400 hover:bg-red-50 hover:text-red-600 transition-all border border-slate-100"
+                            />
+                            <motion.div
+                                initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                                animate={{ opacity: 1, scale: 1, y: 0 }}
+                                exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                                transition={{ type: "spring", duration: 0.4 }}
+                                className="bg-white dark:bg-[#1D2530] border dark:border-[#2B3542] w-full max-w-md rounded-[2.5rem] shadow-2xl relative z-10 p-10 max-h-[90vh] overflow-y-auto"
                             >
-                                <X size={20} strokeWidth={3} />
-                            </button>
-                            <h3 className="text-2xl font-black text-slate-900 uppercase">Cancel Order</h3>
-                            <p className="text-xs font-bold text-slate-500 mt-2">Please select a reason for cancellation. We value your feedback.</p>
-
-                            <div className="mt-8 space-y-4">
-                                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Reason</label>
-                                <select
-                                    className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none font-bold text-xs"
-                                    value={cancelReason}
-                                    onChange={(e) => setCancelReason(e.target.value)}
-                                >
-                                    <option value="">Select a reason</option>
-                                    <option value="Price too high">Price is too high</option>
-                                    <option value="Bought by mistake">Bought by mistake</option>
-                                    <option value="Delivery too slow">Delivery is too slow</option>
-                                    <option value="Found better deal">Found a better deal elsewhere</option>
-                                    <option value="Others">Others</option>
-                                </select>
-
-                                {cancelReason === "Others" && (
-                                    <textarea
-                                        className="w-full p-5 bg-slate-50 border border-slate-200 rounded-3xl outline-none font-bold text-xs h-32 resize-none transition-all focus:border-[#FFDD00]"
-                                        placeholder="Tell us more..."
-                                        onChange={(e) => setCancelReason(e.target.value)}
-                                    ></textarea>
-                                )}
-                            </div>
-
-                            <div className="mt-10 flex gap-4">
                                 <button
                                     onClick={() => setIsCancellingModalOpen(false)}
-                                    className="flex-1 px-6 py-4 bg-slate-100 rounded-2xl text-[10px] font-black uppercase text-slate-500 hover:bg-slate-200 transition-colors"
+                                    className="absolute right-8 top-8 w-10 h-10 flex items-center justify-center rounded-full bg-slate-50 dark:bg-[#151B23] text-slate-400 dark:text-[#818C9B] hover:bg-red-50 dark:hover:bg-red-500/20 hover:text-red-600 dark:hover:text-red-400 transition-all border border-slate-100 dark:border-[#27313D]"
                                 >
-                                    Stay Protected
+                                    <X size={20} strokeWidth={3} />
                                 </button>
-                                <button
-                                    disabled={!cancelReason || isCancelling}
-                                    onClick={handleCancelRequest}
-                                    className="flex-1 px-6 py-4 bg-red-600 text-white rounded-2xl text-[10px] font-black uppercase hover:bg-red-700 transition-colors shadow-xl shadow-red-100 disabled:opacity-50"
-                                >
-                                    {isCancelling ? 'Processing...' : 'Confirm Cancel'}
-                                </button>
-                            </div>
-                        </motion.div>
-                    </div>
-                )}
-            </AnimatePresence>
-        </div>
-      </>
+                                <h3 className="text-2xl font-black text-slate-900 dark:text-[#F7F9FC] uppercase">Cancel Order</h3>
+                                <p className="text-xs font-bold text-slate-500 dark:text-[#B7C1CE] mt-2">Please select a reason for cancellation. We value your feedback.</p>
+
+                                <div className="mt-8 space-y-4">
+                                    <label className="block text-[10px] font-black text-slate-400 dark:text-[#818C9B] uppercase tracking-widest ml-1">Reason</label>
+                                    <select
+                                        className="w-full p-4 bg-slate-50 dark:bg-[#151B23] border border-slate-200 dark:border-[#29333F] text-slate-900 dark:text-[#F5F7FA] rounded-2xl outline-none font-bold text-xs"
+                                        value={cancelReason}
+                                        onChange={(e) => setCancelReason(e.target.value)}
+                                    >
+                                        <option value="" className="dark:bg-[#151B23] dark:text-[#F5F7FA]">Select a reason</option>
+                                        <option value="Price too high" className="dark:bg-[#151B23] dark:text-[#F5F7FA]">Price is too high</option>
+                                        <option value="Bought by mistake" className="dark:bg-[#151B23] dark:text-[#F5F7FA]">Bought by mistake</option>
+                                        <option value="Delivery too slow" className="dark:bg-[#151B23] dark:text-[#F5F7FA]">Delivery is too slow</option>
+                                        <option value="Found better deal" className="dark:bg-[#151B23] dark:text-[#F5F7FA]">Found a better deal elsewhere</option>
+                                        <option value="Others" className="dark:bg-[#151B23] dark:text-[#F5F7FA]">Others</option>
+                                    </select>
+
+                                    {cancelReason === "Others" && (
+                                        <textarea
+                                            className="w-full p-5 bg-slate-50 dark:bg-[#151B23] border border-slate-200 dark:border-[#29333F] text-slate-900 dark:text-[#F5F7FA] placeholder:text-slate-400 dark:placeholder:text-[#778393] rounded-3xl outline-none font-bold text-xs h-32 resize-none transition-all focus:border-[#FFDD00] dark:focus:border-[#FFD600]"
+                                            placeholder="Tell us more..."
+                                            onChange={(e) => setCancelReason(e.target.value)}
+                                        ></textarea>
+                                    )}
+                                </div>
+
+                                <div className="mt-10 flex gap-4">
+                                    <button
+                                        onClick={() => setIsCancellingModalOpen(false)}
+                                        className="flex-1 px-6 py-4 bg-slate-100 dark:bg-[#151B23] rounded-2xl text-[10px] font-black uppercase text-slate-500 dark:text-[#B7C1CE] hover:bg-slate-200 dark:hover:bg-[#222B37] transition-colors"
+                                    >
+                                        Stay Protected
+                                    </button>
+                                    <button
+                                        disabled={!cancelReason || isCancelling}
+                                        onClick={handleCancelRequest}
+                                        className="flex-1 px-6 py-4 bg-red-600 text-white rounded-2xl text-[10px] font-black uppercase hover:bg-red-700 transition-colors shadow-xl shadow-red-100 dark:shadow-none disabled:opacity-50"
+                                    >
+                                        {isCancelling ? 'Processing...' : 'Confirm Cancel'}
+                                    </button>
+                                </div>
+                            </motion.div>
+                        </div>
+                    )}
+                </AnimatePresence>
+            </div>
+        </>
     );
 };
 

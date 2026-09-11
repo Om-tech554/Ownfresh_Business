@@ -70,17 +70,17 @@ const OilSelectionChart = () => {
   const [selectedOil, setSelectedOil] = useState(OIL_DATA[0]);
 
   return (
-    <section className="w-full bg-[#FAF9F5] py-12 sm:py-16 md:py-24 px-4 sm:px-8 md:px-12 lg:px-24 font-sans border-b border-stone-200/60">
+    <section className="w-full bg-[#FAF9F5] dark:bg-[#0B0F14] py-12 sm:py-16 md:py-24 px-4 sm:px-8 md:px-12 lg:px-24 font-sans border-b border-stone-200/60 dark:border-[#202832] transition-colors duration-250">
       <div className="max-w-7xl mx-auto">
         {/* Section Header */}
         <div className="text-center max-w-3xl mx-auto mb-8 sm:mb-14">
-          <span className="text-[10px] md:text-xs font-black uppercase tracking-[0.25em] text-[#1E971D] bg-emerald-50 border border-emerald-200 px-3.5 py-1.5 rounded-full inline-flex items-center gap-1.5 mb-2.5">
-            <Thermometer size={13} className="text-[#1E971D]" /> Temperature &amp; Culinary Guide
+          <span className="text-[10px] md:text-xs font-black uppercase tracking-[0.25em] text-[#1E971D] dark:text-[#FFD600] bg-emerald-50 dark:bg-[#1D2530] border border-emerald-200 dark:border-[#303B48] px-3.5 py-1.5 rounded-full inline-flex items-center gap-1.5 mb-2.5">
+            <Thermometer size={13} className="text-[#1E971D] dark:text-[#FFD600]" /> Temperature &amp; Culinary Guide
           </span>
-          <h2 className="text-2xl sm:text-3xl md:text-5xl font-black text-slate-900 uppercase tracking-tight font-serif">
-            Oil Selection &amp; <span className="text-[#1E971D]">Smoke Point</span> Guide
+          <h2 className="text-2xl sm:text-3xl md:text-5xl font-black text-slate-900 dark:text-[#F7F9FC] uppercase tracking-tight font-serif">
+            Oil Selection &amp; <span className="text-[#1E971D] dark:text-[#FFD600]">Smoke Point</span> Guide
           </h2>
-          <p className="text-xs sm:text-sm md:text-base text-slate-600 font-medium mt-2 leading-relaxed">
+          <p className="text-xs sm:text-sm md:text-base text-slate-600 dark:text-[#B7C1CE] font-medium mt-2 leading-relaxed">
             Selecting the right cooking oil ensures maximum retention of vitamins, avoids toxic smoke degradation, and elevates every recipe.
           </p>
         </div>
@@ -90,34 +90,34 @@ const OilSelectionChart = () => {
           {OIL_DATA.map((oil, idx) => (
             <div
               key={idx}
-              className="bg-white border border-stone-200 rounded-2xl p-4 shadow-xs flex flex-col justify-between"
+              className="bg-white dark:bg-[#171D26] border border-stone-200 dark:border-[#27313D] rounded-2xl p-4 shadow-xs flex flex-col justify-between transition-colors duration-250"
             >
               <div>
                 <div className="flex items-start justify-between gap-2 mb-2">
                   <div className="flex items-center gap-2">
-                    <Droplets size={16} className="text-[#1E971D] shrink-0" />
-                    <h3 className="font-extrabold text-slate-900 text-sm">{oil.name}</h3>
+                    <Droplets size={16} className="text-[#1E971D] dark:text-[#FFD600] shrink-0" />
+                    <h3 className="font-extrabold text-slate-900 dark:text-[#F5F7FA] text-sm">{oil.name}</h3>
                   </div>
-                  <span className="font-extrabold text-emerald-800 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full text-[10px] whitespace-nowrap shrink-0">
+                  <span className="font-extrabold text-emerald-800 dark:text-[#19C37D] bg-emerald-50 dark:bg-[#1D2530] border border-emerald-200 dark:border-[#303B48] px-2 py-0.5 rounded-full text-[10px] whitespace-nowrap shrink-0">
                     {oil.smokePoint}
                   </span>
                 </div>
 
-                <p className="text-xs text-slate-700 font-semibold mb-1.5">
-                  <strong className="text-slate-400 font-bold uppercase text-[9px] block">Best For:</strong>
+                <p className="text-xs text-slate-700 dark:text-[#B7C1CE] font-semibold mb-1.5">
+                  <strong className="text-slate-400 dark:text-[#818C9B] font-bold uppercase text-[9px] block">Best For:</strong>
                   {oil.bestFor}
                 </p>
 
-                <div className="flex flex-wrap items-center gap-2 text-[10px] text-slate-500 font-medium pt-2 border-t border-slate-100">
-                  <span className="bg-slate-100 px-2 py-0.5 rounded-md text-slate-700">Aroma: {oil.aroma}</span>
-                  <span className="bg-amber-50 text-amber-800 px-2 py-0.5 rounded-md border border-amber-100">{oil.keyBioactive}</span>
+                <div className="flex flex-wrap items-center gap-2 text-[10px] text-slate-500 dark:text-[#818C9B] font-medium pt-2 border-t border-slate-100 dark:border-[#202832]">
+                  <span className="bg-slate-100 dark:bg-[#1D2530] px-2 py-0.5 rounded-md text-slate-700 dark:text-[#B7C1CE]">Aroma: {oil.aroma}</span>
+                  <span className="bg-amber-50 dark:bg-[#1D2530] text-amber-800 dark:text-[#FFD600] px-2 py-0.5 rounded-md border border-amber-100 dark:border-[#303B48]">{oil.keyBioactive}</span>
                 </div>
               </div>
 
-              <div className="mt-3 pt-2.5 border-t border-slate-100 flex items-center justify-end">
+              <div className="mt-3 pt-2.5 border-t border-slate-100 dark:border-[#202832] flex items-center justify-end">
                 <button
                   onClick={() => navigate(`/shop?category=${encodeURIComponent(oil.category)}`)}
-                  className="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 px-4 py-2 bg-slate-900 hover:bg-[#1E971D] text-white font-black text-xs uppercase tracking-wider rounded-xl transition-all shadow-xs cursor-pointer active:scale-95"
+                  className="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 px-4 py-2 bg-slate-900 dark:bg-[#FFD600] hover:bg-[#1E971D] dark:hover:bg-[#FFE45C] text-white dark:text-[#111318] font-black text-xs uppercase tracking-wider rounded-xl transition-all shadow-xs cursor-pointer active:scale-95"
                 >
                   <span>Shop {oil.category}</span>
                   <ArrowRight size={12} />
@@ -128,11 +128,11 @@ const OilSelectionChart = () => {
         </div>
 
         {/* Interactive Desktop & Tablet Table (>= md) */}
-        <div className="hidden md:block bg-white border border-stone-200 rounded-3xl overflow-hidden shadow-sm">
+        <div className="hidden md:block bg-white dark:bg-[#171D26] border border-stone-200 dark:border-[#27313D] rounded-3xl overflow-hidden shadow-sm transition-colors duration-250">
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse text-xs">
               <thead>
-                <tr className="bg-slate-900 text-white font-black text-[11px] uppercase tracking-wider">
+                <tr className="bg-slate-900 dark:bg-[#111720] text-white dark:text-[#F5F7FA] font-black text-[11px] uppercase tracking-wider border-b border-slate-800 dark:border-[#202731]">
                   <th className="p-4 md:p-5">Oil Variety</th>
                   <th className="p-4 md:p-5">Smoke Point</th>
                   <th className="p-4 md:p-5">Aroma Profile</th>
@@ -141,38 +141,38 @@ const OilSelectionChart = () => {
                   <th className="p-4 md:p-5 text-right">Action</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100 font-medium text-slate-700">
+              <tbody className="divide-y divide-slate-100 dark:divide-[#202832] font-medium text-slate-700 dark:text-[#B7C1CE]">
                 {OIL_DATA.map((oil, idx) => (
                   <tr
                     key={idx}
-                    className={`hover:bg-emerald-50/40 transition-colors ${
-                      idx % 2 === 0 ? "bg-white" : "bg-slate-50/40"
+                    className={`hover:bg-emerald-50/40 hover:dark:bg-[#1D2530] transition-colors ${
+                      idx % 2 === 0 ? "bg-white dark:bg-[#171D26]" : "bg-slate-50/40 dark:bg-[#151B23]"
                     }`}
                   >
-                    <td className="p-4 md:p-5 font-extrabold text-slate-900">
+                    <td className="p-4 md:p-5 font-extrabold text-slate-900 dark:text-[#F5F7FA]">
                       <div className="flex items-center gap-2">
-                        <Droplets size={16} className="text-[#1E971D]" />
+                        <Droplets size={16} className="text-[#1E971D] dark:text-[#FFD600]" />
                         <span>{oil.name}</span>
                       </div>
                     </td>
                     <td className="p-4 md:p-5">
-                      <span className="font-extrabold text-emerald-800 bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-full text-[11px]">
+                      <span className="font-extrabold text-emerald-800 dark:text-[#19C37D] bg-emerald-50 dark:bg-[#1D2530] border border-emerald-200 dark:border-[#303B48] px-2.5 py-1 rounded-full text-[11px]">
                         {oil.smokePoint}
                       </span>
                     </td>
-                    <td className="p-4 md:p-5 font-semibold text-slate-600">
+                    <td className="p-4 md:p-5 font-semibold text-slate-600 dark:text-[#B7C1CE]">
                       {oil.aroma}
                     </td>
-                    <td className="p-4 md:p-5 text-slate-800 font-semibold max-w-xs">
+                    <td className="p-4 md:p-5 text-slate-800 dark:text-[#F5F7FA] font-semibold max-w-xs">
                       {oil.bestFor}
                     </td>
-                    <td className="p-4 md:p-5 text-slate-600 font-medium">
+                    <td className="p-4 md:p-5 text-slate-600 dark:text-[#B7C1CE] font-medium">
                       {oil.keyBioactive}
                     </td>
                     <td className="p-4 md:p-5 text-right">
                       <button
                         onClick={() => navigate(`/shop?category=${encodeURIComponent(oil.category)}`)}
-                        className="inline-flex items-center gap-1.5 px-4 py-2 bg-slate-900 hover:bg-[#1E971D] text-white font-black text-[10px] uppercase tracking-wider rounded-xl transition-all shadow-xs cursor-pointer"
+                        className="inline-flex items-center gap-1.5 px-4 py-2 bg-slate-900 dark:bg-[#FFD600] hover:bg-[#1E971D] dark:hover:bg-[#FFE45C] text-white dark:text-[#111318] font-black text-[10px] uppercase tracking-wider rounded-xl transition-all shadow-xs cursor-pointer"
                       >
                         <span>Shop</span>
                         <ArrowRight size={12} />

@@ -147,7 +147,7 @@ const SignIn = () => {
   };
 
   return (
-    <div className="min-h-screen flex w-full font-sans bg-[#FCFBF7] relative overflow-x-hidden">
+    <div className="min-h-screen flex w-full font-sans bg-[#FCFBF7] dark:bg-[#0B0F14] relative overflow-x-hidden transition-colors duration-200">
       <SEO
         title="Sign In | OwnFresh - Premium Stone Pressed Cooking Oils"
         description="Sign in to your OwnFresh account with Google or email. Order authentic 100% pure cold-pressed botanical oils, track deliveries, and manage your 1% Prime rewards."
@@ -155,13 +155,13 @@ const SignIn = () => {
       />
 
       {/* ── LEFT COLUMN: BRAND SHOWCASE HERO (DESKTOP) ── */}
-      <div className="hidden lg:flex w-1/2 relative bg-[#121814] overflow-hidden">
+      <div className="hidden lg:flex w-1/2 relative bg-[#121814] dark:bg-[#0A0D12] overflow-hidden">
         <img
           src="/auth-signin-bg.jpg"
           alt="OwnFresh Stone Pressed Pure Oil"
           className="absolute inset-0 w-full h-full object-cover opacity-80 scale-105 transition-transform duration-1000 ease-out hover:scale-100"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-[#121814]/90 via-[#121814]/40 to-[#121814]/30" />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#121814]/90 via-[#121814]/40 to-[#121814]/30 dark:from-[#0B0F14]/95 dark:via-[#0B0F14]/60 dark:to-[#0B0F14]/40" />
 
         {/* Brand Header */}
         <div className="absolute top-10 left-12 z-10 flex items-center gap-3">
@@ -173,27 +173,27 @@ const SignIn = () => {
         </div>
 
         {/* Feature Highlights Card */}
-        <div className="absolute bottom-10 left-12 right-12 z-10 bg-white/90 backdrop-blur-xl p-8 rounded-3xl border border-white/60 text-slate-800 shadow-2xl">
+        <div className="absolute bottom-10 left-12 right-12 z-10 bg-white/90 dark:bg-[#171D26]/90 backdrop-blur-xl p-8 rounded-3xl border border-white/60 dark:border-[#27313D] text-slate-800 dark:text-[#F5F7FA] shadow-2xl">
           <div className="flex items-center gap-2 mb-3">
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-50 text-[#1E971D] border border-emerald-200/80 text-[10px] font-black uppercase tracking-wider rounded-full shadow-xs">
-              <CheckCircle2 size={12} className="text-[#1E971D]" /> 100% Stone Pressed Purity
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-50 dark:bg-emerald-950/40 text-[#1E971D] dark:text-[#FFD600] border border-emerald-200/80 dark:border-emerald-800/40 text-[10px] font-black uppercase tracking-wider rounded-full shadow-xs">
+              <CheckCircle2 size={12} className="text-[#1E971D] dark:text-[#FFD600]" /> 100% Stone Pressed Purity
             </span>
-            <span className="inline-flex items-center gap-1 text-[10px] font-extrabold text-amber-800 bg-amber-100/90 px-2.5 py-1 rounded-full shadow-xs">
-              <Sparkles className="w-3 h-3 text-amber-600" /> 1% Prime Rewards
+            <span className="inline-flex items-center gap-1 text-[10px] font-extrabold text-amber-800 dark:text-[#FFD600] bg-amber-100/90 dark:bg-amber-950/60 px-2.5 py-1 rounded-full shadow-xs border border-transparent dark:border-amber-700/30">
+              <Sparkles className="w-3 h-3 text-amber-600 dark:text-[#FFD600]" /> 1% Prime Rewards
             </span>
           </div>
 
-          <h2 className="text-2xl font-black mb-2 leading-tight uppercase tracking-tight text-slate-900 font-serif">
-            Pure Botanical Oils <span className="text-[#1E971D]">For Healthy Living</span>
+          <h2 className="text-2xl font-black mb-2 leading-tight uppercase tracking-tight text-slate-900 dark:text-[#F7F9FC] font-serif">
+            Pure Botanical Oils <span className="text-[#1E971D] dark:text-[#FFD600]">For Healthy Living</span>
           </h2>
-          <p className="text-xs font-medium text-slate-600 mb-4 leading-relaxed">
+          <p className="text-xs font-medium text-slate-600 dark:text-[#B7C1CE] mb-4 leading-relaxed">
             From single-origin farm seeds to traditional slow stone-pressing. Sign in to access express delivery tracking, club benefits, and order history.
           </p>
 
-          <div className="flex flex-wrap gap-2 pt-1 border-t border-slate-200/60">
-            <span className="px-2.5 py-1 bg-slate-100/80 text-slate-700 rounded-lg text-[9px] font-extrabold uppercase tracking-wide">Single Origin Seeds</span>
-            <span className="px-2.5 py-1 bg-slate-100/80 text-slate-700 rounded-lg text-[9px] font-extrabold uppercase tracking-wide">FSSAI Certified</span>
-            <span className="px-2.5 py-1 bg-slate-100/80 text-slate-700 rounded-lg text-[9px] font-extrabold uppercase tracking-wide">Zero Chemicals</span>
+          <div className="flex flex-wrap gap-2 pt-1 border-t border-slate-200/60 dark:border-[#27313D]">
+            <span className="px-2.5 py-1 bg-slate-100/80 dark:bg-[#1D2530] text-slate-700 dark:text-[#B7C1CE] rounded-lg text-[9px] font-extrabold uppercase tracking-wide">Single Origin Seeds</span>
+            <span className="px-2.5 py-1 bg-slate-100/80 dark:bg-[#1D2530] text-slate-700 dark:text-[#B7C1CE] rounded-lg text-[9px] font-extrabold uppercase tracking-wide">FSSAI Certified</span>
+            <span className="px-2.5 py-1 bg-slate-100/80 dark:bg-[#1D2530] text-slate-700 dark:text-[#B7C1CE] rounded-lg text-[9px] font-extrabold uppercase tracking-wide">Zero Chemicals</span>
           </div>
         </div>
       </div>
@@ -207,18 +207,18 @@ const SignIn = () => {
         {/* Back to Home CTA */}
         <button
           onClick={() => navigate("/")}
-          className="absolute top-5 left-5 sm:top-8 sm:left-8 flex items-center gap-1.5 text-slate-700 hover:text-[#1E971D] transition-all active:scale-95 cursor-pointer bg-white/90 backdrop-blur-md py-2.5 px-4 rounded-full shadow-sm hover:shadow-md border border-amber-200/50 text-xs font-black uppercase tracking-wider z-20"
+          className="absolute top-5 left-5 sm:top-8 sm:left-8 flex items-center gap-1.5 text-slate-700 dark:text-[#B7C1CE] hover:text-[#1E971D] dark:hover:text-[#FFD600] transition-all active:scale-95 cursor-pointer bg-white/90 dark:bg-[#171D26]/90 backdrop-blur-md py-2.5 px-4 rounded-full shadow-sm hover:shadow-md border border-amber-200/50 dark:border-[#27313D] text-xs font-black uppercase tracking-wider z-20"
         >
           <ArrowLeft size={15} />
           <span>Back</span>
         </button>
 
         {/* Main Card Container */}
-        <div className="w-full max-w-md z-10 bg-white/95 backdrop-blur-xl p-7 sm:p-9 rounded-3xl border border-amber-100/80 shadow-[0_20px_60px_-15px_rgba(217,119,6,0.12)] transition-all duration-300">
+        <div className="w-full max-w-md z-10 bg-white/95 dark:bg-[#171D26]/95 backdrop-blur-xl p-7 sm:p-9 rounded-3xl border border-amber-100/80 dark:border-[#27313D] shadow-[0_20px_60px_-15px_rgba(217,119,6,0.12)] dark:shadow-none transition-all duration-300">
           
           {/* Company Logo Header */}
           <div className="flex flex-col items-center text-center mb-6">
-            <div className="mb-3.5 p-3 rounded-2xl bg-gradient-to-b from-[#FFFDF2] to-amber-50/60 border border-amber-200/60 shadow-xs">
+            <div className="mb-3.5 p-3 rounded-2xl bg-gradient-to-b from-[#FFFDF2] to-amber-50/60 dark:from-[#1D2530] dark:to-[#151B23] border border-amber-200/60 dark:border-[#2A3440] shadow-xs">
               <img
                 src={LOGO_URL}
                 alt="OwnFresh Logo"
@@ -227,12 +227,11 @@ const SignIn = () => {
             </div>
             
             <h1
-              className="text-2xl sm:text-3xl font-black tracking-tight mb-1 font-serif uppercase"
-              style={{ color: "#24672E" }}
+              className="text-2xl sm:text-3xl font-black tracking-tight mb-1 font-serif uppercase text-[#24672E] dark:text-[#FFD600]"
             >
               Welcome Back
             </h1>
-            <p className="text-slate-500 text-xs sm:text-sm font-medium">
+            <p className="text-slate-500 dark:text-[#818C9B] text-xs sm:text-sm font-medium">
               Sign in to manage your orders and pure oils
             </p>
           </div>
@@ -240,12 +239,12 @@ const SignIn = () => {
           {/* 🌟 PROMINENT 1-CLICK GOOGLE SIGN IN */}
           <button
             type="button"
-            className="w-full h-12 flex items-center justify-center gap-3 border-2 border-slate-200/90 rounded-2xl mb-5 hover:bg-amber-50/40 hover:border-amber-300/80 transition-all active:scale-[0.98] cursor-pointer shadow-sm bg-white text-xs sm:text-sm font-bold text-slate-800 disabled:opacity-60"
+            className="w-full h-12 flex items-center justify-center gap-3 border-2 border-slate-200/90 dark:border-[#29333F] rounded-2xl mb-5 hover:bg-amber-50/40 dark:hover:bg-[#1C232D] hover:border-amber-300/80 dark:hover:border-[#FFD600]/40 transition-all active:scale-[0.98] cursor-pointer shadow-sm bg-white dark:bg-[#151B23] text-xs sm:text-sm font-bold text-slate-800 dark:text-[#F5F7FA] disabled:opacity-60"
             onClick={handleGoogleAuth}
             disabled={googleLoading || loading}
           >
             {googleLoading ? (
-              <Loader2 className="w-5 h-5 animate-spin text-[#1E971D]" />
+              <Loader2 className="w-5 h-5 animate-spin text-[#FFD600]" />
             ) : (
               <img
                 src="https://www.svgrepo.com/show/475656/google-color.svg"
@@ -258,30 +257,30 @@ const SignIn = () => {
 
           {/* Divider */}
           <div className="flex items-center gap-3 mb-5">
-            <div className="flex-1 h-[1px] bg-gradient-to-r from-transparent via-slate-200 to-slate-200" />
-            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">
+            <div className="flex-1 h-[1px] bg-gradient-to-r from-transparent via-slate-200 dark:via-[#27313D] to-slate-200 dark:to-[#27313D]" />
+            <span className="text-[10px] font-black text-slate-400 dark:text-[#818C9B] uppercase tracking-widest px-1">
               or with email
             </span>
-            <div className="flex-1 h-[1px] bg-gradient-to-r from-slate-200 via-slate-200 to-transparent" />
+            <div className="flex-1 h-[1px] bg-gradient-to-r from-slate-200 dark:from-[#27313D] via-slate-200 dark:via-[#27313D] to-transparent" />
           </div>
 
           {/* ── EMAIL / PASSWORD LOGIN FORM ── */}
           <form onSubmit={handleSignIn} className="space-y-4">
             {/* Email Address */}
             <div>
-              <label className="block text-xs font-black text-slate-700 uppercase tracking-wider mb-1.5 ml-1">
+              <label className="block text-xs font-black text-slate-700 dark:text-[#C4CCD7] uppercase tracking-wider mb-1.5 ml-1">
                 Email Address
               </label>
               <div className="relative">
                 <Mail
-                  className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"
+                  className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-[#818C9B]"
                   size={17}
                 />
                 <input
                   type="email"
                   placeholder="name@example.com"
                   autoComplete="email"
-                  className="w-full h-12 pl-10 pr-4 bg-slate-50/80 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1E971D]/30 focus:border-[#1E971D] focus:bg-white transition-all text-xs sm:text-sm font-semibold text-slate-800 placeholder:text-slate-400"
+                  className="w-full h-12 pl-10 pr-4 bg-slate-50/80 dark:bg-[#151B23] border border-slate-200 dark:border-[#29333F] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#FFD600]/30 focus:border-[#FFD600] focus:bg-white dark:focus:bg-[#151B23] transition-all text-xs sm:text-sm font-semibold text-slate-800 dark:text-[#F5F7FA] placeholder:text-slate-400 dark:placeholder:text-[#778393]"
                   value={email}
                   required
                   onChange={(e) => setEmail(e.target.value)}
@@ -292,11 +291,11 @@ const SignIn = () => {
             {/* Password */}
             <div>
               <div className="flex justify-between items-center mb-1.5 ml-1">
-                <label className="text-xs font-black text-slate-700 uppercase tracking-wider">
+                <label className="text-xs font-black text-slate-700 dark:text-[#C4CCD7] uppercase tracking-wider">
                   Password
                 </label>
                 <span
-                  className="text-xs font-extrabold cursor-pointer text-[#1E971D] hover:underline"
+                  className="text-xs font-extrabold cursor-pointer text-[#1E971D] dark:text-[#FFD600] hover:underline"
                   onClick={() => navigate("/forgot-password")}
                 >
                   Forgot?
@@ -305,14 +304,14 @@ const SignIn = () => {
 
               <div className="relative">
                 <Lock
-                  className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"
+                  className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-[#818C9B]"
                   size={17}
                 />
                 <input
                   type={showPassword ? "text" : "password"}
                   placeholder="Enter your password"
                   autoComplete="current-password"
-                  className="w-full h-12 pl-10 pr-12 bg-slate-50/80 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1E971D]/30 focus:border-[#1E971D] focus:bg-white transition-all text-xs sm:text-sm font-semibold text-slate-800 placeholder:text-slate-400"
+                  className="w-full h-12 pl-10 pr-12 bg-slate-50/80 dark:bg-[#151B23] border border-slate-200 dark:border-[#29333F] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#FFD600]/30 focus:border-[#FFD600] focus:bg-white dark:focus:bg-[#151B23] transition-all text-xs sm:text-sm font-semibold text-slate-800 dark:text-[#F5F7FA] placeholder:text-slate-400 dark:placeholder:text-[#778393]"
                   value={password}
                   required
                   onChange={(e) => setPassword(e.target.value)}
@@ -321,7 +320,7 @@ const SignIn = () => {
                 <button
                   type="button"
                   aria-label={showPassword ? "Hide password" : "Show password"}
-                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 p-1 transition-colors cursor-pointer"
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-[#818C9B] hover:text-slate-700 dark:hover:text-[#F5F7FA] p-1 transition-colors cursor-pointer"
                   onClick={() => setShowPassword(!showPassword)}
                 >
                   {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
@@ -333,7 +332,7 @@ const SignIn = () => {
             <button
               type="submit"
               disabled={loading || googleLoading}
-              className="w-full h-12 mt-3 rounded-xl font-black text-[#181818] bg-[#F9DD19] hover:bg-[#1E971D] hover:text-white shadow-md shadow-yellow-500/15 hover:shadow-lg transition-all active:scale-[0.98] flex items-center justify-center gap-2 cursor-pointer border-0 text-xs sm:text-sm uppercase tracking-widest disabled:opacity-60"
+              className="w-full h-12 mt-3 rounded-xl font-black text-[#111318] bg-[#FFD600] hover:bg-[#FFE45C] shadow-md shadow-yellow-500/15 hover:shadow-lg transition-all active:scale-[0.98] flex items-center justify-center gap-2 cursor-pointer border-0 text-xs sm:text-sm uppercase tracking-widest disabled:opacity-60"
             >
               {loading ? (
                 <>
@@ -350,12 +349,12 @@ const SignIn = () => {
           </form>
 
           {/* Footer Navigation Link */}
-          <div className="mt-6 pt-5 border-t border-slate-100 text-center">
-            <p className="text-xs sm:text-sm text-slate-500 font-semibold">
+          <div className="mt-6 pt-5 border-t border-slate-100 dark:border-[#27313D] text-center">
+            <p className="text-xs sm:text-sm text-slate-500 dark:text-[#818C9B] font-semibold">
               Don't have an account?{" "}
               <button
                 type="button"
-                className="font-black cursor-pointer text-[#1E971D] hover:underline ml-1"
+                className="font-black cursor-pointer text-[#1E971D] dark:text-[#FFD600] hover:underline ml-1"
                 onClick={() => navigate("/signup")}
               >
                 Create an account

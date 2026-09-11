@@ -228,31 +228,31 @@ const Shop = () => {
     <div className="flex flex-col gap-6">
       
       {/* SEARCH WIDGET */}
-      <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs">
-        <h3 className="text-xs font-black text-slate-900 uppercase tracking-widest mb-3 flex items-center justify-between">
+      <div className="bg-white dark:bg-[#171D26] p-5 rounded-2xl border border-slate-200/80 dark:border-[#27313D] shadow-xs">
+        <h3 className="text-xs font-black text-slate-900 dark:text-[#F7F9FC] uppercase tracking-widest mb-3 flex items-center justify-between">
           <span>Search Oils</span>
           {searchQuery && (
-            <button onClick={() => setSearchQuery("")} className="text-[10px] text-red-500 font-bold hover:underline">
+            <button onClick={() => setSearchQuery("")} className="text-[10px] text-red-500 dark:text-[#FF5C6C] font-bold hover:underline cursor-pointer">
               Clear
             </button>
           )}
         </h3>
-        <div className="flex items-center w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 focus-within:border-[#1E971D] focus-within:bg-white transition-all">
-          <Search size={16} className="text-slate-400 mr-2 shrink-0" />
+        <div className="flex items-center w-full bg-slate-50 dark:bg-[#151B23] border border-slate-200 dark:border-[#29333F] rounded-xl px-3 py-2.5 focus-within:border-[#1E971D] dark:focus-within:border-[#FFD600] focus-within:bg-white dark:focus-within:bg-[#151B23] transition-all">
+          <Search size={16} className="text-slate-400 dark:text-[#778393] mr-2 shrink-0" />
           <input
             type="text"
             placeholder="Search oils, categories..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full text-xs font-medium outline-none bg-transparent text-slate-800"
+            className="w-full text-xs font-medium outline-none bg-transparent text-slate-800 dark:text-[#F5F7FA] placeholder:text-slate-400 dark:placeholder:text-[#778393]"
           />
         </div>
       </div>
 
       {/* BOTTLE SIZES FILTER */}
-      <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs">
-        <h3 className="text-xs font-black text-slate-900 uppercase tracking-widest mb-3 flex items-center gap-2">
-          <Package size={14} className="text-[#1E971D]" /> Bottle Size
+      <div className="bg-white dark:bg-[#171D26] p-5 rounded-2xl border border-slate-200/80 dark:border-[#27313D] shadow-xs">
+        <h3 className="text-xs font-black text-slate-900 dark:text-[#F7F9FC] uppercase tracking-widest mb-3 flex items-center gap-2">
+          <Package size={14} className="text-[#1E971D] dark:text-[#FFD600]" /> Bottle Size
         </h3>
         <div className="flex flex-wrap gap-1.5">
           {BOTTLE_SIZES.map((sz) => {
@@ -263,8 +263,8 @@ const Shop = () => {
                 onClick={() => setSelectedSize(sz)}
                 className={`px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wider border transition-all cursor-pointer ${
                   isSelected
-                    ? "bg-[#1E971D] border-[#1E971D] text-white shadow-xs scale-102"
-                    : "bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100"
+                    ? "bg-[#1E971D] dark:bg-[#FFD600] border-[#1E971D] dark:border-[#FFD600] text-white dark:text-[#111318] shadow-xs scale-102"
+                    : "bg-slate-50 dark:bg-[#151B23] border-slate-200 dark:border-[#27313D] text-slate-600 dark:text-[#B7C1CE] hover:bg-slate-100 dark:hover:bg-[#1D2530]"
                 }`}
               >
                 {sz}
@@ -275,12 +275,12 @@ const Shop = () => {
       </div>
 
       {/* PRICE FILTER */}
-      <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs">
+      <div className="bg-white dark:bg-[#171D26] p-5 rounded-2xl border border-slate-200/80 dark:border-[#27313D] shadow-xs">
         <div className="flex justify-between items-center mb-3">
-          <h3 className="text-xs font-black text-slate-900 uppercase tracking-widest">
+          <h3 className="text-xs font-black text-slate-900 dark:text-[#F7F9FC] uppercase tracking-widest">
             Max Price
           </h3>
-          <span className="text-xs font-black text-[#1E971D] font-mono">₹{priceRange.toLocaleString('en-IN')}</span>
+          <span className="text-xs font-black text-[#1E971D] dark:text-[#FFD600] font-mono">₹{priceRange.toLocaleString('en-IN')}</span>
         </div>
         <input
           type="range"
@@ -289,50 +289,50 @@ const Shop = () => {
           step="100"
           value={priceRange}
           onChange={(e) => setPriceRange(Number(e.target.value))}
-          className="w-full accent-[#1E971D] cursor-pointer"
+          className="w-full accent-[#1E971D] dark:accent-[#FFD600] cursor-pointer"
         />
-        <div className="flex justify-between text-[10px] text-slate-400 font-bold mt-2 uppercase tracking-widest">
+        <div className="flex justify-between text-[10px] text-slate-400 dark:text-[#818C9B] font-bold mt-2 uppercase tracking-widest">
           <span>₹100</span>
           <span>₹15,000+</span>
         </div>
       </div>
 
       {/* AVAILABILITY FILTER */}
-      <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs">
-        <label className="flex items-center gap-2.5 cursor-pointer">
+      <div className="bg-white dark:bg-[#171D26] p-5 rounded-2xl border border-slate-200/80 dark:border-[#27313D] shadow-xs">
+        <label className="flex items-center gap-2.5 cursor-pointer select-none">
           <input
             type="checkbox"
             checked={stockOnly}
             onChange={(e) => setStockOnly(e.target.checked)}
-            className="w-4 h-4 text-[#1E971D] rounded cursor-pointer"
+            className="w-4 h-4 text-[#1E971D] dark:text-[#FFD600] accent-[#1E971D] dark:accent-[#FFD600] rounded cursor-pointer"
           />
-          <span className="text-xs font-black text-slate-800 uppercase tracking-wider">
+          <span className="text-xs font-black text-slate-800 dark:text-[#F5F7FA] uppercase tracking-wider">
             In Stock Only
           </span>
         </label>
       </div>
 
       {/* CATEGORIES WIDGET */}
-      <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs">
+      <div className="bg-white dark:bg-[#171D26] p-5 rounded-2xl border border-slate-200/80 dark:border-[#27313D] shadow-xs">
         <div className="flex justify-between items-center mb-3">
-          <h3 className="text-xs font-black text-slate-900 uppercase tracking-widest">
+          <h3 className="text-xs font-black text-slate-900 dark:text-[#F7F9FC] uppercase tracking-widest">
             Categories
           </h3>
           {activeCategory !== "All" && (
-            <button onClick={() => setActiveCategory("All")} className="text-[10px] text-red-500 font-bold hover:underline">
+            <button onClick={() => setActiveCategory("All")} className="text-[10px] text-red-500 dark:text-[#FF5C6C] font-bold hover:underline cursor-pointer">
               Reset
             </button>
           )}
         </div>
-        <ul className="flex flex-col gap-1 text-[11px] font-bold text-slate-600 uppercase tracking-wider">
+        <ul className="flex flex-col gap-1 text-[11px] font-bold text-slate-600 dark:text-[#B7C1CE] uppercase tracking-wider">
           <li
             onClick={() => { setActiveCategory("All"); setVisibleCount(12); setShowMobileFilters(false); }}
             className={`flex justify-between items-center p-2 rounded-xl cursor-pointer transition-colors ${
-              activeCategory === "All" ? "bg-[#1E971D] text-white font-black" : "hover:bg-slate-50"
+              activeCategory === "All" ? "bg-[#1E971D] dark:bg-[#FFD600] text-white dark:text-[#111318] font-black" : "hover:bg-slate-50 dark:hover:bg-[#1D2530]"
             }`}
           >
             <span>All Oils</span>
-            <span className={`px-2 py-0.5 rounded-md text-[10px] ${activeCategory === "All" ? "bg-white/20 text-white" : "bg-slate-100 text-slate-400"}`}>
+            <span className={`px-2 py-0.5 rounded-md text-[10px] ${activeCategory === "All" ? "bg-white/20 dark:bg-black/20 text-white dark:text-[#111318]" : "bg-slate-100 dark:bg-[#151B23] text-slate-400 dark:text-[#818C9B]"}`}>
               {products.length}
             </span>
           </li>
@@ -341,11 +341,11 @@ const Shop = () => {
               key={idx}
               onClick={() => { setActiveCategory(title); setVisibleCount(12); setShowMobileFilters(false); }}
               className={`flex justify-between items-center p-2 rounded-xl cursor-pointer transition-colors ${
-                activeCategory === title ? "bg-[#1E971D] text-white font-black" : "hover:bg-slate-50"
+                activeCategory === title ? "bg-[#1E971D] dark:bg-[#FFD600] text-white dark:text-[#111318] font-black" : "hover:bg-slate-50 dark:hover:bg-[#1D2530]"
               }`}
             >
               <span>{title}</span>
-              <span className={`px-2 py-0.5 rounded-md text-[10px] ${activeCategory === title ? "bg-white/20 text-white" : "bg-slate-100 text-slate-400"}`}>
+              <span className={`px-2 py-0.5 rounded-md text-[10px] ${activeCategory === title ? "bg-white/20 dark:bg-black/20 text-white dark:text-[#111318]" : "bg-slate-100 dark:bg-[#151B23] text-slate-400 dark:text-[#818C9B]"}`}>
                 {count}
               </span>
             </li>
@@ -356,7 +356,7 @@ const Shop = () => {
       {/* CLEAR ALL BUTTON */}
       <button
         onClick={clearAllFilters}
-        className="w-full py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-black uppercase tracking-wider transition-colors"
+        className="w-full py-3 bg-slate-100 dark:bg-[#1D2530] hover:bg-slate-200 dark:hover:bg-[#222B37] text-slate-700 dark:text-[#F5F7FA] border border-transparent dark:border-[#2A3440] rounded-xl text-xs font-black uppercase tracking-wider transition-colors cursor-pointer"
       >
         Clear All Filters
       </button>
@@ -374,32 +374,32 @@ const Shop = () => {
       />
       <Navbar />
 
-      <div className="w-full bg-[#fafafa] min-h-screen py-10 pb-28 lg:pb-16 px-3 sm:px-8 md:px-12 lg:px-20 font-sans">
+      <div className="w-full bg-[#fafafa] dark:bg-[#0B0F14] min-h-screen py-10 pb-28 lg:pb-16 px-3 sm:px-8 md:px-12 lg:px-20 font-sans transition-colors duration-250">
 
         {/* HEADER SECTION */}
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row md:items-end justify-between mb-10 pb-8 border-b border-slate-200 gap-4">
+        <div className="max-w-7xl mx-auto flex flex-col md:flex-row md:items-end justify-between mb-10 pb-8 border-b border-slate-200 dark:border-[#27313D] gap-4">
           <div>
-            <span className="text-[10px] font-black text-[#1E971D] uppercase tracking-widest bg-emerald-50 border border-emerald-100 px-3 py-1 rounded-full inline-block mb-2">
+            <span className="text-[10px] font-black text-[#1E971D] dark:text-[#19C37D] uppercase tracking-widest bg-emerald-50 dark:bg-[#17221F] border border-emerald-100 dark:border-[#26333A] px-3 py-1 rounded-full inline-block mb-2">
               Authentic Wood / Stone Churned
             </span>
-            <h1 className="text-3xl md:text-4xl font-black text-slate-900 tracking-tight uppercase">
-              Stone Pressed <span className="text-[#1E971D]">Oil Collection</span>
+            <h1 className="text-3xl md:text-4xl font-black text-slate-900 dark:text-[#F7F9FC] tracking-tight uppercase">
+              Stone Pressed <span className="text-[#1E971D] dark:text-[#FFD600]">Oil Collection</span>
             </h1>
-            <p className="text-slate-500 mt-1 text-xs sm:text-sm font-medium">
+            <p className="text-slate-500 dark:text-[#B7C1CE] mt-1 text-xs sm:text-sm font-medium">
               Available in 250ml, 500ml, 1L, 2L, and 5L bottles with independent photos and stock.
             </p>
           </div>
 
           {/* SORTING CONTROLS */}
           <div className="flex items-center gap-3">
-            <span className="text-xs font-bold text-slate-400 uppercase tracking-wider hidden sm:inline">Sort By:</span>
+            <span className="text-xs font-bold text-slate-400 dark:text-[#818C9B] uppercase tracking-wider hidden sm:inline">Sort By:</span>
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value)}
-              className="p-3 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-800 outline-none focus:border-[#1E971D] cursor-pointer shadow-xs"
+              className="p-3 bg-white dark:bg-[#151B23] border border-slate-200 dark:border-[#29333F] text-slate-800 dark:text-[#F5F7FA] rounded-xl text-xs font-bold outline-none focus:border-[#1E971D] dark:focus:border-[#FFD600] cursor-pointer shadow-xs"
             >
               {SORT_OPTIONS.map((opt) => (
-                <option key={opt.value} value={opt.value}>{opt.label}</option>
+                <option key={opt.value} value={opt.value} className="dark:bg-[#151B23]">{opt.label}</option>
               ))}
             </select>
           </div>
@@ -408,8 +408,8 @@ const Shop = () => {
         {/* SHOP BY PURPOSE FILTER CHIPS */}
         <div id="shop-purpose-section" className="max-w-7xl mx-auto mb-8">
           <div className="flex items-center gap-2 overflow-x-auto pb-2 no-scrollbar">
-            <span className="text-xs font-black uppercase tracking-wider text-slate-900 bg-[#FFDD00]/25 border border-[#FFDD00]/70 px-3 py-1.5 rounded-xl whitespace-nowrap mr-1 flex items-center gap-1.5 shadow-xs">
-              <Sparkles size={13} className="text-slate-900" />
+            <span className="text-xs font-black uppercase tracking-wider text-slate-900 dark:text-[#101318] bg-[#FFDD00]/25 dark:bg-[#FFD600] border border-[#FFDD00]/70 dark:border-[#FFD600] px-3 py-1.5 rounded-xl whitespace-nowrap mr-1 flex items-center gap-1.5 shadow-xs">
+              <Sparkles size={13} className="text-slate-900 dark:text-[#101318]" />
               <strong>PURPOSE:</strong>
             </span>
             {PURPOSE_CHIPS.map((chip) => {
@@ -424,11 +424,11 @@ const Shop = () => {
                   }}
                   className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-black uppercase tracking-wider whitespace-nowrap transition-all cursor-pointer ${
                     isSelected
-                      ? "bg-[#1E971D] text-white shadow-md shadow-[#1E971D]/20 scale-102"
-                      : "bg-white text-slate-700 border border-slate-200 hover:border-slate-300 hover:bg-slate-50"
+                      ? "bg-[#1E971D] dark:bg-[#FFD600] text-white dark:text-[#111318] shadow-md shadow-[#1E971D]/20 dark:shadow-none scale-102"
+                      : "bg-white dark:bg-[#171D26] text-slate-700 dark:text-[#B7C1CE] border border-slate-200 dark:border-[#27313D] hover:border-slate-300 dark:hover:border-[#34404E] hover:bg-slate-50 dark:hover:bg-[#1D2530]"
                   }`}
                 >
-                  <Icon size={14} className={isSelected ? "text-white" : "text-[#1E971D]"} />
+                  <Icon size={14} className={isSelected ? "text-white dark:text-[#111318]" : "text-[#1E971D] dark:text-[#FFD600]"} />
                   {chip.label}
                 </button>
               );
@@ -440,10 +440,10 @@ const Shop = () => {
         <div className="lg:hidden max-w-7xl mx-auto mb-6">
           <button
             onClick={() => setShowMobileFilters(!showMobileFilters)}
-            className="w-full bg-slate-900 text-white py-3.5 px-5 rounded-2xl font-black uppercase tracking-widest text-xs flex justify-between items-center shadow-md active:scale-98 transition-all"
+            className="w-full bg-slate-900 dark:bg-[#1D2530] text-white dark:text-[#F5F7FA] border border-transparent dark:border-[#303B48] py-3.5 px-5 rounded-2xl font-black uppercase tracking-widest text-xs flex justify-between items-center shadow-md active:scale-98 transition-all cursor-pointer"
           >
             <span className="flex items-center gap-2">
-              <SlidersHorizontal size={14} className="text-[#1E971D]" />
+              <SlidersHorizontal size={14} className="text-[#1E971D] dark:text-[#FFD600]" />
               {showMobileFilters ? "Hide Filters" : `Filters (${displayedProducts.length} Oils)`}
             </span>
             <span className="text-xs">{showMobileFilters ? "▲" : "▼"}</span>
@@ -468,12 +468,12 @@ const Shop = () => {
           <div className="lg:col-span-3">
             
             {/* Active Filters Summary Bar */}
-            <div className="flex items-center justify-between mb-6 bg-white p-4 rounded-2xl border border-slate-200/80 text-xs font-bold text-slate-500">
-              <span>Showing <strong className="text-slate-900 font-black">{displayedProducts.length}</strong> matching oil products</span>
+            <div className="flex items-center justify-between mb-6 bg-white dark:bg-[#171D26] p-4 rounded-2xl border border-slate-200/80 dark:border-[#27313D] text-xs font-bold text-slate-500 dark:text-[#818C9B]">
+              <span>Showing <strong className="text-slate-900 dark:text-[#F5F7FA] font-black">{displayedProducts.length}</strong> matching oil products</span>
               {(activeCategory !== "All" || selectedPurpose !== "all" || selectedSize !== "All" || stockOnly || searchQuery) && (
                 <button
                   onClick={clearAllFilters}
-                  className="text-[#1E971D] hover:underline font-black uppercase text-[10px] tracking-wider"
+                  className="text-[#1E971D] dark:text-[#FFD600] hover:underline font-black uppercase text-[10px] tracking-wider cursor-pointer"
                 >
                   Reset Filters
                 </button>
@@ -482,15 +482,15 @@ const Shop = () => {
 
             {loading ? (
               <div className="flex justify-center py-32">
-                <Loader2 className="w-12 h-12 text-[#1E971D] animate-spin" />
+                <Loader2 className="w-12 h-12 text-[#1E971D] dark:text-[#FFD600] animate-spin" />
               </div>
             ) : displayedProducts.length === 0 ? (
-              <div className="bg-white p-16 rounded-3xl border border-slate-200 text-center text-slate-400 font-bold uppercase tracking-widest">
-                <Package className="w-12 h-12 text-slate-300 mx-auto mb-3" />
+              <div className="bg-white dark:bg-[#171D26] p-16 rounded-3xl border border-slate-200 dark:border-[#27313D] text-center text-slate-400 dark:text-[#818C9B] font-bold uppercase tracking-widest">
+                <Package className="w-12 h-12 text-slate-300 dark:text-[#34404E] mx-auto mb-3" />
                 <p>No products match your current filters.</p>
                 <button
                   onClick={clearAllFilters}
-                  className="mt-4 px-6 py-2.5 bg-[#1E971D] text-white rounded-xl text-xs font-bold uppercase tracking-wider"
+                  className="mt-4 px-6 py-2.5 bg-[#1E971D] dark:bg-[#FFD600] text-white dark:text-[#111318] rounded-xl text-xs font-bold uppercase tracking-wider cursor-pointer"
                 >
                   Reset Filters
                 </button>
@@ -513,7 +513,7 @@ const Shop = () => {
                   <div className="flex justify-center mt-12">
                     <button
                       onClick={() => setVisibleCount((v) => v + 6)}
-                      className="flex items-center justify-center px-10 py-4 rounded-2xl font-black uppercase tracking-[0.2em] text-xs bg-[#FFDD00] text-slate-900 shadow-xl shadow-yellow-200 transition-all duration-300 hover:bg-slate-900 hover:text-white active:scale-95 border-2 border-transparent hover:border-slate-800 cursor-pointer group"
+                      className="flex items-center justify-center px-10 py-4 rounded-2xl font-black uppercase tracking-[0.2em] text-xs bg-[#FFDD00] dark:bg-[#FFD600] text-slate-900 dark:text-[#111318] shadow-xl shadow-yellow-200 dark:shadow-none transition-all duration-300 hover:bg-slate-900 dark:hover:bg-[#FFE45C] hover:text-white dark:hover:text-[#111318] active:scale-95 border-2 border-transparent cursor-pointer group"
                     >
                       Load More Oils
                       <ArrowRight size={16} className="ml-2 transition-transform group-hover:translate-x-1" />
@@ -529,14 +529,14 @@ const Shop = () => {
 
         {/* RECENTLY VIEWED PRODUCTS TRAY */}
         {recentlyViewed.length > 0 && (
-          <div className="max-w-7xl mx-auto mt-20 pt-16 border-t border-slate-200">
+          <div className="max-w-7xl mx-auto mt-20 pt-16 border-t border-slate-200 dark:border-[#27313D]">
             <div className="flex items-center justify-between mb-8">
               <div>
-                <span className="text-[10px] font-black uppercase tracking-widest text-[#1E971D] bg-emerald-50 border border-emerald-200 px-3 py-1 rounded-full inline-block mb-1">
+                <span className="text-[10px] font-black uppercase tracking-widest text-[#1E971D] dark:text-[#19C37D] bg-emerald-50 dark:bg-[#17221F] border border-emerald-200 dark:border-[#26333A] px-3 py-1 rounded-full inline-block mb-1">
                   Your Browsing History
                 </span>
-                <h2 className="text-2xl font-black uppercase tracking-tight text-slate-900 flex items-center gap-2">
-                  <Eye size={22} className="text-[#1E971D]" /> Recently Viewed Oils
+                <h2 className="text-2xl font-black uppercase tracking-tight text-slate-900 dark:text-[#F7F9FC] flex items-center gap-2">
+                  <Eye size={22} className="text-[#1E971D] dark:text-[#FFD600]" /> Recently Viewed Oils
                 </h2>
               </div>
             </div>

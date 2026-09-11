@@ -70,21 +70,19 @@ const ReviewModal = ({ isOpen, onClose, productId = null, productName = "", onRe
         <div className="flex border-b border-gray-100 bg-gray-50 p-1.5 gap-1 text-xs font-bold">
           <button
             onClick={() => setActiveTab("website")}
-            className={`flex-1 py-2 rounded-xl text-center transition-all ${
-              activeTab === "website"
+            className={`flex-1 py-2 rounded-xl text-center transition-all ${activeTab === "website"
                 ? "bg-white text-gray-900 shadow-xs"
                 : "text-gray-500 hover:text-gray-700"
-            }`}
+              }`}
           >
             Website Review
           </button>
           <button
             onClick={() => setActiveTab("google")}
-            className={`flex-1 py-2 rounded-xl text-center flex items-center justify-center gap-1.5 transition-all ${
-              activeTab === "google"
+            className={`flex-1 py-2 rounded-xl text-center flex items-center justify-center gap-1.5 transition-all ${activeTab === "google"
                 ? "bg-white text-emerald-700 shadow-xs"
                 : "text-gray-500 hover:text-gray-700"
-            }`}
+              }`}
           >
             <img src="https://www.google.com/favicon.ico" alt="Google" className="w-3.5 h-3.5" />
             Google Business Review
@@ -130,11 +128,10 @@ const ReviewModal = ({ isOpen, onClose, productId = null, productName = "", onRe
                       className="p-1 focus:outline-none transition-transform hover:scale-125"
                     >
                       <Star
-                        className={`w-7 h-7 transition-colors ${
-                          (hoverRating || rating) >= star
+                        className={`w-7 h-7 transition-colors ${(hoverRating || rating) >= star
                             ? "fill-amber-400 text-amber-400"
                             : "text-gray-300"
-                        }`}
+                          }`}
                       />
                     </button>
                   ))}

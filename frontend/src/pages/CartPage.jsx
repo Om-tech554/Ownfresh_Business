@@ -6,7 +6,6 @@ import { addToCart, updateQuantity, removeFromCart } from '../redux/userslice';
 import SLink from "../components/SLink";
 import { motion, AnimatePresence } from 'framer-motion';
 import SmokyOilSpillBackground from '../components/cart/SmokyOilSpillBackground';
-import FloatingOilSpill from '../components/cart/FloatingOilSpill';
 
 const CartPage = () => {
   const navigate = useNavigate();
@@ -250,8 +249,7 @@ const CartPage = () => {
         )}
       </div>
 
-      {/* ── FLOATING OIL SPILL & SMOOTH RIPPLE WIDGET ── */}
-      <FloatingOilSpill />
+      {/* ── SMOOTH LIQUID OIL SPILL BACKGROUND IS PRESERVED ── */}
     </div>
   );
 };

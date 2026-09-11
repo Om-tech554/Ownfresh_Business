@@ -240,7 +240,7 @@ const GalleryPage = () => {
   };
 
   return (
-    <div className="w-full min-h-screen bg-white">
+    <div className="w-full min-h-screen bg-white dark:bg-[#0B0F14] transition-colors duration-200">
       <SEO
         title="Gallery - Verification & Certifications"
         description="Explore the visual journey of Own Fresh, showcasing our traditional stone-pressing processes, premium raw materials, and verified certifications (FSSAI)."
@@ -249,15 +249,15 @@ const GalleryPage = () => {
       <Navbar />
 
       {/* ── Page Header ── */}
-      <section className="pt-28 md:pt-12 pb-12 px-6 bg-white text-center">
-        <p className="text-[#FFDD00] text-[10px] md:text-sm font-black uppercase tracking-[0.4em] mb-4">
+      <section className="pt-28 md:pt-12 pb-12 px-6 bg-white dark:bg-[#0B0F14] text-center">
+        <p className="text-[#FFDD00] dark:text-[#FFD600] text-[10px] md:text-sm font-black uppercase tracking-[0.4em] mb-4">
           Visual Journey
         </p>
-        <h1 className="text-4xl md:text-7xl font-black text-black uppercase tracking-tighter leading-none">
+        <h1 className="text-4xl md:text-7xl font-black text-black dark:text-[#F7F9FC] uppercase tracking-tighter leading-none">
           Our Gallery
         </h1>
-        <div className="w-16 h-1 mt-6 mx-auto bg-black" />
-        <p className="max-w-2xl mx-auto mt-8 text-gray-500 text-sm md:text-lg font-medium leading-relaxed px-4">
+        <div className="w-16 h-1 mt-6 mx-auto bg-black dark:bg-[#FFD600]" />
+        <p className="max-w-2xl mx-auto mt-8 text-gray-500 dark:text-[#B7C1CE] text-sm md:text-lg font-medium leading-relaxed px-4">
           At OwnFresh, every image tells a story of authenticity, tradition, and dedication.
           Experience the essence of purity through our lens.
         </p>
@@ -265,7 +265,7 @@ const GalleryPage = () => {
 
       {/* ── Featured Banner (Fully Mobile Responsive) ── */}
       <section className="w-full px-3 sm:px-6 md:px-10 max-w-7xl mx-auto mb-10 md:mb-16">
-        <div className="rounded-2xl md:rounded-[40px] overflow-hidden shadow-xl border border-gray-100 bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center p-1 sm:p-2">
+        <div className="rounded-2xl md:rounded-[40px] overflow-hidden shadow-xl border border-gray-100 dark:border-[#27313D] bg-gradient-to-br from-gray-50 to-gray-100 dark:from-[#171D26] dark:to-[#111720] flex items-center justify-center p-1 sm:p-2">
           <img
             src="https://res.cloudinary.com/dkhq2wlwg/image/upload/v1775113294/ownfresh_media/ci9yurjbwfpag9kth97u.png"
             alt="OwnFresh Series Banner"
@@ -275,15 +275,15 @@ const GalleryPage = () => {
       </section>
 
       {/* ── Category Filter ── */}
-      <section className="w-full bg-[#fafafa] border-b border-gray-100 py-4 px-4 flex justify-start md:justify-center overflow-x-auto hide-scrollbar snap-x snap-mandatory">
+      <section className="w-full bg-[#fafafa] dark:bg-[#111720] border-b border-gray-100 dark:border-[#202832] py-4 px-4 flex justify-start md:justify-center overflow-x-auto hide-scrollbar snap-x snap-mandatory">
         <div className="flex gap-2 snap-start">
           {CATEGORIES.map((cat) => (
             <button
               key={cat}
               onClick={() => setActiveCategory(cat)}
-              className={`px-4 py-1.5 text-[10px] md:text-xs font-black uppercase tracking-widest border transition-all duration-200 snap-start whitespace-nowrap ${activeCategory === cat
-                ? 'bg-black text-[#FFDD00] border-black'
-                : 'bg-white text-black border-gray-300 hover:border-black'
+              className={`px-4 py-1.5 text-[10px] md:text-xs font-black uppercase tracking-widest border transition-all duration-200 snap-start whitespace-nowrap cursor-pointer ${activeCategory === cat
+                ? 'bg-black dark:bg-[#FFD600] text-[#FFDD00] dark:text-[#101318] border-black dark:border-[#FFD600]'
+                : 'bg-white dark:bg-[#171D26] text-black dark:text-[#B7C1CE] border-gray-300 dark:border-[#27313D] hover:border-black dark:hover:border-[#FFD600] dark:hover:text-[#F5F7FA]'
                 }`}
             >
               {cat}
@@ -298,7 +298,7 @@ const GalleryPage = () => {
           {filtered.map((img, i) => (
             <div
               key={img.id}
-              className="group relative break-inside-avoid overflow-hidden bg-gray-100 cursor-pointer shadow-sm hover:shadow-xl transition-shadow duration-300"
+              className="group relative break-inside-avoid overflow-hidden bg-gray-100 dark:bg-[#171D26] border dark:border-[#27313D] rounded-xl cursor-pointer shadow-sm hover:shadow-xl transition-all duration-300"
               onClick={() => setLightboxIndex(i)}
               onContextMenu={img.category === 'Certifications' ? (e) => e.preventDefault() : undefined}
             >
@@ -320,7 +320,7 @@ const GalleryPage = () => {
                 </span>
               </div>
               {/* Category badge */}
-              <span className="absolute top-2 left-2 bg-[#FFDD00] text-black text-[8px] md:text-[9px] font-black uppercase tracking-widest px-1.5 py-0.5 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-300">
+              <span className="absolute top-2 left-2 bg-[#FFDD00] dark:bg-[#FFD600] text-black text-[8px] md:text-[9px] font-black uppercase tracking-widest px-1.5 py-0.5 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-300 rounded-sm">
                 {img.category}
               </span>
             </div>
@@ -328,26 +328,26 @@ const GalleryPage = () => {
         </div>
 
         {filtered.length === 0 && (
-          <div className="text-center py-20 text-gray-400 font-bold uppercase tracking-widest text-sm">
+          <div className="text-center py-20 text-gray-400 dark:text-[#818C9B] font-bold uppercase tracking-widest text-sm">
             No images in this category yet.
           </div>
         )}
       </section>
 
       {/* ── Instagram section ── */}
-      <section className="w-full bg-black text-white py-16 px-6 text-center">
-        <FaInstagram size={36} className="mx-auto mb-4 text-[#FFDD00]" />
-        <h2 className="text-2xl md:text-4xl font-black uppercase tracking-tight mb-3">
+      <section className="w-full bg-black dark:bg-[#080B10] border-t dark:border-[#202731] text-white py-16 px-6 text-center">
+        <FaInstagram size={36} className="mx-auto mb-4 text-[#FFDD00] dark:text-[#FFD600]" />
+        <h2 className="text-2xl md:text-4xl font-black uppercase tracking-tight mb-3 text-white dark:text-[#F7F9FC]">
           Follow Us on Instagram
         </h2>
-        <p className="text-white/60 font-medium mb-6 max-w-md mx-auto text-sm">
+        <p className="text-white/60 dark:text-[#8C97A6] font-medium mb-6 max-w-md mx-auto text-sm">
           🥜 Pure. Natural. Truly Fresh. — Stay connected for daily content, recipes & offers.
         </p>
         <a
           href="https://www.instagram.com/ownfresh_official/"
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-flex items-center gap-2 bg-[#FFDD00] text-black font-black uppercase text-xs tracking-widest px-8 py-3 hover:bg-white transition-colors duration-200"
+          className="inline-flex items-center gap-2 bg-[#FFDD00] dark:bg-[#FFD600] text-black font-black uppercase text-xs tracking-widest px-8 py-3 rounded-xl hover:bg-white dark:hover:bg-[#FFE45C] transition-colors duration-200"
         >
           <FaInstagram size={16} /> @ownfresh_official
         </a>

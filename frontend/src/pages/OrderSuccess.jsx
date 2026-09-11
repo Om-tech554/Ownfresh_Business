@@ -98,9 +98,9 @@ const OrderSuccess = () => {
 
   if (!orderId) {
     return (
-      <div className="min-h-[80vh] flex flex-col items-center justify-center bg-gray-50 px-4">
+      <div className="min-h-[80vh] flex flex-col items-center justify-center bg-gray-50 dark:bg-[#0B0F14] px-4 transition-colors duration-200">
         <FaSpinner className="text-4xl text-amber-500 animate-spin mb-4" />
-        <p className="text-gray-600 font-medium text-center text-sm">No order details found. Redirecting to homepage...</p>
+        <p className="text-gray-600 dark:text-[#B7C1CE] font-medium text-center text-sm">No order details found. Redirecting to homepage...</p>
       </div>
     );
   }
@@ -108,18 +108,18 @@ const OrderSuccess = () => {
   // --- 1) LOADING STATE ---
   if (loading) {
     return (
-      <div className="min-h-[80vh] bg-gray-50 flex items-center justify-center py-8 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-xl w-full space-y-6 bg-white p-6 sm:p-10 rounded-3xl shadow-xl border border-gray-100 text-center">
+      <div className="min-h-[80vh] bg-gray-50 dark:bg-[#0B0F14] flex items-center justify-center py-8 px-4 sm:px-6 lg:px-8 transition-colors duration-200">
+        <div className="max-w-xl w-full space-y-6 bg-white dark:bg-[#171D26] p-6 sm:p-10 rounded-3xl shadow-xl border border-gray-100 dark:border-[#27313D] text-center">
           <div className="flex justify-center">
-            <FaSpinner className="text-5xl sm:text-6xl text-amber-500 animate-spin" />
+            <FaSpinner className="text-5xl sm:text-6xl text-[#FFD600] animate-spin" />
           </div>
           <div>
-            <h2 className="mt-4 text-xl sm:text-2xl font-black text-gray-900">Verifying Payment Status...</h2>
-            <p className="mt-2 text-xs sm:text-sm text-gray-600">
+            <h2 className="mt-4 text-xl sm:text-2xl font-black text-gray-900 dark:text-[#F7F9FC]">Verifying Payment Status...</h2>
+            <p className="mt-2 text-xs sm:text-sm text-gray-600 dark:text-[#B7C1CE]">
               Please do not refresh this page. We are verifying your transaction securely with the bank.
             </p>
           </div>
-          <div className="bg-amber-50/50 rounded-2xl p-4 border border-amber-100 text-xs sm:text-sm text-amber-800 font-medium text-center">
+          <div className="bg-amber-50/50 dark:bg-[#151B23] rounded-2xl p-4 border border-amber-100 dark:border-[#2A3440] text-xs sm:text-sm text-amber-800 dark:text-[#FFD600] font-medium text-center">
             Checking status (attempt {attemptCount} of 5)...
           </div>
         </div>
@@ -130,29 +130,29 @@ const OrderSuccess = () => {
   // --- 2) FAILURE STATE ---
   if (status === 'failed' || status === 'error') {
     return (
-      <div className="min-h-[80vh] bg-gray-50 flex items-center justify-center py-8 px-4 sm:px-6 lg:px-8">
+      <div className="min-h-[80vh] bg-gray-50 dark:bg-[#0B0F14] flex items-center justify-center py-8 px-4 sm:px-6 lg:px-8 transition-colors duration-200">
         <motion.div
           initial={{ scale: 0.95, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
-          className="max-w-xl w-full space-y-6 bg-white p-6 sm:p-10 rounded-3xl shadow-xl border border-gray-100 text-center"
+          className="max-w-xl w-full space-y-6 bg-white dark:bg-[#171D26] p-6 sm:p-10 rounded-3xl shadow-xl border border-gray-100 dark:border-[#27313D] text-center"
         >
           <div className="flex justify-center">
-            <FaExclamationCircle className="text-7xl sm:text-8xl text-red-500" />
+            <FaExclamationCircle className="text-7xl sm:text-8xl text-red-500 dark:text-[#FF5C6C]" />
           </div>
 
           <div>
-            <h2 className="mt-4 text-2xl sm:text-3xl font-black text-gray-900">Payment Unsuccessful</h2>
-            <p className="mt-2 text-xs sm:text-sm text-gray-600 leading-relaxed">
+            <h2 className="mt-4 text-2xl sm:text-3xl font-black text-gray-900 dark:text-[#F7F9FC]">Payment Unsuccessful</h2>
+            <p className="mt-2 text-xs sm:text-sm text-gray-600 dark:text-[#B7C1CE] leading-relaxed">
               {errorMsg || 'We were unable to verify your payment. If money was deducted, it will be refunded automatically by your bank within 3-5 business days.'}
             </p>
           </div>
 
-          <div className="bg-red-50 rounded-2xl p-4 sm:p-6 border border-red-100 mb-4 text-left">
-            <div className="flex justify-between items-center border-b border-red-200 pb-3 mb-3 text-xs sm:text-sm">
-              <span className="text-red-700 font-medium">Order Reference ID</span>
-              <span className="font-bold text-red-900 font-mono">#{orderId.substring(Math.max(0, orderId.length - 12))}</span>
+          <div className="bg-red-50 dark:bg-rose-950/40 rounded-2xl p-4 sm:p-6 border border-red-100 dark:border-rose-900/50 mb-4 text-left">
+            <div className="flex justify-between items-center border-b border-red-200 dark:border-rose-900/50 pb-3 mb-3 text-xs sm:text-sm">
+              <span className="text-red-700 dark:text-rose-300 font-medium">Order Reference ID</span>
+              <span className="font-bold text-red-900 dark:text-[#F5F7FA] font-mono">#{orderId.substring(Math.max(0, orderId.length - 12))}</span>
             </div>
-            <div className="text-[11px] sm:text-xs text-red-600 leading-relaxed">
+            <div className="text-[11px] sm:text-xs text-red-600 dark:text-rose-300 leading-relaxed">
               If you feel this is an error, please keep your Order ID handy and contact our support team.
             </div>
           </div>
@@ -160,20 +160,20 @@ const OrderSuccess = () => {
           <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center mt-6">
             <Link
               to="/checkout"
-              className="w-full sm:flex-1 flex items-center justify-center gap-2 px-5 py-3.5 bg-gray-900 text-white rounded-xl font-bold text-xs sm:text-sm hover:bg-gray-800 transition shadow-md active:scale-95"
+              className="w-full sm:flex-1 flex items-center justify-center gap-2 px-5 py-3.5 bg-gray-900 dark:bg-[#1D2530] text-white dark:text-[#F5F7FA] rounded-xl font-bold text-xs sm:text-sm hover:bg-gray-800 dark:hover:bg-[#222B37] border border-transparent dark:border-[#303B48] transition shadow-md active:scale-95"
             >
               Try Paying Again
             </Link>
             <a
               href="tel:+918999773438"
-              className="w-full sm:flex-1 flex items-center justify-center gap-2 px-5 py-3.5 bg-amber-500 text-black rounded-xl font-bold text-xs sm:text-sm hover:bg-amber-400 transition shadow-md shadow-amber-500/20 active:scale-95"
+              className="w-full sm:flex-1 flex items-center justify-center gap-2 px-5 py-3.5 bg-[#FFD600] text-[#111318] rounded-xl font-black text-xs sm:text-sm hover:bg-[#FFE45C] transition shadow-md shadow-yellow-500/20 active:scale-95"
             >
               <FaPhone /> Contact Support
             </a>
           </div>
 
           <div className="mt-4">
-            <Link to="/" className="text-xs sm:text-sm font-bold text-amber-600 hover:text-amber-700 transition underline">
+            <Link to="/" className="text-xs sm:text-sm font-bold text-amber-600 dark:text-[#FFD600] hover:text-amber-700 transition underline">
               Back to Home
             </Link>
           </div>
@@ -377,29 +377,18 @@ const OrderSuccess = () => {
                 <span>Grand Total</span>
                 <span>₹{(orderDetails?.totalAmount || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
               </div>
-                  {/* Bottom section (Verified Signature) */}
-          <div className="mt-4 flex justify-end border-t border-gray-200 pt-3">
-            <div className="border border-emerald-200 bg-emerald-50/50 rounded-xl p-2.5 flex items-center gap-2">
-              <div className="w-6 h-6 rounded-full bg-emerald-500 flex items-center justify-center text-white text-xs font-bold shadow-md shadow-emerald-500/10">
-                ✓
-              </div>
-              <div className="text-left">
-                <p className="text-[10px] font-black text-slate-900 uppercase tracking-wider">Digitally Verified</p>
-                <p className="text-[8px] font-bold text-slate-500 mt-0.5">OwnFresh Agro Industries</p>
-              </div>
             </div>
-          </div>        </div>
           </div>
         </div>
       </div>
 
       {/* ── SUCCESS CARD (hidden in print) ── */}
-      <div className="print:hidden min-h-[80vh] bg-gray-50 flex items-center justify-center py-8 px-4 sm:px-6 lg:px-8">
+      <div className="print:hidden min-h-[80vh] bg-gray-50 dark:bg-[#0B0F14] flex items-center justify-center py-8 px-4 sm:px-6 lg:px-8 transition-colors duration-200">
         <motion.div
           initial={{ scale: 0.95, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           transition={{ type: 'spring', bounce: 0.4, duration: 0.6 }}
-          className="max-w-xl w-full space-y-6 bg-white p-6 sm:p-10 rounded-3xl shadow-xl border border-gray-100 text-center"
+          className="max-w-xl w-full space-y-6 bg-white dark:bg-[#171D26] p-6 sm:p-10 rounded-3xl shadow-xl border border-gray-100 dark:border-[#27313D] text-center"
         >
           <div className="flex justify-center">
             <motion.div
@@ -412,51 +401,51 @@ const OrderSuccess = () => {
           </div>
 
           <div>
-            <span className="inline-block px-3 py-1 bg-amber-50 text-amber-800 rounded-full text-[10px] sm:text-xs font-black uppercase tracking-wider border border-amber-200 mb-3">
+            <span className="inline-block px-3 py-1 bg-amber-50 dark:bg-[#1D2530] text-amber-800 dark:text-[#FFD600] rounded-full text-[10px] sm:text-xs font-black uppercase tracking-wider border border-amber-200 dark:border-[#2A3440] mb-3">
               🪔 Stone-Pressed Botanic Purity
             </span>
-            <h2 className="text-2xl sm:text-3xl font-black text-gray-900">Order Confirmed!</h2>
-            <p className="mt-2 text-xs sm:text-sm text-gray-600 leading-relaxed">
+            <h2 className="text-2xl sm:text-3xl font-black text-gray-900 dark:text-[#F7F9FC]">Order Confirmed!</h2>
+            <p className="mt-2 text-xs sm:text-sm text-gray-600 dark:text-[#B7C1CE] leading-relaxed">
               Thank you for choosing OwnFresh. We have received your order and payment, and are carefully preparing your fresh oils for shipment.
             </p>
           </div>
 
-          <div className="bg-gray-50 rounded-2xl p-4 sm:p-6 border border-gray-100 text-left space-y-3">
-            <div className="flex justify-between items-center border-b border-gray-200 pb-3 text-xs sm:text-sm">
-              <span className="text-gray-500 font-medium">Order ID</span>
-              <span className="font-mono font-bold text-gray-900">#{orderDetails?.customOrderId || orderId.substring(Math.max(0, orderId.length - 12)).toUpperCase()}</span>
+          <div className="bg-gray-50 dark:bg-[#151B23] rounded-2xl p-4 sm:p-6 border border-gray-100 dark:border-[#27313D] text-left space-y-3">
+            <div className="flex justify-between items-center border-b border-gray-200 dark:border-[#27313D] pb-3 text-xs sm:text-sm">
+              <span className="text-gray-500 dark:text-[#818C9B] font-medium">Order ID</span>
+              <span className="font-mono font-bold text-gray-900 dark:text-[#F5F7FA]">#{orderDetails?.customOrderId || orderId.substring(Math.max(0, orderId.length - 12)).toUpperCase()}</span>
             </div>
-            <div className="flex justify-between items-center border-b border-gray-200 pb-3 text-xs sm:text-sm">
-              <span className="text-gray-500 font-medium">Payment Mode</span>
-              <span className="font-bold text-gray-900 capitalize">{orderDetails?.PaymentMethod || 'Online'}</span>
+            <div className="flex justify-between items-center border-b border-gray-200 dark:border-[#27313D] pb-3 text-xs sm:text-sm">
+              <span className="text-gray-500 dark:text-[#818C9B] font-medium">Payment Mode</span>
+              <span className="font-bold text-gray-900 dark:text-[#F5F7FA] capitalize">{orderDetails?.PaymentMethod || 'Online'}</span>
             </div>
             <div className="flex justify-between items-center text-xs sm:text-sm">
-              <span className="text-gray-500 font-medium">Estimated Delivery</span>
-              <span className="font-bold text-gray-900 text-right">5-7 Business Days</span>
+              <span className="text-gray-500 dark:text-[#818C9B] font-medium">Estimated Delivery</span>
+              <span className="font-bold text-gray-900 dark:text-[#F5F7FA] text-right">5-7 Business Days</span>
             </div>
           </div>
 
           <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center mt-6">
             <Link
               to="/my-orders"
-              className="w-full sm:flex-1 flex items-center justify-center gap-2 px-5 py-4 bg-gradient-to-r from-amber-500 via-[#FFDD00] to-amber-600 text-slate-950 rounded-xl font-black text-xs sm:text-sm uppercase tracking-wider hover:from-yellow-400 hover:to-amber-500 transition-all shadow-lg shadow-amber-500/20 active:scale-95 cursor-pointer"
+              className="w-full sm:flex-1 flex items-center justify-center gap-2 px-5 py-4 bg-gradient-to-r from-amber-500 via-[#FFDD00] to-amber-600 text-[#111318] rounded-xl font-black text-xs sm:text-sm uppercase tracking-wider hover:from-yellow-400 hover:to-amber-500 transition-all shadow-lg shadow-amber-500/20 active:scale-95 cursor-pointer"
             >
               <FaShoppingBag /> Track Order
             </Link>
             <button
               onClick={() => window.print()}
-              className="w-full sm:flex-1 flex items-center justify-center gap-2 px-5 py-4 bg-slate-900 text-white rounded-xl font-bold text-xs sm:text-sm hover:bg-slate-800 transition shadow-md active:scale-95 cursor-pointer"
+              className="w-full sm:flex-1 flex items-center justify-center gap-2 px-5 py-4 bg-slate-900 dark:bg-[#1D2530] text-white dark:text-[#F5F7FA] border border-transparent dark:border-[#303B48] rounded-xl font-bold text-xs sm:text-sm hover:bg-slate-800 dark:hover:bg-[#222B37] transition shadow-md active:scale-95 cursor-pointer"
             >
               <FaDownload /> Download Invoice
             </button>
           </div>
 
-          <div className="mt-6 flex flex-col items-center gap-2 text-xs sm:text-sm text-gray-500 font-medium">
-            <Link to="/shop" className="font-bold text-amber-600 hover:text-amber-700 transition underline">
+          <div className="mt-6 flex flex-col items-center gap-2 text-xs sm:text-sm text-gray-500 dark:text-[#818C9B] font-medium">
+            <Link to="/shop" className="font-bold text-amber-600 dark:text-[#FFD600] hover:text-amber-700 transition underline">
               Continue Shopping
             </Link>
-            <div className="mt-2 text-slate-400 flex items-center gap-1">
-              Need help? Contact Support at <a href="tel:+918999773438" className="font-extrabold text-[#24672E] hover:underline font-mono">+91 89997 73438</a>
+            <div className="mt-2 text-slate-400 dark:text-[#818C9B] flex items-center gap-1">
+              Need help? Contact Support at <a href="tel:+918999773438" className="font-extrabold text-[#24672E] dark:text-[#FFD600] hover:underline font-mono">+91 89997 73438</a>
             </div>
           </div>
         </motion.div>

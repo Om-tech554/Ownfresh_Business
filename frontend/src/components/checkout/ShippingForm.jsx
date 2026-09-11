@@ -274,61 +274,61 @@ const ShippingForm = () => {
       initial={{ opacity: 0, x: 20 }}
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: -20 }}
-      className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 md:p-8"
+      className="bg-white dark:bg-[#171D26] rounded-2xl shadow-sm border border-gray-100 dark:border-[#27313D] p-6 md:p-8 transition-colors duration-200"
     >
-      <h2 className="text-2xl font-black text-gray-900 mb-6">Shipping Details</h2>
+      <h2 className="text-2xl font-black text-gray-900 dark:text-[#F7F9FC] mb-6">Shipping Details</h2>
       
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Contact Info */}
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">Full Name *</label>
+            <label className="block text-sm font-semibold text-gray-700 dark:text-[#C4CCD7] mb-2">Full Name *</label>
             <input 
               {...register('fullName')} 
-              className={`w-full px-4 py-3 rounded-xl border bg-gray-50 focus:bg-white focus:ring-2 focus:ring-yellow-500 focus:border-transparent outline-none transition-all ${errors.fullName ? 'border-red-500' : 'border-gray-200'}`}
+              className={`w-full px-4 py-3 rounded-xl border bg-gray-50 dark:bg-[#151B23] text-gray-900 dark:text-[#F5F7FA] placeholder-gray-400 dark:placeholder-[#778393] focus:bg-white dark:focus:bg-[#151B23] focus:ring-2 focus:ring-[#FFD600] focus:border-transparent outline-none transition-all ${errors.fullName ? 'border-red-500' : 'border-gray-200 dark:border-[#29333F]'}`}
               placeholder="John Doe"
             />
             {errors.fullName && <p className="text-red-500 text-xs mt-1">{errors.fullName.message}</p>}
           </div>
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">Company Name (Optional)</label>
+            <label className="block text-sm font-semibold text-gray-700 dark:text-[#C4CCD7] mb-2">Company Name (Optional)</label>
             <input 
               {...register('companyName')} 
-              className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-yellow-500 focus:border-transparent outline-none transition-all"
+              className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-[#29333F] bg-gray-50 dark:bg-[#151B23] text-gray-900 dark:text-[#F5F7FA] placeholder-gray-400 dark:placeholder-[#778393] focus:bg-white dark:focus:bg-[#151B23] focus:ring-2 focus:ring-[#FFD600] focus:border-transparent outline-none transition-all"
               placeholder="Your Company Ltd"
             />
           </div>
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">Email Address *</label>
+            <label className="block text-sm font-semibold text-gray-700 dark:text-[#C4CCD7] mb-2">Email Address *</label>
             <input 
               {...register('email')} 
               type="email"
-              className={`w-full px-4 py-3 rounded-xl border bg-gray-50 focus:bg-white focus:ring-2 focus:ring-yellow-500 focus:border-transparent outline-none transition-all ${errors.email ? 'border-red-500' : 'border-gray-200'}`}
+              className={`w-full px-4 py-3 rounded-xl border bg-gray-50 dark:bg-[#151B23] text-gray-900 dark:text-[#F5F7FA] placeholder-gray-400 dark:placeholder-[#778393] focus:bg-white dark:focus:bg-[#151B23] focus:ring-2 focus:ring-[#FFD600] focus:border-transparent outline-none transition-all ${errors.email ? 'border-red-500' : 'border-gray-200 dark:border-[#29333F]'}`}
               placeholder="john@example.com"
             />
             {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email.message}</p>}
           </div>
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">Phone Number *</label>
-            <div className={`flex bg-gray-50 border rounded-xl focus-within:bg-white focus-within:ring-2 focus-within:ring-yellow-500 focus-within:border-transparent transition-all overflow-hidden ${errors.phone ? 'border-red-500' : 'border-gray-200'}`}>
-              <div className="flex items-center pl-3 border-r border-gray-200 pr-2">
+            <label className="block text-sm font-semibold text-gray-700 dark:text-[#C4CCD7] mb-2">Phone Number *</label>
+            <div className={`flex bg-gray-50 dark:bg-[#151B23] border rounded-xl focus-within:bg-white dark:focus-within:bg-[#151B23] focus-within:ring-2 focus-within:ring-[#FFD600] focus-within:border-transparent transition-all overflow-hidden ${errors.phone ? 'border-red-500' : 'border-gray-200 dark:border-[#29333F]'}`}>
+              <div className="flex items-center pl-3 border-r border-gray-200 dark:border-[#29333F] pr-2">
                 <select
-                  className="bg-transparent text-sm font-semibold text-gray-700 focus:outline-none cursor-pointer"
+                  className="bg-transparent dark:bg-[#151B23] text-sm font-semibold text-gray-700 dark:text-[#F5F7FA] focus:outline-none cursor-pointer"
                   value={countryCode}
                   onChange={(e) => setCountryCode(e.target.value)}
                 >
-                  <option value="+91">🇮🇳 +91</option>
-                  <option value="+1">🇺🇸 +1</option>
-                  <option value="+44">🇬🇧 +44</option>
-                  <option value="+971">🇦🇪 +971</option>
-                  <option value="+61">🇦🇺 +61</option>
-                  <option value="+65">🇸🇬 +65</option>
+                  <option value="+91" className="bg-white dark:bg-[#151B23] text-gray-900 dark:text-[#F5F7FA]">🇮🇳 +91</option>
+                  <option value="+1" className="bg-white dark:bg-[#151B23] text-gray-900 dark:text-[#F5F7FA]">🇺🇸 +1</option>
+                  <option value="+44" className="bg-white dark:bg-[#151B23] text-gray-900 dark:text-[#F5F7FA]">🇬🇧 +44</option>
+                  <option value="+971" className="bg-white dark:bg-[#151B23] text-gray-900 dark:text-[#F5F7FA]">🇦🇪 +971</option>
+                  <option value="+61" className="bg-white dark:bg-[#151B23] text-gray-900 dark:text-[#F5F7FA]">🇦🇺 +61</option>
+                  <option value="+65" className="bg-white dark:bg-[#151B23] text-gray-900 dark:text-[#F5F7FA]">🇸🇬 +65</option>
                 </select>
               </div>
               <input 
                 {...register('phone')} 
                 type="tel"
-                className="w-full px-4 py-3 bg-transparent outline-none"
+                className="w-full px-4 py-3 bg-transparent text-gray-900 dark:text-[#F5F7FA] placeholder-gray-400 dark:placeholder-[#778393] outline-none"
                 placeholder="9876543210"
               />
             </div>
@@ -336,35 +336,35 @@ const ShippingForm = () => {
           </div>
         </div>
 
-        <div className="border-t border-gray-100 pt-6">
-          <h3 className="text-lg font-bold text-gray-900 mb-4">Delivery Address</h3>
+        <div className="border-t border-gray-100 dark:border-[#27313D] pt-6">
+          <h3 className="text-lg font-bold text-gray-900 dark:text-[#F7F9FC] mb-4">Delivery Address</h3>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
              <div className="md:col-span-2">
-              <label className="block text-sm font-semibold text-gray-700 mb-2">Complete Shipping Address *</label>
+              <label className="block text-sm font-semibold text-gray-700 dark:text-[#C4CCD7] mb-2">Complete Shipping Address *</label>
               <div className="flex flex-col sm:flex-row gap-2">
                 <input 
                   {...register('address')} 
-                  className={`flex-1 px-4 py-3 rounded-xl border bg-gray-50 focus:bg-white focus:ring-2 focus:ring-yellow-500 focus:border-transparent outline-none transition-all ${errors.address ? 'border-red-500' : 'border-gray-200'}`}
+                  className={`flex-1 px-4 py-3 rounded-xl border bg-gray-50 dark:bg-[#151B23] text-gray-900 dark:text-[#F5F7FA] placeholder-gray-400 dark:placeholder-[#778393] focus:bg-white dark:focus:bg-[#151B23] focus:ring-2 focus:ring-[#FFD600] focus:border-transparent outline-none transition-all ${errors.address ? 'border-red-500' : 'border-gray-200 dark:border-[#29333F]'}`}
                   placeholder="Street address, colony, area name, etc."
                 />
                 <div className="flex gap-2 w-full sm:w-auto">
                   <button
                     type="button"
                     onClick={searchLocation}
-                    className="flex-1 sm:flex-initial px-4 py-3 bg-gray-900 text-white rounded-xl shadow hover:bg-yellow-500 hover:text-black transition flex items-center justify-center gap-2 font-bold text-xs"
+                    className="flex-1 sm:flex-initial px-4 py-3 bg-gray-900 dark:bg-[#1D2530] text-white dark:text-[#F5F7FA] rounded-xl shadow hover:bg-[#FFD600] dark:hover:bg-[#FFD600] hover:text-[#111318] dark:hover:text-[#111318] transition flex items-center justify-center gap-2 font-bold text-xs cursor-pointer border border-transparent dark:border-[#303B48]"
                     title="Search Location on Map"
                   >
-                    <FaSearchLocation className="text-base" />
+                    <FaSearchLocation className="text-base text-[#FFD600] group-hover:text-black" />
                     <span className="sm:hidden">Search Address</span>
                   </button>
                   <button
                     type="button"
                     onClick={getCurrentLocation}
-                    className="flex-1 sm:flex-initial px-4 py-3 bg-gray-200 text-gray-800 rounded-xl shadow hover:bg-yellow-500 transition flex items-center justify-center gap-2 font-bold text-xs"
+                    className="flex-1 sm:flex-initial px-4 py-3 bg-gray-200 dark:bg-[#222B37] text-gray-800 dark:text-[#F5F7FA] rounded-xl shadow hover:bg-[#FFD600] hover:text-[#111318] dark:hover:bg-[#FFD600] dark:hover:text-[#111318] transition flex items-center justify-center gap-2 font-bold text-xs cursor-pointer border border-transparent dark:border-[#303B48]"
                     title="Use Current Location"
                   >
-                    <TbCurrentLocation className="text-lg" />
+                    <TbCurrentLocation className="text-lg text-emerald-500" />
                     <span className="sm:hidden">My Location</span>
                   </button>
                 </div>
@@ -372,68 +372,68 @@ const ShippingForm = () => {
               {errors.address && <p className="text-red-500 text-xs mt-1">{errors.address.message}</p>}
             </div>
 
-            <div className="md:col-span-2 rounded-xl border border-gray-200 overflow-hidden relative z-0 h-64">
+            <div className="md:col-span-2 rounded-xl border border-gray-200 dark:border-[#27313D] overflow-hidden relative z-0 h-64">
               <MapContainer className="h-full w-full" center={[lat, lon]} zoom={15}>
                 <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
                 <MapRefUpdater lat={lat} lon={lon} />
                 <DraggableMarker />
               </MapContainer>
-              <div className="absolute bottom-2 left-2 z-[1000] bg-white/90 backdrop-blur px-3 py-1 text-xs font-bold rounded-lg shadow border border-gray-200">
+              <div className="absolute bottom-2 left-2 z-[1000] bg-white/90 dark:bg-[#1D2530]/90 backdrop-blur px-3 py-1 text-xs font-bold rounded-lg shadow border border-gray-200 dark:border-[#2A3440] text-gray-800 dark:text-[#F5F7FA]">
                 Drag marker to pinpoint exact location
               </div>
             </div>
 
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">Flat / House No. / Building *</label>
+              <label className="block text-sm font-semibold text-gray-700 dark:text-[#C4CCD7] mb-2">Flat / House No. / Building *</label>
               <input 
                 {...register('flatNo')} 
-                className={`w-full px-4 py-3 rounded-xl border bg-gray-50 focus:bg-white focus:ring-2 focus:ring-yellow-500 focus:border-transparent outline-none transition-all ${errors.flatNo ? 'border-red-500' : 'border-gray-200'}`}
+                className={`w-full px-4 py-3 rounded-xl border bg-gray-50 dark:bg-[#151B23] text-gray-900 dark:text-[#F5F7FA] placeholder-gray-400 dark:placeholder-[#778393] focus:bg-white dark:focus:bg-[#151B23] focus:ring-2 focus:ring-[#FFD600] focus:border-transparent outline-none transition-all ${errors.flatNo ? 'border-red-500' : 'border-gray-200 dark:border-[#29333F]'}`}
                 placeholder="e.g. Flat 402, Building A"
               />
               {errors.flatNo && <p className="text-red-500 text-xs mt-1">{errors.flatNo.message}</p>}
             </div>
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">Landmark / Area *</label>
+              <label className="block text-sm font-semibold text-gray-700 dark:text-[#C4CCD7] mb-2">Landmark / Area *</label>
               <input 
                 {...register('landmark')} 
-                className={`w-full px-4 py-3 rounded-xl border bg-gray-50 focus:bg-white focus:ring-2 focus:ring-yellow-500 focus:border-transparent outline-none transition-all ${errors.landmark ? 'border-red-500' : 'border-gray-200'}`}
+                className={`w-full px-4 py-3 rounded-xl border bg-gray-50 dark:bg-[#151B23] text-gray-900 dark:text-[#F5F7FA] placeholder-gray-400 dark:placeholder-[#778393] focus:bg-white dark:focus:bg-[#151B23] focus:ring-2 focus:ring-[#FFD600] focus:border-transparent outline-none transition-all ${errors.landmark ? 'border-red-500' : 'border-gray-200 dark:border-[#29333F]'}`}
                 placeholder="e.g. Near HDFC Bank, Sector 5"
               />
               {errors.landmark && <p className="text-red-500 text-xs mt-1">{errors.landmark.message}</p>}
             </div>
 
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">Country *</label>
+              <label className="block text-sm font-semibold text-gray-700 dark:text-[#C4CCD7] mb-2">Country *</label>
               <input 
                 {...register('country')} 
-                className={`w-full px-4 py-3 rounded-xl border bg-gray-50 focus:bg-white focus:ring-2 focus:ring-yellow-500 focus:border-transparent outline-none transition-all ${errors.country ? 'border-red-500' : 'border-gray-200'}`}
+                className={`w-full px-4 py-3 rounded-xl border bg-gray-50 dark:bg-[#151B23] text-gray-900 dark:text-[#F5F7FA] placeholder-gray-400 dark:placeholder-[#778393] focus:bg-white dark:focus:bg-[#151B23] focus:ring-2 focus:ring-[#FFD600] focus:border-transparent outline-none transition-all ${errors.country ? 'border-red-500' : 'border-gray-200 dark:border-[#29333F]'}`}
                 placeholder="India"
               />
               {errors.country && <p className="text-red-500 text-xs mt-1">{errors.country.message}</p>}
             </div>
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">State / Province *</label>
+              <label className="block text-sm font-semibold text-gray-700 dark:text-[#C4CCD7] mb-2">State / Province *</label>
               <input 
                 {...register('state')} 
-                className={`w-full px-4 py-3 rounded-xl border bg-gray-50 focus:bg-white focus:ring-2 focus:ring-yellow-500 focus:border-transparent outline-none transition-all ${errors.state ? 'border-red-500' : 'border-gray-200'}`}
+                className={`w-full px-4 py-3 rounded-xl border bg-gray-50 dark:bg-[#151B23] text-gray-900 dark:text-[#F5F7FA] placeholder-gray-400 dark:placeholder-[#778393] focus:bg-white dark:focus:bg-[#151B23] focus:ring-2 focus:ring-[#FFD600] focus:border-transparent outline-none transition-all ${errors.state ? 'border-red-500' : 'border-gray-200 dark:border-[#29333F]'}`}
                 placeholder="Maharashtra"
               />
               {errors.state && <p className="text-red-500 text-xs mt-1">{errors.state.message}</p>}
             </div>
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">City *</label>
+              <label className="block text-sm font-semibold text-gray-700 dark:text-[#C4CCD7] mb-2">City *</label>
               <input 
                 {...register('city')} 
-                className={`w-full px-4 py-3 rounded-xl border bg-gray-50 focus:bg-white focus:ring-2 focus:ring-yellow-500 focus:border-transparent outline-none transition-all ${errors.city ? 'border-red-500' : 'border-gray-200'}`}
+                className={`w-full px-4 py-3 rounded-xl border bg-gray-50 dark:bg-[#151B23] text-gray-900 dark:text-[#F5F7FA] placeholder-gray-400 dark:placeholder-[#778393] focus:bg-white dark:focus:bg-[#151B23] focus:ring-2 focus:ring-[#FFD600] focus:border-transparent outline-none transition-all ${errors.city ? 'border-red-500' : 'border-gray-200 dark:border-[#29333F]'}`}
                 placeholder="Mumbai"
               />
               {errors.city && <p className="text-red-500 text-xs mt-1">{errors.city.message}</p>}
             </div>
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">ZIP / Pincode *</label>
+              <label className="block text-sm font-semibold text-gray-700 dark:text-[#C4CCD7] mb-2">ZIP / Pincode *</label>
               <input 
                 {...register('zipCode')} 
-                className={`w-full px-4 py-3 rounded-xl border bg-gray-50 focus:bg-white focus:ring-2 focus:ring-yellow-500 focus:border-transparent outline-none transition-all ${errors.zipCode ? 'border-red-500' : 'border-gray-200'}`}
+                className={`w-full px-4 py-3 rounded-xl border bg-gray-50 dark:bg-[#151B23] text-gray-900 dark:text-[#F5F7FA] placeholder-gray-400 dark:placeholder-[#778393] focus:bg-white dark:focus:bg-[#151B23] focus:ring-2 focus:ring-[#FFD600] focus:border-transparent outline-none transition-all ${errors.zipCode ? 'border-red-500' : 'border-gray-200 dark:border-[#29333F]'}`}
                 placeholder="400001"
               />
               {errors.zipCode && <p className="text-red-500 text-xs mt-1">{errors.zipCode.message}</p>}
@@ -444,7 +444,7 @@ const ShippingForm = () => {
         <div className="pt-4 flex justify-end">
           <button
             type="submit"
-            className="w-full sm:w-auto px-10 py-4 bg-gradient-to-r from-amber-500 via-[#FFDD00] to-amber-600 text-slate-950 rounded-xl font-black text-sm uppercase tracking-wider hover:from-yellow-400 hover:to-amber-500 transition-all shadow-lg hover:shadow-yellow-500/30 flex items-center justify-center gap-3 active:scale-95 cursor-pointer"
+            className="w-full sm:w-auto px-10 py-4 bg-gradient-to-r from-amber-500 via-[#FFDD00] to-amber-600 text-[#111318] rounded-xl font-black text-sm uppercase tracking-wider hover:from-yellow-400 hover:to-amber-500 transition-all shadow-lg hover:shadow-yellow-500/30 flex items-center justify-center gap-3 active:scale-95 cursor-pointer"
           >
             <span>Continue to Delivery</span>
             <span className="text-lg">🪔</span>

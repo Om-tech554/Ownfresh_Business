@@ -6,25 +6,25 @@ import SLink from './SLink';
 export const OurStorySnippet = () => {
     const navigate = useNavigate();
     return (
-        <section className="w-full bg-[#fcfcfc] py-20 px-6 md:px-12 lg:px-24">
+        <section className="w-full bg-[#fcfcfc] dark:bg-[#0B0F14] py-20 px-6 md:px-12 lg:px-24 transition-colors duration-250">
             <div className="max-w-7xl mx-auto flex flex-col lg:flex-row items-center gap-12 lg:gap-20">
                 <div className="w-full lg:w-1/2 flex justify-center">
-                    <div className="relative w-full aspect-[4/3] bg-gray-100 shadow-[15px_15px_0_#FFDD00] border border-gray-200">
-                        <img className="w-full h-full object-cover" src="https://res.cloudinary.com/dkhq2wlwg/image/upload/v1775112913/ownfresh_media/lo3psirlwzaqc5bsyfbx.png" alt="Botanic Purity" />
+                    <div className="relative w-full aspect-[4/3] bg-gray-100 dark:bg-[#151B23] shadow-[15px_15px_0_#FFDD00] dark:shadow-[15px_15px_0_#FFD600] border border-gray-200 dark:border-[#27313D] rounded-2xl overflow-hidden">
+                        <img className="w-full h-full object-cover dark:mix-blend-normal" src="https://res.cloudinary.com/dkhq2wlwg/image/upload/v1775112913/ownfresh_media/lo3psirlwzaqc5bsyfbx.png" alt="Botanic Purity" />
                     </div>
                 </div>
                 <div className="w-full lg:w-1/2 flex flex-col items-start text-left">
-                    <p className="text-sm font-bold text-gray-500 uppercase tracking-[0.2em] mb-2 border-l-4 border-[#FFDD00] pl-3">Discover</p>
-                    <h2 className="text-3xl md:text-5xl font-black text-black uppercase mb-6 leading-tight">
-                        Our <span className="bg-[#FFDD00] px-2 py-0 inline-block">Story</span>
+                    <p className="text-sm font-bold text-gray-500 dark:text-[#818C9B] uppercase tracking-[0.2em] mb-2 border-l-4 border-[#FFDD00] dark:border-[#FFD600] pl-3">Discover</p>
+                    <h2 className="text-3xl md:text-5xl font-black text-black dark:text-[#F7F9FC] uppercase mb-6 leading-tight">
+                        Our <span className="bg-[#FFDD00] dark:bg-[#FFD600] text-black dark:text-[#111318] px-2 py-0 inline-block">Story</span>
                     </h2>
-                    <h3 className="text-2xl md:text-3xl font-semibold text-black uppercase mb-6 leading-tight">Pure...Natural...Truly Fresh 😍</h3>
-                    <p className="text-gray-700 leading-relaxed mb-6 font-medium text-lg">
+                    <h3 className="text-2xl md:text-3xl font-semibold text-black dark:text-[#F5F7FA] uppercase mb-6 leading-tight">Pure...Natural...Truly Fresh 😍</h3>
+                    <p className="text-gray-700 dark:text-[#B7C1CE] leading-relaxed mb-6 font-medium text-lg">
                         Discover the essence of health and taste with our Premium Grade Pure Oil, stone-pressed oils. Crafted from the finest soil-grown nuts and seeds, our oils are natural, nutrient-rich, and made to elevate every recipe.
-
+                        <br/><br/>
                         At OwnFresh, we bring you the perfect blend of tradition, purity, and care straight from our heritage to your kitchen.
                     </p>
-                    <SLink to="/whyownfresh" className="btn-secondary inline-flex items-center justify-center">Read More</SLink>
+                    <SLink to="/whyownfresh" className="btn-secondary dark:bg-[#171D26] dark:text-[#F5F7FA] dark:border-[#303B48] hover:dark:bg-[#222B37] inline-flex items-center justify-center">Read More</SLink>
                 </div>
             </div>
         </section>
@@ -35,7 +35,7 @@ export const OurStorySnippet = () => {
 export const Gallery = () => {
     const navigate = useNavigate();
 
-    // ✏️ Replace these 2 URLs with your own product image URLs
+    // ✏️ Product image URLs
     const featuredImage = "https://res.cloudinary.com/dkhq2wlwg/image/upload/v1782888671/ownfresh_media/jc2gqhappjvdyfvrg6s4.png";
     const sideImage1 = "https://res.cloudinary.com/dkhq2wlwg/image/upload/v1782889051/ownfresh_media/jvpavxuq3hgbuxatjru0.png";
     const sideImage2 = "https://res.cloudinary.com/dkhq2wlwg/image/upload/v1782888819/ownfresh_media/ugty6jehznfi7mzqxlyz.png";
@@ -48,7 +48,7 @@ export const Gallery = () => {
     ];
 
     return (
-        <section className="w-full bg-[#FEF7DC] py-16 px-6 md:px-12 lg:px-24">
+        <section className="w-full bg-[#FEF7DC] dark:bg-[#111720] py-16 px-6 md:px-12 lg:px-24 transition-colors duration-250">
             <div className="max-w-7xl mx-auto">
                 {/* Main Layout Grid */}
                 <div className="flex flex-col lg:flex-row gap-10 lg:gap-16 items-center">
@@ -56,11 +56,11 @@ export const Gallery = () => {
                     {/* LEFT COLUMN — text + bullets + CTA */}
                     <div className="w-full lg:w-[43%] flex flex-col justify-center">
                         {/* Big Headline */}
-                        <h2 className="text-4xl md:text-6xl font-black text-black leading-tight mb-8 max-w-2xl">
+                        <h2 className="text-4xl md:text-6xl font-black text-black dark:text-[#F7F9FC] leading-tight mb-8 max-w-2xl">
                             A Journey of Purity &amp; Tradition
                         </h2>
 
-                        <p className="text-gray-700 text-base leading-relaxed mb-6 max-w-lg">
+                        <p className="text-gray-700 dark:text-[#B7C1CE] text-base leading-relaxed mb-6 max-w-lg">
                             Explore our journey, from selecting the finest soil nuts and seeds to
                             crafting <strong>Premium Grade Pure Oil, stone-pressed oils</strong>. Witness the
                             passion behind our process, the richness of our oils, and the people
@@ -68,15 +68,15 @@ export const Gallery = () => {
                         </p>
 
                         <div className="mt-[28px] mb-[36px]">
-                            <p className="font-bold text-black mb-3 text-sm">
+                            <p className="font-bold text-black dark:text-[#F5F7FA] mb-3 text-sm">
                                 What You'll Find in Our Gallery:
                             </p>
                             <ul className="flex flex-col gap-2">
                                 {highlights.map((h, i) => (
-                                    <li key={i} className="flex items-start gap-2 text-sm text-gray-700">
+                                    <li key={i} className="flex items-start gap-2 text-sm text-gray-700 dark:text-[#B7C1CE]">
                                         <span className="text-red-500 mt-0.5 shrink-0">🌸</span>
                                         <span>
-                                            <strong>{h.label}</strong> – {h.desc}
+                                            <strong className="text-gray-900 dark:text-[#F7F9FC]">{h.label}</strong> – {h.desc}
                                         </span>
                                     </li>
                                 ))}
@@ -85,7 +85,7 @@ export const Gallery = () => {
 
                         <SLink
                             to="/gallery"
-                            className="group inline-flex items-center gap-3 self-start bg-black hover:bg-[#FFDD00] text-white hover:text-black font-black uppercase tracking-widest text-xs px-7 py-3.5 transition-all duration-300 shadow-md"
+                            className="group inline-flex items-center gap-3 self-start bg-black dark:bg-[#FFD600] hover:bg-[#FFDD00] dark:hover:bg-[#FFE45C] text-white dark:text-[#111318] hover:text-black font-black uppercase tracking-widest text-xs px-7 py-3.5 transition-all duration-300 shadow-md rounded-xl"
                         >
                             View Full Gallery
                             <span className="transition-transform duration-300 group-hover:translate-x-1">→</span>
@@ -99,7 +99,7 @@ export const Gallery = () => {
                             {/* LEFT: Featured Image */}
                             <SLink
                                 to="/gallery"
-                                className="group block overflow-hidden rounded-[12px] md:rounded-[20px] bg-transparent border-0 p-0 transition-all duration-300 hover:scale-[1.03] hover:-translate-y-1 h-full col-span-1 row-span-2"
+                                className="group block overflow-hidden rounded-[12px] md:rounded-[20px] bg-white/40 dark:bg-[#171D26] border border-transparent dark:border-[#27313D] p-0 transition-all duration-300 hover:scale-[1.03] hover:-translate-y-1 h-full col-span-1 row-span-2"
                             >
                                 <img
                                     src={featuredImage}
@@ -111,7 +111,7 @@ export const Gallery = () => {
                             {/* RIGHT: 2 Side Images */}
                             <SLink
                                 to="/gallery"
-                                className="group block overflow-hidden rounded-[12px] md:rounded-[20px] bg-transparent border-0 p-0 transition-all duration-300 hover:scale-[1.03] hover:-translate-y-1 h-full col-span-1 col-start-2 row-start-1"
+                                className="group block overflow-hidden rounded-[12px] md:rounded-[20px] bg-white/40 dark:bg-[#171D26] border border-transparent dark:border-[#27313D] p-0 transition-all duration-300 hover:scale-[1.03] hover:-translate-y-1 h-full col-span-1 col-start-2 row-start-1"
                             >
                                 <img
                                     src={sideImage1}
@@ -122,7 +122,7 @@ export const Gallery = () => {
 
                             <SLink
                                 to="/gallery"
-                                className="group block overflow-hidden rounded-[12px] md:rounded-[20px] bg-transparent border-0 p-0 transition-all duration-300 hover:scale-[1.03] hover:-translate-y-1 h-full col-span-1 col-start-2 row-start-2"
+                                className="group block overflow-hidden rounded-[12px] md:rounded-[20px] bg-white/40 dark:bg-[#171D26] border border-transparent dark:border-[#27313D] p-0 transition-all duration-300 hover:scale-[1.03] hover:-translate-y-1 h-full col-span-1 col-start-2 row-start-2"
                             >
                                 <img
                                     src={sideImage2}
@@ -152,24 +152,24 @@ export const FAQSection = () => {
     ];
 
     return (
-        <section className="w-full bg-[#fcfcfc] py-20 px-6 md:px-12 lg:px-24 border-t border-gray-100 font-sans">
+        <section className="w-full bg-[#fcfcfc] dark:bg-[#0B0F14] py-20 px-6 md:px-12 lg:px-24 border-t border-gray-100 dark:border-[#202731] font-sans transition-colors duration-250">
             <div className="max-w-4xl mx-auto">
                 <div className="text-center mb-16">
-                    <h2 className="text-3xl md:text-5xl font-black text-[#181818] tracking-tight uppercase font-serif">Got <span className="text-[#1E971D]">Questions?</span></h2>
-                    <p className="uppercase text-gray-500 font-bold tracking-widest text-xs mt-4">Frequently Asked Questions</p>
+                    <h2 className="text-3xl md:text-5xl font-black text-[#181818] dark:text-[#F7F9FC] tracking-tight uppercase font-serif">Got <span className="text-[#1E971D] dark:text-[#FFD600]">Questions?</span></h2>
+                    <p className="uppercase text-gray-500 dark:text-[#818C9B] font-bold tracking-widest text-xs mt-4">Frequently Asked Questions</p>
                 </div>
                 <div className="flex flex-col gap-4">
                     {faqs.map((faq, i) => (
-                        <div key={i} className="border border-gray-200 bg-white shadow-sm overflow-hidden">
+                        <div key={i} className="border border-gray-200 dark:border-[#27313D] bg-white dark:bg-[#171D26] rounded-2xl shadow-sm overflow-hidden transition-colors duration-250">
                             <button
                                 onClick={() => setOpenIndex(i === openIndex ? -1 : i)}
-                                className="w-full flex items-center justify-between p-6 text-left hover:bg-gray-50 transition-colors"
+                                className="w-full flex items-center justify-between p-6 text-left hover:bg-gray-50 dark:hover:bg-[#1D2530] transition-colors"
                             >
-                                <span className="font-bold text-black uppercase">{faq.q}</span>
-                                <span className={`transform transition-transform duration-300 font-black text-xl text-[#FFDD00] ${i === openIndex ? 'rotate-180' : ''}`}>↓</span>
+                                <span className="font-bold text-black dark:text-[#F5F7FA] uppercase">{faq.q}</span>
+                                <span className={`transform transition-transform duration-300 font-black text-xl text-[#FFDD00] dark:text-[#FFD600] ${i === openIndex ? 'rotate-180' : ''}`}>↓</span>
                             </button>
-                            <div className={`overflow-hidden transition-all duration-300 ${i === openIndex ? 'max-h-96 border-t border-gray-100' : 'max-h-0'}`}>
-                                <p className="p-6 text-gray-600 font-medium">{faq.a}</p>
+                            <div className={`overflow-hidden transition-all duration-300 ${i === openIndex ? 'max-h-96 border-t border-gray-100 dark:border-[#202832]' : 'max-h-0'}`}>
+                                <p className="p-6 text-gray-600 dark:text-[#B7C1CE] font-medium leading-relaxed">{faq.a}</p>
                             </div>
                         </div>
                     ))}

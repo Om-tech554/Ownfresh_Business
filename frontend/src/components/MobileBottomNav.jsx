@@ -77,7 +77,7 @@ const MobileBottomNav = () => {
   ];
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-200/90 lg:hidden shadow-[0_-4px_20px_rgba(0,0,0,0.06)] pb-[env(safe-area-inset-bottom,8px)]">
+    <nav className="fixed bottom-0 left-0 right-0 z-40 bg-white/95 dark:bg-[#0A0D12]/95 backdrop-blur-md border-t border-slate-200/90 dark:border-[#202731] lg:hidden shadow-[0_-4px_20px_rgba(0,0,0,0.06)] dark:shadow-[0_-4px_20px_rgba(0,0,0,0.5)] pb-[env(safe-area-inset-bottom,8px)]">
       <div className="grid grid-cols-5 h-14 items-center px-1">
         {navItems.map((item) => {
           const Icon = item.icon;
@@ -89,32 +89,29 @@ const MobileBottomNav = () => {
               to={item.path}
               onClick={item.onClick}
               scroll={item.id !== "purpose"}
-              className={`flex flex-col items-center justify-center h-full w-full relative py-1 active:scale-95 transition-all ${
-                isCurrent ? "text-[#1E971D]" : "text-slate-500 hover:text-slate-900"
-              }`}
+              className={`flex flex-col items-center justify-center h-full w-full relative py-1 active:scale-95 transition-all ${isCurrent ? "text-[#1E971D] dark:text-[#FFD600]" : "text-slate-500 dark:text-[#818C9B] hover:text-slate-900 dark:hover:text-[#F5F7FA]"
+                }`}
             >
               <div className="relative">
                 <Icon
                   size={19}
-                  className={`transition-colors ${
-                    isCurrent ? "text-[#1E971D] stroke-[2.5]" : "text-slate-600"
-                  }`}
+                  className={`transition-colors ${isCurrent ? "text-[#1E971D] dark:text-[#FFD600] stroke-[2.5]" : "text-slate-600 dark:text-[#818C9B]"
+                    }`}
                 />
                 {item.badge && (
-                  <span className="absolute -top-1.5 -right-2.5 bg-[#1E971D] text-white text-[9px] font-black w-4 h-4 rounded-full flex items-center justify-center border-2 border-white shadow-xs">
+                  <span className="absolute -top-1.5 -right-2.5 bg-[#1E971D] dark:bg-[#FFD600] text-white dark:text-[#111318] text-[9px] font-black w-4 h-4 rounded-full flex items-center justify-center border-2 border-white dark:border-[#0A0D12] shadow-xs">
                     {item.badge > 99 ? "99+" : item.badge}
                   </span>
                 )}
               </div>
               <span
-                className={`text-[9px] font-black uppercase tracking-wider mt-1 ${
-                  isCurrent ? "text-[#1E971D]" : "text-slate-500"
-                }`}
+                className={`text-[9px] font-black uppercase tracking-wider mt-1 ${isCurrent ? "text-[#1E971D] dark:text-[#FFD600]" : "text-slate-500 dark:text-[#818C9B]"
+                  }`}
               >
                 {item.label}
               </span>
               {isCurrent && (
-                <div className="absolute bottom-0 w-8 h-0.5 bg-[#1E971D] rounded-full" />
+                <div className="absolute bottom-0 w-8 h-0.5 bg-[#1E971D] dark:bg-[#FFD600] rounded-full" />
               )}
             </SLink>
           );

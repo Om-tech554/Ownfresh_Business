@@ -23,14 +23,14 @@ const FloatingContact = () => {
       name: 'Call Us',
       icon: FaPhone,
       url: 'tel:+918999773438',
-      bgColor: 'bg-[#FFDD00]',
+      bgColor: 'bg-[#FFDD00] dark:bg-[#FFD600]',
       textColor: 'text-black',
     },
     {
       name: 'Email Us',
       icon: FaEnvelope,
       url: 'mailto:contact@myownfresh.com',
-      bgColor: 'bg-black',
+      bgColor: 'bg-black dark:bg-[#1D2530] border dark:border-[#303B48]',
       textColor: 'text-white',
     },
   ];
@@ -65,7 +65,7 @@ const FloatingContact = () => {
                 className="flex items-center gap-3 cursor-pointer group"
               >
                 {/* Tooltip */}
-                <span className="bg-white text-black text-xs font-black uppercase tracking-wider px-3 py-1.5 rounded-lg shadow-md border border-gray-100 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none select-none">
+                <span className="bg-white dark:bg-[#1D2530] text-black dark:text-[#F5F7FA] text-xs font-black uppercase tracking-wider px-3 py-1.5 rounded-lg shadow-md border border-gray-100 dark:border-[#27313D] opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none select-none">
                   {opt.name}
                 </span>
                 {/* Icon Button */}
@@ -83,7 +83,7 @@ const FloatingContact = () => {
         onClick={() => setIsOpen(!isOpen)}
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
-        className="w-14 h-14 bg-black text-white hover:bg-[#FFDD00] hover:text-black rounded-full flex items-center justify-center shadow-2xl cursor-pointer transition-colors duration-300 border border-white/10"
+        className="w-14 h-14 bg-black dark:bg-[#171D26] text-white dark:text-[#FFD600] hover:bg-[#FFDD00] dark:hover:bg-[#FFD600] hover:text-black dark:hover:text-[#101318] rounded-full flex items-center justify-center shadow-2xl cursor-pointer transition-colors duration-300 border border-white/10 dark:border-[#27313D]"
         aria-label="Contact Admin"
       >
         <AnimatePresence mode="wait">

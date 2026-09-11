@@ -68,7 +68,7 @@ const UserDashboard = () => {
       <FAQSection />
 
       {/* Original Blog Section Integration */}
-      <div className="bg-white">
+      <div className="bg-white dark:bg-[#0B0F14] transition-colors duration-200">
         <BlogSection limit={3} />
       </div>
 
@@ -79,7 +79,7 @@ const UserDashboard = () => {
       <FeaturesHighlights />
 
       {/* Responsive Promotional Banner */}
-      <div className="w-full bg-white py-8 md:py-12 px-6 md:px-12 lg:px-24 flex flex-col justify-center items-center">
+      <div className="w-full bg-white dark:bg-[#0B0F14] py-8 md:py-12 px-6 md:px-12 lg:px-24 flex flex-col justify-center items-center transition-colors duration-200">
         <div className="max-w-7xl w-full mx-auto">
           <img
             src="https://res.cloudinary.com/dkhq2wlwg/image/upload/v1782894879/ownfresh_media/ba8ioytkwzznt3vsk1x2.png"
@@ -90,10 +90,10 @@ const UserDashboard = () => {
 
         {/* Centered Connection Message */}
         <div className="text-center mt-10 max-w-xl mx-auto px-4">
-          <h3 className="text-2xl md:text-3xl font-black text-black mb-3 tracking-tight">
+          <h3 className="text-2xl md:text-3xl font-black text-black dark:text-[#F7F9FC] mb-3 tracking-tight">
             We’re excited to connect!
           </h3>
-          <p className="text-gray-600 text-sm md:text-base leading-relaxed">
+          <p className="text-gray-600 dark:text-[#B7C1CE] text-sm md:text-base leading-relaxed">
             Fill out the form below to join our trusted Distributor Team
           </p>
         </div>

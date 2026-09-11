@@ -7,6 +7,7 @@ import { Provider } from 'react-redux'
 import { store } from './redux/store.js'
 import { HelmetProvider } from 'react-helmet-async'
 import { ConfirmProvider } from './hooks/ConfirmContext.jsx'
+import { ThemeProvider } from './context/ThemeContext.jsx'
 import axios from 'axios'
 
 // Global Axios Interceptor for Cross-Domain Authentication (myownfresh.com -> onrender.com)
@@ -70,11 +71,13 @@ createRoot(document.getElementById('root')).render(
   <HelmetProvider>
     <BrowserRouter>
       <Provider store={store}>
-        <ErrorBoundary>
-          <ConfirmProvider>
-            <App />
-          </ConfirmProvider>
-        </ErrorBoundary>
+        <ThemeProvider>
+          <ErrorBoundary>
+            <ConfirmProvider>
+              <App />
+            </ConfirmProvider>
+          </ErrorBoundary>
+        </ThemeProvider>
       </Provider>
     </BrowserRouter>
   </HelmetProvider>,

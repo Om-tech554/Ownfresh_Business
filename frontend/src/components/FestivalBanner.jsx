@@ -201,10 +201,10 @@ const FestivalBanner = () => {
     >
       <div
         onClick={handleNavigate}
-        className="rounded-2xl md:rounded-[36px] overflow-hidden shadow-2xl border border-[#24672E]/15 bg-white flex flex-col cursor-pointer relative w-full h-auto transition-all duration-300 hover:shadow-[#24672E]/10 hover:border-[#24672E]/30"
+        className="rounded-2xl md:rounded-[36px] overflow-hidden shadow-2xl border border-[#24672E]/15 dark:border-[#27313D] bg-white dark:bg-[#171D26] flex flex-col cursor-pointer relative w-full h-auto transition-all duration-300 hover:shadow-[#24672E]/10 hover:border-[#24672E]/30 dark:hover:border-[#34404E]"
       >
         {/* 1. Main Slide Image (Cycles individual uploaded images) */}
-        <div className="w-full h-auto flex items-center justify-center select-none relative z-10 bg-slate-50 border-b border-[#24672E]/10 overflow-hidden">
+        <div className="w-full h-auto flex items-center justify-center select-none relative z-10 bg-slate-50 dark:bg-[#151B23] border-b border-[#24672E]/10 dark:border-[#202832] overflow-hidden">
           <AnimatePresence mode="wait">
             <motion.div
               key={`slide-${activeIndex}-${currentImage}`}
@@ -217,7 +217,7 @@ const FestivalBanner = () => {
               <img
                 src={currentImage}
                 alt={`${currentCampaign.festivalName} Promo Flyer`}
-                className="w-full h-auto object-contain max-h-[220px] sm:max-h-[360px] md:max-h-[500px]"
+                className="w-full h-auto object-contain max-h-[220px] sm:max-h-[360px] md:max-h-[500px] dark:mix-blend-normal"
               />
             </motion.div>
           </AnimatePresence>
@@ -236,8 +236,8 @@ const FestivalBanner = () => {
                   }}
                   className={`w-2 h-2 rounded-full transition-all cursor-pointer ${
                     index === activeIndex
-                      ? "bg-[#24672E] w-5 shadow-sm"
-                      : "bg-slate-300 hover:bg-slate-400"
+                      ? "bg-[#24672E] dark:bg-[#FFD600] w-5 shadow-sm"
+                      : "bg-slate-300 dark:bg-[#27313D] hover:bg-slate-400 dark:hover:bg-[#34404E]"
                   }`}
                   aria-label={`Go to slide ${index + 1}`}
                 />
@@ -247,7 +247,7 @@ const FestivalBanner = () => {
         </div>
 
         {/* 2. Lower Part: Bottom Bar */}
-        <div className="w-full bg-[#24672E] p-3.5 sm:p-5 flex flex-col md:flex-row items-center justify-between gap-4 z-20">
+        <div className="w-full bg-[#24672E] dark:bg-[#111720] p-3.5 sm:p-5 flex flex-col md:flex-row items-center justify-between gap-4 z-20 transition-colors duration-250 border-t border-transparent dark:border-[#202832]">
           {/* Left section: Offer badge + Typewriter description */}
           <div className="flex items-center gap-3 w-full md:w-auto min-h-[32px]">
             {/* Blinking Offer Badge */}

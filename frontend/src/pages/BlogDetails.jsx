@@ -67,18 +67,18 @@ const AdminBlogDetails = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50">
-        <Loader2 className="w-12 h-12 animate-spin text-[#24672E]" />
-        <p className="mt-4 text-gray-500 font-medium">Loading blog...</p>
+      <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 dark:bg-[#0B0F14]">
+        <Loader2 className="w-12 h-12 animate-spin text-[#24672E] dark:text-[#FFD600]" />
+        <p className="mt-4 text-gray-500 dark:text-[#818C9B] font-medium">Loading blog...</p>
       </div>
     );
   }
 
   if (!blog) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center p-6 text-center">
-        <h2 className="text-2xl font-bold text-gray-800">Blog not found</h2>
-        <button onClick={() => navigate(-1)} className="mt-4 text-[#24672E] hover:underline flex items-center gap-2">
+      <div className="min-h-screen flex flex-col items-center justify-center p-6 text-center bg-gray-50 dark:bg-[#0B0F14]">
+        <h2 className="text-2xl font-bold text-gray-800 dark:text-[#F7F9FC]">Blog not found</h2>
+        <button onClick={() => navigate(-1)} className="mt-4 text-[#24672E] dark:text-[#FFD600] hover:underline flex items-center gap-2">
           <ArrowLeft size={18} /> Back
         </button>
       </div>
@@ -86,13 +86,13 @@ const AdminBlogDetails = () => {
   }
 
   return (
-    <div className="bg-white min-h-screen relative selection:bg-orange-100">
+    <div className="bg-white dark:bg-[#0B0F14] min-h-screen relative selection:bg-orange-100 dark:selection:bg-[#222B37] transition-colors duration-200">
       <div className="max-w-4xl mx-auto px-6 py-12">
 
         {/* BACK BUTTON */}
         <button
           onClick={() => navigate(-1)}
-          className="group flex items-center gap-2 text-gray-500 hover:text-[#24672E] transition-colors mb-10 font-medium"
+          className="group flex items-center gap-2 text-gray-500 dark:text-[#818C9B] hover:text-[#24672E] dark:hover:text-[#FFD600] transition-colors mb-10 font-medium cursor-pointer"
         >
           <ArrowLeft size={20} className="group-hover:-translate-x-1 transition-transform" />
           Back to Insights
@@ -103,14 +103,14 @@ const AdminBlogDetails = () => {
           <div className="flex justify-end gap-3 mb-6">
             <button
               onClick={editBlog}
-              className="flex items-center gap-2 bg-blue-50 text-blue-600 px-4 py-2 rounded-xl hover:bg-blue-100 transition"
+              className="flex items-center gap-2 bg-blue-50 dark:bg-[#151B23] border dark:border-[#27313D] text-blue-600 dark:text-blue-400 px-4 py-2 rounded-xl hover:bg-blue-100 dark:hover:bg-[#1D2530] transition cursor-pointer"
             >
               <Edit3 size={18} /> Edit
             </button>
 
             <button
               onClick={deleteBlog}
-              className="flex items-center gap-2 bg-red-50 text-red-600 px-4 py-2 rounded-xl hover:bg-red-100 transition"
+              className="flex items-center gap-2 bg-red-50 dark:bg-[#151B23] border dark:border-[#27313D] text-red-600 dark:text-red-400 px-4 py-2 rounded-xl hover:bg-red-100 dark:hover:bg-[#1D2530] transition cursor-pointer"
             >
               <Trash2 size={18} /> Delete
             </button>
@@ -120,7 +120,7 @@ const AdminBlogDetails = () => {
         {/* BLOG CONTENT */}
         <article>
           {blog.image && (
-            <div className="rounded-2xl mb-12 overflow-hidden shadow-sm border bg-gray-50">
+            <div className="rounded-2xl mb-12 overflow-hidden shadow-sm border border-gray-100 dark:border-[#27313D] bg-gray-50 dark:bg-[#151B23]">
               <img
                 src={blog.image}
                 alt={blog.title}
@@ -129,14 +129,14 @@ const AdminBlogDetails = () => {
             </div>
           )}
 
-          <header className="mb-12 border-b border-gray-100 pb-10">
-            <h1 className="text-4xl md:text-5xl font-extrabold text-gray-900 mb-6">
+          <header className="mb-12 border-b border-gray-100 dark:border-[#202832] pb-10">
+            <h1 className="text-4xl md:text-5xl font-extrabold text-gray-900 dark:text-[#F7F9FC] mb-6">
               {blog.title}
             </h1>
 
-            <div className="flex items-center gap-6 text-gray-500">
-              <span className="flex items-center gap-2 bg-gray-100 px-3 py-1 rounded-full text-xs font-bold uppercase">
-                <Calendar size={14} className="text-[#24672E]" />
+            <div className="flex items-center gap-6 text-gray-500 dark:text-[#818C9B]">
+              <span className="flex items-center gap-2 bg-gray-100 dark:bg-[#151B23] border dark:border-[#27313D] px-3 py-1 rounded-full text-xs font-bold uppercase text-gray-700 dark:text-[#B7C1CE]">
+                <Calendar size={14} className="text-[#24672E] dark:text-[#FFD600]" />
                 {new Date(blog.createdAt).toLocaleDateString(undefined, { dateStyle: "medium" })}
               </span>
 
@@ -147,14 +147,14 @@ const AdminBlogDetails = () => {
           </header>
 
           <div
-            className="prose prose-lg max-w-none mb-10 text-gray-700 leading-relaxed"
+            className="prose prose-lg max-w-none mb-10 text-gray-700 dark:text-[#B7C1CE] leading-relaxed dark:prose-headings:text-[#F7F9FC] dark:prose-strong:text-[#F5F7FA]"
             dangerouslySetInnerHTML={{ __html: blog.description }}
           />
 
           {/* GALLERY SLIDER (SLOTS 1-4) */}
           {[blog.image1, blog.image2, blog.image3, blog.image4].filter(Boolean).length > 0 && (
-            <div className="mb-20 pt-8 border-t border-gray-100">
-              <h3 className="text-xl font-bold text-gray-900 mb-4 uppercase tracking-wide">
+            <div className="mb-20 pt-8 border-t border-gray-100 dark:border-[#202832]">
+              <h3 className="text-xl font-bold text-gray-900 dark:text-[#F7F9FC] mb-4 uppercase tracking-wide">
                 Gallery Slider
               </h3>
               <BlogImageSlider
@@ -165,12 +165,12 @@ const AdminBlogDetails = () => {
           )}
         </article>
 
-        <footer className="mt-20 pt-10 border-t border-gray-100 flex flex-col items-center">
+        <footer className="mt-20 pt-10 border-t border-gray-100 dark:border-[#202832] flex flex-col items-center">
           <button
             onClick={goToTop}
-            className="flex flex-col items-center gap-3 text-gray-400 hover:text-[#24672E] transition-colors group"
+            className="flex flex-col items-center gap-3 text-gray-400 dark:text-[#818C9B] hover:text-[#24672E] dark:hover:text-[#FFD600] transition-colors group cursor-pointer"
           >
-            <div className="p-3 rounded-full border border-gray-200 group-hover:border-[#24672E] transition-all">
+            <div className="p-3 rounded-full border border-gray-200 dark:border-[#27313D] group-hover:border-[#24672E] dark:group-hover:border-[#FFD600] transition-all">
               <ChevronUp size={24} />
             </div>
             <span className="text-xs uppercase tracking-[0.2em] font-bold">Scroll to Top</span>
@@ -181,7 +181,7 @@ const AdminBlogDetails = () => {
       {/* FLOATING BUTTON */}
       <button
         onClick={goToTop}
-        className={`fixed bottom-8 right-8 p-3 bg-[#24672E] text-white rounded-full shadow-xl hover:bg-[#e64527] transition-all z-50 ${showTopBtn ? "opacity-100" : "opacity-0 pointer-events-none"
+        className={`fixed bottom-8 right-8 p-3 bg-[#24672E] dark:bg-[#FFD600] text-white dark:text-[#101318] rounded-full shadow-xl hover:bg-[#e64527] dark:hover:bg-[#FFE45C] transition-all z-50 cursor-pointer ${showTopBtn ? "opacity-100" : "opacity-0 pointer-events-none"
           }`}
       >
         <ChevronUp size={24} />

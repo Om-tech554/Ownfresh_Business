@@ -10,6 +10,7 @@ import { clearUser } from '../redux/userslice';
 import { Layers, Package, ChevronDown, ChevronUp } from 'lucide-react';
 import toast from 'react-hot-toast';
 import SLink from './SLink';
+import ThemeToggle from './ThemeToggle';
 
 const Navbar = () => {
     const { userData, city, cartItems } = useSelector(state => state.user);
@@ -248,8 +249,9 @@ const Navbar = () => {
 
     return (
         <React.Fragment>
-            <div className="sticky top-0 z-[1000] w-full flex flex-col shadow-sm bg-white">
-                <div className={`w-full bg-[#F9DD19] text-[#181818] py-2.5 text-xs ${getAnnouncementFontWeightClass(announcementWeight)} tracking-[0.1em] uppercase overflow-hidden whitespace-nowrap relative`}>
+            <div className="sticky top-0 z-[1000] w-full flex flex-col shadow-xs bg-white dark:bg-[#0A0D12]">
+                {/* 5. TOP YELLOW ANNOUNCEMENT BAR (Preserved Brand Accent) */}
+                <div className={`w-full bg-[#FFD900] text-[#101318] py-2.5 text-xs ${getAnnouncementFontWeightClass(announcementWeight)} tracking-[0.1em] uppercase overflow-hidden whitespace-nowrap relative select-none`}>
                     <div className="inline-block animate-marquee whitespace-nowrap">
                         <span className="mx-12">{announcement}</span>
                         <span className="mx-12">{announcement}</span>
@@ -268,12 +270,13 @@ const Navbar = () => {
                     `}</style>
                 </div>
 
-                <div className="w-full h-[80px] flex items-center justify-between px-[24px] lg:px-[60px] bg-white border-b border-gray-200">
+                {/* 3. MAIN NAVBAR */}
+                <div className="w-full h-[80px] flex items-center justify-between px-[20px] sm:px-[24px] lg:px-[60px] bg-white dark:bg-[#0A0D12] border-b border-gray-200 dark:border-[#202731] transition-colors duration-250">
                     <SLink to="/" className="flex items-center">
                         <img
                             src="https://res.cloudinary.com/dkhq2wlwg/image/upload/v1774962822/ownfresh_media/ndxvmcpisomjzsghrfjs.png"
                             alt="OwnFresh Logo"
-                            className="h-10 md:h-12 w-auto object-contain"
+                            className="h-10 md:h-12 w-auto object-contain dark:brightness-105"
                         />
                     </SLink>
 
@@ -288,22 +291,26 @@ const Navbar = () => {
                                 >
                                     <SLink
                                         to={link.path}
-                                        className={`text-[12px] xl:text-[13px] font-bold uppercase tracking-widest hover:underline underline-offset-8 decoration-2 transition-all whitespace-nowrap ${link.special ? 'text-[#F9DD19] bg-[#181818] px-3.5 py-1.5 rounded-full hover:no-underline hover:scale-105 shadow-sm' : 'text-[#1E971D]'}`}
+                                        className={`text-[12px] xl:text-[13px] font-bold uppercase tracking-widest hover:underline underline-offset-8 decoration-2 transition-all whitespace-nowrap ${
+                                            link.special
+                                                ? 'text-[#101318] bg-[#FFD600] px-3.5 py-1.5 rounded-full hover:no-underline hover:scale-105 shadow-sm font-black'
+                                                : 'text-[#1E971D] dark:text-[#B9C3D0] hover:text-[#24672E] dark:hover:text-white'
+                                        }`}
                                     >
                                         {link.name}
                                     </SLink>
 
                                     {link.dropdown && showShopDropdown && (
                                         <div className="absolute top-[100%] left-0 pt-4 w-[220px] animate-in fade-in slide-in-from-top-2 duration-200 z-[1002]">
-                                            <div className="bg-white border border-gray-100 shadow-2xl p-2 rounded-2xl overflow-hidden">
+                                            <div className="bg-white dark:bg-[#171D26] border border-gray-100 dark:border-[#27313D] shadow-2xl p-2 rounded-2xl overflow-hidden">
                                                 {link.dropdown.map((sub) => (
                                                     <SLink
                                                         key={sub.name}
                                                         to={sub.path}
-                                                        className="flex items-center gap-3 px-4 py-3 text-[11px] font-black uppercase tracking-widest text-[#24672E] hover:bg-[#FFDD00] hover:text-black rounded-xl transition-all"
+                                                        className="flex items-center gap-3 px-4 py-3 text-[11px] font-black uppercase tracking-widest text-[#24672E] dark:text-[#F5F7FA] hover:bg-[#FFD600] hover:text-[#101318] dark:hover:bg-[#FFD600] dark:hover:text-[#101318] rounded-xl transition-all"
                                                     >
                                                         {sub.image && (
-                                                            <img src={sub.image} alt={sub.name} className="w-6 h-6 object-cover rounded-md" />
+                                                            <img src={sub.image} alt={sub.name} className="w-6 h-6 object-cover rounded-md dark:mix-blend-normal" />
                                                         )}
                                                         {sub.name}
                                                     </SLink>
@@ -316,17 +323,17 @@ const Navbar = () => {
                         </div>
                     )}
 
-                    <div className='flex items-center gap-4 xl:gap-5 ml-auto flex-shrink-0'>
-                        <RxHamburgerMenu size={28} className='text-black lg:hidden cursor-pointer hover:text-[#FFDD00] transition-colors' onClick={() => setShowMobileNav(true)} />
+                    <div className='flex items-center gap-3 sm:gap-4 xl:gap-5 ml-auto flex-shrink-0'>
+                        <RxHamburgerMenu size={28} className='text-black dark:text-[#F5F7FA] lg:hidden cursor-pointer hover:text-[#FFD600] dark:hover:text-[#FFD600] transition-colors' onClick={() => setShowMobileNav(true)} />
 
                         {userData?.role !== "admin" && (
                             <div className="relative flex-shrink-0" ref={searchRefDesktop}>
                                 {showSearch ? (
-                                    <div className='hidden md:flex items-center bg-gray-100 px-3 py-1.5 rounded-full outline outline-1 outline-gray-200 divide-x divide-gray-300 transition-all duration-300 max-w-[230px] xl:max-w-[290px] shadow-sm'>
+                                    <div className='hidden md:flex items-center bg-gray-100 dark:bg-[#151B23] px-3 py-1.5 rounded-full outline outline-1 outline-gray-200 dark:outline-[#29333F] divide-x divide-gray-300 dark:divide-[#29333F] transition-all duration-300 max-w-[230px] xl:max-w-[290px] shadow-sm'>
                                         {/* GEOLOCATION */}
                                         <div className='flex items-center gap-1.5 pr-2.5 flex-shrink-0'>
-                                            <FaLocationDot size={13} className='text-[#FFDD00]' />
-                                            <div className='text-[10px] xl:text-[11px] font-bold text-black uppercase tracking-wider truncate max-w-[60px] xl:max-w-[80px]'>
+                                            <FaLocationDot size={13} className='text-[#FFD600]' />
+                                            <div className='text-[10px] xl:text-[11px] font-bold text-black dark:text-[#F5F7FA] uppercase tracking-wider truncate max-w-[60px] xl:max-w-[80px]'>
                                                 {city || "Select City"}
                                             </div>
                                         </div>
@@ -337,10 +344,10 @@ const Navbar = () => {
                                                 value={searchQuery}
                                                 onChange={(e) => setSearchQuery(e.target.value)}
                                                 onClick={handleSearchClick}
-                                                className='bg-transparent outline-none text-xs xl:text-sm w-full text-black'
+                                                className='bg-transparent outline-none text-xs xl:text-sm w-full text-black dark:text-[#F5F7FA] placeholder:text-gray-400 dark:placeholder:text-[#778393]'
                                                 autoFocus
                                             />
-                                            <RxCross2 size={16} className='text-gray-500 cursor-pointer hover:text-black ml-1.5 flex-shrink-0' onClick={() => { setShowSearch(false); setShowDropdown(false); }} />
+                                            <RxCross2 size={16} className='text-gray-500 dark:text-[#778393] cursor-pointer hover:text-black dark:hover:text-white ml-1.5 flex-shrink-0' onClick={() => { setShowSearch(false); setShowDropdown(false); }} />
                                         </div>
                                         <SearchDropdownUI />
                                     </div>
@@ -348,10 +355,10 @@ const Navbar = () => {
                                     <button
                                         type="button"
                                         onClick={() => setShowSearch(true)}
-                                        className="p-1.5 rounded-full hover:bg-gray-100 transition-colors flex items-center justify-center cursor-pointer"
+                                        className="p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-[#171D26] text-black dark:text-[#DCE2EA] hover:text-[#FFD600] dark:hover:text-[#FFD600] transition-colors flex items-center justify-center cursor-pointer"
                                         title="Search"
                                     >
-                                        <FaSearchengin size={22} className='text-black hover:text-[#FFDD00] transition-colors' />
+                                        <FaSearchengin size={22} />
                                     </button>
                                 )}
                             </div>
@@ -360,65 +367,71 @@ const Navbar = () => {
                         {userData?.role !== "admin" && (
                             <SLink
                                 to="/cart"
-                                className='relative transition-colors block cursor-pointer group'
+                                className='relative p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-[#171D26] transition-colors block cursor-pointer group text-black dark:text-[#DCE2EA] hover:text-[#FFD600] dark:hover:text-[#FFD600]'
                             >
-                                <FaCartShopping size={22} className='text-black group-hover:text-[#FFDD00] transition-colors' />
-                                <span className='absolute -right-2 -top-2 text-[10px] font-bold text-black bg-[#FFDD00] rounded-full h-5 w-5 flex items-center justify-center border-2 border-white'>
+                                <FaCartShopping size={22} />
+                                <span className='absolute -right-1 -top-1 text-[10px] font-black text-[#101318] bg-[#FFD600] rounded-full h-5 w-5 flex items-center justify-center border-2 border-white dark:border-[#0A0D12] shadow-xs'>
                                     {cartItems.reduce((acc, item) => acc + (item.quantity || 0), 0)}
                                 </span>
                             </SLink>
                         )}
 
                         {userData?.role === "admin" && (
-                            <div className='flex items-center gap-4 mr-2 bg-gray-50 px-4 py-2 rounded-full border border-gray-200'>
-                                <div className='flex items-center gap-2 cursor-pointer group' onClick={() => navigate('/admin/product/editor/create')} title="Add Product">
-                                    <FaPlus size={16} className='text-black group-hover:text-[#FFDD00] transition-colors' />
+                            <div className='flex items-center gap-4 mr-2 bg-gray-50 dark:bg-[#171D26] px-4 py-2 rounded-full border border-gray-200 dark:border-[#27313D]'>
+                                <div className='flex items-center gap-2 cursor-pointer group text-black dark:text-[#F5F7FA]' onClick={() => navigate('/admin/product/editor/create')} title="Add Product">
+                                    <FaPlus size={16} className='group-hover:text-[#FFD600] transition-colors' />
                                     <span className='text-[10px] font-bold uppercase tracking-widest hidden sm:block'>Product</span>
                                 </div>
                             </div>
                         )}
 
                         {(userData?.role === "admin" || userData?.role === "blogger") && (
-                            <div className='flex items-center gap-4 mr-2 bg-gray-50 px-4 py-2 rounded-full border border-gray-200'>
-                                <div className='flex items-center gap-2 cursor-pointer group' onClick={() => navigate('/admin')} title="Admin Dashboard">
-                                    <Layers size={18} className='text-black group-hover:text-[#FFDD00] transition-colors' />
+                            <div className='flex items-center gap-4 mr-2 bg-gray-50 dark:bg-[#171D26] px-4 py-2 rounded-full border border-gray-200 dark:border-[#27313D]'>
+                                <div className='flex items-center gap-2 cursor-pointer group text-black dark:text-[#F5F7FA]' onClick={() => navigate('/admin')} title="Admin Dashboard">
+                                    <Layers size={18} className='group-hover:text-[#FFD600] transition-colors' />
                                     <span className='text-[10px] font-bold uppercase tracking-widest hidden sm:block'>Dashboard</span>
                                 </div>
                             </div>
                         )}
 
                         {(userData?.role === "admin" || userData?.role === "blogger") && (
-                            <div className='flex items-center gap-4 mr-2 bg-gray-50 px-4 py-2 rounded-full border border-gray-200'>
-                                <div className='flex items-center gap-2 cursor-pointer group' onClick={() => navigate('/admin/blog/editor/create')} title="Add Blog">
-                                    <FaMicroblog size={18} className='text-black group-hover:text-[#FFDD00] transition-colors' />
+                            <div className='flex items-center gap-4 mr-2 bg-gray-50 dark:bg-[#171D26] px-4 py-2 rounded-full border border-gray-200 dark:border-[#27313D]'>
+                                <div className='flex items-center gap-2 cursor-pointer group text-black dark:text-[#F5F7FA]' onClick={() => navigate('/admin/blog/editor/create')} title="Add Blog">
+                                    <FaMicroblog size={18} className='group-hover:text-[#FFD600] transition-colors' />
                                     <span className='text-[10px] font-bold uppercase tracking-widest hidden sm:block'>Blog</span>
                                 </div>
                             </div>
                         )}
 
+                        {/* 4. THEME TOGGLE (Placed immediately beside the Login button) */}
+                        <ThemeToggle />
+
                         {!userData ? (
-                            <SLink to="/signin" className="hidden lg:flex text-[13px] font-bold text-[#24672E] uppercase tracking-widest hover:text-[#24672E] hover:underline underline-offset-8 decoration-2 transition-all">
+                            <SLink
+                                to="/signin"
+                                className="hidden lg:flex text-[13px] font-bold text-[#24672E] dark:text-[#FFD600] uppercase tracking-widest hover:text-[#1E971D] dark:hover:text-[#FFE45C] hover:underline underline-offset-8 decoration-2 transition-all drop-shadow-xs"
+                            >
                                 Login
                             </SLink>
                         ) : (
                             <div className='relative'>
-                                <div className='w-[35px] h-[35px] rounded-full bg-black text-[#FFDD00] font-bold flex items-center justify-center cursor-pointer text-sm' onClick={() => setShowInfo(prev => !prev)}>
+                                <div className='w-[36px] h-[36px] rounded-full bg-[#171D26] text-[#FFD600] border border-[#2A3441] font-bold flex items-center justify-center cursor-pointer text-sm shadow-sm' onClick={() => setShowInfo(prev => !prev)}>
                                     {userData.fullName?.slice(0, 2).toUpperCase()}
                                 </div>
                                 {showInfo && (
-                                    <div className='absolute right-0 mt-3 w-[200px] bg-white border border-gray-200 shadow-xl p-3 flex flex-col z-[1000]'>
-                                        <div className='text-xs font-bold text-gray-500 pb-2 border-b border-gray-100 truncate mb-2 uppercase tracking-wide'>
+                                    <div className='absolute right-0 mt-3 w-[220px] bg-white dark:bg-[#171D26] border border-gray-200 dark:border-[#27313D] shadow-2xl rounded-2xl p-3 flex flex-col z-[1000]'>
+                                        <div className='text-xs font-bold text-gray-500 dark:text-[#818C9B] pb-2 border-b border-gray-100 dark:border-[#27313D] truncate mb-2 uppercase tracking-wide'>
                                             {userData.fullName}
                                         </div>
                                         {userData.role === "user" && (
                                             <>
-                                                <SLink to="/my-orders" onClick={() => setShowInfo(false)} className='text-sm text-black font-bold block py-1.5 hover:text-[#24672E] transition-colors'>My Orders</SLink>
-                                                <SLink to="/membership" onClick={() => setShowInfo(false)} className='text-sm text-[#24672E] font-bold block py-1.5 hover:text-black transition-colors flex items-center gap-1.5'>
+                                                <SLink to="/my-orders" onClick={() => setShowInfo(false)} className='text-sm text-black dark:text-[#F5F7FA] font-bold block py-1.5 hover:text-[#24672E] dark:hover:text-[#FFD600] transition-colors'>My Orders</SLink>
+                                                <SLink to="/membership" onClick={() => setShowInfo(false)} className='text-sm text-[#24672E] dark:text-[#FFD600] font-bold block py-1.5 hover:text-black dark:hover:text-white transition-colors flex items-center gap-1.5'>
                                                     👑 Membership & 1% Coins
                                                 </SLink>
                                             </>
                                         )}
-                                        <div className='text-sm text-red-600 font-bold cursor-pointer block py-1.5 hover:text-black transition-colors' onClick={handleLogOut}>Log Out</div>
+                                        <div className='text-sm text-red-600 dark:text-[#FF5C6C] font-bold cursor-pointer block py-1.5 hover:text-black dark:hover:text-white transition-colors' onClick={handleLogOut}>Log Out</div>
                                     </div>
                                 )}
                             </div>
@@ -427,17 +440,17 @@ const Navbar = () => {
 
                     {/* MOBILE SEARCH W/ GEOLOCATION */}
                     {showSearch && userData?.role !== "admin" && (
-                        <div className='md:hidden absolute top-[80px] left-0 w-full bg-white border-b border-gray-200 p-4 shadow-md' ref={searchRefMobile}>
-                            <div className='flex items-center bg-gray-100 px-4 py-3 rounded-md w-full relative divide-x divide-gray-300'>
+                        <div className='md:hidden absolute top-[80px] left-0 w-full bg-white dark:bg-[#0A0D12] border-b border-gray-200 dark:border-[#202731] p-4 shadow-md' ref={searchRefMobile}>
+                            <div className='flex items-center bg-gray-100 dark:bg-[#151B23] px-4 py-3 rounded-xl w-full relative divide-x divide-gray-300 dark:divide-[#29333F] border border-gray-200 dark:border-[#29333F]'>
                                 <div className='flex items-center gap-2 pr-3 mr-3 max-w-[50%]'>
-                                    <FaLocationDot size={14} className='text-[#FFDD00] flex-shrink-0' />
-                                    <div className='text-[10px] font-bold text-black uppercase tracking-wider truncate'>
+                                    <FaLocationDot size={14} className='text-[#FFD600] flex-shrink-0' />
+                                    <div className='text-[10px] font-bold text-black dark:text-[#F5F7FA] uppercase tracking-wider truncate'>
                                         {city || "Select City"}
                                     </div>
                                 </div>
                                 <div className='flex items-center flex-1'>
-                                    <input type="text" placeholder='Search...' value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} onClick={handleSearchClick} className='bg-transparent outline-none text-sm w-full text-black pl-3' autoFocus />
-                                    <RxCross2 size={20} className='text-gray-500 ml-2 cursor-pointer flex-shrink-0' onClick={() => { setShowSearch(false); setShowDropdown(false); }} />
+                                    <input type="text" placeholder='Search...' value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} onClick={handleSearchClick} className='bg-transparent outline-none text-sm w-full text-black dark:text-[#F5F7FA] pl-3 placeholder:text-gray-400 dark:placeholder:text-[#778393]' autoFocus />
+                                    <RxCross2 size={20} className='text-gray-500 dark:text-[#778393] ml-2 cursor-pointer flex-shrink-0 hover:text-black dark:hover:text-white' onClick={() => { setShowSearch(false); setShowDropdown(false); }} />
                                 </div>
                                 <SearchDropdownUI />
                             </div>
@@ -446,17 +459,22 @@ const Navbar = () => {
                 </div>
             </div>
 
+            {/* MOBILE NAVIGATION DRAWER */}
             {showMobileNav && (
-                <div className='fixed inset-0 bg-black/50 z-[1000] lg:hidden transition-all' onClick={() => setShowMobileNav(false)}>
-                    <div className='w-[80%] max-w-[300px] h-full bg-white p-6 flex flex-col shadow-2xl' onClick={e => e.stopPropagation()}>
-                        <div className='flex justify-between items-center border-b border-gray-200 pb-4 mb-6'>
-                            <img
-                                src="https://res.cloudinary.com/dkhq2wlwg/image/upload/v1774962822/ownfresh_media/ndxvmcpisomjzsghrfjs.png"
-                                alt="OwnFresh Logo"
-                                className="h-8 w-auto object-contain"
-                            />
-                            <RxCross2 size={28} onClick={() => setShowMobileNav(false)} className='cursor-pointer text-black hover:text-[#FFDD00]' />
+                <div className='fixed inset-0 bg-black/60 backdrop-blur-xs z-[1000] lg:hidden transition-all' onClick={() => setShowMobileNav(false)}>
+                    <div className="w-[85%] max-w-[340px] h-full bg-white dark:bg-[#0F141B] p-6 shadow-2xl overflow-y-auto border-r border-gray-200 dark:border-[#202731]" onClick={(e) => e.stopPropagation()}>
+                        <div className="flex items-center justify-between pb-6 border-b border-gray-100 dark:border-[#202731] mb-6">
+                            <SLink to="/" onClick={() => setShowMobileNav(false)}>
+                                <img src="https://res.cloudinary.com/dkhq2wlwg/image/upload/v1774962822/ownfresh_media/ndxvmcpisomjzsghrfjs.png" alt="Logo" className="h-9 w-auto object-contain dark:brightness-105" />
+                            </SLink>
+                            <div className="flex items-center gap-2">
+                                <ThemeToggle />
+                                <button type="button" onClick={() => setShowMobileNav(false)} className="p-2 text-gray-500 dark:text-[#818C9B] hover:text-black dark:hover:text-white cursor-pointer">
+                                    <RxCross2 size={24} />
+                                </button>
+                            </div>
                         </div>
+
                         {userData?.role !== "admin" && (
                             <div className="flex flex-col gap-4">
                                 {navLinks.map((link) => (
@@ -470,21 +488,21 @@ const Navbar = () => {
                                                     <SLink
                                                         to={link.path}
                                                         onClick={() => setShowMobileNav(false)}
-                                                        className="text-[15px] font-bold uppercase tracking-widest text-[#24672E] hover:underline"
+                                                        className="text-[15px] font-bold uppercase tracking-widest text-[#24672E] dark:text-[#FFD600] hover:underline"
                                                     >
                                                         {link.name}
                                                     </SLink>
                                                     <button
                                                         type="button"
                                                         onClick={(e) => { e.stopPropagation(); setMobileShopOpen(prev => !prev); }}
-                                                        className="p-2 text-[#24672E] hover:text-[#FFDD00] transition-colors"
+                                                        className="p-2 text-[#24672E] dark:text-[#FFD600] hover:text-[#FFDD00] transition-colors"
                                                     >
                                                         {mobileShopOpen ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
                                                     </button>
                                                 </div>
 
                                                 {mobileShopOpen && (
-                                                    <div className="flex flex-col gap-2.5 pl-4 py-2 bg-gray-50/90 rounded-xl my-1 border border-gray-100 animate-in fade-in duration-200">
+                                                    <div className="flex flex-col gap-2.5 pl-4 py-2 bg-gray-50/90 dark:bg-[#171D26] rounded-xl my-1 border border-gray-100 dark:border-[#27313D] animate-in fade-in duration-200">
                                                         {link.dropdown.map((sub) => (
                                                             <SLink
                                                                 key={sub.name}
@@ -493,10 +511,10 @@ const Navbar = () => {
                                                                     setShowMobileNav(false);
                                                                     setMobileShopOpen(false);
                                                                 }}
-                                                                className="flex items-center gap-3 text-[12px] font-bold uppercase tracking-widest text-gray-700 py-1.5 hover:text-[#24672E]"
+                                                                className="flex items-center gap-3 text-[12px] font-bold uppercase tracking-widest text-gray-700 dark:text-[#B7C1CE] py-1.5 hover:text-[#24672E] dark:hover:text-[#FFD600]"
                                                             >
                                                                 {sub.image && (
-                                                                    <img src={sub.image} alt={sub.name} className="w-6 h-6 object-cover rounded-md border border-gray-200" />
+                                                                    <img src={sub.image} alt={sub.name} className="w-6 h-6 object-cover rounded-md border border-gray-200 dark:border-[#27313D] dark:mix-blend-normal" />
                                                                 )}
                                                                 {sub.name}
                                                             </SLink>
@@ -508,7 +526,7 @@ const Navbar = () => {
                                             <SLink
                                                 to={link.path}
                                                 onClick={() => setShowMobileNav(false)}
-                                                className={`text-[15px] font-bold uppercase tracking-widest underline-offset-8 decoration-2 transition-all block ${link.special ? 'text-[#FFDD00] bg-black p-3 rounded-xl text-center' : 'text-[#24672E] hover:underline'}`}
+                                                className={`text-[15px] font-bold uppercase tracking-widest underline-offset-8 decoration-2 transition-all block ${link.special ? 'text-[#101318] bg-[#FFD600] p-3 rounded-xl text-center font-black' : 'text-[#24672E] dark:text-[#F5F7FA] hover:underline'}`}
                                             >
                                                 {link.name}
                                             </SLink>
@@ -517,7 +535,7 @@ const Navbar = () => {
                                 ))}
                             </div>
                         )}
-                        <div className="mt-8 border-t border-gray-100 pt-6 space-y-4">
+                        <div className="mt-8 border-t border-gray-100 dark:border-[#202731] pt-6 space-y-4">
                             {userData?.role !== "admin" && (
                                 <div
                                     onClick={() => {
@@ -529,20 +547,20 @@ const Navbar = () => {
                                             setShowMobileNav(false);
                                         }
                                     }}
-                                    className="flex items-center justify-between bg-gray-50 p-4 rounded-xl cursor-pointer"
+                                    className="flex items-center justify-between bg-gray-50 dark:bg-[#171D26] border border-transparent dark:border-[#27313D] p-4 rounded-xl cursor-pointer"
                                 >
                                     <div className="flex items-center gap-3">
-                                        <FaCartShopping size={20} className="text-black" />
-                                        <span className="font-bold uppercase tracking-widest text-xs">My Cart</span>
+                                        <FaCartShopping size={20} className="text-black dark:text-[#F5F7FA]" />
+                                        <span className="font-bold uppercase tracking-widest text-xs text-black dark:text-[#F5F7FA]">My Cart</span>
                                     </div>
-                                    <span className="bg-[#FFDD00] text-black font-bold h-6 w-6 rounded-full flex items-center justify-center text-[10px]">
+                                    <span className="bg-[#FFD600] text-[#101318] font-black h-6 w-6 rounded-full flex items-center justify-center text-[10px]">
                                         {cartItems.reduce((acc, item) => acc + (item.quantity || 0), 0)}
                                     </span>
                                 </div>
                             )}
                             {userData && (
-                                <SLink to="/my-orders" onClick={() => setShowMobileNav(false)} className="flex items-center gap-3 bg-gray-50 p-4 rounded-xl cursor-pointer">
-                                    <Package size={20} className="text-black" />
+                                <SLink to="/my-orders" onClick={() => setShowMobileNav(false)} className="flex items-center gap-3 bg-gray-50 dark:bg-[#171D26] border border-transparent dark:border-[#27313D] p-4 rounded-xl cursor-pointer text-black dark:text-[#F5F7FA]">
+                                    <Package size={20} className="text-black dark:text-[#F5F7FA]" />
                                     <span className="font-bold uppercase tracking-widest text-xs">My Orders</span>
                                 </SLink>
                             )}

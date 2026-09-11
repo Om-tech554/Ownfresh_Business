@@ -128,7 +128,7 @@ const MarketingPopUp = () => {
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 20 }}
           transition={{ type: "spring", duration: 0.5 }}
-          className="relative w-full max-w-md bg-[#181818] border border-white/10 rounded-3xl overflow-hidden shadow-[0_25px_60px_rgba(0,0,0,0.8)] z-10 flex flex-col"
+          className="relative w-full max-w-md bg-[#1D2530] border border-[#2B3542] rounded-3xl overflow-hidden shadow-[0_25px_60px_rgba(0,0,0,0.8)] z-10 flex flex-col"
         >
           
           {/* Close button at top right */}
@@ -141,7 +141,7 @@ const MarketingPopUp = () => {
           </button>
 
           {/* Marketing Image (Fitted aspect ratio - NEVER CUT) */}
-          <div className="relative w-full bg-slate-950/45 flex items-center justify-center min-h-[220px]">
+          <div className="relative w-full bg-[#151B23] flex items-center justify-center min-h-[220px]">
             <img
               src={campaign.mobileBannerImage || campaign.bannerImage}
               alt={campaign.title}
@@ -154,11 +154,11 @@ const MarketingPopUp = () => {
             
             {/* Festival tag and Discount badge */}
             <div className="flex items-center gap-2 flex-wrap">
-              <span className="bg-[#FFDD00] text-black text-[9px] font-black uppercase px-2.5 py-0.5 rounded-full tracking-wider shadow-sm select-none">
+              <span className="bg-[#FFD600] text-black text-[9px] font-black uppercase px-2.5 py-0.5 rounded-full tracking-wider shadow-sm select-none">
                 🪔 {campaign.festivalName} Offer
               </span>
               {discountText && (
-                <span className="text-[#FFDD00] text-xs font-black uppercase tracking-wider">
+                <span className="text-[#FFD600] text-xs font-black uppercase tracking-wider">
                   {discountText} {maxCapText && `(${maxCapText})`}
                 </span>
               )}
@@ -166,11 +166,11 @@ const MarketingPopUp = () => {
 
             {/* Campaign Title & Description */}
             <div className="space-y-1">
-              <h2 className="text-white text-base md:text-lg font-black tracking-tight leading-tight">
+              <h2 className="text-[#F7F9FC] text-base md:text-lg font-black tracking-tight leading-tight">
                 {campaign.title}
               </h2>
               {campaign.description && (
-                <p className="text-xs font-semibold text-slate-300 leading-relaxed">
+                <p className="text-xs font-semibold text-[#B7C1CE] leading-relaxed">
                   {campaign.description}
                 </p>
               )}
@@ -181,27 +181,27 @@ const MarketingPopUp = () => {
               <button
                 type="button"
                 onClick={(e) => handleCopyCode(e, promo.code)}
-                className="flex items-center justify-between bg-slate-800/80 border border-slate-700/85 hover:border-[#FFDD00] text-white font-extrabold px-4 py-2.5 rounded-xl text-xs uppercase tracking-wider transition-all active:scale-95 shadow-md cursor-pointer w-full"
+                className="flex items-center justify-between bg-[#151B23] border border-[#29333F] hover:border-[#FFD600] text-[#F5F7FA] font-extrabold px-4 py-2.5 rounded-xl text-xs uppercase tracking-wider transition-all active:scale-95 shadow-md cursor-pointer w-full"
                 title="Click to copy coupon code"
               >
                 <div className="flex items-center gap-2">
-                  <Tag size={12} className="text-[#FFDD00]" />
+                  <Tag size={12} className="text-[#FFD600]" />
                   <span>Use Code: {promo.code}</span>
                 </div>
                 {copiedCode === promo.code ? (
-                  <Check size={12} className="text-green-400 shrink-0" />
+                  <Check size={12} className="text-[#19C37D] shrink-0" />
                 ) : (
-                  <Copy size={12} className="text-slate-300 hover:text-white shrink-0" />
+                  <Copy size={12} className="text-[#818C9B] hover:text-white shrink-0" />
                 )}
               </button>
             )}
 
             {/* Countdown timer & CTA Row */}
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2 border-t border-white/10 w-full">
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2 border-t border-[#202832] w-full">
               {campaign.showCountdown && timeLeft ? (
-                <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-300 bg-slate-900 border border-slate-800 px-3 py-1.5 rounded-xl shadow-md shrink-0 w-full sm:w-auto justify-center">
-                  <Clock size={12} className="text-[#FFDD00]" />
-                  <div className="flex items-center gap-1 font-black text-[#FFDD00] text-[10px] md:text-xs">
+                <div className="flex items-center gap-1.5 text-xs font-semibold text-[#B7C1CE] bg-[#151B23] border border-[#29333F] px-3 py-1.5 rounded-xl shadow-md shrink-0 w-full sm:w-auto justify-center">
+                  <Clock size={12} className="text-[#FFD600]" />
+                  <div className="flex items-center gap-1 font-black text-[#FFD600] text-[10px] md:text-xs">
                     <span>{String(timeLeft.days).padStart(2, "0")}d</span>:
                     <span>{String(timeLeft.hours).padStart(2, "0")}h</span>:
                     <span>{String(timeLeft.minutes).padStart(2, "0")}m</span>:
@@ -215,7 +215,7 @@ const MarketingPopUp = () => {
               <button
                 type="button"
                 onClick={handleNavigate}
-                className="w-full sm:w-auto bg-[#FFDD00] hover:bg-yellow-400 text-black text-xs font-black px-6 py-2.5 rounded-full uppercase tracking-wider flex items-center justify-center gap-1 transition-all shadow-lg hover:shadow-yellow-500/20 active:scale-95 cursor-pointer ml-auto"
+                className="w-full sm:w-auto bg-[#FFD600] hover:bg-[#FFE45C] text-[#101318] text-xs font-black px-6 py-2.5 rounded-full uppercase tracking-wider flex items-center justify-center gap-1 transition-all shadow-lg hover:shadow-yellow-500/20 active:scale-95 cursor-pointer ml-auto"
               >
                 <span>{campaign.ctaText || "Shop Now"}</span>
                 <ChevronRight size={14} />
