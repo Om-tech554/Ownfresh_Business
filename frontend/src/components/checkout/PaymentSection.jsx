@@ -97,18 +97,18 @@ const PaymentSection = () => {
         </div>
       </div>
 
-      <div className="pt-8 flex justify-between items-center mt-4 border-t border-gray-100">
+      <div className="pt-8 flex flex-col-reverse sm:flex-row justify-between items-stretch sm:items-center gap-4 mt-4 border-t border-gray-100">
         <button
           type="button"
           onClick={prevStep}
-          className="px-6 py-3.5 text-gray-700 font-bold hover:text-black transition-colors border border-gray-200 rounded-xl hover:bg-gray-50"
+          className="w-full sm:w-auto px-6 py-3.5 text-gray-700 font-bold hover:text-black transition-colors border border-gray-200 rounded-xl hover:bg-gray-50 text-center cursor-pointer"
         >
           ← Back to Delivery
         </button>
         <button
           type="button"
           onClick={handleReviewOrder}
-          className="px-10 py-4 bg-gradient-to-r from-amber-500 via-[#FFDD00] to-amber-600 text-slate-950 rounded-xl font-black text-sm uppercase tracking-wider hover:from-yellow-400 hover:to-amber-500 transition-all shadow-lg hover:shadow-yellow-500/30 flex items-center gap-2 active:scale-95 cursor-pointer"
+          className="w-full sm:w-auto justify-center px-10 py-4 bg-gradient-to-r from-amber-500 via-[#FFDD00] to-amber-600 text-slate-950 rounded-xl font-black text-sm uppercase tracking-wider hover:from-yellow-400 hover:to-amber-500 transition-all shadow-lg hover:shadow-yellow-500/30 flex items-center gap-2 active:scale-95 cursor-pointer"
         >
           <span>Review Order</span>
           <span className="text-lg">📋</span>

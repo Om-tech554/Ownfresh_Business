@@ -78,7 +78,10 @@ const App = () => {
   const hideFooterRoutes = [
     "/signin",
     "/signup",
-    "/forgot-password"
+    "/forgot-password",
+    "/cart",
+    "/checkout",
+    "/order-success"
   ];
 
   return (

@@ -110,7 +110,7 @@ export const seedDefaultTags = async (req, res) => {
       {
         name: "Best Seller",
         slug: "best-seller",
-        icon: "Flame",
+        icon: "Award",
         bgColor: "#EA580C", // Orange
         textColor: "#ffffff",
         description: "Customer favorite top seller",

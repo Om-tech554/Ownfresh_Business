@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from "react";
 import { Link } from "react-router-dom";
-import { Star, ShoppingCart, Award, Flame, Leaf, ShieldCheck, Tag as TagIcon, Sparkles } from "lucide-react";
+import { Star, ShoppingCart, Award, Leaf, ShieldCheck, Tag as TagIcon, Sparkles } from "lucide-react";
 import SLink from "./SLink";
 import { cleanProductName, getDynamicName } from "../utils/productUtils";
 
@@ -90,13 +90,12 @@ const ProductCard = ({ product, user, onAddToCart }) => {
 
   const renderBadgeIcon = (iconName, size = 10) => {
     switch (iconName) {
-      case "Flame": return <Flame size={size} />;
       case "Award": return <Award size={size} />;
       case "Leaf": return <Leaf size={size} />;
       case "ShieldCheck": return <ShieldCheck size={size} />;
       case "Sparkles": return <Sparkles size={size} />;
       case "Star": return <Star size={size} />;
-      default: return <TagIcon size={size} />;
+      default: return null;
     }
   };
 
@@ -114,8 +113,12 @@ const ProductCard = ({ product, user, onAddToCart }) => {
           const tagName = rawName && typeof rawName === 'string' ? rawName.trim() : "";
           const tagBg = typeof tag === 'object' ? tag.bgColor : "#1E971D";
           const tagColor = typeof tag === 'object' ? tag.textColor : "#ffffff";
-          const tagIcon = typeof tag === 'object' ? tag.icon : null;
+          const rawIcon = typeof tag === 'object' ? tag.icon : null;
+          const tagIcon = rawIcon === "Flame" ? null : rawIcon;
           const tagImage = typeof tag === 'object' ? tag.imageUrl : null;
+          
+          if (!tagName && !tagImage && !tagIcon) return null;
+
           return (
             <span
               key={idx}

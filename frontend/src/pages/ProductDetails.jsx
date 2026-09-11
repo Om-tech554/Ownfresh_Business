@@ -613,13 +613,12 @@ const ProductDetails = () => {
 
   const renderBadgeIcon = (iconName, size = 12) => {
     switch (iconName) {
-      case "Flame": return <Flame size={size} />;
       case "Award": return <Award size={size} />;
       case "Leaf": return <Leaf size={size} />;
       case "ShieldCheck": return <ShieldCheck size={size} />;
       case "Sparkles": return <Sparkles size={size} />;
       case "Star": return <Star size={size} />;
-      default: return <Award size={size} />;
+      default: return null;
     }
   };
 
@@ -662,8 +661,12 @@ const ProductDetails = () => {
                     const tagName = rawName && typeof rawName === "string" ? rawName.trim() : "";
                     const tagBg = typeof tag === "object" ? tag.bgColor : "#1E971D";
                     const tagColor = typeof tag === "object" ? tag.textColor : "#ffffff";
-                    const tagIcon = typeof tag === "object" ? tag.icon : null;
+                    const rawIcon = typeof tag === "object" ? tag.icon : null;
+                    const tagIcon = rawIcon === "Flame" ? null : rawIcon;
                     const tagImage = typeof tag === "object" ? tag.imageUrl : null;
+
+                    if (!tagName && !tagImage && !tagIcon) return null;
+
                     return (
                       <span
                         key={idx}

@@ -16,7 +16,6 @@ import {
   Check,
   Eye,
   Info,
-  Flame,
   Award,
   ShieldCheck,
   Leaf,
@@ -69,7 +68,7 @@ const AdminProductEditor = () => {
     try {
       const [catRes, tagRes] = await Promise.all([
         axios.get(`${API_BASE_URL}/api/category/all`),
-        axios.get(`${API_BASE_URL}/api/tag/all`)
+        axios.get(`${API_BASE_URL}/api/tag/all`, { withCredentials: true })
       ]);
       if (catRes.data.success) {
         setCategories(catRes.data.categories || []);
@@ -438,11 +437,11 @@ const AdminProductEditor = () => {
                 const isSelected = selectedTagIds.includes(tag._id);
                 const renderTagIcon = (iconName) => {
                   switch (iconName) {
-                    case "Flame": return <Flame size={13} />;
                     case "Award": return <Award size={13} />;
                     case "Leaf": return <Leaf size={13} />;
                     case "ShieldCheck": return <ShieldCheck size={13} />;
                     case "Sparkles": return <Sparkles size={13} />;
+                    case "Star": return <Star size={13} />;
                     default: return <Tag size={13} />;
                   }
                 };

@@ -8,7 +8,6 @@ import {
   Check,
   X,
   Sparkles,
-  Flame,
   Award,
   ShieldCheck,
   Leaf,
@@ -22,15 +21,14 @@ import toast from "react-hot-toast";
 import { motion, AnimatePresence } from "framer-motion";
 import { useConfirm } from "../../hooks/ConfirmContext.jsx";
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:10000";
+const API_BASE_URL = (import.meta.env.VITE_API_URL || "http://localhost:10000").replace(/\/+$/, "");
 
 const ICON_OPTIONS = [
   { name: "Award", icon: Award, label: "Quality Award" },
-  { name: "Flame", icon: Flame, label: "Trending / Best Seller" },
+  { name: "Sparkles", icon: Sparkles, label: "Special Offer / Festive" },
   { name: "Leaf", icon: Leaf, label: "Organic / Natural" },
   { name: "ShieldCheck", icon: ShieldCheck, label: "Stone Pressed / Verified" },
   { name: "Star", icon: Star, label: "Featured / Premium" },
-  { name: "Sparkles", icon: Sparkles, label: "Special Offer / Festive" },
   { name: "Tag", icon: Tag, label: "Generic Badge" }
 ];
 
@@ -67,12 +65,15 @@ const TagManager = () => {
   const fetchTags = async () => {
     setLoading(true);
     try {
-      const res = await axios.get(`${API_BASE_URL}/api/tag/all`);
+      const res = await axios.get(`${API_BASE_URL}/api/tag/all`, {
+        withCredentials: true
+      });
       if (res.data.success) {
         setTags(res.data.tags || []);
       }
     } catch (error) {
-      toast.error("Failed to load tags & badges");
+      console.error("Failed to load tags & badges:", error);
+      toast.error(error.response?.data?.message || "Failed to load tags & badges");
     } finally {
       setLoading(false);
     }
@@ -87,7 +88,7 @@ const TagManager = () => {
     if (tag) {
       setFormData({
         name: tag.name,
-        icon: tag.icon || "Award",
+        icon: tag.icon === "Flame" ? "Award" : (tag.icon || "Award"),
         bgColor: tag.bgColor || "#1E971D",
         textColor: tag.textColor || "#ffffff",
         description: tag.description || "",
@@ -142,10 +143,14 @@ const TagManager = () => {
       }
 
       if (editingTag) {
-        await axios.put(`${API_BASE_URL}/api/tag/update/${editingTag._id}`, data);
+        await axios.put(`${API_BASE_URL}/api/tag/update/${editingTag._id}`, data, {
+          withCredentials: true
+        });
         toast.success("Badge updated successfully");
       } else {
-        await axios.post(`${API_BASE_URL}/api/tag/add`, data);
+        await axios.post(`${API_BASE_URL}/api/tag/add`, data, {
+          withCredentials: true
+        });
         toast.success("Badge created successfully");
       }
 
@@ -166,7 +171,9 @@ const TagManager = () => {
     if (!isConfirmed) return;
 
     try {
-      await axios.delete(`${API_BASE_URL}/api/tag/delete/${id}`);
+      await axios.delete(`${API_BASE_URL}/api/tag/delete/${id}`, {
+        withCredentials: true
+      });
       toast.success("Badge deleted");
       fetchTags();
     } catch (error) {
@@ -176,7 +183,9 @@ const TagManager = () => {
 
   const handleSeedDefaults = async () => {
     try {
-      await axios.post(`${API_BASE_URL}/api/tag/seed-defaults`);
+      await axios.post(`${API_BASE_URL}/api/tag/seed-defaults`, {}, {
+        withCredentials: true
+      });
       toast.success("Default badges populated successfully");
       fetchTags();
     } catch (error) {
@@ -191,7 +200,6 @@ const TagManager = () => {
 
   const renderIcon = (iconName, size = 16) => {
     switch (iconName) {
-      case "Flame": return <Flame size={size} />;
       case "Award": return <Award size={size} />;
       case "Leaf": return <Leaf size={size} />;
       case "ShieldCheck": return <ShieldCheck size={size} />;

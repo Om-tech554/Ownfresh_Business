@@ -168,7 +168,7 @@ const ProductList = () => {
                 />
 
                 {/* Status & Rating */}
-                <div className="absolute top-3 left-3 flex flex-wrap gap-1">
+                <div className="absolute top-3 left-3 flex flex-wrap gap-1 max-w-[70%]">
                   <span
                     className={`text-[9px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider ${
                       p.status === "Active" ? "bg-emerald-100 text-emerald-800" : "bg-slate-200 text-slate-700"
@@ -176,6 +176,21 @@ const ProductList = () => {
                   >
                     {p.status || "Active"}
                   </span>
+                  {p.tags && p.tags.map((tag, i) => {
+                    const tagName = typeof tag === 'object' ? tag.name : tag;
+                    if (!tagName) return null;
+                    const tagBg = typeof tag === 'object' ? tag.bgColor : "#1E971D";
+                    const tagColor = typeof tag === 'object' ? tag.textColor : "#ffffff";
+                    return (
+                      <span
+                        key={i}
+                        style={{ backgroundColor: tagBg, color: tagColor }}
+                        className="text-[8px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider shadow-xs truncate max-w-[120px]"
+                      >
+                        {tagName}
+                      </span>
+                    );
+                  })}
                 </div>
 
                 <div className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm px-2.5 py-1 rounded-full shadow-xs flex items-center gap-1 text-amber-500">
