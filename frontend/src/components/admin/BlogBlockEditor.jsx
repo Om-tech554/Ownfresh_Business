@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { 
   Plus, 
   Trash2, 
@@ -15,6 +15,7 @@ import {
   Heading3, 
   Heading4,
   ImageIcon, 
+  Sliders,
   Youtube, 
   AlertCircle, 
   BookOpen, 
@@ -26,83 +27,159 @@ import {
   Check,
   X,
   RefreshCw,
-  Minus
+  Minus,
+  Upload
 } from "lucide-react";
 import axios from "axios";
 import toast from "react-hot-toast";
 import ImagePickerModal from "./ImagePickerModal";
+import BlogImageSlider from "../BlogImageSlider";
+import { parsePasteToBlocks, formatInlineMarkdown } from "../../utils/HtmlBlockConverter";
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:10000";
+const API_BASE_URL = (import.meta.env.VITE_API_URL || "http://localhost:10000").replace(/\/+$/, "");
 
-// Slash Command options
+// Available slash block commands
 const COMMANDS = [
+  { id: "paragraph", label: "Paragraph", type: "paragraph", icon: FileText, desc: "Plain body text" },
   { id: "h1", label: "Heading 1", type: "heading", level: 1, icon: Heading1, desc: "Large section heading" },
   { id: "h2", label: "Heading 2", type: "heading", level: 2, icon: Heading2, desc: "Medium section heading" },
   { id: "h3", label: "Heading 3", type: "heading", level: 3, icon: Heading3, desc: "Subsection heading" },
-  { id: "paragraph", label: "Paragraph", type: "paragraph", icon: FileText, desc: "Plain body text" },
   { id: "bullet-list", label: "Bullet List", type: "list", style: "bullet", icon: ListIcon, desc: "Unordered bulleted list" },
   { id: "ordered-list", label: "Ordered List", type: "list", style: "ordered", icon: ListIcon, desc: "Numbered ordered list" },
-  { id: "callout", label: "Callout Block", type: "callout", icon: AlertCircle, desc: "Highlighted info box" },
-  { id: "image", label: "Image Block", type: "image", icon: ImageIcon, desc: "Upload or select from gallery" },
-  { id: "bookmark", label: "Link Bookmark", type: "bookmark", icon: LinkIcon, desc: "SSRF-safe metadata bookmark" },
+  { id: "slider", label: "Image Slider / Carousel", type: "slider", icon: Sliders, desc: "Interactive multi-image slider" },
+  { id: "image", label: "Single Image", type: "image", icon: ImageIcon, desc: "Upload or pick single photo" },
+  { id: "callout", label: "Callout Box", type: "callout", icon: AlertCircle, desc: "Highlighted info / warning box" },
+  { id: "bookmark", label: "Link Bookmark", type: "bookmark", icon: LinkIcon, desc: "Webpage preview card" },
   { id: "toc", label: "Table of Contents", type: "toc", icon: BookOpen, desc: "Jump link index of headings" },
-  { id: "embed", label: "Video Embed", type: "embed", icon: Youtube, desc: "YouTube or generic iframe video" },
-  { id: "divider", label: "Divider", type: "divider", icon: Minus, desc: "Horizontal rule spacer" },
-  { id: "html", label: "Custom HTML", type: "html", icon: Code, desc: "Raw HTML / Twig layout code" },
+  { id: "embed", label: "Video Embed", type: "embed", icon: Youtube, desc: "YouTube or generic video embed" },
+  { id: "divider", label: "Divider Line", type: "divider", icon: Minus, desc: "Horizontal rule spacer" },
+  { id: "html", label: "Custom HTML", type: "html", icon: Code, desc: "Raw HTML snippet" },
 ];
+
+/**
+ * Stable, uncontrolled ContentEditable sub-component
+ * Prevents cursor jumps and selection collapses in React.
+ */
+const EditableContent = ({
+  html = "",
+  onUpdate,
+  onKeyDown,
+  onFocus,
+  onPasteBlocks,
+  placeholder = "Write something...",
+  className = "",
+  tagName = "div",
+  blockId
+}) => {
+  const elRef = useRef(null);
+  const isComposingRef = useRef(false);
+
+  // Sync initial or externally updated HTML without destroying caret during typing
+  useEffect(() => {
+    if (elRef.current && document.activeElement !== elRef.current) {
+      if (elRef.current.innerHTML !== (html || "")) {
+        elRef.current.innerHTML = html || "";
+      }
+    }
+  }, [html, blockId]);
+
+  const handleInput = () => {
+    if (elRef.current && onUpdate && !isComposingRef.current) {
+      onUpdate(elRef.current.innerHTML);
+    }
+  };
+
+  const handlePaste = (e) => {
+    e.preventDefault();
+    const htmlData = e.clipboardData.getData("text/html");
+    const plainText = e.clipboardData.getData("text/plain");
+
+    if (onPasteBlocks) {
+      const handled = onPasteBlocks(htmlData, plainText);
+      if (handled) return;
+    }
+
+    // Inline insertion for single short text
+    const formatted = formatInlineMarkdown(plainText);
+    document.execCommand("insertHTML", false, formatted);
+    handleInput();
+  };
+
+  const Tag = tagName;
+
+  return (
+    <Tag
+      ref={elRef}
+      contentEditable
+      suppressContentEditableWarning
+      className={`editable-area focus:outline-none select-text cursor-text ${className}`}
+      data-placeholder={placeholder}
+      onInput={handleInput}
+      onKeyDown={onKeyDown}
+      onFocus={onFocus}
+      onPaste={handlePaste}
+      onCompositionStart={() => { isComposingRef.current = true; }}
+      onCompositionEnd={() => {
+        isComposingRef.current = false;
+        handleInput();
+      }}
+    />
+  );
+};
 
 const BlogBlockEditor = ({ blocks, onChange }) => {
   const [activeBlockIndex, setActiveBlockIndex] = useState(null);
-  const [slashMenu, setSlashMenu] = useState(null); // { blockId, filter: "" }
+  const [slashMenu, setSlashMenu] = useState(null); // { blockId, filter: "", rect: {} }
   const [slashSelectedIdx, setSlashSelectedIdx] = useState(0);
-  const [textSelection, setTextSelection] = useState(null); // { range, text, x, y, blockId }
+  const [textSelection, setTextSelection] = useState(null); // { text, x, y, blockId }
   const [aiLoading, setAiLoading] = useState(false);
   const [aiPreview, setAiPreview] = useState(null); // { blockId, originalText, newText, actionName }
-  const [pickerBlockId, setPickerBlockId] = useState(null);
+  const [pasteModalOpen, setPasteModalOpen] = useState(false);
+  const [pasteRawContent, setPasteRawContent] = useState("");
+  
+  // Image picker states
+  const [pickerConfig, setPickerConfig] = useState(null); // { blockId, type: 'single' | 'slider', sliderIndex?: number }
   const [bookmarkFetchingId, setBookmarkFetchingId] = useState(null);
 
-  const blockRefs = useRef({});
-  const slashMenuRef = useRef(null);
+  const editorContainerRef = useRef(null);
 
-  // Manage selection changes for floating toolbar
-  useEffect(() => {
-    const handleSelectionChange = () => {
-      const selection = window.getSelection();
-      if (!selection || selection.isCollapsed || selection.rangeCount === 0) {
-        setTextSelection(null);
-        return;
-      }
+  // Selection detection on mouseup and keyup (avoids destructive re-renders while dragging)
+  const handleCheckSelection = useCallback(() => {
+    const selection = window.getSelection();
+    if (!selection || selection.isCollapsed || selection.rangeCount === 0) {
+      setTextSelection(null);
+      return;
+    }
 
-      const text = selection.toString().trim();
-      if (!text) {
-        setTextSelection(null);
-        return;
-      }
+    const text = selection.toString().trim();
+    if (!text || text.length < 2) {
+      setTextSelection(null);
+      return;
+    }
 
-      // Check if selection is inside our block editor
-      const anchorNode = selection.anchorNode;
-      const element = anchorNode.nodeType === Node.TEXT_NODE ? anchorNode.parentElement : anchorNode;
-      const blockEl = element.closest("[data-block-id]");
-      if (!blockEl) {
-        setTextSelection(null);
-        return;
-      }
+    const anchorNode = selection.anchorNode;
+    const element = anchorNode?.nodeType === Node.TEXT_NODE ? anchorNode.parentElement : anchorNode;
+    const blockEl = element?.closest("[data-block-id]");
+    if (!blockEl) {
+      setTextSelection(null);
+      return;
+    }
 
-      const blockId = blockEl.getAttribute("data-block-id");
-      const range = selection.getRangeAt(0);
-      const rect = range.getBoundingClientRect();
+    const blockId = blockEl.getAttribute("data-block-id");
+    const range = selection.getRangeAt(0);
+    const rect = range.getBoundingClientRect();
 
-      setTextSelection({
-        range,
-        text,
-        blockId,
-        x: rect.left + window.scrollX + rect.width / 2,
-        y: rect.top + window.scrollY - 46,
-      });
-    };
+    if (rect.width === 0 && rect.height === 0) {
+      setTextSelection(null);
+      return;
+    }
 
-    document.addEventListener("selectionchange", handleSelectionChange);
-    return () => document.removeEventListener("selectionchange", handleSelectionChange);
+    setTextSelection({
+      text,
+      blockId,
+      x: rect.left + window.scrollX + rect.width / 2,
+      y: Math.max(10, rect.top + window.scrollY - 46),
+    });
   }, []);
 
   // Update a single block's data
@@ -132,6 +209,7 @@ const BlogBlockEditor = ({ blocks, onChange }) => {
         alt: "",
         caption: "",
         code: "",
+        images: [],
         levels: ["h1", "h2", "h3"],
         ...initialData,
       },
@@ -140,15 +218,10 @@ const BlogBlockEditor = ({ blocks, onChange }) => {
     const newBlocks = [...blocks];
     newBlocks.splice(index, 0, newBlock);
     onChange(newBlocks);
-    
-    // Focus new block
-    setTimeout(() => {
-      focusBlock(newBlock.id);
-    }, 100);
   };
 
   const deleteBlock = (id) => {
-    if (blocks.length === 1) {
+    if (blocks.length <= 1) {
       updateBlockData(id, { content: "" });
       return;
     }
@@ -168,17 +241,10 @@ const BlogBlockEditor = ({ blocks, onChange }) => {
     onChange(newBlocks);
   };
 
-  const focusBlock = (id) => {
-    const ref = blockRefs.current[id];
-    if (ref) {
-      ref.focus();
-    }
-  };
-
   // Inline formatting helper
   const applyInlineFormatting = (command, val = null) => {
     document.execCommand(command, false, val);
-    setTextSelection(null);
+    handleCheckSelection();
   };
 
   // AI selected text helpers
@@ -213,27 +279,68 @@ const BlogBlockEditor = ({ blocks, onChange }) => {
       range.deleteContents();
       range.insertNode(document.createTextNode(aiPreview.newText));
       
-      // Update block state
       const blockEl = document.querySelector(`[data-block-id="${aiPreview.blockId}"] .editable-area`);
       if (blockEl) {
-        const block = blocks.find(b => b.id === aiPreview.blockId);
-        if (block) {
-          if (block.type === "paragraph" || block.type === "heading" || block.type === "blockquote") {
-            updateBlockData(aiPreview.blockId, { content: blockEl.innerHTML });
-          }
-        }
+        updateBlockData(aiPreview.blockId, { content: blockEl.innerHTML });
       }
     }
     setAiPreview(null);
     toast.success("AI text applied successfully");
   };
 
+  // Smart multi-block paste handler for content from ChatGPT, Google Docs, Notion, or Markdown
+  const handlePasteBlocks = (index, htmlData, plainText) => {
+    const hasHtmlBlocks = htmlData && (htmlData.match(/<(p|h1|h2|h3|h4|h5|h6|ul|ol|blockquote|li|table|hr)/gi)?.length > 1 || htmlData.includes("<br><br>"));
+    const hasMarkdownBlocks = plainText && (
+      /^(#{1,6}\s+|[-*+]\s+|\d+[\.)]\s+|>)/m.test(plainText) ||
+      plainText.includes("\n\n") ||
+      plainText.split("\n").filter(l => l.trim().length > 0).length > 1
+    );
+
+    if (hasHtmlBlocks || hasMarkdownBlocks) {
+      const newBlocks = parsePasteToBlocks(htmlData, plainText);
+      if (newBlocks && newBlocks.length > 0) {
+        const currentBlock = blocks[index];
+        const isEmpty = !currentBlock || !currentBlock.data?.content || currentBlock.data.content.replace(/<[^>]+>/g, "").trim() === "";
+
+        const updated = [...blocks];
+        if (isEmpty) {
+          updated.splice(index, 1, ...newBlocks);
+        } else {
+          updated.splice(index + 1, 0, ...newBlocks);
+        }
+
+        onChange(updated);
+        toast.success(`Pasted ${newBlocks.length} formatted blocks!`);
+        return true;
+      }
+    }
+    return false;
+  };
+
+  const handleSmartPasteSubmit = () => {
+    if (!pasteRawContent.trim()) {
+      toast.error("Please paste some content first");
+      return;
+    }
+    const newBlocks = parsePasteToBlocks("", pasteRawContent);
+    if (newBlocks && newBlocks.length > 0) {
+      const isEmptyEditor = blocks.length === 1 && (!blocks[0].data?.content || blocks[0].data.content.replace(/<[^>]+>/g, "").trim() === "");
+      if (isEmptyEditor) {
+        onChange(newBlocks);
+      } else {
+        onChange([...blocks, ...newBlocks]);
+      }
+      toast.success(`Imported ${newBlocks.length} blocks with full structure!`);
+      setPasteRawContent("");
+      setPasteModalOpen(false);
+    }
+  };
+
   // Keyboard navigation & slash trigger inside editable content
   const handleKeyDown = (e, block, index) => {
-    const value = e.target.innerHTML || "";
-    
-    // Open Slash menu
-    if (e.key === "/") {
+    // Open Slash menu on '/'
+    if (e.key === "/" && !e.shiftKey) {
       setSlashMenu({ blockId: block.id, filter: "" });
       setSlashSelectedIdx(0);
       return;
@@ -244,12 +351,12 @@ const BlogBlockEditor = ({ blocks, onChange }) => {
 
       if (e.key === "ArrowDown") {
         e.preventDefault();
-        setSlashSelectedIdx((prev) => (prev + 1) % filtered.length);
+        setSlashSelectedIdx((prev) => (prev + 1) % (filtered.length || 1));
         return;
       }
       if (e.key === "ArrowUp") {
         e.preventDefault();
-        setSlashSelectedIdx((prev) => (prev - 1 + filtered.length) % filtered.length);
+        setSlashSelectedIdx((prev) => (prev - 1 + filtered.length) % (filtered.length || 1));
         return;
       }
       if (e.key === "Enter") {
@@ -271,72 +378,41 @@ const BlogBlockEditor = ({ blocks, onChange }) => {
       }
     }
 
-    // Standard block shortcuts
+    // Standard block shortcuts: Enter creates new paragraph
     if (e.key === "Enter" && !e.shiftKey) {
       if (block.type === "paragraph" || block.type === "heading" || block.type === "blockquote") {
         e.preventDefault();
         insertBlockAt(index + 1, "paragraph");
+        return;
       }
     }
 
-    if (e.key === "Backspace" && value === "" && blocks.length > 1) {
-      e.preventDefault();
-      deleteBlock(block.id);
-      if (index > 0) {
-        setTimeout(() => focusBlock(blocks[index - 1].id), 50);
+    // Backspace on empty block
+    if (e.key === "Backspace") {
+      const content = block.data.content || "";
+      const textOnly = content.replace(/<[^>]+>/g, "").trim();
+      if (textOnly === "" && blocks.length > 1) {
+        e.preventDefault();
+        deleteBlock(block.id);
       }
     }
-  };
-
-  const handleInput = (e, blockId, field = "content") => {
-    let val = e.target.innerHTML;
-    
-    // Slash filter monitoring
-    if (slashMenu && slashMenu.blockId === blockId) {
-      const plainText = e.target.textContent || "";
-      const slashIndex = plainText.lastIndexOf("/");
-      if (slashIndex !== -1) {
-        const filterText = plainText.substring(slashIndex + 1);
-        setSlashMenu({ blockId, filter: filterText });
-      } else {
-        setSlashMenu(null);
-      }
-    }
-
-    updateBlockData(blockId, { [field]: val });
   };
 
   const executeSlashCommand = (block, cmd, index) => {
-    // Strip the "/" character
-    const blockEl = blockRefs.current[block.id];
-    if (blockEl) {
-      let html = blockEl.innerHTML;
-      if (html.endsWith("/")) {
-        html = html.substring(0, html.length - 1);
-      } else {
-        const lastSlash = html.lastIndexOf("/");
-        if (lastSlash !== -1) {
-          html = html.substring(0, lastSlash);
-        }
-      }
-      blockEl.innerHTML = html;
-    }
+    // Clean trailing slash from text
+    let cleanContent = (block.data.content || "").replace(/\/[\w-]*$/, "").trim();
 
-    // Change current block or insert new
     if (cmd.type === "heading") {
-      updateBlockData(block.id, { content: blockEl?.innerHTML || "", level: cmd.level });
-      // mutate type
-      const updated = blocks.map(b => b.id === block.id ? { ...b, type: "heading" } : b);
+      const updated = blocks.map(b => b.id === block.id ? { ...b, type: "heading", data: { ...b.data, content: cleanContent, level: cmd.level } } : b);
       onChange(updated);
     } else if (cmd.type === "list") {
-      const updated = blocks.map(b => b.id === block.id ? { ...b, type: "list", data: { items: [blockEl?.innerHTML || ""], style: cmd.style } } : b);
+      const updated = blocks.map(b => b.id === block.id ? { ...b, type: "list", data: { items: [cleanContent || ""], style: cmd.style } } : b);
       onChange(updated);
     } else if (cmd.type === "paragraph") {
-      const updated = blocks.map(b => b.id === block.id ? { ...b, type: "paragraph", data: { content: blockEl?.innerHTML || "" } } : b);
+      const updated = blocks.map(b => b.id === block.id ? { ...b, type: "paragraph", data: { ...b.data, content: cleanContent } } : b);
       onChange(updated);
     } else {
-      // For media, embeds, etc, substitute current empty paragraph block, or insert below
-      const isEmpty = (blockEl?.innerHTML || "").trim() === "";
+      const isEmpty = cleanContent === "";
       if (isEmpty) {
         const updated = blocks.map(b => b.id === block.id ? { ...b, type: cmd.type, data: getEmptyDataForType(cmd.type) } : b);
         onChange(updated);
@@ -350,8 +426,9 @@ const BlogBlockEditor = ({ blocks, onChange }) => {
 
   const getEmptyDataForType = (type) => {
     switch (type) {
+      case "slider": return { images: [], caption: "" };
       case "image": return { url: "", alt: "", caption: "", align: "center", width: "100%" };
-      case "callout": return { type: "info", content: "Important callout message..." };
+      case "callout": return { type: "info", content: "Important note..." };
       case "bookmark": return { url: "", title: "", description: "", image: "", domain: "" };
       case "toc": return { levels: ["h1", "h2", "h3"] };
       case "embed": return { url: "", embedType: "youtube" };
@@ -361,7 +438,7 @@ const BlogBlockEditor = ({ blocks, onChange }) => {
     }
   };
 
-  // SSRF Metadata Fetcher for Bookmarks
+  // SSRF Bookmark Fetcher
   const fetchBookmarkMeta = async (blockId, url) => {
     if (!url) return;
     setBookmarkFetchingId(blockId);
@@ -385,7 +462,7 @@ const BlogBlockEditor = ({ blocks, onChange }) => {
   };
 
   // Image upload handler
-  const handleUploadImageBlock = async (blockId, file) => {
+  const handleUploadImage = async (file, onDone) => {
     if (!file) return;
     const formData = new FormData();
     formData.append("image", file);
@@ -396,143 +473,207 @@ const BlogBlockEditor = ({ blocks, onChange }) => {
         headers: { "Content-Type": "multipart/form-data" },
         withCredentials: true
       });
-      if (res.data.success) {
-        updateBlockData(blockId, { url: res.data.imageUrl });
-        toast.success("Image uploaded successfully", { id: loadingToast });
+      if (res.data.success && res.data.imageUrl) {
+        toast.success("Image uploaded successfully!", { id: loadingToast });
+        onDone(res.data.imageUrl);
       }
     } catch (error) {
       toast.error("Image upload failed: " + (error.response?.data?.message || error.message), { id: loadingToast });
     }
   };
 
-  // Render specific layout inside block list
+  // Render block content
   const renderBlockInput = (block, index) => {
     switch (block.type) {
       case "paragraph":
         return (
-          <div
-            ref={(el) => (blockRefs.current[block.id] = el)}
-            contentEditable
-            suppressContentEditableWarning
-            className="editable-area text-slate-800 leading-relaxed py-1 focus:outline-none min-h-[1.5em]"
-            placeholder="Type '/' for commands..."
+          <EditableContent
+            blockId={block.id}
+            html={block.data.content || ""}
+            placeholder="Type your paragraph or press '/' for commands..."
+            className="text-slate-800 leading-relaxed py-1 text-base min-h-[1.7em]"
+            onUpdate={(val) => updateBlockData(block.id, { content: val })}
             onKeyDown={(e) => handleKeyDown(e, block, index)}
-            onInput={(e) => handleInput(e, block.id)}
             onFocus={() => setActiveBlockIndex(index)}
-            dangerouslySetInnerHTML={{ __html: block.data.content || "" }}
+            onPasteBlocks={(htmlData, plainText) => handlePasteBlocks(index, htmlData, plainText)}
           />
         );
 
       case "heading":
-        const HeadingTag = `h${block.data.level || 2}`;
+        const level = block.data.level || 2;
+        const headingStyles = level === 1 ? "text-3xl font-black" : level === 2 ? "text-2xl font-extrabold" : "text-xl font-bold";
         return (
-          <HeadingTag
-            ref={(el) => (blockRefs.current[block.id] = el)}
-            contentEditable
-            suppressContentEditableWarning
-            className={`editable-area font-black text-slate-900 border-none outline-none focus:outline-none py-1 ${
-              block.data.level === 1 ? "text-3xl" : block.data.level === 2 ? "text-2xl" : "text-xl"
-            }`}
-            placeholder={`Heading ${block.data.level}`}
-            onKeyDown={(e) => handleKeyDown(e, block, index)}
-            onInput={(e) => handleInput(e, block.id)}
-            onFocus={() => setActiveBlockIndex(index)}
-            dangerouslySetInnerHTML={{ __html: block.data.content || "" }}
-          />
+          <div className="flex items-center gap-3">
+            <span className="text-[10px] font-black uppercase text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200 shrink-0">
+              H{level}
+            </span>
+            <EditableContent
+              blockId={block.id}
+              tagName={`h${level}`}
+              html={block.data.content || ""}
+              placeholder={`Heading ${level}...`}
+              className={`text-slate-900 ${headingStyles} flex-1 py-1`}
+              onUpdate={(val) => updateBlockData(block.id, { content: val })}
+              onKeyDown={(e) => handleKeyDown(e, block, index)}
+              onFocus={() => setActiveBlockIndex(index)}
+              onPasteBlocks={(htmlData, plainText) => handlePasteBlocks(index, htmlData, plainText)}
+            />
+          </div>
         );
 
       case "blockquote":
         return (
-          <blockquote className="border-l-4 border-[#24672E] pl-4 italic text-slate-600 bg-slate-50 p-2.5 rounded-r-xl">
-            <div
-              ref={(el) => (blockRefs.current[block.id] = el)}
-              contentEditable
-              suppressContentEditableWarning
-              className="editable-area focus:outline-none"
-              placeholder="Blockquote statement..."
+          <blockquote className="border-l-4 border-[#24672E] pl-4 italic text-slate-700 bg-slate-50 p-3 rounded-r-2xl">
+            <EditableContent
+              blockId={block.id}
+              html={block.data.content || ""}
+              placeholder="Quote or highlighted statement..."
+              className="text-slate-700 italic focus:outline-none"
+              onUpdate={(val) => updateBlockData(block.id, { content: val })}
               onKeyDown={(e) => handleKeyDown(e, block, index)}
-              onInput={(e) => handleInput(e, block.id)}
               onFocus={() => setActiveBlockIndex(index)}
-              dangerouslySetInnerHTML={{ __html: block.data.content || "" }}
+              onPasteBlocks={(htmlData, plainText) => handlePasteBlocks(index, htmlData, plainText)}
             />
           </blockquote>
         );
 
       case "list":
         return (
-          <div className="pl-6">
-            {block.data.items.map((item, idx) => (
-              <div key={idx} className="flex items-start gap-2 py-0.5 relative group">
-                <span className="text-slate-400 font-bold shrink-0 mt-0.5">
+          <div className="pl-6 space-y-1.5">
+            {(block.data.items || [""]).map((item, idx) => (
+              <div key={idx} className="flex items-start gap-2.5 relative group">
+                <span className="text-slate-500 font-bold shrink-0 mt-0.5">
                   {block.data.style === "bullet" ? "•" : `${idx + 1}.`}
                 </span>
-                <div
-                  contentEditable
-                  suppressContentEditableWarning
-                  className="editable-area flex-1 focus:outline-none text-slate-800"
+                <EditableContent
+                  blockId={`${block.id}_${idx}`}
+                  html={item || ""}
                   placeholder="List item..."
+                  className="flex-1 text-slate-800 py-0.5"
+                  onUpdate={(val) => {
+                    const newItems = [...(block.data.items || [""])];
+                    newItems[idx] = val;
+                    updateBlockData(block.id, { items: newItems });
+                  }}
+                  onPasteBlocks={(htmlData, plainText) => handlePasteBlocks(index, htmlData, plainText)}
                   onKeyDown={(e) => {
                     if (e.key === "Enter") {
                       e.preventDefault();
-                      const newItems = [...block.data.items];
+                      const newItems = [...(block.data.items || [""])];
                       newItems.splice(idx + 1, 0, "");
                       updateBlockData(block.id, { items: newItems });
-                      setTimeout(() => {
-                        const els = document.querySelectorAll(`[data-block-id="${block.id}"] .editable-area`);
-                        els[idx + 1]?.focus();
-                      }, 50);
                     } else if (e.key === "Backspace" && item === "") {
                       e.preventDefault();
-                      if (block.data.items.length === 1) {
-                        // Mutate to paragraph
+                      if ((block.data.items || []).length <= 1) {
                         const updated = blocks.map(b => b.id === block.id ? { ...b, type: "paragraph", data: { content: "" } } : b);
                         onChange(updated);
                       } else {
                         const newItems = block.data.items.filter((_, i) => i !== idx);
                         updateBlockData(block.id, { items: newItems });
-                        setTimeout(() => {
-                          const els = document.querySelectorAll(`[data-block-id="${block.id}"] .editable-area`);
-                          els[idx - 1]?.focus();
-                        }, 50);
                       }
                     }
                   }}
-                  onInput={(e) => {
-                    const newItems = [...block.data.items];
-                    newItems[idx] = e.target.innerHTML;
-                    updateBlockData(block.id, { items: newItems });
-                  }}
                   onFocus={() => setActiveBlockIndex(index)}
-                  dangerouslySetInnerHTML={{ __html: item || "" }}
                 />
               </div>
             ))}
           </div>
         );
 
-      case "image":
+      case "slider":
+        const sliderImages = block.data.images || [];
         return (
-          <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-2">
-              <span className="text-[10px] font-black uppercase text-slate-500 tracking-wider flex items-center gap-1.5">
-                <ImageIcon className="w-3.5 h-3.5 text-emerald-700" /> Image Block
+          <div className="bg-slate-50 border border-slate-200 rounded-3xl p-5 space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-200/80 pb-3">
+              <span className="text-[11px] font-black uppercase text-slate-700 tracking-wider flex items-center gap-2">
+                <Sliders className="w-4 h-4 text-[#1E971D]" /> Image Slider / Carousel Block
               </span>
               <div className="flex items-center gap-2">
                 <button
                   type="button"
-                  onClick={() => setPickerBlockId(block.id)}
-                  className="bg-emerald-50 text-[#24672E] px-3 py-1 rounded-xl text-[10px] font-black uppercase tracking-wider hover:bg-emerald-100 transition-colors"
+                  onClick={() => setPickerConfig({ blockId: block.id, type: "slider" })}
+                  className="bg-emerald-50 hover:bg-emerald-100 text-[#1E971D] px-3.5 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wider transition-colors border border-emerald-200"
+                >
+                  Add from Gallery
+                </button>
+                <label className="bg-slate-900 hover:bg-slate-800 text-white px-3.5 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wider transition-colors cursor-pointer flex items-center gap-1">
+                  <Upload size={12} /> Upload Slide
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(e) => {
+                      const file = e.target.files[0];
+                      if (file) {
+                        handleUploadImage(file, (url) => {
+                          updateBlockData(block.id, { images: [...sliderImages, url] });
+                        });
+                      }
+                    }}
+                  />
+                </label>
+              </div>
+            </div>
+
+            {sliderImages.length > 0 ? (
+              <div>
+                <BlogImageSlider images={sliderImages} title="Article Slider" />
+
+                {/* Thumbnail Management Row */}
+                <div className="flex flex-wrap gap-2 mt-3 pt-3 border-t border-slate-200">
+                  {sliderImages.map((imgUrl, sIdx) => (
+                    <div key={sIdx} className="relative w-16 h-16 rounded-xl overflow-hidden border border-slate-250 group">
+                      <img src={imgUrl} alt={`Slide ${sIdx + 1}`} className="w-full h-full object-cover" />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const updated = sliderImages.filter((_, i) => i !== sIdx);
+                          updateBlockData(block.id, { images: updated });
+                        }}
+                        className="absolute top-1 right-1 bg-rose-600 text-white p-1 rounded-full opacity-90 hover:opacity-100 shadow"
+                        title="Remove slide"
+                      >
+                        <X size={10} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <div className="border-2 border-dashed border-slate-300 rounded-2xl p-8 text-center bg-white">
+                <Sliders className="w-8 h-8 text-slate-400 mx-auto mb-2" />
+                <p className="text-xs font-bold text-slate-600">No slides added yet to this carousel.</p>
+                <p className="text-[10px] text-slate-400 mt-1">Upload images or select from media gallery above to create an interactive slider.</p>
+              </div>
+            )}
+          </div>
+        );
+
+      case "image":
+        return (
+          <div className="bg-slate-50 border border-slate-200 rounded-3xl p-5 space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-200/80 pb-2.5">
+              <span className="text-[11px] font-black uppercase text-slate-700 tracking-wider flex items-center gap-1.5">
+                <ImageIcon className="w-4 h-4 text-[#1E971D]" /> Single Image Block
+              </span>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setPickerConfig({ blockId: block.id, type: "single" })}
+                  className="bg-emerald-50 text-[#1E971D] hover:bg-emerald-100 px-3 py-1 rounded-xl text-[10px] font-black uppercase tracking-wider border border-emerald-200"
                 >
                   Gallery Library
                 </button>
-                <button
-                  type="button"
-                  onClick={() => updateBlockData(block.id, { url: "" })}
-                  className="text-rose-600 hover:bg-rose-50 p-1 rounded-lg transition-colors"
-                  title="Remove image"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
+                {block.data.url && (
+                  <button
+                    type="button"
+                    onClick={() => updateBlockData(block.id, { url: "" })}
+                    className="text-rose-600 hover:bg-rose-50 p-1.5 rounded-lg"
+                    title="Remove image"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                )}
               </div>
             </div>
 
@@ -541,62 +682,37 @@ const BlogBlockEditor = ({ blocks, onChange }) => {
                 <img
                   src={block.data.url}
                   alt={block.data.alt}
-                  style={{ width: block.data.width || "100%", alignSelf: block.data.align || "center" }}
-                  className="rounded-xl shadow-md max-h-96 object-contain"
+                  style={{ width: block.data.width || "100%" }}
+                  className="rounded-2xl shadow-md max-h-[480px] object-contain bg-white border border-slate-100 p-1"
                 />
 
-                <div className="grid grid-cols-2 gap-4 w-full mt-4 bg-white p-3 rounded-xl border border-slate-150">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full mt-4 bg-white p-4 rounded-2xl border border-slate-200">
                   <div className="flex flex-col gap-1">
                     <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Image Alt Text (SEO)</label>
                     <input
                       type="text"
-                      className="border border-slate-200 rounded-lg p-2 text-xs outline-none focus:border-slate-400"
-                      value={block.data.alt}
+                      className="border border-slate-200 rounded-xl p-2.5 text-xs outline-none focus:border-slate-400"
+                      value={block.data.alt || ""}
                       onChange={(e) => updateBlockData(block.id, { alt: e.target.value })}
                       placeholder="SEO tag Alt description..."
                     />
                   </div>
                   <div className="flex flex-col gap-1">
-                    <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Caption text</label>
+                    <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Caption Label</label>
                     <input
                       type="text"
-                      className="border border-slate-200 rounded-lg p-2 text-xs outline-none focus:border-slate-400"
-                      value={block.data.caption}
+                      className="border border-slate-200 rounded-xl p-2.5 text-xs outline-none focus:border-slate-400"
+                      value={block.data.caption || ""}
                       onChange={(e) => updateBlockData(block.id, { caption: e.target.value })}
                       placeholder="Display label below image..."
-                    />
-                  </div>
-
-                  <div className="flex flex-col gap-1">
-                    <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Alignment</label>
-                    <select
-                      className="border border-slate-200 rounded-lg p-2 text-xs outline-none"
-                      value={block.data.align}
-                      onChange={(e) => updateBlockData(block.id, { align: e.target.value })}
-                    >
-                      <option value="center">Center</option>
-                      <option value="left">Left Float</option>
-                      <option value="right">Right Float</option>
-                      <option value="full">Full Width</option>
-                    </select>
-                  </div>
-
-                  <div className="flex flex-col gap-1">
-                    <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Width (%)</label>
-                    <input
-                      type="text"
-                      className="border border-slate-200 rounded-lg p-2 text-xs outline-none"
-                      value={block.data.width}
-                      onChange={(e) => updateBlockData(block.id, { width: e.target.value })}
-                      placeholder="e.g. 100% or 50%"
                     />
                   </div>
                 </div>
               </div>
             ) : (
-              <div className="flex flex-col items-center justify-center p-8 bg-white border-2 border-dashed border-slate-200 rounded-xl hover:border-slate-400 transition-colors">
+              <div className="flex flex-col items-center justify-center p-8 bg-white border-2 border-dashed border-slate-300 rounded-2xl">
                 <ImageIcon className="w-8 h-8 text-slate-400 mb-2" />
-                <p className="text-xs text-slate-500 font-bold mb-3">Drag & Drop image here, or upload file</p>
+                <p className="text-xs text-slate-600 font-bold mb-3">Upload an image file or pick from library</p>
                 <div className="flex gap-2">
                   <label className="bg-slate-900 text-white text-[10px] font-black uppercase tracking-wider px-4 py-2 rounded-xl cursor-pointer hover:bg-slate-800 transition-colors">
                     Upload Image
@@ -604,12 +720,17 @@ const BlogBlockEditor = ({ blocks, onChange }) => {
                       type="file"
                       accept="image/*"
                       className="hidden"
-                      onChange={(e) => handleUploadImageBlock(block.id, e.target.files[0])}
+                      onChange={(e) => {
+                        const file = e.target.files[0];
+                        if (file) {
+                          handleUploadImage(file, (url) => updateBlockData(block.id, { url }));
+                        }
+                      }}
                     />
                   </label>
                   <button
                     type="button"
-                    onClick={() => setPickerBlockId(block.id)}
+                    onClick={() => setPickerConfig({ blockId: block.id, type: "single" })}
                     className="border border-slate-300 text-slate-700 text-[10px] font-black uppercase tracking-wider px-4 py-2 rounded-xl hover:bg-slate-50"
                   >
                     Media Gallery
@@ -621,15 +742,21 @@ const BlogBlockEditor = ({ blocks, onChange }) => {
         );
 
       case "callout":
+        const cType = block.data.type || "info";
+        let cBorder = "border-sky-400 bg-sky-50 text-sky-900";
+        if (cType === "tip") cBorder = "border-emerald-400 bg-emerald-50 text-emerald-900";
+        else if (cType === "note") cBorder = "border-amber-400 bg-amber-50 text-amber-900";
+        else if (cType === "warning") cBorder = "border-rose-400 bg-rose-50 text-rose-900";
+
         return (
-          <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 space-y-3">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-2">
-              <span className="text-[10px] font-black uppercase text-slate-500 tracking-wider flex items-center gap-1.5">
-                <AlertCircle className="w-3.5 h-3.5 text-amber-600" /> Callout Alert Box
+          <div className={`border-l-4 p-4 rounded-2xl space-y-3 ${cBorder}`}>
+            <div className="flex items-center justify-between border-b border-black/10 pb-2">
+              <span className="text-[10px] font-black uppercase tracking-wider flex items-center gap-1.5">
+                <AlertCircle className="w-3.5 h-3.5" /> Callout Alert
               </span>
               <select
-                className="text-[10px] font-black uppercase border border-slate-200 rounded-lg p-1 outline-none cursor-pointer bg-white"
-                value={block.data.type}
+                className="text-[10px] font-black uppercase border border-slate-300 rounded-lg p-1 bg-white text-slate-800 outline-none cursor-pointer"
+                value={cType}
                 onChange={(e) => updateBlockData(block.id, { type: e.target.value })}
               >
                 <option value="info">Info (Blue)</option>
@@ -638,22 +765,22 @@ const BlogBlockEditor = ({ blocks, onChange }) => {
                 <option value="warning">Warning (Red)</option>
               </select>
             </div>
-            <div
-              contentEditable
-              suppressContentEditableWarning
-              className="editable-area focus:outline-none text-slate-800 text-sm italic"
+            <EditableContent
+              blockId={block.id}
+              html={block.data.content || ""}
               placeholder="Enter highlighted message..."
-              onInput={(e) => updateBlockData(block.id, { content: e.target.innerHTML })}
-              dangerouslySetInnerHTML={{ __html: block.data.content || "" }}
+              className="text-sm italic py-1 focus:outline-none"
+              onUpdate={(val) => updateBlockData(block.id, { content: val })}
+              onFocus={() => setActiveBlockIndex(index)}
             />
           </div>
         );
 
       case "bookmark":
         return (
-          <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-2">
-              <span className="text-[10px] font-black uppercase text-slate-500 tracking-wider flex items-center gap-1.5">
+          <div className="bg-slate-50 border border-slate-200 rounded-3xl p-5 space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-200 pb-2">
+              <span className="text-[10px] font-black uppercase text-slate-600 tracking-wider flex items-center gap-1.5">
                 <LinkIcon className="w-3.5 h-3.5 text-sky-600" /> Webpage Link Bookmark
               </span>
             </div>
@@ -661,14 +788,9 @@ const BlogBlockEditor = ({ blocks, onChange }) => {
             <div className="flex gap-2">
               <input
                 type="text"
-                className="flex-1 border border-slate-200 rounded-xl p-2.5 text-xs outline-none focus:border-slate-400"
+                className="flex-1 border border-slate-200 rounded-xl p-2.5 text-xs outline-none bg-white focus:border-slate-400"
                 placeholder="Enter URL to fetch (https://...)"
-                defaultValue={block.data.url}
-                onBlur={(e) => {
-                  if (e.target.value !== block.data.url) {
-                    fetchBookmarkMeta(block.id, e.target.value);
-                  }
-                }}
+                defaultValue={block.data.url || ""}
                 onKeyDown={(e) => {
                   if (e.key === "Enter") {
                     e.preventDefault();
@@ -679,22 +801,22 @@ const BlogBlockEditor = ({ blocks, onChange }) => {
               <button
                 type="button"
                 onClick={(e) => {
-                  const inputVal = e.target.previousSibling.value;
+                  const inputVal = e.currentTarget.previousSibling.value;
                   fetchBookmarkMeta(block.id, inputVal);
                 }}
                 disabled={bookmarkFetchingId === block.id}
-                className="bg-slate-900 text-white font-bold px-4 rounded-xl text-xs flex items-center gap-1 hover:bg-emerald-600 disabled:opacity-50"
+                className="bg-slate-900 text-white font-bold px-4 rounded-xl text-xs flex items-center gap-1 hover:bg-[#1E971D] disabled:opacity-50"
               >
                 {bookmarkFetchingId === block.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : "Fetch"}
               </button>
             </div>
 
             {block.data.title && (
-              <div className="bg-white border border-slate-200 rounded-2xl p-4 flex gap-4 shadow-sm hover:shadow-md transition-shadow relative">
+              <div className="bg-white border border-slate-200 rounded-2xl p-4 flex gap-4 shadow-sm">
                 <div className="flex-1 min-w-0">
                   <h4 className="text-sm font-bold text-slate-900 line-clamp-1">{block.data.title}</h4>
                   <p className="text-xs text-slate-500 line-clamp-2 mt-1">{block.data.description}</p>
-                  <span className="text-[10px] text-emerald-700 font-extrabold flex items-center gap-1 mt-2.5">
+                  <span className="text-[10px] text-[#1E971D] font-extrabold flex items-center gap-1 mt-2.5">
                     <ExternalLink className="w-3 h-3" /> {block.data.domain}
                   </span>
                 </div>
@@ -708,58 +830,31 @@ const BlogBlockEditor = ({ blocks, onChange }) => {
 
       case "toc":
         return (
-          <div className="bg-slate-50 border border-slate-200 rounded-2xl p-5 space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-2">
-              <span className="text-[10px] font-black uppercase text-slate-500 tracking-wider flex items-center gap-1.5">
-                <BookOpen className="w-3.5 h-3.5 text-[#24672E]" /> Table of Contents Index
-              </span>
-            </div>
-            
-            <div className="flex flex-wrap gap-4 items-center bg-white p-3 rounded-xl border border-slate-150">
-              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Included Levels:</span>
-              {["h1", "h2", "h3", "h4", "h5", "h6"].map((h) => (
-                <label key={h} className="flex items-center gap-1.5 text-xs text-slate-700 font-bold cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={block.data.levels.includes(h)}
-                    onChange={(e) => {
-                      const updated = e.target.checked
-                        ? [...block.data.levels, h]
-                        : block.data.levels.filter(l => l !== h);
-                      updateBlockData(block.id, { levels: updated });
-                    }}
-                    className="rounded text-[#24672E] focus:ring-[#24672E]"
-                  />
-                  {h.toUpperCase()}
-                </label>
-              ))}
-            </div>
-
-            <div className="border border-dashed border-slate-200 p-4 rounded-xl bg-white text-center text-xs text-slate-400 italic font-medium">
-              [ Table of Contents Index - Automatically scanned and generated from article headings upon saving ]
-            </div>
+          <div className="bg-slate-50 border border-slate-200 rounded-3xl p-5 space-y-3">
+            <span className="text-[10px] font-black uppercase text-slate-600 tracking-wider flex items-center gap-1.5 border-b border-slate-200 pb-2">
+              <BookOpen className="w-3.5 h-3.5 text-[#1E971D]" /> Table of Contents Block
+            </span>
+            <p className="text-xs text-slate-500 italic">
+              Automatically scans article H1, H2, and H3 headings and renders a jump link index.
+            </p>
           </div>
         );
 
       case "embed":
         return (
-          <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-2">
-              <span className="text-[10px] font-black uppercase text-slate-500 tracking-wider flex items-center gap-1.5">
-                <Youtube className="w-3.5 h-3.5 text-red-650" /> Video Frame Embed
-              </span>
-            </div>
-
+          <div className="bg-slate-50 border border-slate-200 rounded-3xl p-5 space-y-3">
+            <span className="text-[10px] font-black uppercase text-slate-600 tracking-wider flex items-center gap-1.5 border-b border-slate-200 pb-2">
+              <Youtube className="w-3.5 h-3.5 text-red-600" /> Video Frame Embed
+            </span>
             <input
               type="text"
-              className="w-full border border-slate-200 rounded-xl p-2.5 text-xs outline-none focus:border-slate-400"
+              className="w-full border border-slate-200 rounded-xl p-2.5 text-xs outline-none bg-white focus:border-slate-400"
               placeholder="Paste YouTube video link (e.g. https://www.youtube.com/watch?v=...)"
-              value={block.data.url}
+              value={block.data.url || ""}
               onChange={(e) => updateBlockData(block.id, { url: e.target.value })}
             />
-
             {block.data.url && (
-              <div className="aspect-video w-full rounded-xl overflow-hidden shadow">
+              <div className="aspect-video w-full rounded-2xl overflow-hidden shadow">
                 <iframe
                   src={
                     block.data.url.includes("youtube.com/watch")
@@ -781,24 +876,22 @@ const BlogBlockEditor = ({ blocks, onChange }) => {
         return (
           <div className="py-4 flex items-center justify-center relative group">
             <div className="w-full h-0.5 bg-slate-200" />
-            <span className="absolute text-[8px] bg-slate-200 text-slate-500 px-2 py-0.5 rounded font-black tracking-widest uppercase opacity-0 group-hover:opacity-100 transition-opacity">
-              Spacer Divider
+            <span className="absolute text-[8px] bg-slate-200 text-slate-500 px-2 py-0.5 rounded font-black tracking-widest uppercase">
+              Divider Spacer
             </span>
           </div>
         );
 
       case "html":
         return (
-          <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 space-y-3 font-mono">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-2">
-              <span className="text-[10px] font-black uppercase text-slate-500 tracking-wider flex items-center gap-1.5">
-                <Code className="w-3.5 h-3.5 text-purple-700" /> Custom HTML / Twig Template
-              </span>
-            </div>
+          <div className="bg-slate-50 border border-slate-200 rounded-3xl p-5 space-y-3 font-mono">
+            <span className="text-[10px] font-black uppercase text-purple-700 tracking-wider flex items-center gap-1.5 border-b border-slate-200 pb-2">
+              <Code className="w-3.5 h-3.5" /> Custom HTML Snippet
+            </span>
             <textarea
-              className="w-full border border-slate-200 rounded-xl p-3 text-xs bg-slate-900 text-slate-100 outline-none resize-y h-32 focus:border-purple-500 leading-relaxed font-mono"
-              placeholder="<div class='custom-banner'>Insert HTML here</div>"
-              value={block.data.code}
+              className="w-full border border-slate-200 rounded-xl p-3 text-xs bg-slate-900 text-slate-100 outline-none resize-y h-32 focus:border-purple-500 font-mono"
+              placeholder="<div>Custom HTML here</div>"
+              value={block.data.code || ""}
               onChange={(e) => updateBlockData(block.id, { code: e.target.value })}
             />
           </div>
@@ -810,101 +903,98 @@ const BlogBlockEditor = ({ blocks, onChange }) => {
   };
 
   return (
-    <div className="space-y-6">
-      
-      {/* ── FLOAT DIALOG FORMATTING & AI TOOLBAR ── */}
+    <div
+      ref={editorContainerRef}
+      onMouseUp={handleCheckSelection}
+      onKeyUp={handleCheckSelection}
+      className="space-y-4 select-text"
+    >
+      {/* ── FLOATING FORMATTING & AI TOOLBAR ── */}
       {textSelection && (
         <div
           style={{ left: `${textSelection.x}px`, top: `${textSelection.y}px` }}
-          className="absolute z-[1900] -translate-x-1/2 bg-slate-900 border border-slate-700 rounded-xl shadow-2xl p-1.5 flex items-center gap-1 animate-fade-in text-white"
+          className="absolute z-[2500] -translate-x-1/2 bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl p-1.5 flex items-center gap-1 animate-fade-in text-white select-none"
         >
           <button
             type="button"
-            onClick={() => applyInlineFormatting("bold")}
-            className="p-1.5 hover:bg-slate-800 rounded-lg text-slate-200"
+            onMouseDown={(e) => { e.preventDefault(); applyInlineFormatting("bold"); }}
+            className="p-1.5 hover:bg-slate-800 rounded-lg text-slate-200 cursor-pointer"
             title="Bold"
           >
             <Bold size={15} />
           </button>
           <button
             type="button"
-            onClick={() => applyInlineFormatting("italic")}
-            className="p-1.5 hover:bg-slate-800 rounded-lg text-slate-200"
+            onMouseDown={(e) => { e.preventDefault(); applyInlineFormatting("italic"); }}
+            className="p-1.5 hover:bg-slate-800 rounded-lg text-slate-200 cursor-pointer"
             title="Italic"
           >
             <Italic size={15} />
           </button>
           <button
             type="button"
-            onClick={() => applyInlineFormatting("underline")}
-            className="p-1.5 hover:bg-slate-800 rounded-lg text-slate-200"
+            onMouseDown={(e) => { e.preventDefault(); applyInlineFormatting("underline"); }}
+            className="p-1.5 hover:bg-slate-800 rounded-lg text-slate-200 cursor-pointer"
             title="Underline"
           >
             <Underline size={15} />
           </button>
           <button
             type="button"
-            onClick={() => applyInlineFormatting("strikeThrough")}
-            className="p-1.5 hover:bg-slate-800 rounded-lg text-slate-200"
+            onMouseDown={(e) => { e.preventDefault(); applyInlineFormatting("strikeThrough"); }}
+            className="p-1.5 hover:bg-slate-800 rounded-lg text-slate-200 cursor-pointer"
             title="Strikethrough"
           >
             <Strikethrough size={15} />
           </button>
           <button
             type="button"
-            onClick={() => {
-              const url = prompt("Enter URL link destination:");
+            onMouseDown={(e) => {
+              e.preventDefault();
+              const url = prompt("Enter hyperlink destination URL:");
               if (url) applyInlineFormatting("createLink", url);
             }}
-            className="p-1.5 hover:bg-slate-800 rounded-lg text-slate-200"
-            title="Link"
+            className="p-1.5 hover:bg-slate-800 rounded-lg text-slate-200 cursor-pointer"
+            title="Add Link"
           >
             <LinkIcon size={15} />
           </button>
 
           <div className="w-px h-5 bg-slate-700 mx-1" />
 
-          {/* AI Selection Presets */}
+          {/* AI Helper Presets */}
           <button
             type="button"
-            onClick={() => handleAiTextAction("rewrite")}
-            className="p-1.5 hover:bg-slate-800 rounded-lg text-emerald-455 flex items-center gap-1 text-[10px] font-black uppercase tracking-wider"
-            title="AI Rewrite selection"
+            onMouseDown={(e) => { e.preventDefault(); handleAiTextAction("rewrite"); }}
+            className="p-1.5 hover:bg-slate-800 rounded-lg text-emerald-400 flex items-center gap-1 text-[10px] font-black uppercase tracking-wider cursor-pointer"
           >
             <Sparkles size={13} className="text-[#FFDD00]" /> Rewrite
           </button>
           <button
             type="button"
-            onClick={() => handleAiTextAction("improve")}
-            className="p-1.5 hover:bg-slate-800 rounded-lg text-emerald-455 flex items-center gap-1 text-[10px] font-black uppercase tracking-wider"
+            onMouseDown={(e) => { e.preventDefault(); handleAiTextAction("improve"); }}
+            className="p-1.5 hover:bg-slate-800 rounded-lg text-emerald-400 text-[10px] font-black uppercase tracking-wider cursor-pointer"
           >
             Improve
           </button>
           <button
             type="button"
-            onClick={() => handleAiTextAction("expand")}
-            className="p-1.5 hover:bg-slate-800 rounded-lg text-emerald-455 flex items-center gap-1 text-[10px] font-black uppercase tracking-wider"
+            onMouseDown={(e) => { e.preventDefault(); handleAiTextAction("expand"); }}
+            className="p-1.5 hover:bg-slate-800 rounded-lg text-emerald-400 text-[10px] font-black uppercase tracking-wider cursor-pointer"
           >
             Expand
-          </button>
-          <button
-            type="button"
-            onClick={() => handleAiTextAction("shorten")}
-            className="p-1.5 hover:bg-slate-800 rounded-lg text-emerald-455 flex items-center gap-1 text-[10px] font-black uppercase tracking-wider"
-          >
-            Shorten
           </button>
         </div>
       )}
 
-      {/* ── AI COMPILATION PREVIEW CARD MODAL ── */}
+      {/* ── AI PREVIEW MODAL ── */}
       {aiPreview && (
-        <div className="fixed inset-0 z-[2200] flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-[3000] flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-xs" onClick={() => setAiPreview(null)} />
           <div className="bg-white rounded-3xl w-full max-w-xl shadow-2xl overflow-hidden z-10 flex flex-col max-h-[75vh]">
-            <div className="bg-[#24672E] p-4 text-white flex justify-between items-center">
+            <div className="bg-[#1E971D] p-4 text-white flex justify-between items-center">
               <span className="font-extrabold uppercase text-xs tracking-wider flex items-center gap-1.5">
-                <Sparkles className="w-4 h-4 text-yellow-300" /> AI text actions: {aiPreview.actionName}
+                <Sparkles className="w-4 h-4 text-[#FFDD00]" /> AI {aiPreview.actionName} Suggestion
               </span>
               <button onClick={() => setAiPreview(null)}>
                 <X size={20} />
@@ -913,15 +1003,13 @@ const BlogBlockEditor = ({ blocks, onChange }) => {
             
             <div className="p-6 overflow-y-auto space-y-4 flex-grow bg-slate-50/50">
               <div className="space-y-1">
-                <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Original Text Selection</span>
-                <p className="text-xs bg-slate-100 p-3 rounded-xl text-slate-650 border border-slate-200/50">{aiPreview.originalText}</p>
+                <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Original Text</span>
+                <p className="text-xs bg-slate-100 p-3 rounded-xl text-slate-700 border border-slate-200">{aiPreview.originalText}</p>
               </div>
               
               <div className="space-y-1">
-                <span className="text-[9px] font-black text-[#24672E] uppercase tracking-widest flex items-center gap-1">
-                  Generated AI Optimization
-                </span>
-                <div className="text-xs bg-emerald-50 border border-emerald-250 p-4 rounded-xl text-emerald-950 font-medium leading-relaxed">
+                <span className="text-[9px] font-black text-[#1E971D] uppercase tracking-widest">AI Generated Replacement</span>
+                <div className="text-xs bg-emerald-50 border border-emerald-200 p-4 rounded-xl text-emerald-950 font-medium leading-relaxed">
                   {aiPreview.newText}
                 </div>
               </div>
@@ -931,14 +1019,14 @@ const BlogBlockEditor = ({ blocks, onChange }) => {
               <button
                 type="button"
                 onClick={() => setAiPreview(null)}
-                className="px-4 py-2 border border-slate-200 rounded-xl text-xs font-bold text-slate-500 hover:bg-slate-50 transition-colors"
+                className="px-4 py-2 border border-slate-200 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-50"
               >
-                Discard AI
+                Discard
               </button>
               <button
                 type="button"
                 onClick={confirmAiReplace}
-                className="px-5 py-2 bg-[#24672E] text-white hover:bg-slate-900 rounded-xl text-xs font-bold transition-all shadow-md"
+                className="px-5 py-2 bg-[#1E971D] text-white hover:bg-slate-900 rounded-xl text-xs font-bold shadow-md transition-colors"
               >
                 Apply replacement
               </button>
@@ -947,33 +1035,33 @@ const BlogBlockEditor = ({ blocks, onChange }) => {
         </div>
       )}
 
-      {/* ── AI SPINNER OVERLAY ── */}
+      {/* ── AI SPINNER ── */}
       {aiLoading && (
-        <div className="fixed inset-0 z-[2300] bg-slate-900/30 backdrop-blur-xs flex items-center justify-center">
-          <div className="bg-white p-6 rounded-2xl shadow-2xl flex flex-col items-center gap-3">
-            <Loader2 className="w-8 h-8 animate-spin text-[#24672E]" />
-            <span className="text-xs font-bold uppercase tracking-wider text-slate-500">AI Assistant writing...</span>
+        <div className="fixed inset-0 z-[3100] bg-slate-900/30 backdrop-blur-xs flex items-center justify-center">
+          <div className="bg-white p-6 rounded-3xl shadow-2xl flex flex-col items-center gap-3">
+            <Loader2 className="w-8 h-8 animate-spin text-[#1E971D]" />
+            <span className="text-xs font-bold uppercase tracking-wider text-slate-600">AI Assistant writing...</span>
           </div>
         </div>
       )}
 
-      {/* ── LIST OF EDITOR BLOCKS ── */}
+      {/* ── BLOCKS LIST ── */}
       <div className="space-y-4">
         {blocks.map((block, index) => (
           <div
             key={block.id}
             data-block-id={block.id}
-            className={`group relative flex items-start gap-4 p-2.5 rounded-2xl transition-all border ${
+            className={`group relative flex items-start gap-4 p-3 rounded-2xl transition-all border ${
               activeBlockIndex === index 
-                ? "bg-white border-slate-200 shadow-md shadow-slate-100/50" 
+                ? "bg-white border-slate-300 shadow-sm" 
                 : "border-transparent hover:bg-slate-50/70"
             }`}
           >
-            {/* Sidebar controls for each block on hover */}
-            <div className="absolute right-full mr-2 top-2.5 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity z-10 bg-white border border-slate-100 shadow-sm p-1 rounded-xl">
+            {/* Action Bar (Left of Block) */}
+            <div className="flex items-center gap-1 opacity-20 group-hover:opacity-100 transition-opacity shrink-0 pt-1">
               <button
                 type="button"
-                onClick={() => insertBlockAt(index, "paragraph")}
+                onClick={() => insertBlockAt(index + 1, "paragraph")}
                 className="p-1 hover:bg-slate-100 rounded text-slate-500"
                 title="Add block below"
               >
@@ -1007,21 +1095,19 @@ const BlogBlockEditor = ({ blocks, onChange }) => {
               </button>
             </div>
 
-            {/* Input component mapper */}
+            {/* Block Content Canvas */}
             <div className="flex-grow min-w-0">
               {renderBlockInput(block, index)}
             </div>
 
-            {/* Floating Slash Dropdown menu */}
+            {/* Slash Commands Dropdown */}
             {slashMenu && slashMenu.blockId === block.id && (
-              <div
-                ref={slashMenuRef}
-                className="absolute left-0 top-full mt-1.5 w-64 bg-white border border-slate-200 rounded-2xl shadow-2xl z-[2000] overflow-hidden animate-slide-up"
-              >
-                <div className="p-2 border-b border-slate-100 bg-slate-50">
-                  <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Blocks Catalog</span>
+              <div className="absolute left-10 top-full mt-1.5 w-72 bg-white border border-slate-200 rounded-2xl shadow-2xl z-[2600] overflow-hidden animate-slide-up">
+                <div className="p-2.5 border-b border-slate-100 bg-slate-50 flex items-center justify-between">
+                  <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Select Block Type</span>
+                  <span className="text-[9px] font-bold text-slate-400">Esc to cancel</span>
                 </div>
-                <div className="max-h-60 overflow-y-auto p-1.5 space-y-0.5">
+                <div className="max-h-64 overflow-y-auto p-1.5 space-y-0.5">
                   {COMMANDS.filter((c) =>
                     c.label.toLowerCase().includes(slashMenu.filter.toLowerCase())
                   ).map((cmd, cIdx) => {
@@ -1060,24 +1146,103 @@ const BlogBlockEditor = ({ blocks, onChange }) => {
         ))}
       </div>
 
-      {/* Helper trigger block for appending item at page end */}
-      <div className="flex justify-center pt-4 border-t border-slate-100">
+      {/* Bottom Action Bar */}
+      <div className="flex flex-wrap items-center justify-center gap-3 pt-6 border-t border-slate-100">
         <button
           type="button"
           onClick={() => insertBlockAt(blocks.length, "paragraph")}
-          className="flex items-center gap-1.5 bg-slate-100 text-slate-600 hover:bg-slate-900 hover:text-white px-5 py-2.5 rounded-2xl font-bold uppercase tracking-widest text-[10px] transition-all"
+          className="flex items-center gap-2 bg-slate-100 text-slate-700 hover:bg-slate-900 hover:text-white px-6 py-3 rounded-2xl font-bold uppercase tracking-widest text-[10px] transition-all shadow-2xs"
         >
-          <Plus size={14} /> Add Block at End
+          <Plus size={14} /> Add Paragraph Block
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setPasteModalOpen(true)}
+          className="flex items-center gap-2 bg-emerald-50 text-[#1E971D] hover:bg-[#1E971D] hover:text-white px-6 py-3 rounded-2xl font-bold uppercase tracking-widest text-[10px] transition-all border border-emerald-200 shadow-2xs cursor-pointer"
+          title="Paste entire article from ChatGPT or Markdown"
+        >
+          <Sparkles size={14} className="text-[#FFDD00]" /> Paste from ChatGPT / Docs
         </button>
       </div>
 
-      {/* Image Picker modal instance for inline insert */}
+      {/* ── SMART PASTE IMPORT MODAL ── */}
+      {pasteModalOpen && (
+        <div className="fixed inset-0 z-[3200] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-xs" onClick={() => setPasteModalOpen(false)} />
+          <div className="bg-white rounded-3xl w-full max-w-2xl shadow-2xl overflow-hidden z-10 flex flex-col max-h-[85vh]">
+            <div className="bg-[#1E971D] p-5 text-white flex justify-between items-center">
+              <div className="flex items-center gap-2">
+                <Sparkles className="w-5 h-5 text-[#FFDD00]" />
+                <div>
+                  <h3 className="font-extrabold uppercase text-xs tracking-wider">Paste from ChatGPT / Markdown / Docs</h3>
+                  <p className="text-[10px] text-white/80 mt-0.5">Automatically converts headings, bullet lists, bold text, and paragraphs into formatted blocks.</p>
+                </div>
+              </div>
+              <button onClick={() => setPasteModalOpen(false)} className="hover:bg-white/20 p-1.5 rounded-full transition-colors">
+                <X size={20} />
+              </button>
+            </div>
+
+            <div className="p-6 overflow-y-auto space-y-4 flex-grow bg-slate-50/50">
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">
+                  Paste Text Content Here (Ctrl + V)
+                </label>
+                <textarea
+                  className="w-full h-64 border border-slate-300 rounded-2xl p-4 text-xs font-mono leading-relaxed bg-white text-slate-800 outline-none focus:border-[#1E971D] focus:ring-1 focus:ring-[#1E971D] resize-y"
+                  placeholder="Paste your content generated from ChatGPT (e.g. # Heading, - Bullet points, **Bold**, paragraphs)..."
+                  value={pasteRawContent}
+                  onChange={(e) => setPasteRawContent(e.target.value)}
+                />
+              </div>
+
+              <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-3.5 text-xs text-emerald-950 space-y-1">
+                <span className="font-extrabold uppercase text-[10px] tracking-wider text-[#1E971D] block">Supported Formatting</span>
+                <p className="text-[11px] text-slate-600">
+                  • <strong># Heading 1, ## Heading 2, ### Heading 3</strong> → Converted to styled section headings<br />
+                  • <strong>- Bullet lists</strong> and <strong>1. Numbered lists</strong> → Converted to structured list blocks<br />
+                  • <strong>&gt; Quotes</strong> → Converted to blockquote highlights<br />
+                  • <strong>**Bold**</strong>, <em>*Italic*</em>, and [Links](url) → Preserved automatically
+                </p>
+              </div>
+            </div>
+
+            <div className="p-4 bg-white border-t border-slate-100 flex justify-end gap-2 shrink-0">
+              <button
+                type="button"
+                onClick={() => {
+                  setPasteRawContent("");
+                  setPasteModalOpen(false);
+                }}
+                className="px-5 py-2.5 border border-slate-200 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-50 cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleSmartPasteSubmit}
+                className="px-6 py-2.5 bg-[#1E971D] hover:bg-slate-900 text-white rounded-xl text-xs font-bold shadow-md transition-colors cursor-pointer"
+              >
+                Import & Convert to Blocks
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Media Gallery Picker Modal */}
       <ImagePickerModal
-        isOpen={pickerBlockId !== null}
-        onClose={() => setPickerBlockId(null)}
+        isOpen={pickerConfig !== null}
+        onClose={() => setPickerConfig(null)}
         onSelect={(url) => {
-          if (pickerBlockId) {
-            updateBlockData(pickerBlockId, { url });
+          if (!pickerConfig) return;
+          if (pickerConfig.type === "slider") {
+            const block = blocks.find(b => b.id === pickerConfig.blockId);
+            const currentImages = block?.data?.images || [];
+            updateBlockData(pickerConfig.blockId, { images: [...currentImages, url] });
+          } else {
+            updateBlockData(pickerConfig.blockId, { url });
           }
         }}
       />

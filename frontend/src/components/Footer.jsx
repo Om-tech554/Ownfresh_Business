@@ -48,7 +48,7 @@ const Footer = () => {
   };
 
   return (
-    <footer className="print:hidden bg-[#f5f5f5] text-gray-600 pt-16 pb-24 lg:pb-8 px-6 md:px-20">
+    <footer className="print:hidden bg-[#f5f5f5] text-gray-600 pt-16 pb-36 sm:pb-32 lg:pb-12 px-6 md:px-20">
       <div className="grid sm:grid-cols-2 md:grid-cols-4 gap-12">
 
         {/* Column 1 */}
@@ -215,12 +215,20 @@ const Footer = () => {
       </div>
 
       {/* Bottom Section */}
-      <div className="border-t mt-8 pt-6 text-center text-sm text-gray-500">
-        <p className="hover:text-black transition duration-300">
+      <div className="border-t border-gray-200 mt-8 pt-6 pb-2 text-center text-xs sm:text-sm text-gray-500 relative z-10 flex flex-col items-center justify-center gap-2">
+        <p className="hover:text-black transition duration-300 font-medium">
           © 2026 OwnFresh. All rights reserved.
         </p>
-        <p className="mt-2 hover:text-black transition duration-300">
-          Designed & developed by <a href="https://www.technewity.com" target="_blank" rel="noopener noreferrer">TechNewity Labs</a>
+        <p className="flex items-center justify-center flex-wrap gap-1 text-xs text-gray-600 font-medium">
+          <span>Designed & developed by</span>
+          <a
+            href="https://www.technewity.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center font-bold text-[#1E971D] hover:text-black hover:underline px-2.5 py-0.5 rounded-md bg-emerald-50 hover:bg-emerald-100 transition-all border border-emerald-200/80 shadow-2xs"
+          >
+            TechNewity Labs
+          </a>
         </p>
       </div>
     </footer>

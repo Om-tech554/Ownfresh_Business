@@ -5,6 +5,7 @@ import { useSelector } from "react-redux";
 import { ArrowLeft, Loader2, Calendar, Clock, ChevronUp, Edit3, Trash2 } from "lucide-react";
 import toast from "react-hot-toast";
 import { useConfirm } from "../hooks/ConfirmContext.jsx";
+import BlogImageSlider from "../components/BlogImageSlider";
 
 const AdminBlogDetails = () => {
   const { id } = useParams();
@@ -145,11 +146,23 @@ const AdminBlogDetails = () => {
             </div>
           </header>
 
-          <div className="prose prose-lg max-w-none mb-20">
-            <p className="text-gray-700 text-lg md:text-xl leading-[1.9] whitespace-pre-line">
-              {blog.description}
-            </p>
-          </div>
+          <div
+            className="prose prose-lg max-w-none mb-10 text-gray-700 leading-relaxed"
+            dangerouslySetInnerHTML={{ __html: blog.description }}
+          />
+
+          {/* GALLERY SLIDER (SLOTS 1-4) */}
+          {[blog.image1, blog.image2, blog.image3, blog.image4].filter(Boolean).length > 0 && (
+            <div className="mb-20 pt-8 border-t border-gray-100">
+              <h3 className="text-xl font-bold text-gray-900 mb-4 uppercase tracking-wide">
+                Gallery Slider
+              </h3>
+              <BlogImageSlider
+                images={[blog.image1, blog.image2, blog.image3, blog.image4].filter(Boolean)}
+                title={blog.title}
+              />
+            </div>
+          )}
         </article>
 
         <footer className="mt-20 pt-10 border-t border-gray-100 flex flex-col items-center">

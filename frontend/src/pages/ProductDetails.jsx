@@ -38,6 +38,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { addToCart } from "../redux/userslice";
 import ProductCard from "../components/ProductCard";
 import Navbar from "../components/Navbar";
+import { cleanProductName, getDynamicName } from "../utils/productUtils";
 import SLink from "../components/SLink";
 import SEO from "../components/SEO";
 import ProductReviews from "../components/ProductReviews";
@@ -282,16 +283,6 @@ const OIL_KNOWLEDGE_BASE = {
       }
     ]
   }
-};
-
-const getDynamicName = (productName, variantName) => {
-  if (!productName) return "";
-  if (!variantName) return productName;
-  const sizeRegex = /\b\d+(?:\.\d+)?\s*(?:ml|l|litre|liter|litres|liters|ltr|ltrs)\b/i;
-  if (sizeRegex.test(productName)) {
-    return productName.replace(sizeRegex, variantName);
-  }
-  return `${productName} - ${variantName}`;
 };
 
 const ProductDetails = () => {
@@ -635,7 +626,7 @@ const ProductDetails = () => {
   return (
     <>
       <SEO
-        title={displayName || product.name}
+        title={displayName || cleanProductName(product.name)}
         description={product.shortDesc}
         image={activeImage || product.image}
         url={`/product/${product._id}`}
@@ -652,7 +643,7 @@ const ProductDetails = () => {
             <span>/</span>
             <SLink to="/shop" className="hover:text-slate-800 whitespace-nowrap">Shop</SLink>
             <span>/</span>
-            <span className="text-slate-800 truncate">{displayName || product.name}</span>
+            <span className="text-slate-800 truncate">{displayName || cleanProductName(product.name)}</span>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start">
@@ -772,7 +763,7 @@ const ProductDetails = () => {
 
               {/* Title */}
               <h1 className="text-2xl sm:text-4xl font-black text-slate-900 tracking-tight uppercase leading-tight mt-2">
-                {displayName || product.name}
+                {displayName || cleanProductName(product.name)}
               </h1>
 
               {/* SKU & Stock Info */}

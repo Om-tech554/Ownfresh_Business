@@ -23,6 +23,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { addToCart } from "../redux/userslice";
 import SLink from "./SLink";
 import SEO from "./SEO";
+import { cleanProductName, getDynamicName } from "../utils/productUtils";
 import ProductCard from "./ProductCard";
 
 const BOTTLE_SIZES = ["All", "250 ml", "500 ml", "1 Litre", "2 Litre", "5 Litre", "15 Litre"];
@@ -193,16 +194,6 @@ const Shop = () => {
       toast.error("This product is currently out of stock");
       return;
     }
-
-    const getDynamicName = (productName, variantName) => {
-      if (!productName) return "";
-      if (!variantName) return productName;
-      const sizeRegex = /\b\d+(?:\.\d+)?\s*(?:ml|l|litre|liter|litres|liters|ltr|ltrs)\b/i;
-      if (sizeRegex.test(productName)) {
-        return productName.replace(sizeRegex, variantName);
-      }
-      return `${productName} - ${variantName}`;
-    };
 
     const displayName = getDynamicName(product.name, selectedVariant.name);
     const itemImg = selectedVariant.image || (selectedVariant.images && selectedVariant.images[0]) || product.image;

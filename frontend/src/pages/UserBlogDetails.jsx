@@ -23,6 +23,7 @@ import { FaWhatsapp, FaFacebookF, FaXTwitter, FaLinkedinIn } from "react-icons/f
 import Navbar from "../components/Navbar";
 import SLink from "../components/SLink";
 import SEO from "../components/SEO";
+import BlogImageSlider from "../components/BlogImageSlider";
 
 /* ─── tiny helper: strip HTML tags ─── */
 const stripHtml = (html = "") => html.replace(/<[^>]+>/g, "");
@@ -197,29 +198,8 @@ const UserBlogDetails = () => {
   const cleanDescription = blog.searchDescription || stripHtml(blog.description).substring(0, 160);
   const cleanTitle = blog.title;
   const mins = readingTime(blog.description);
-
-  let renderedHTML = blog.description || "";
+  const renderedHTML = blog.description || "";
   const images = [blog.image1, blog.image2, blog.image3, blog.image4].filter(Boolean);
-  const alreadyHasImages = /<img|<figure/i.test(renderedHTML);
-  let leftoverImages = [];
-
-  if (images.length > 0 && !alreadyHasImages) {
-    const parts = renderedHTML.split("</p>");
-    let newContent = "";
-    let imgIndex = 0;
-    for (let i = 0; i < parts.length; i++) {
-      newContent += parts[i];
-      if (i < parts.length - 1) {
-        newContent += "</p>";
-        if (imgIndex < images.length && stripHtml(parts[i]).trim().length > 15) {
-          newContent += `<figure class="my-10 w-full overflow-hidden rounded-2xl shadow-sm border border-slate-100 bg-slate-50 flex items-center justify-center p-2"><img src="${images[imgIndex]}" class="w-full object-contain max-h-[500px] rounded-xl" alt="Blog illustration ${imgIndex + 1}" /></figure>`;
-          imgIndex++;
-        }
-      }
-    }
-    renderedHTML = newContent;
-    leftoverImages = images.slice(imgIndex);
-  }
 
   const schemaMarkup = {
     "@context": "https://schema.org",
@@ -424,26 +404,18 @@ const UserBlogDetails = () => {
               dangerouslySetInnerHTML={{ __html: renderedHTML }}
             />
 
-            {/* Leftover gallery images */}
-            {leftoverImages.length > 0 && (
-              <div className="mt-14 pt-10 border-t border-slate-200">
-                <h3 className="text-xl font-black text-slate-900 mb-6 uppercase tracking-wide">
-                  Visual Gallery
-                </h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                  {leftoverImages.map((imgUrl, idx) => (
-                    <div
-                      key={idx}
-                      className="rounded-2xl shadow-xs border border-slate-200 overflow-hidden bg-slate-50 flex items-center justify-center p-2"
-                    >
-                      <img
-                        src={imgUrl}
-                        alt={`Gallery photo ${idx + 1}`}
-                        className="w-full object-contain max-h-[360px]"
-                      />
-                    </div>
-                  ))}
+            {/* Interactive Image Gallery Slider */}
+            {images.length > 0 && (
+              <div className="mt-12 pt-8 border-t border-slate-200">
+                <div className="flex items-center justify-between gap-2 mb-4">
+                  <h3 className="text-xl font-black text-slate-900 uppercase tracking-wide">
+                    Article Gallery Slider
+                  </h3>
+                  <span className="text-[10px] font-black uppercase tracking-widest text-[#1E971D] bg-emerald-50 px-3 py-1 rounded-full border border-emerald-100">
+                    {images.length} {images.length === 1 ? "Image" : "Images"}
+                  </span>
                 </div>
+                <BlogImageSlider images={images} title={cleanTitle} />
               </div>
             )}
 

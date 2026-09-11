@@ -2,6 +2,7 @@ import React, { useState, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { Star, ShoppingCart, Award, Flame, Leaf, ShieldCheck, Tag as TagIcon, Sparkles } from "lucide-react";
 import SLink from "./SLink";
+import { cleanProductName, getDynamicName } from "../utils/productUtils";
 
 const ProductCard = ({ product, user, onAddToCart }) => {
   // Get active variants
@@ -48,13 +49,7 @@ const ProductCard = ({ product, user, onAddToCart }) => {
 
   // Compute dynamic name based on selected variant size
   const displayName = useMemo(() => {
-    if (!product.name) return "";
-    if (!selectedVariant) return product.name;
-    const sizeRegex = /\b\d+(?:\.\d+)?\s*(?:ml|l|litre|liter|litres|liters|ltr|ltrs)\b/i;
-    if (sizeRegex.test(product.name)) {
-      return product.name.replace(sizeRegex, selectedVariant.name);
-    }
-    return `${product.name} - ${selectedVariant.name}`;
+    return getDynamicName(product.name, selectedVariant);
   }, [product.name, selectedVariant]);
 
   // Compute discount and prices

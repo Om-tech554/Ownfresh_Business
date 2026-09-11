@@ -4,6 +4,290 @@
 export const generateBlockId = () => Math.random().toString(36).substr(2, 9);
 
 /**
+ * Formats inline Markdown formatting (*italic*, **bold**, `code`, [link](url)) into HTML.
+ */
+export const formatInlineMarkdown = (text = "") => {
+  if (!text) return "";
+  let formatted = text
+    // bold **text** or __text__
+    .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
+    .replace(/__(.*?)__/g, "<strong>$1</strong>")
+    // italic *text* or _text_
+    .replace(/(?<!\*)\*(?!\*)(.*?)(?<!\*)\*(?!\*)/g, "<em>$1</em>")
+    .replace(/(?<!_)_(?!_)(.*?)(?<!_)_(?!_)/g, "<em>$1</em>")
+    // inline code `code`
+    .replace(/`([^`]+)`/g, "<code class='bg-slate-100 text-slate-800 px-1.5 py-0.5 rounded font-mono text-xs'>$1</code>")
+    // links [text](url)
+    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" class="text-[#1E971D] font-bold underline" target="_blank" rel="noopener noreferrer">$1</a>');
+
+  return formatted;
+};
+
+/**
+ * Converts raw Markdown text (e.g. copied from ChatGPT) into structured editor blocks.
+ * Supports # Headings, - / * Bullet lists, 1. Numbered lists, > Blockquotes, --- Dividers, and Paragraphs.
+ */
+export const markdownToBlocks = (markdown = "") => {
+  if (!markdown || !markdown.trim()) return [];
+  const lines = markdown.replace(/\r\n/g, "\n").split("\n");
+  const blocks = [];
+
+  let currentList = null; // { type: 'bullet' | 'ordered', items: [] }
+  let currentParagraph = [];
+
+  const flushParagraph = () => {
+    if (currentParagraph.length > 0) {
+      const text = currentParagraph.join(" ").trim();
+      if (text) {
+        blocks.push({
+          id: generateBlockId(),
+          type: "paragraph",
+          data: { content: formatInlineMarkdown(text) }
+        });
+      }
+      currentParagraph = [];
+    }
+  };
+
+  const flushList = () => {
+    if (currentList && currentList.items.length > 0) {
+      blocks.push({
+        id: generateBlockId(),
+        type: "list",
+        data: {
+          style: currentList.type,
+          items: currentList.items.map(item => formatInlineMarkdown(item))
+        }
+      });
+      currentList = null;
+    }
+  };
+
+  for (let line of lines) {
+    const trimmed = line.trim();
+
+    if (!trimmed) {
+      flushParagraph();
+      flushList();
+      continue;
+    }
+
+    // Heading #
+    const headingMatch = trimmed.match(/^(#{1,6})\s+(.*)$/);
+    if (headingMatch) {
+      flushParagraph();
+      flushList();
+      const level = Math.min(headingMatch[1].length, 4);
+      blocks.push({
+        id: generateBlockId(),
+        type: "heading",
+        data: {
+          level,
+          content: formatInlineMarkdown(headingMatch[2])
+        }
+      });
+      continue;
+    }
+
+    // Divider --- or ***
+    if (/^(\*\*\*|---|___)$/.test(trimmed)) {
+      flushParagraph();
+      flushList();
+      blocks.push({
+        id: generateBlockId(),
+        type: "divider",
+        data: {}
+      });
+      continue;
+    }
+
+    // Blockquote >
+    if (trimmed.startsWith(">")) {
+      flushParagraph();
+      flushList();
+      blocks.push({
+        id: generateBlockId(),
+        type: "blockquote",
+        data: {
+          content: formatInlineMarkdown(trimmed.replace(/^>\s*/, ""))
+        }
+      });
+      continue;
+    }
+
+    // Bullet list - or * or +
+    const bulletMatch = trimmed.match(/^[-*+]\s+(.*)$/);
+    if (bulletMatch) {
+      flushParagraph();
+      if (!currentList || currentList.type !== "bullet") {
+        flushList();
+        currentList = { type: "bullet", items: [] };
+      }
+      currentList.items.push(bulletMatch[1]);
+      continue;
+    }
+
+    // Numbered list 1. or 1)
+    const orderedMatch = trimmed.match(/^\d+[\.)]\s+(.*)$/);
+    if (orderedMatch) {
+      flushParagraph();
+      if (!currentList || currentList.type !== "ordered") {
+        flushList();
+        currentList = { type: "ordered", items: [] };
+      }
+      currentList.items.push(orderedMatch[1]);
+      continue;
+    }
+
+    // Regular paragraph line
+    flushList();
+    currentParagraph.push(trimmed);
+  }
+
+  flushParagraph();
+  flushList();
+
+  return blocks;
+};
+
+/**
+ * Smart Paste Parser for external content (ChatGPT, Google Docs, Notion, Markdown).
+ * Converts rich HTML or Markdown into structured article blocks.
+ */
+export const parsePasteToBlocks = (html = "", plainText = "") => {
+  // 1. If HTML is provided and contains block-level tags, parse from HTML
+  if (html && (html.includes("<p") || html.includes("<h") || html.includes("<ul") || html.includes("<ol") || html.includes("<blockquote") || html.includes("<div") || html.includes("<li") || html.includes("<hr"))) {
+    try {
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(html, "text/html");
+      const blocks = [];
+
+      const walkNode = (node) => {
+        if (!node) return;
+        if (node.nodeType === Node.TEXT_NODE) {
+          const text = node.textContent.trim();
+          if (text) {
+            blocks.push({
+              id: generateBlockId(),
+              type: "paragraph",
+              data: { content: text }
+            });
+          }
+          return;
+        }
+
+        if (node.nodeType !== Node.ELEMENT_NODE) return;
+
+        const tagName = node.tagName.toLowerCase();
+
+        // Headings h1..h6
+        if (tagName.match(/^h[1-6]$/)) {
+          const level = Math.min(parseInt(tagName[1]), 4);
+          blocks.push({
+            id: generateBlockId(),
+            type: "heading",
+            data: { level, content: node.innerHTML.trim() }
+          });
+          return;
+        }
+
+        // Lists
+        if (tagName === "ul" || tagName === "ol") {
+          const items = Array.from(node.querySelectorAll("li")).map(li => li.innerHTML.trim()).filter(Boolean);
+          if (items.length > 0) {
+            blocks.push({
+              id: generateBlockId(),
+              type: "list",
+              data: {
+                style: tagName === "ul" ? "bullet" : "ordered",
+                items
+              }
+            });
+          }
+          return;
+        }
+
+        // Blockquotes
+        if (tagName === "blockquote") {
+          blocks.push({
+            id: generateBlockId(),
+            type: "blockquote",
+            data: { content: node.innerHTML.trim() }
+          });
+          return;
+        }
+
+        // Paragraphs
+        if (tagName === "p") {
+          const content = node.innerHTML.trim();
+          if (content) {
+            const img = node.querySelector("img");
+            if (img && node.textContent.trim() === "") {
+              blocks.push({
+                id: generateBlockId(),
+                type: "image",
+                data: { url: img.src || "", alt: img.alt || "", caption: "", align: "center", width: "100%" }
+              });
+            } else {
+              blocks.push({
+                id: generateBlockId(),
+                type: "paragraph",
+                data: { content }
+              });
+            }
+          }
+          return;
+        }
+
+        // Divider
+        if (tagName === "hr") {
+          blocks.push({
+            id: generateBlockId(),
+            type: "divider",
+            data: {}
+          });
+          return;
+        }
+
+        // Containers: recurse through children
+        if (["div", "section", "article", "body", "main"].includes(tagName)) {
+          Array.from(node.childNodes).forEach(walkNode);
+          return;
+        }
+
+        // Inline wrappers / spans
+        const text = node.innerHTML?.trim();
+        if (text) {
+          blocks.push({
+            id: generateBlockId(),
+            type: "paragraph",
+            data: { content: text }
+          });
+        }
+      };
+
+      Array.from(doc.body.childNodes).forEach(walkNode);
+
+      if (blocks.length > 0) {
+        return blocks;
+      }
+    } catch (e) {
+      console.warn("HTML paste parsing fallback to markdown/plain text:", e);
+    }
+  }
+
+  // 2. Fallback to Markdown / Plain text parsing (handles raw ChatGPT markdown copy)
+  if (plainText) {
+    const mdBlocks = markdownToBlocks(plainText);
+    if (mdBlocks.length > 0) {
+      return mdBlocks;
+    }
+  }
+
+  return [{ id: generateBlockId(), type: "paragraph", data: { content: plainText || "" } }];
+};
+
+/**
  * Parses raw HTML content into structured blocks for the editor.
  * Gracefully parses standard HTML tags (from legacy articles) and custom blocks.
  * @param {string} html 
@@ -81,6 +365,22 @@ export const parseHtmlToBlocks = (html) => {
           data: {
             url: node.getAttribute("data-url") || "",
             embedType: node.getAttribute("data-embed-type") || "youtube"
+          }
+        });
+      } else if (node.classList.contains("blog-slider") || node.getAttribute("data-block-type") === "slider") {
+        const imagesAttr = node.getAttribute("data-images");
+        let parsedImages = [];
+        try {
+          parsedImages = imagesAttr ? JSON.parse(decodeURIComponent(imagesAttr)) : [];
+        } catch(e) {
+          parsedImages = Array.from(node.querySelectorAll("img")).map(img => img.getAttribute("src")).filter(Boolean);
+        }
+        blocks.push({
+          id: generateBlockId(),
+          type: "slider",
+          data: {
+            images: parsedImages,
+            caption: node.getAttribute("data-caption") || ""
           }
         });
       } else if (node.classList.contains("blog-image") || node.getAttribute("data-block-type") === "image" || tagName === "figure") {
@@ -228,6 +528,18 @@ export const serializeBlocksToHtml = (blocks) => {
             <img src="${block.data.url}" alt="${block.data.alt}" class="${imgStyles}" />
             ${block.data.caption ? `<figcaption class="text-xs text-gray-500 font-medium italic mt-2.5 px-2">${block.data.caption}</figcaption>` : ""}
           </figure>
+        `;
+        break;
+      case "slider":
+        const sliderImages = (block.data.images || []).filter(Boolean);
+        const encodedImages = encodeURIComponent(JSON.stringify(sliderImages));
+        html += `
+          <div class="blog-slider my-8" data-block-type="slider" data-images="${encodedImages}" data-caption="${block.data.caption || ''}">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              ${sliderImages.map((src, i) => `<img src="${src}" alt="Slide ${i+1}" class="w-full rounded-2xl object-contain max-h-[400px] bg-slate-900 border border-slate-800" />`).join("")}
+            </div>
+            ${block.data.caption ? `<p class="text-xs text-center text-gray-500 italic mt-2">${block.data.caption}</p>` : ''}
+          </div>
         `;
         break;
       case "embed":

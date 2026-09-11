@@ -7,6 +7,7 @@ import { useNavigate } from "react-router-dom";
 import SLink from "./SLink";
 import { addToCart } from "../redux/userslice";
 import ProductCard from "./ProductCard";
+import { cleanProductName, getDynamicName } from "../utils/productUtils";
 
 const ProductSection = ({ limit = null }) => {
   const [products, setProducts] = useState([]);
@@ -65,15 +66,6 @@ const ProductSection = ({ limit = null }) => {
       toast.error("This product is currently out of stock");
       return;
     }
-    const getDynamicName = (productName, variantName) => {
-      if (!productName) return "";
-      if (!variantName) return productName;
-      const sizeRegex = /\b\d+(?:\.\d+)?\s*(?:ml|l|litre|liter|litres|liters|ltr|ltrs)\b/i;
-      if (sizeRegex.test(productName)) {
-        return productName.replace(sizeRegex, variantName);
-      }
-      return `${productName} - ${variantName}`;
-    };
     const displayName = getDynamicName(product.name, selectedVariant.name);
 
     const itemToAdd = {

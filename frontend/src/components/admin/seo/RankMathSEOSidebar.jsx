@@ -717,31 +717,57 @@ const RankMathSEOSidebar = ({
 
           {/* Gallery items list */}
           <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-3">
-            <h4 className="text-[10px] font-black text-slate-900 uppercase tracking-widest border-b border-slate-100 pb-2">Image Gallery Slider Assets</h4>
-            <div className="grid grid-cols-2 gap-2">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+              <h4 className="text-[10px] font-black text-slate-900 uppercase tracking-widest flex items-center gap-1.5">
+                <ImageIcon className="w-3.5 h-3.5 text-[#1E971D]" /> Image Gallery Slider Assets
+              </h4>
+              <span className="text-[9px] font-bold text-slate-400">
+                {galleryImages.filter(g => g.prev).length}/4 added
+              </span>
+            </div>
+
+            <div className="grid grid-cols-2 gap-2.5">
               {galleryImages.map((g) => (
                 <div key={g.num} className="border border-slate-200 rounded-xl overflow-hidden aspect-video relative group bg-slate-50 flex items-center justify-center">
                   {g.prev ? (
                     <>
-                      <img src={g.prev} alt="Gallery item" className="w-full h-full object-cover" />
+                      <img src={g.prev} alt={`Gallery slot ${g.num}`} className="w-full h-full object-cover" />
+                      <span className="absolute bottom-1 left-1 bg-black/70 text-white text-[8px] font-black px-1.5 py-0.5 rounded">
+                        Slot {g.num}
+                      </span>
                       <button
                         type="button"
                         onClick={g.onClear}
-                        className="absolute top-1.5 right-1.5 bg-rose-600 hover:bg-rose-700 text-white p-1 rounded-full shadow"
+                        className="absolute top-1 right-1 bg-rose-600 hover:bg-rose-700 text-white p-1 rounded-full shadow cursor-pointer"
+                        title="Remove image"
                       >
                         <X size={10} />
                       </button>
                     </>
                   ) : (
-                    <div className="flex flex-col items-center gap-1">
-                      <span className="text-[9px] font-bold text-slate-400">Slot {g.num}</span>
-                      <button
-                        type="button"
-                        onClick={() => setOpenImagePickerField(g.num)}
-                        className="text-[8px] bg-slate-900 hover:bg-slate-800 text-white font-black uppercase px-2 py-1 rounded-lg"
-                      >
-                        Add Photo
-                      </button>
+                    <div className="flex flex-col items-center gap-1 p-2 text-center w-full">
+                      <span className="text-[9px] font-black text-slate-500 uppercase">Slot {g.num}</span>
+                      <div className="flex gap-1 items-center justify-center w-full">
+                        <label className="text-[7.5px] bg-slate-900 hover:bg-slate-800 text-white font-black uppercase px-2 py-1 rounded-md cursor-pointer flex items-center gap-0.5">
+                          <Upload size={8} /> File
+                          <input
+                            type="file"
+                            accept="image/*"
+                            className="hidden"
+                            onChange={(e) => {
+                              handleImageChange(e, g.setImg, g.setPrv);
+                              g.onSelect();
+                            }}
+                          />
+                        </label>
+                        <button
+                          type="button"
+                          onClick={() => setOpenImagePickerField(g.num)}
+                          className="text-[7.5px] bg-emerald-50 hover:bg-emerald-100 text-[#1E971D] border border-emerald-200 font-black uppercase px-2 py-1 rounded-md cursor-pointer"
+                        >
+                          Library
+                        </button>
+                      </div>
                     </div>
                   )}
                 </div>
