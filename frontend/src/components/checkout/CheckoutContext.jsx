@@ -26,7 +26,6 @@ export const CheckoutProvider = ({ children }) => {
   const [deliveryMethod, setDeliveryMethod] = useState({
     id: 'standard',
     name: 'Standard Delivery',
-    cost: 0,
     estimatedTime: '5-7 Business Days'
   });
   const [paymentMethod, setPaymentMethod] = useState('online');

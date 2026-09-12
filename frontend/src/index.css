@@ -52,10 +52,10 @@ html.dark {
   --border-subtle: #202832;
   --border-hover: #34404E;
   --border-header: #202731;
-  --text-primary: #F5F7FA;
-  --text-secondary: #B7C1CE;
-  --text-muted: #818C9B;
-  --text-disabled: #5E6875;
+  --text-primary: #F8FAFC;
+  --text-secondary: #CBD5E1;
+  --text-muted: #94A3B8;
+  --text-disabled: #64748B;
   --accent: #FFD600;
   --accent-hover: #FFE45C;
   --success: #19C37D;
@@ -102,7 +102,7 @@ textarea {
 html.dark,
 html.dark body {
   background-color: #0B0F14 !important;
-  color: #F5F7FA;
+  color: #F8FAFC;
 }
 
 /* Headings in Dark Mode */
@@ -112,12 +112,12 @@ html.dark h3,
 html.dark h4,
 html.dark h5,
 html.dark h6 {
-  color: #F7F9FC;
+  color: #F8FAFC;
 }
 
 /* Body & Descriptions in Dark Mode */
 html.dark p {
-  color: #B7C1CE;
+  color: #CBD5E1;
 }
 
 /* Level 1: Page Background Override (Replaces all white/cream page canvases) */
@@ -192,29 +192,208 @@ html.dark .border-slate-300 {
 html.dark .text-gray-900,
 html.dark .text-slate-900,
 html.dark .text-black {
-  color: #F7F9FC;
+  color: #F8FAFC;
 }
 
 html.dark .text-gray-800,
 html.dark .text-slate-800 {
-  color: #F5F7FA;
+  color: #F1F5F9;
 }
 
 html.dark .text-gray-700,
 html.dark .text-slate-700 {
-  color: #B7C1CE;
+  color: #E2E8F0;
 }
 
 html.dark .text-gray-600,
 html.dark .text-slate-600 {
-  color: #818C9B;
+  color: #CBD5E1;
 }
 
 html.dark .text-gray-500,
-html.dark .text-slate-500,
+html.dark .text-slate-500 {
+  color: #A0AEC0;
+}
+
 html.dark .text-gray-400,
 html.dark .text-slate-400 {
-  color: #818C9B;
+  color: #94A3B8;
+}
+
+html.dark .text-gray-300,
+html.dark .text-slate-300 {
+  color: #CBD5E1;
+}
+
+/* ==========================================================================
+   STATUS BADGES, CHIPS & ALERT TINTS (DARK MODE)
+   ========================================================================== */
+html.dark .bg-emerald-50,
+html.dark .bg-emerald-100 {
+  background-color: rgba(16, 185, 129, 0.16) !important;
+  border-color: rgba(16, 185, 129, 0.35) !important;
+}
+
+html.dark .bg-amber-50,
+html.dark .bg-amber-100 {
+  background-color: rgba(245, 158, 11, 0.16) !important;
+  border-color: rgba(245, 158, 11, 0.35) !important;
+}
+
+html.dark .bg-blue-50,
+html.dark .bg-blue-100 {
+  background-color: rgba(59, 130, 246, 0.16) !important;
+  border-color: rgba(59, 130, 246, 0.35) !important;
+}
+
+html.dark .bg-purple-50,
+html.dark .bg-purple-100 {
+  background-color: rgba(168, 85, 247, 0.16) !important;
+  border-color: rgba(168, 85, 247, 0.35) !important;
+}
+
+html.dark .bg-red-50,
+html.dark .bg-red-100,
+html.dark .bg-rose-50,
+html.dark .bg-rose-100 {
+  background-color: rgba(239, 68, 68, 0.16) !important;
+  border-color: rgba(239, 68, 68, 0.35) !important;
+}
+
+html.dark .bg-indigo-50,
+html.dark .bg-indigo-100 {
+  background-color: rgba(99, 102, 241, 0.16) !important;
+  border-color: rgba(99, 102, 241, 0.35) !important;
+}
+
+html.dark .bg-sky-50,
+html.dark .bg-sky-100 {
+  background-color: rgba(14, 165, 233, 0.16) !important;
+  border-color: rgba(14, 165, 233, 0.35) !important;
+}
+
+html.dark .bg-slate-100,
+html.dark .bg-gray-100 {
+  background-color: #1D2530 !important;
+  border-color: #2D3748 !important;
+}
+
+/* High-Contrast Badge Text Colors in Dark Mode */
+html.dark .text-emerald-600,
+html.dark .text-emerald-700,
+html.dark .text-emerald-800,
+html.dark .text-emerald-900,
+html.dark .text-emerald-950,
+html.dark .text-green-600,
+html.dark .text-green-700,
+html.dark .text-green-800 {
+  color: #34D399 !important;
+}
+
+html.dark .text-amber-600,
+html.dark .text-amber-700,
+html.dark .text-amber-800,
+html.dark .text-amber-900,
+html.dark .text-amber-950,
+html.dark .text-yellow-600,
+html.dark .text-yellow-700,
+html.dark .text-yellow-800 {
+  color: #FBBF24 !important;
+}
+
+html.dark .text-blue-600,
+html.dark .text-blue-700,
+html.dark .text-blue-800,
+html.dark .text-blue-900,
+html.dark .text-blue-950 {
+  color: #60A5FA !important;
+}
+
+html.dark .text-sky-600,
+html.dark .text-sky-700,
+html.dark .text-sky-800,
+html.dark .text-sky-900,
+html.dark .text-sky-950 {
+  color: #38BDF8 !important;
+}
+
+html.dark .text-purple-600,
+html.dark .text-purple-700,
+html.dark .text-purple-800,
+html.dark .text-purple-900,
+html.dark .text-purple-950 {
+  color: #C084FC !important;
+}
+
+html.dark .text-red-500,
+html.dark .text-red-600,
+html.dark .text-red-700,
+html.dark .text-red-800,
+html.dark .text-red-900,
+html.dark .text-red-950,
+html.dark .text-rose-500,
+html.dark .text-rose-600,
+html.dark .text-rose-700,
+html.dark .text-rose-800,
+html.dark .text-rose-900,
+html.dark .text-rose-950 {
+  color: #F87171 !important;
+}
+
+html.dark .text-indigo-600,
+html.dark .text-indigo-700,
+html.dark .text-indigo-800,
+html.dark .text-indigo-900,
+html.dark .text-indigo-950 {
+  color: #818CF8 !important;
+}
+
+/* ==========================================================================
+   TABLES & DATA GRIDS (DARK MODE)
+   ========================================================================== */
+html.dark table thead,
+html.dark table th,
+html.dark .table thead,
+html.dark .table th {
+  color: #CBD5E1 !important;
+  background-color: #111720 !important;
+  border-color: #27313D !important;
+}
+
+html.dark table tbody tr:hover,
+html.dark .table tbody tr:hover {
+  background-color: #1E2734 !important;
+}
+
+html.dark table td,
+html.dark .table td {
+  border-color: #27313D !important;
+}
+
+/* ==========================================================================
+   RECHARTS ANALYTICS CHARTS (DARK MODE)
+   ========================================================================== */
+html.dark .recharts-cartesian-grid line {
+  stroke: #27313D !important;
+}
+
+html.dark .recharts-text,
+html.dark .recharts-label,
+html.dark .recharts-cartesian-axis-tick-value {
+  fill: #94A3B8 !important;
+  color: #94A3B8 !important;
+}
+
+html.dark .recharts-legend-item-text {
+  color: #CBD5E1 !important;
+}
+
+html.dark .recharts-default-tooltip {
+  background-color: #171D26 !important;
+  border-color: #2D3748 !important;
+  color: #F8FAFC !important;
+  border-radius: 14px !important;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5) !important;
 }
 
 /* ==========================================================================
@@ -224,13 +403,18 @@ html.dark input:not([type="checkbox"]):not([type="radio"]),
 html.dark select,
 html.dark textarea {
   background-color: #151B23;
-  color: #F5F7FA;
+  color: #F8FAFC;
   border-color: #29333F;
 }
 
 html.dark input::placeholder,
 html.dark textarea::placeholder {
-  color: #778393;
+  color: #8C99A8 !important;
+}
+
+html.dark select option {
+  background-color: #171D26 !important;
+  color: #F8FAFC !important;
 }
 
 html.dark input:focus,
@@ -242,7 +426,7 @@ html.dark textarea:focus {
 }
 
 html.dark label {
-  color: #C4CCD7;
+  color: #CBD5E1 !important;
 }
 
 /* ==========================================================================
@@ -394,4 +578,34 @@ textarea,
 .admin-panel button,
 .admin-panel textarea {
   font-family: "Poppins", "Montserrat", sans-serif;
+}
+
+html.dark .admin-panel {
+  background-color: #0B0F14 !important;
+  color: #F8FAFC !important;
+}
+
+html.dark .admin-panel .bg-slate-50,
+html.dark .admin-panel .bg-slate-50\/50,
+html.dark .admin-panel .bg-slate-50\/40,
+html.dark .admin-panel .bg-slate-50\/30,
+html.dark .admin-panel .bg-slate-50\/20 {
+  background-color: #111720 !important;
+}
+
+html.dark .admin-panel .bg-white {
+  background-color: #171D26 !important;
+  border-color: #27313D !important;
+}
+
+html.dark .admin-panel .border-slate-100,
+html.dark .admin-panel .border-slate-200,
+html.dark .admin-panel .border-gray-100,
+html.dark .admin-panel .border-gray-200 {
+  border-color: #27313D !important;
+}
+
+html.dark .admin-panel .divide-slate-100 > :not([hidden]) ~ :not([hidden]),
+html.dark .admin-panel .divide-gray-100 > :not([hidden]) ~ :not([hidden]) {
+  border-color: #27313D !important;
 }

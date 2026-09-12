@@ -87,7 +87,7 @@ const OrderReview = () => {
   // Cart calculations
   const subtotal = (cartItems || []).reduce((acc, item) => acc + (item.price * item.quantity), 0);
   const shippingQuote = calculateClientShipping({ cartItems, subtotal, deliveryMethodId: deliveryMethod?.id || 'standard' });
-  const shippingCost = deliveryMethod?.cost !== undefined ? deliveryMethod.cost : shippingQuote.deliveryCost;
+  const shippingCost = shippingQuote.deliveryCost;
   const discount = couponDetails?.discount || 0;
   const coinDiscount = (useCommissionCoins && canRedeemCoins) ? Math.min(subtotal, commissionCoinsBalance) : 0;
   const taxableAmount = Math.max(0, subtotal - discount - coinDiscount);

@@ -41,7 +41,7 @@ function AdminDashboard() {
                 onClick={() => setActiveTab("dashboard")}
                 className={`flex items-center gap-2 px-6 py-2.5 rounded-xl font-bold transition-all whitespace-nowrap ${activeTab === "dashboard"
                     ? "bg-[#1E971D] text-white shadow-lg shadow-[#1E971D]/20 font-extrabold"
-                    : "text-slate-500 hover:bg-slate-50"
+                    : "text-slate-500 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-[#1D2530] hover:text-slate-900 dark:hover:text-white"
                   }`}
               >
                 <BarChart3 className="w-4 h-4 text-[#F9DD19]" />
@@ -52,7 +52,7 @@ function AdminDashboard() {
                 onClick={() => setActiveTab("products")}
                 className={`flex items-center gap-2 px-6 py-2.5 rounded-xl font-bold transition-all whitespace-nowrap ${activeTab === "products"
                     ? "bg-[#1E971D] text-white shadow-lg shadow-[#1E971D]/20 font-extrabold"
-                    : "text-slate-500 hover:bg-slate-50"
+                    : "text-slate-500 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-[#1D2530] hover:text-slate-900 dark:hover:text-white"
                   }`}
               >
                 <Package className="w-4 h-4" />
@@ -63,7 +63,7 @@ function AdminDashboard() {
                 onClick={() => setActiveTab("inventory")}
                 className={`flex items-center gap-2 px-6 py-2.5 rounded-xl font-bold transition-all whitespace-nowrap ${activeTab === "inventory"
                     ? "bg-[#1E971D] text-white shadow-lg shadow-[#1E971D]/20"
-                    : "text-slate-500 hover:bg-slate-50"
+                    : "text-slate-500 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-[#1D2530] hover:text-slate-900 dark:hover:text-white"
                   }`}
               >
                 <Layers className="w-4 h-4" />
@@ -74,7 +74,7 @@ function AdminDashboard() {
                 onClick={() => setActiveTab("orders")}
                 className={`flex items-center gap-2 px-6 py-2.5 rounded-xl font-bold transition-all whitespace-nowrap ${activeTab === "orders"
                     ? "bg-[#1E971D] text-white shadow-lg shadow-[#1E971D]/20"
-                    : "text-slate-500 hover:bg-slate-50"
+                    : "text-slate-500 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-[#1D2530] hover:text-slate-900 dark:hover:text-white"
                   }`}
               >
                 <ShoppingCart className="w-4 h-4" />
@@ -85,7 +85,7 @@ function AdminDashboard() {
                 onClick={() => setActiveTab("customers")}
                 className={`flex items-center gap-2 px-6 py-2.5 rounded-xl font-bold transition-all whitespace-nowrap ${activeTab === "customers"
                     ? "bg-[#1E971D] text-white shadow-lg shadow-[#1E971D]/20"
-                    : "text-slate-500 hover:bg-slate-50"
+                    : "text-slate-500 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-[#1D2530] hover:text-slate-900 dark:hover:text-white"
                   }`}
               >
                 <Users className="w-4 h-4" />
@@ -96,7 +96,7 @@ function AdminDashboard() {
                 onClick={() => setActiveTab("categories")}
                 className={`flex items-center gap-2 px-6 py-2.5 rounded-xl font-bold transition-all whitespace-nowrap ${activeTab === "categories"
                     ? "bg-[#1E971D] text-white shadow-lg shadow-[#1E971D]/20"
-                    : "text-slate-500 hover:bg-slate-50"
+                    : "text-slate-500 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-[#1D2530] hover:text-slate-900 dark:hover:text-white"
                   }`}
               >
                 <Layers className="w-4 h-4" />
@@ -107,7 +107,7 @@ function AdminDashboard() {
                 onClick={() => setActiveTab("tags")}
                 className={`flex items-center gap-2 px-6 py-2.5 rounded-xl font-bold transition-all whitespace-nowrap ${activeTab === "tags"
                     ? "bg-[#1E971D] text-white shadow-lg shadow-[#1E971D]/20"
-                    : "text-slate-500 hover:bg-slate-50"
+                    : "text-slate-500 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-[#1D2530] hover:text-slate-900 dark:hover:text-white"
                   }`}
               >
                 <Tag className="w-4 h-4" />
@@ -119,7 +119,7 @@ function AdminDashboard() {
                 onClick={() => setActiveTab("settings")}
                 className={`flex items-center gap-2 px-6 py-2.5 rounded-xl font-bold transition-all whitespace-nowrap ${activeTab === "settings"
                     ? "bg-[#1E971D] text-white shadow-lg shadow-[#1E971D]/20"
-                    : "text-slate-500 hover:bg-slate-50"
+                    : "text-slate-500 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-[#1D2530] hover:text-slate-900 dark:hover:text-white"
                   }`}
               >
                 <Settings className="w-4 h-4" />
@@ -132,7 +132,7 @@ function AdminDashboard() {
             onClick={() => setActiveTab("blogs")}
             className={`flex items-center gap-2 px-6 py-2.5 rounded-xl font-bold transition-all whitespace-nowrap ${activeTab === "blogs"
                 ? "bg-[#1E971D] text-white shadow-lg shadow-[#1E971D]/20"
-                : "text-slate-500 hover:bg-slate-50"
+                : "text-slate-500 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-[#1D2530] hover:text-slate-900 dark:hover:text-white"
               }`}
           >
             <BookOpen className="w-4 h-4" />
@@ -144,7 +144,7 @@ function AdminDashboard() {
               onClick={() => setActiveTab("gallery")}
               className={`flex items-center gap-2 px-6 py-2.5 rounded-xl font-bold transition-all whitespace-nowrap ${activeTab === "gallery"
                   ? "bg-[#1E971D] text-white shadow-lg shadow-[#1E971D]/20"
-                  : "text-slate-500 hover:bg-slate-50"
+                  : "text-slate-500 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-[#1D2530] hover:text-slate-900 dark:hover:text-white"
                 }`}
             >
               <ImageIcon className="w-4 h-4" />
@@ -157,7 +157,7 @@ function AdminDashboard() {
               onClick={() => setActiveTab("coupons")}
               className={`flex items-center gap-2 px-6 py-2.5 rounded-xl font-bold transition-all whitespace-nowrap ${activeTab === "coupons"
                   ? "bg-[#1E971D] text-white shadow-lg shadow-[#1E971D]/20"
-                  : "text-slate-500 hover:bg-slate-50"
+                  : "text-slate-500 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-[#1D2530] hover:text-slate-900 dark:hover:text-white"
                 }`}
             >
               <Ticket className="w-4 h-4" />
@@ -170,7 +170,7 @@ function AdminDashboard() {
               onClick={() => setActiveTab("campaigns")}
               className={`flex items-center gap-2 px-6 py-2.5 rounded-xl font-bold transition-all whitespace-nowrap ${activeTab === "campaigns"
                   ? "bg-[#1E971D] text-white shadow-lg shadow-[#1E971D]/20"
-                  : "text-slate-500 hover:bg-slate-50"
+                  : "text-slate-500 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-[#1D2530] hover:text-slate-900 dark:hover:text-white"
                 }`}
             >
               <Sparkles className="w-4 h-4 text-[#F9DD19]" />
@@ -183,7 +183,7 @@ function AdminDashboard() {
               onClick={() => setActiveTab("prime")}
               className={`flex items-center gap-2 px-6 py-2.5 rounded-xl font-bold transition-all whitespace-nowrap ${activeTab === "prime"
                   ? "bg-[#1E971D] text-white shadow-lg shadow-[#1E971D]/20"
-                  : "text-slate-500 hover:bg-slate-50"
+                  : "text-slate-500 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-[#1D2530] hover:text-slate-900 dark:hover:text-white"
                 }`}
             >
               <Crown className="w-4 h-4 text-[#F9DD19]" />
@@ -196,7 +196,7 @@ function AdminDashboard() {
               onClick={() => setActiveTab("reviews")}
               className={`flex items-center gap-2 px-6 py-2.5 rounded-xl font-bold transition-all whitespace-nowrap ${activeTab === "reviews"
                   ? "bg-[#1E971D] text-white shadow-lg shadow-[#1E971D]/20"
-                  : "text-slate-500 hover:bg-slate-50"
+                  : "text-slate-500 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-[#1D2530] hover:text-slate-900 dark:hover:text-white"
                 }`}
             >
               <Star className="w-4 h-4 text-[#F9DD19]" />
@@ -210,7 +210,7 @@ function AdminDashboard() {
                 onClick={() => setActiveTab("partners")}
                 className={`flex items-center gap-2 px-6 py-2.5 rounded-xl font-bold transition-all whitespace-nowrap ${activeTab === "partners"
                     ? "bg-[#1E971D] text-white shadow-lg shadow-[#1E971D]/20"
-                    : "text-slate-500 hover:bg-slate-50"
+                    : "text-slate-500 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-[#1D2530] hover:text-slate-900 dark:hover:text-white"
                   }`}
               >
                 <Users className="w-4 h-4" />
@@ -221,7 +221,7 @@ function AdminDashboard() {
                 onClick={() => setActiveTab("tickets")}
                 className={`flex items-center gap-2 px-6 py-2.5 rounded-xl font-bold transition-all whitespace-nowrap ${activeTab === "tickets"
                     ? "bg-[#1E971D] text-white shadow-lg shadow-[#1E971D]/20"
-                    : "text-slate-500 hover:bg-slate-50"
+                    : "text-slate-500 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-[#1D2530] hover:text-slate-900 dark:hover:text-white"
                   }`}
               >
                 <Ticket className="w-4 h-4" />

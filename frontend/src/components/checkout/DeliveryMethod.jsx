@@ -44,7 +44,7 @@ const DeliveryMethod = () => {
     if (deliveryMethod.cost !== currentOpt.cost || deliveryMethod.name !== currentOpt.name) {
       setDeliveryMethod(currentOpt);
     }
-  }, [subtotal, cartItems.length, shippingQuote.totalWeight]);
+  }, [subtotal, cartItems.length, shippingQuote.totalWeight, deliveryMethod.id]);
 
   const handleSelectOption = (option) => {
     setDeliveryMethod(option);
