@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { Star, ShoppingCart, Award, Leaf, ShieldCheck, Tag as TagIcon, Sparkles } from "lucide-react";
 import SLink from "./SLink";
 import { cleanProductName, getDynamicName } from "../utils/productUtils";
+import { trackAddToCart } from "../utils/analytics";
 
 const ProductCard = ({ product, user, onAddToCart }) => {
   // Get active variants
@@ -83,7 +84,10 @@ const ProductCard = ({ product, user, onAddToCart }) => {
     e.preventDefault();
     if (!selectedVariant) return;
 
-    onAddToCart(product, selectedVariant);
+    if (onAddToCart) {
+      onAddToCart(product, selectedVariant);
+    }
+    trackAddToCart(product, selectedVariant, 1);
     setIsAdded(true);
     setTimeout(() => setIsAdded(false), 2000);
   };

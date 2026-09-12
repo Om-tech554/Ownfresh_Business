@@ -34,6 +34,8 @@ import membershipRoutes from "./routes/membershipRoutes.js";
 import sitemapRoutes from "./routes/sitemapRoutes.js";
 import reviewRoutes from "./routes/reviewRoutes.js";
 import tagRoutes from "./routes/tagRoutes.js";
+import analyticsRoutes from "./routes/analyticsRoutes.js";
+import feedRoutes from "./routes/feedRoutes.js";
 
 import { deactivateAllExistingMembers } from "./controllers/membershipController.js";
 
@@ -116,6 +118,9 @@ app.use("/api/settings", settingsRoutes);
 app.use("/api/membership", membershipRoutes);
 app.use("/api/review", reviewRoutes);
 app.use("/api/tag", tagRoutes);
+app.use("/api/analytics", analyticsRoutes);
+app.use("/api/feed", feedRoutes);
+app.use("/", feedRoutes);
 app.use("/", sitemapRoutes);
 
 

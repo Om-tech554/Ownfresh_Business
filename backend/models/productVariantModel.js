@@ -12,6 +12,7 @@ const productVariantSchema = new mongoose.Schema(
     scheduledPriceDate: { type: Date, default: null },
     stockQuantity: { type: Number, default: 0 },
     weight: { type: String, default: "" }, // e.g., "250g", "1kg", "5kg"
+    shippingWeight: { type: Number, default: 0 }, // Actual package shipment weight in kg (e.g., 0.35, 0.65, 1.20, 5.50)
     image: { type: String, default: "" }, // Primary bottle image for this size
     images: [{ type: String }], // Multiple images for this size (front, back, side, close-up, packaging, label)
     labelImage: { type: String, default: "" }, // Bottle label specific to this size

@@ -76,6 +76,9 @@ const ProductSection = ({ limit = null }) => {
       name: displayName,
       variantName: selectedVariant.name,
       price: selectedVariant.salePrice || selectedVariant.price,
+      shippingWeight: selectedVariant.shippingWeight || 0,
+      weight: selectedVariant.weight || selectedVariant.name || "",
+      image: selectedVariant.image || (selectedVariant.images && selectedVariant.images[0]) || product.image,
       quantity: 1
     };
     dispatch(addToCart(itemToAdd));

@@ -10,6 +10,7 @@ import { FaTrash, FaMinus, FaPlus, FaCheck, FaLock, FaShieldAlt } from 'react-ic
 import { Truck, CreditCard, Tag, Sparkles, MapPin, Phone, ArrowLeft, ArrowRight } from 'lucide-react';
 import { appCheck } from '../../../firebase';
 import { getToken } from 'firebase/app-check';
+import { calculateClientShipping } from '../../utils/shippingCalculator';
 
 const serverUrl = import.meta.env.VITE_API_URL || "http://localhost:10000";
 
@@ -85,7 +86,8 @@ const OrderReview = () => {
 
   // Cart calculations
   const subtotal = (cartItems || []).reduce((acc, item) => acc + (item.price * item.quantity), 0);
-  const shippingCost = deliveryMethod?.cost || 0;
+  const shippingQuote = calculateClientShipping({ cartItems, subtotal, deliveryMethodId: deliveryMethod?.id || 'standard' });
+  const shippingCost = deliveryMethod?.cost !== undefined ? deliveryMethod.cost : shippingQuote.deliveryCost;
   const discount = couponDetails?.discount || 0;
   const coinDiscount = (useCommissionCoins && canRedeemCoins) ? Math.min(subtotal, commissionCoinsBalance) : 0;
   const taxableAmount = Math.max(0, subtotal - discount - coinDiscount);
@@ -651,9 +653,14 @@ const OrderReview = () => {
               )}
 
               <div className="flex justify-between items-center">
-                <span>Delivery Charges</span>
+                <div className="flex items-center gap-1.5">
+                  <span>Delivery Charges</span>
+                  {shippingQuote.totalWeight > 0 && (
+                    <span className="text-[10px] text-slate-400 dark:text-[#818C9B] font-mono">({shippingQuote.totalWeight} kg)</span>
+                  )}
+                </div>
                 <span className="text-white dark:text-[#F5F7FA] font-mono">
-                  {shippingCost === 0 ? <strong className="text-emerald-400">FREE</strong> : `₹${shippingCost}`}
+                  {shippingCost === 0 ? <strong className="text-emerald-400">FREE</strong> : `₹${shippingCost.toFixed(2)}`}
                 </span>
               </div>
 

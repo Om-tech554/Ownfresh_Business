@@ -25,6 +25,7 @@ import SLink from "./SLink";
 import SEO from "./SEO";
 import { cleanProductName, getDynamicName } from "../utils/productUtils";
 import ProductCard from "./ProductCard";
+import { trackViewItemList, trackSearch } from "../utils/analytics";
 
 const BOTTLE_SIZES = ["All", "250 ml", "500 ml", "1 Litre", "2 Litre", "5 Litre", "15 Litre"];
 
@@ -80,28 +81,6 @@ const Shop = () => {
     };
     fetchProducts();
   }, []);
-
-  useEffect(() => {
-    const categoryParam = searchParams.get('category');
-    if (categoryParam) {
-      setActiveCategory(categoryParam);
-    }
-  }, [searchParams]);
-
-  /* Load Recently Viewed from localStorage */
-  useEffect(() => {
-    if (products.length > 0) {
-      try {
-        const stored = JSON.parse(localStorage.getItem("ownfresh_recently_viewed") || "[]");
-        if (stored.length > 0) {
-          const matched = stored
-            .map((id) => products.find((p) => p._id === id))
-            .filter(Boolean);
-          setRecentlyViewed(matched);
-        }
-      } catch (e) {}
-    }
-  }, [products]);
 
   const categoriesMap = useMemo(() => {
     return products.reduce((acc, curr) => {
@@ -184,6 +163,44 @@ const Shop = () => {
     return result;
   }, [products, activeCategory, selectedPurpose, searchQuery, selectedSize, stockOnly, priceRange, sortBy]);
 
+  // GA4: Track Item List Impression
+  useEffect(() => {
+    if (products.length > 0) {
+      trackViewItemList(products, "Shop All Products");
+    }
+  }, [products]);
+
+  // GA4: Track Search Query (debounced)
+  useEffect(() => {
+    if (!searchQuery || searchQuery.trim().length < 2) return;
+    const timer = setTimeout(() => {
+      trackSearch(searchQuery.trim(), displayedProducts.length);
+    }, 800);
+    return () => clearTimeout(timer);
+  }, [searchQuery, displayedProducts.length]);
+
+  useEffect(() => {
+    const categoryParam = searchParams.get('category');
+    if (categoryParam) {
+      setActiveCategory(categoryParam);
+    }
+  }, [searchParams]);
+
+  /* Load Recently Viewed from localStorage */
+  useEffect(() => {
+    if (products.length > 0) {
+      try {
+        const stored = JSON.parse(localStorage.getItem("ownfresh_recently_viewed") || "[]");
+        if (stored.length > 0) {
+          const matched = stored
+            .map((id) => products.find((p) => p._id === id))
+            .filter(Boolean);
+          setRecentlyViewed(matched);
+        }
+      } catch (e) {}
+    }
+  }, [products]);
+
   const handleAddToCart = (product, selectedVariant) => {
     if (!user) {
       toast.error("Please sign in to add to cart", { duration: 1500 });
@@ -206,6 +223,8 @@ const Shop = () => {
       name: displayName,
       variantName: selectedVariant.name,
       price: selectedVariant.salePrice || selectedVariant.price,
+      shippingWeight: selectedVariant.shippingWeight || 0,
+      weight: selectedVariant.weight || selectedVariant.name || "",
       image: itemImg,
       quantity: 1
     };

@@ -43,6 +43,7 @@ import SLink from "../components/SLink";
 import SEO from "../components/SEO";
 import ProductReviews from "../components/ProductReviews";
 import { motion, AnimatePresence } from "framer-motion";
+import { trackViewItem, trackAddToCart } from "../utils/analytics";
 
 const OIL_KNOWLEDGE_BASE = {
   groundnut: {
@@ -439,6 +440,8 @@ const ProductDetails = () => {
           name: getDynamicName(product.name, selectedVariant.name),
           variantName: selectedVariant.name,
           price: selectedVariant.salePrice || selectedVariant.price,
+          shippingWeight: selectedVariant.shippingWeight || 0,
+          weight: selectedVariant.weight || selectedVariant.name || "",
           image: itemImage,
           quantity: 1,
         })
@@ -457,6 +460,8 @@ const ProductDetails = () => {
           name: getDynamicName(fbtItem1.name, fbtVariant1.name),
           variantName: fbtVariant1.name,
           price: fbtVariant1.salePrice || fbtVariant1.price,
+          shippingWeight: fbtVariant1.shippingWeight || 0,
+          weight: fbtVariant1.weight || fbtVariant1.name || "",
           image: itemImage,
           quantity: 1,
         })
@@ -475,6 +480,8 @@ const ProductDetails = () => {
           name: getDynamicName(fbtItem2.name, fbtVariant2.name),
           variantName: fbtVariant2.name,
           price: fbtVariant2.salePrice || fbtVariant2.price,
+          shippingWeight: fbtVariant2.shippingWeight || 0,
+          weight: fbtVariant2.weight || fbtVariant2.name || "",
           image: itemImage,
           quantity: 1,
         })
@@ -516,6 +523,13 @@ const ProductDetails = () => {
     setActiveImage(varImg);
   };
 
+  /* Track GA4 Product View */
+  useEffect(() => {
+    if (product) {
+      trackViewItem(product, selectedVariant);
+    }
+  }, [product, selectedVariant]);
+
   const displayName = getDynamicName(product?.name, selectedVariant?.name);
   const currentPrice = selectedVariant ? (selectedVariant.salePrice || selectedVariant.price) : (product?.price || 0);
   const regularPrice = selectedVariant ? selectedVariant.price : (product?.price || 0);
@@ -524,6 +538,47 @@ const ProductDetails = () => {
   const discountPercent = isDiscounted
     ? Math.round(((selectedVariant.price - selectedVariant.salePrice) / selectedVariant.price) * 100)
     : 0;
+
+  /* Product Schema for Google Rich Snippets */
+  const productSchema = useMemo(() => {
+    if (!product) return null;
+    const finalPrice = selectedVariant ? (selectedVariant.salePrice || selectedVariant.price) : (product.price || 0);
+    const inStock = selectedVariant ? (selectedVariant.stockQuantity > 0) : ((product.stock || 1) > 0);
+
+    return {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "Product",
+          "name": displayName || cleanProductName(product.name),
+          "image": [activeImage || product.image],
+          "description": product.shortDesc || product.description || oilInfo.intro,
+          "sku": selectedVariant?.sku || String(product._id),
+          "brand": {
+            "@type": "Brand",
+            "name": "MyOwnFresh"
+          },
+          "category": typeof product.category === "object" ? product.category?.name : product.category || "Cooking Oils",
+          "offers": {
+            "@type": "Offer",
+            "priceCurrency": "INR",
+            "price": finalPrice,
+            "availability": inStock ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
+            "url": `https://myownfresh.com/product/${product._id}`,
+            "itemCondition": "https://schema.org/NewCondition"
+          }
+        },
+        {
+          "@type": "BreadcrumbList",
+          "itemListElement": [
+            { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://myownfresh.com/" },
+            { "@type": "ListItem", "position": 2, "name": "Shop", "item": "https://myownfresh.com/shop" },
+            { "@type": "ListItem", "position": 3, "name": displayName || cleanProductName(product.name), "item": `https://myownfresh.com/product/${product._id}` }
+          ]
+        }
+      ]
+    };
+  }, [product, selectedVariant, displayName, activeImage, oilInfo]);
 
   /* --- Add To Cart --- */
   const handleAddToCart = () => {
@@ -545,10 +600,13 @@ const ProductDetails = () => {
       name: displayName,
       variantName: selectedVariant.name,
       price: selectedVariant.salePrice || selectedVariant.price,
+      shippingWeight: selectedVariant.shippingWeight || 0,
+      weight: selectedVariant.weight || selectedVariant.name || "",
       image: itemImage,
       quantity: finalQuantity,
     };
     dispatch(addToCart(cartItem));
+    trackAddToCart(product, selectedVariant, finalQuantity);
     toast.success(`${displayName} added to cart!`);
   };
 
@@ -572,10 +630,13 @@ const ProductDetails = () => {
       name: displayName,
       variantName: selectedVariant.name,
       price: selectedVariant.salePrice || selectedVariant.price,
+      shippingWeight: selectedVariant.shippingWeight || 0,
+      weight: selectedVariant.weight || selectedVariant.name || "",
       image: itemImage,
       quantity: finalQuantity,
     };
     dispatch(addToCart(cartItem));
+    trackAddToCart(product, selectedVariant, finalQuantity);
     navigate("/checkout");
   };
 
@@ -596,10 +657,13 @@ const ProductDetails = () => {
       name: itemDisplayName,
       variantName: variant.name,
       price: variant.salePrice || variant.price,
+      shippingWeight: variant.shippingWeight || 0,
+      weight: variant.weight || variant.name || "",
       image: varImg,
       quantity: 1,
     };
     dispatch(addToCart(cartItem));
+    trackAddToCart(prod, variant, 1);
     toast.success(`${itemDisplayName} added to cart!`);
   };
 
@@ -626,10 +690,11 @@ const ProductDetails = () => {
     <>
       <SEO
         title={displayName || cleanProductName(product.name)}
-        description={product.shortDesc}
+        description={product.shortDesc || oilInfo.intro}
         image={activeImage || product.image}
         url={`/product/${product._id}`}
         type="product"
+        schemaMarkup={productSchema}
       />
       <Navbar />
 

@@ -99,6 +99,18 @@ const orderSchema = new mongoose.Schema({
     type: Number,
     required: true
   },
+  deliveryCharge: {
+    type: Number,
+    default: 0
+  },
+  totalWeight: {
+    type: Number,
+    default: 0
+  },
+  deliveryMethod: {
+    type: String,
+    default: "Standard Delivery"
+  },
   cgst: {
     type: Number,
     default: 0

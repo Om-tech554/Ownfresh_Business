@@ -51,6 +51,9 @@ const TermsAndConditions = lazyRetry(() => import('./pages/TermsAndConditions'))
 const RefundPolicy = lazyRetry(() => import('./pages/RefundPolicy'));
 const ShippingPolicy = lazyRetry(() => import('./pages/ShippingPolicy'));
 const MembershipPage = lazyRetry(() => import('./pages/MembershipPage'));
+const CategoryLandingPage = lazyRetry(() => import('./pages/CategoryLandingPage'));
+
+import { initGA, trackPageView } from './utils/analytics';
 
 export const serverUrl = (import.meta.env.VITE_API_URL || "http://localhost:10000").replace(/\/+$/, "");
 
@@ -67,6 +70,7 @@ const App = () => {
       duration: 1000,
       once: true,
     });
+    initGA();
   }, []);
 
   useGetCurrentUser();
@@ -74,6 +78,12 @@ const App = () => {
 
   const location = useLocation();
   const userData = useSelector((state) => state.user.userData);
+
+  // Track SPA page view on route transitions
+  React.useEffect(() => {
+    trackPageView(location.pathname + location.search);
+    window.scrollTo(0, 0);
+  }, [location]);
 
   const hideFooterRoutes = [
     "/signin",
@@ -171,6 +181,17 @@ const App = () => {
             }
           />
           <Route path="/shop" element={<Shop />} />
+          
+          {/* SEO Category Landing Routes */}
+          <Route path="/oils" element={<CategoryLandingPage />} />
+          <Route path="/category/:slug" element={<CategoryLandingPage />} />
+          <Route path="/groundnut-oil" element={<CategoryLandingPage defaultCategory="Groundnut Oil" />} />
+          <Route path="/sesame-oil" element={<CategoryLandingPage defaultCategory="Sesame Oil" />} />
+          <Route path="/mustard-oil" element={<CategoryLandingPage defaultCategory="Mustard Oil" />} />
+          <Route path="/coconut-oil" element={<CategoryLandingPage defaultCategory="Coconut Oil" />} />
+          <Route path="/sunflower-oil" element={<CategoryLandingPage defaultCategory="Sunflower Oil" />} />
+          <Route path="/almond-oil" element={<CategoryLandingPage defaultCategory="Almond Oil" />} />
+
           <Route path="/blog/:id" element={<UserBlogDetails />} />
           <Route path="/cart" element={<CartPage />} />
           <Route path="/whyownfresh" element={<WhyOwnFresh />} />

@@ -1,35 +1,50 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useCheckout } from './CheckoutContext';
+import { useSelector } from 'react-redux';
 import { motion } from 'framer-motion';
 import { Truck, Zap, Rocket } from 'lucide-react';
 import toast from 'react-hot-toast';
-
-const deliveryOptions = [
-  {
-    id: 'standard',
-    name: 'Standard Delivery',
-    cost: 0,
-    estimatedTime: '5-7 Business Days',
-    icon: <Truck className="w-6 h-6" />
-  },
-  {
-    id: 'express',
-    name: 'Express Delivery',
-    cost: 150,
-    estimatedTime: '2-3 Business Days',
-    icon: <Zap className="w-6 h-6" />
-  },
-  {
-    id: 'priority',
-    name: 'Priority Delivery',
-    cost: 300,
-    estimatedTime: 'Next Business Day',
-    icon: <Rocket className="w-6 h-6" />
-  }
-];
+import { calculateClientShipping } from '../../utils/shippingCalculator';
 
 const DeliveryMethod = () => {
   const { deliveryMethod, setDeliveryMethod, nextStep, prevStep } = useCheckout();
+  const cartItems = useSelector((state) => state.user.cartItems);
+  const subtotal = cartItems.reduce((acc, item) => acc + (item.price * item.quantity), 0);
+  const shippingQuote = calculateClientShipping({ cartItems, subtotal });
+
+  const standardCost = shippingQuote.isFreeDelivery ? 0 : shippingQuote.standardDeliveryCost;
+
+  const deliveryOptions = [
+    {
+      id: 'standard',
+      name: 'Standard Delivery',
+      cost: standardCost,
+      estimatedTime: '5-7 Business Days',
+      icon: <Truck className="w-6 h-6" />
+    },
+    {
+      id: 'express',
+      name: 'Express Delivery',
+      cost: standardCost + 150,
+      estimatedTime: '2-3 Business Days',
+      icon: <Zap className="w-6 h-6" />
+    },
+    {
+      id: 'priority',
+      name: 'Priority Delivery',
+      cost: standardCost + 300,
+      estimatedTime: 'Next Business Day',
+      icon: <Rocket className="w-6 h-6" />
+    }
+  ];
+
+  // Auto-sync active option cost
+  useEffect(() => {
+    const currentOpt = deliveryOptions.find(o => o.id === deliveryMethod.id) || deliveryOptions[0];
+    if (deliveryMethod.cost !== currentOpt.cost || deliveryMethod.name !== currentOpt.name) {
+      setDeliveryMethod(currentOpt);
+    }
+  }, [subtotal, cartItems.length, shippingQuote.totalWeight]);
 
   const handleSelectOption = (option) => {
     setDeliveryMethod(option);

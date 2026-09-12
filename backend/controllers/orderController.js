@@ -217,6 +217,7 @@ export const createManualOrder = async (req, res) => {
       paymentStatus,
       status,
       orderDate,
+      deliveryCharge = 0,
       discountAmount = 0,
       taxAmount = 0,
       cgst = 0,
@@ -289,7 +290,8 @@ export const createManualOrder = async (req, res) => {
       }
     }
 
-    const finalTotalAmount = Math.max(0, itemsSubtotal - Number(discountAmount || 0) + Number(finalTaxAmount || 0));
+    const finalDeliveryCharge = Number(deliveryCharge) || 0;
+    const finalTotalAmount = Math.max(0, itemsSubtotal - Number(discountAmount || 0) + Number(finalTaxAmount || 0) + finalDeliveryCharge);
 
     // 3. Generate Sequential Custom Order ID (GST/ or MOF/ based on clientType)
     const orderDateObj = orderDate ? new Date(orderDate) : new Date();
@@ -333,6 +335,7 @@ export const createManualOrder = async (req, res) => {
         phone: deliveryAddress?.phone || customerDetails.mobile || ""
       },
       totalAmount: finalTotalAmount,
+      deliveryCharge: finalDeliveryCharge,
       discountAmount: Number(discountAmount) || 0,
       taxAmount: finalTaxAmount,
       cgst: finalCgst,

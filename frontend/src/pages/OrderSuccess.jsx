@@ -5,6 +5,7 @@ import { FaCheckCircle, FaExclamationCircle, FaDownload, FaShoppingBag, FaSpinne
 import axios from 'axios';
 import { appCheck } from '../../firebase';
 import { getToken } from 'firebase/app-check';
+import { trackPurchase } from '../utils/analytics';
 
 const serverUrl = import.meta.env.VITE_API_URL || "http://localhost:10000";
 
@@ -25,6 +26,7 @@ const OrderSuccess = () => {
   const [errorMsg, setErrorMsg] = useState('');
   const [attemptCount, setAttemptCount] = useState(1);
   const checkCountRef = useRef(1);
+  const purchaseTrackedRef = useRef(false);
 
   useEffect(() => {
     if (!orderId) {
@@ -62,6 +64,12 @@ const OrderSuccess = () => {
           setOrderDetails(data.order);
           setLoading(false);
           if (pollInterval) clearInterval(pollInterval);
+
+          // Dispatch GA4 Purchase Event once
+          if (!purchaseTrackedRef.current && data.order) {
+            trackPurchase(data.order);
+            purchaseTrackedRef.current = true;
+          }
         } else if (data.paymentStatus === 'failed') {
           setStatus('failed');
           setErrorMsg(data.msg || 'Payment failed or was declined by bank.');

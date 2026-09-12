@@ -153,6 +153,13 @@ export const generateInvoicePdf = async (order) => {
       doc.text(`₹${sgstVal.toFixed(2)}`, 490, currentY, { width: 70, align: "right" });
       currentY += 12;
 
+      const deliveryChargeVal = order.deliveryCharge || 0;
+      doc.fillColor(deliveryChargeVal === 0 ? "#059669" : "#4B5563");
+      doc.text("Delivery Charges", 380, currentY, { width: 100, align: "right" });
+      doc.text(deliveryChargeVal === 0 ? "FREE" : `₹${deliveryChargeVal.toFixed(2)}`, 490, currentY, { width: 70, align: "right" });
+      currentY += 12;
+      doc.fillColor("#4B5563");
+
       if (order.discountAmount > 0) {
         doc.fillColor("#DC2626").text("Discount Applied", 380, currentY, { width: 100, align: "right" });
         doc.text(`-₹${order.discountAmount.toFixed(2)}`, 490, currentY, { width: 70, align: "right" });

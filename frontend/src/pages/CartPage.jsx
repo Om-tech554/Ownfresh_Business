@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, ShoppingBag, Plus, Minus, Trash2, Droplets, Sparkles, ShieldCheck, CheckCircle2 } from 'lucide-react';
@@ -6,17 +6,38 @@ import { addToCart, updateQuantity, removeFromCart } from '../redux/userslice';
 import SLink from "../components/SLink";
 import { motion, AnimatePresence } from 'framer-motion';
 import SmokyOilSpillBackground from '../components/cart/SmokyOilSpillBackground';
+import { calculateClientShipping } from '../utils/shippingCalculator';
+import { trackViewCart, trackRemoveFromCart, trackBeginCheckout } from '../utils/analytics';
 
 const CartPage = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const cartItems = useSelector((state) => state.user.cartItems);
   const subtotal = cartItems.reduce((acc, item) => acc + (item.price * item.quantity), 0);
+  const shippingInfo = calculateClientShipping({ cartItems, subtotal });
+  const deliveryCharge = shippingInfo.deliveryCost;
   const taxableAmount = subtotal;
   const cgst = taxableAmount * 0.025;
   const sgst = taxableAmount * 0.025;
   const totalTax = cgst + sgst;
-  const finalTotal = taxableAmount + totalTax;
+  const finalTotal = taxableAmount + totalTax + deliveryCharge;
+
+  // GA4: Track Cart View
+  useEffect(() => {
+    if (cartItems.length > 0) {
+      trackViewCart(cartItems, finalTotal);
+    }
+  }, [cartItems.length, finalTotal]);
+
+  const handleRemove = (item) => {
+    dispatch(removeFromCart(item._id));
+    trackRemoveFromCart(item, { name: item.variantName, price: item.price }, item.quantity);
+  };
+
+  const handleProceedToCheckout = () => {
+    trackBeginCheckout(cartItems, finalTotal);
+    navigate('/checkout');
+  };
 
   return (
     <div className="min-h-screen bg-[#0c1017] text-slate-100 py-10 sm:py-14 px-4 sm:px-6 relative overflow-hidden font-sans">
@@ -99,6 +120,53 @@ const CartPage = () => {
           </motion.div>
         ) : (
           <>
+            {/* ── FREE DELIVERY PROGRESS BANNER ── */}
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className={`mb-6 p-4 rounded-2xl border backdrop-blur-xl transition-all duration-300 ${
+                shippingInfo.isFreeDelivery
+                  ? 'bg-emerald-950/40 border-emerald-500/30 shadow-lg shadow-emerald-500/10'
+                  : 'bg-slate-900/70 border-amber-500/30 shadow-lg shadow-amber-500/10'
+              }`}
+            >
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 mb-2">
+                <div className="flex items-center gap-2">
+                  <span className="text-lg">
+                    {shippingInfo.isFreeDelivery ? '🎉' : '🚚'}
+                  </span>
+                  <p className="text-xs sm:text-sm font-black uppercase tracking-wider text-white">
+                    {shippingInfo.isFreeDelivery ? (
+                      <span className="bg-gradient-to-r from-emerald-400 to-green-300 bg-clip-text text-transparent">
+                        Free Delivery Unlocked!
+                      </span>
+                    ) : (
+                      <>
+                        Add <span className="text-amber-300 font-mono font-black">₹{shippingInfo.amountNeededForFreeDelivery.toLocaleString('en-IN')}</span> more to unlock <span className="text-emerald-400 font-black">FREE delivery</span>
+                      </>
+                    )}
+                  </p>
+                </div>
+                <div className="flex items-center gap-2 text-[10px] text-slate-400 font-bold uppercase tracking-wider self-start sm:self-auto">
+                  <span>📦 Shipment: <strong className="text-amber-300 font-mono">{shippingInfo.totalWeight} kg</strong></span>
+                </div>
+              </div>
+
+              {/* Progress track */}
+              <div className="w-full bg-slate-800/90 h-2 rounded-full overflow-hidden border border-white/5">
+                <motion.div
+                  initial={{ width: 0 }}
+                  animate={{ width: `${shippingInfo.progressPercentage}%` }}
+                  transition={{ duration: 0.5, ease: "easeOut" }}
+                  className={`h-full rounded-full transition-all duration-500 ${
+                    shippingInfo.isFreeDelivery
+                      ? 'bg-gradient-to-r from-emerald-400 to-green-300 shadow-[0_0_12px_rgba(52,211,153,0.6)]'
+                      : 'bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-300 shadow-[0_0_10px_rgba(245,158,11,0.5)]'
+                  }`}
+                />
+              </div>
+            </motion.div>
+
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
               
               {/* ── CART ITEMS LIST (LUXURY FROSTED OBSIDIAN CARDS) ── */}
@@ -119,7 +187,7 @@ const CartPage = () => {
                     >
                       {/* Trash Button */}
                       <button
-                        onClick={() => dispatch(removeFromCart(item._id))}
+                        onClick={() => handleRemove(item)}
                         className="absolute top-4 right-4 p-2 text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 rounded-full transition-colors cursor-pointer"
                         title="Remove item"
                       >
@@ -202,10 +270,21 @@ const CartPage = () => {
                       <span className="font-mono">₹{sgst.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span>Delivery</span>
-                      <span className="text-emerald-400 font-extrabold tracking-wider bg-emerald-500/10 px-2 py-0.5 rounded-md border border-emerald-500/30">
-                        FREE
-                      </span>
+                      <div className="flex items-center gap-1.5">
+                        <span>Delivery</span>
+                        {shippingInfo.totalWeight > 0 && (
+                          <span className="text-[10px] text-slate-400 font-mono font-normal">({shippingInfo.totalWeight} kg)</span>
+                        )}
+                      </div>
+                      {shippingInfo.isFreeDelivery ? (
+                        <span className="text-emerald-400 font-extrabold tracking-wider bg-emerald-500/10 px-2 py-0.5 rounded-md border border-emerald-500/30">
+                          FREE
+                        </span>
+                      ) : (
+                        <span className="text-amber-300 font-extrabold font-mono">
+                          ₹{deliveryCharge.toLocaleString('en-IN')}
+                        </span>
+                      )}
                     </div>
                     
                     <div className="h-px bg-white/10 my-4"></div>
@@ -220,14 +299,14 @@ const CartPage = () => {
                     </div>
                   </div>
                   
-                  <SLink
-                    to="/checkout"
+                  <button
+                    onClick={handleProceedToCheckout}
                     className="w-full relative z-10 bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-500 hover:from-amber-300 hover:to-yellow-300 text-slate-950 py-4 rounded-2xl font-black text-xs hover:shadow-2xl hover:shadow-amber-500/30 active:scale-98 transition-all duration-300 uppercase tracking-widest block text-center overflow-hidden border-0 cursor-pointer shadow-lg shadow-amber-500/20"
                   >
                     <span className="relative z-10 flex items-center justify-center gap-2">
                       Proceed to Checkout <ArrowLeft className="rotate-180 w-4 h-4" />
                     </span>
-                  </SLink>
+                  </button>
                 </div>
               </motion.div>
             </div>
@@ -238,12 +317,12 @@ const CartPage = () => {
                 <span className="block text-[9px] uppercase font-bold text-slate-400 tracking-wider">Total</span>
                 <span className="block text-xl font-black text-[#EFDB27] font-mono">₹{finalTotal.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
               </div>
-              <SLink
-                to="/checkout"
-                className="flex-1 py-3.5 bg-gradient-to-r from-amber-400 to-yellow-400 text-slate-950 rounded-xl font-black text-xs uppercase tracking-widest flex items-center justify-center gap-2 shadow-lg active:scale-95 transition-all text-center"
+              <button
+                onClick={handleProceedToCheckout}
+                className="flex-1 py-3.5 bg-gradient-to-r from-amber-400 to-yellow-400 text-slate-950 rounded-xl font-black text-xs uppercase tracking-widest flex items-center justify-center gap-2 shadow-lg active:scale-95 transition-all text-center cursor-pointer"
               >
                 Checkout Now <ArrowLeft className="rotate-180 w-4 h-4" />
-              </SLink>
+              </button>
             </div>
           </>
         )}

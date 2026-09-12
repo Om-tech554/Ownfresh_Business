@@ -14,6 +14,7 @@ import { sendOrderConfirmationSms } from "../utils/sms.js";
 import { sendOrderConfirmationWhatsApp } from "../utils/whatsapp.js";
 import { awardOrderCommissionCoins, processCoinExpirations } from "./membershipController.js";
 import CommissionLog from "../models/commissionLogModel.js";
+import { calculateShipping, inferVariantWeightKg } from "../services/shippingService.js";
 
 
 // Helper function to generate unique custom order ID without duplicate key collisions
@@ -142,6 +143,8 @@ export const createOrder = async (req, res) => {
         if (!vId) vId = parts[1];
       }
 
+      let variantShippingWeight = 0;
+
       if (vId && mongoose.Types.ObjectId.isValid(vId)) {
         const variant = await ProductVariant.findById(vId).populate("product");
         if (!variant) {
@@ -151,6 +154,7 @@ export const createOrder = async (req, res) => {
         variantName = variant.name;
         name = variant.product?.name || item.name || item.title || "Product";
         image = item.image || (Array.isArray(item.images) ? item.images[0] : item.images) || variant.product?.image || "";
+        variantShippingWeight = inferVariantWeightKg(variant);
       } else {
         const product = await Product.findById(pId);
         if (!product) {
@@ -161,6 +165,7 @@ export const createOrder = async (req, res) => {
           price = variants[0].salePrice !== null && variants[0].salePrice !== undefined ? variants[0].salePrice : variants[0].price;
           variantName = variants[0].name;
           image = item.image || (Array.isArray(item.images) ? item.images[0] : item.images) || product.image || "";
+          variantShippingWeight = inferVariantWeightKg(variants[0]);
         } else {
           return res.status(400).json({ msg: `No active variants found for product ${product.name}` });
         }
@@ -177,6 +182,7 @@ export const createOrder = async (req, res) => {
         variantName,
         price,
         quantity: qty,
+        shippingWeight: variantShippingWeight,
         image
       });
     }
@@ -246,13 +252,17 @@ export const createOrder = async (req, res) => {
       }
     }
 
-    // 3) Calculate standard shipping cost
-    let shippingCost = 0;
-    if (deliveryMethodId === 'express') {
-      shippingCost = 150;
-    } else if (deliveryMethodId === 'priority') {
-      shippingCost = 300;
-    }
+    // 3) Authoritative weight-based shipping calculation & ₹1,000 free-delivery rule
+    const shippingResult = calculateShipping({
+      items: validatedItems,
+      subtotal: calculatedSubtotal,
+      deliveryMethodId: deliveryMethodId || "standard",
+      pincode: deliveryAddress?.pinCode || deliveryAddress?.zipCode || "",
+      state: deliveryAddress?.areaName || deliveryAddress?.state || ""
+    });
+    const shippingCost = shippingResult.deliveryCharge;
+    const totalOrderWeight = shippingResult.totalWeight;
+    const resolvedDeliveryMethod = shippingResult.deliveryMethodName;
 
     // 4) Calculate commission coins deduction
     if (useCommissionCoins) {
@@ -366,6 +376,9 @@ export const createOrder = async (req, res) => {
       status: 'pending',
       deliveryAddress,
       totalAmount: finalPayableAmount,
+      deliveryCharge: shippingCost,
+      totalWeight: totalOrderWeight,
+      deliveryMethod: resolvedDeliveryMethod,
       discountAmount: calculatedDiscount,
       couponCode: couponRecord ? couponRecord.code : "",
       referralCode: referralCode ? String(referralCode).trim().toUpperCase() : "",

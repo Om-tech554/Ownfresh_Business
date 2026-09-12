@@ -116,10 +116,10 @@ const AdminProductEditor = () => {
     } else {
       // Default standard variations for new product
       setVariants([
-        { name: "250 ml", size: "250ml", sku: "OF-250ML", price: 180, salePrice: 150, stockQuantity: 50, weight: "250g", image: "", images: [], status: "Active" },
-        { name: "500 ml", size: "500ml", sku: "OF-500ML", price: 320, salePrice: 260, stockQuantity: 60, weight: "500g", image: "", images: [], status: "Active" },
-        { name: "1 Litre", size: "1L", sku: "OF-1L", price: 580, salePrice: 475, stockQuantity: 100, weight: "1kg", image: "", images: [], status: "Active" },
-        { name: "5 Litre", size: "5L", sku: "OF-5L", price: 4600, salePrice: 3800, stockQuantity: 25, weight: "5kg", image: "", images: [], status: "Active" }
+        { name: "250 ml", size: "250ml", sku: "OF-250ML", price: 180, salePrice: 150, stockQuantity: 50, weight: "250g", shippingWeight: 0.35, image: "", images: [], status: "Active" },
+        { name: "500 ml", size: "500ml", sku: "OF-500ML", price: 320, salePrice: 260, stockQuantity: 60, weight: "500g", shippingWeight: 0.65, image: "", images: [], status: "Active" },
+        { name: "1 Litre", size: "1L", sku: "OF-1L", price: 580, salePrice: 475, stockQuantity: 100, weight: "1kg", shippingWeight: 1.20, image: "", images: [], status: "Active" },
+        { name: "5 Litre", size: "5L", sku: "OF-5L", price: 4600, salePrice: 3800, stockQuantity: 25, weight: "5kg", shippingWeight: 5.50, image: "", images: [], status: "Active" }
       ]);
     }
   }, [id, isEditing]);
@@ -142,6 +142,15 @@ const AdminProductEditor = () => {
 
   // Variant Management Helpers
   const addVariant = (sizeName = "1 Litre") => {
+    let defaultWeightKg = 1.20;
+    const lower = sizeName.toLowerCase();
+    if (lower.includes("15")) defaultWeightKg = 16.0;
+    else if (lower.includes("5")) defaultWeightKg = 5.50;
+    else if (lower.includes("2")) defaultWeightKg = 2.30;
+    else if (lower.includes("1")) defaultWeightKg = 1.20;
+    else if (lower.includes("500")) defaultWeightKg = 0.65;
+    else if (lower.includes("250")) defaultWeightKg = 0.35;
+
     const newV = {
       name: sizeName,
       size: sizeName.replace(/\s+/g, "").toLowerCase(),
@@ -150,6 +159,7 @@ const AdminProductEditor = () => {
       salePrice: 450,
       stockQuantity: 50,
       weight: sizeName,
+      shippingWeight: defaultWeightKg,
       image: preview || "",
       images: preview ? [preview] : [],
       labelImage: "",
@@ -600,18 +610,34 @@ const AdminProductEditor = () => {
 
                     <div>
                       <label className="text-[10px] font-black text-slate-400 uppercase tracking-wider block mb-1">
-                        Weight / Volume
+                        Display Label
                       </label>
                       <input
                         type="text"
                         value={v.weight || ""}
                         onChange={(e) => updateVariantField(idx, "weight", e.target.value)}
-                        placeholder="e.g. 5kg / 5L"
+                        placeholder="e.g. 5 Litre"
                         className="w-full p-2.5 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-800"
                       />
                     </div>
 
-                    <div className="col-span-2">
+                    <div>
+                      <label className="text-[10px] font-black text-[#1E971D] uppercase tracking-wider block mb-1 flex items-center justify-between">
+                        <span>Ship Weight (kg) *</span>
+                      </label>
+                      <input
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        value={v.shippingWeight !== undefined && v.shippingWeight !== null ? v.shippingWeight : ""}
+                        onChange={(e) => updateVariantField(idx, "shippingWeight", e.target.value === "" ? 0 : Number(e.target.value))}
+                        placeholder="e.g. 5.50"
+                        className="w-full p-2.5 bg-emerald-50/50 border border-emerald-300 rounded-xl text-xs font-bold text-slate-900 focus:ring-2 focus:ring-[#1E971D]/20 outline-none"
+                        required
+                      />
+                    </div>
+
+                    <div>
                       <label className="text-[10px] font-black text-slate-400 uppercase tracking-wider block mb-1">
                         Status
                       </label>

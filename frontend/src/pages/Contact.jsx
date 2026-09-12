@@ -16,8 +16,8 @@ const vCardData = [
     "FN:Monali Salagare",
     "ORG:OWNFRESH AGRO INDUSTRIES",
     "TEL;TYPE=CELL,VOICE:+918999773438",
-    "EMAIL;TYPE=INTERNET,WORK:ownfresh@ghanioils.com",
-    "URL:https://www.ghanioils.com",
+    "EMAIL;TYPE=INTERNET,WORK:contact@myownfresh.com",
+    "URL:https://www.myownfresh.com",
     "ADR;TYPE=WORK:;;1, Vir Maruti Complex, 30/13 Dhayari;Pune;Maharashtra;411041;India",
     "END:VCARD"
 ].join("\r\n");
@@ -96,7 +96,7 @@ const Contact = () => {
                             <Mail className="w-6 h-6 text-[#FFDD00] dark:text-[#FFD600]" />
                         </div>
                         <h3 className="text-sm font-black uppercase tracking-widest text-black dark:text-[#F7F9FC] mb-2">Email Us</h3>
-                        <a href="mailto:ownfresh@ghanioils.com" className="text-gray-600 dark:text-[#B7C1CE] font-bold text-sm sm:text-base hover:text-black dark:hover:text-[#FFD600] transition-colors cursor-pointer break-all sm:break-normal">ownfresh@ghanioils.com</a>
+                        <a href="mailto:contact@myownfresh.com" className="text-gray-600 dark:text-[#B7C1CE] font-bold text-sm sm:text-base hover:text-black dark:hover:text-[#FFD600] transition-colors cursor-pointer break-all sm:break-normal">contact@myownfresh.com</a>
                     </div>
 
                     {/* Address block */}

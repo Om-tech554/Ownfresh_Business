@@ -1,13 +1,15 @@
 import React from 'react';
 import { useCheckout } from './CheckoutContext';
 import { useSelector } from 'react-redux';
+import { calculateClientShipping } from '../../utils/shippingCalculator';
 
 const OrderSummary = () => {
   const { deliveryMethod, couponDetails, useWallet, useCommissionCoins, commissionCoinsBalance, canRedeemCoins } = useCheckout();
   const cartItems = useSelector((state) => state.user.cartItems);
   
   const subtotal = cartItems.reduce((acc, item) => acc + (item.price * item.quantity), 0);
-  const shippingCost = deliveryMethod?.cost || 0;
+  const shippingQuote = calculateClientShipping({ cartItems, subtotal, deliveryMethodId: deliveryMethod?.id || 'standard' });
+  const shippingCost = deliveryMethod?.cost !== undefined ? deliveryMethod.cost : shippingQuote.deliveryCost;
   const discount = couponDetails?.discount || 0;
   
   const coinDiscount = (useCommissionCoins && canRedeemCoins) ? Math.min(subtotal, commissionCoinsBalance) : 0;
@@ -59,11 +61,31 @@ const OrderSummary = () => {
         </div>
         
         <div className="flex justify-between text-gray-600 dark:text-[#B7C1CE] text-sm font-medium">
-          <span>Shipping</span>
-          <span className="text-gray-900 dark:text-[#F5F7FA] font-bold">
-            {shippingCost === 0 ? 'Free' : `₹${shippingCost.toFixed(2)}`}
+          <div className="flex items-center gap-1.5">
+            <span>Delivery</span>
+            {shippingQuote.totalWeight > 0 && (
+              <span className="text-[10px] text-gray-400 dark:text-[#818C9B] font-mono">({shippingQuote.totalWeight} kg)</span>
+            )}
+          </div>
+          <span className={`font-bold ${shippingCost === 0 ? 'text-emerald-600 dark:text-emerald-400 font-extrabold' : 'text-gray-900 dark:text-[#F5F7FA]'}`}>
+            {shippingCost === 0 ? 'FREE' : `₹${shippingCost.toFixed(2)}`}
           </span>
         </div>
+
+        {!shippingQuote.isFreeDelivery && (
+          <div className="p-2.5 rounded-xl bg-amber-500/10 border border-amber-400/30 text-[11px] text-amber-900 dark:text-[#FFD600] font-bold">
+            <div className="flex justify-between items-center mb-1">
+              <span>🚚 Free Delivery at ₹1,000</span>
+              <span className="font-mono">Add ₹{shippingQuote.amountNeededForFreeDelivery.toLocaleString('en-IN')} more</span>
+            </div>
+            <div className="w-full bg-amber-200/50 dark:bg-[#151B23] h-1.5 rounded-full overflow-hidden">
+              <div
+                className="bg-amber-500 dark:bg-[#FFD600] h-full rounded-full transition-all duration-300"
+                style={{ width: `${shippingQuote.progressPercentage}%` }}
+              />
+            </div>
+          </div>
+        )}
 
         {discount > 0 && (
           <div className="flex justify-between text-green-600 dark:text-emerald-400 text-sm font-medium">
