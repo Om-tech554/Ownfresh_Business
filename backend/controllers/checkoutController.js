@@ -252,16 +252,26 @@ export const createOrder = async (req, res) => {
       }
     }
 
-    // 3) Authoritative weight-based shipping calculation & ₹1,000 free-delivery rule
+    // 3) Authoritative destination-based shipping calculation & ₹1,000 free-delivery rule
+    const destination = {
+      address: deliveryAddress?.text || deliveryAddress?.street || deliveryAddress?.address || "",
+      city: deliveryAddress?.city || deliveryAddress?.areaName || "",
+      district: deliveryAddress?.district || deliveryAddress?.landmark || "",
+      state: deliveryAddress?.state || "",
+      pincode: deliveryAddress?.pincode || deliveryAddress?.zipCode || deliveryAddress?.pinCode || "",
+      latitude: deliveryAddress?.latitude !== undefined && deliveryAddress?.latitude !== null ? Number(deliveryAddress.latitude) : null,
+      longitude: deliveryAddress?.longitude !== undefined && deliveryAddress?.longitude !== null ? Number(deliveryAddress.longitude) : null,
+      placeId: deliveryAddress?.placeId || ""
+    };
+
     const shippingResult = calculateShipping({
       items: validatedItems,
       subtotal: calculatedSubtotal,
-      deliveryMethodId: deliveryMethodId || "standard",
-      pincode: deliveryAddress?.pinCode || deliveryAddress?.zipCode || "",
-      state: deliveryAddress?.areaName || deliveryAddress?.state || ""
+      destination,
+      deliveryMethodId: deliveryMethodId || "standard"
     });
     const shippingCost = shippingResult.deliveryCharge;
-    const totalOrderWeight = shippingResult.totalWeight;
+    const totalOrderWeight = shippingResult.totalWeightKg;
     const resolvedDeliveryMethod = shippingResult.deliveryMethodName;
 
     // 4) Calculate commission coins deduction
@@ -309,14 +319,15 @@ export const createOrder = async (req, res) => {
       }
     }
 
-    // 5) Calculate taxes on taxable subtotal
-    const taxableAmount = Math.max(0, calculatedSubtotal - calculatedDiscount - coinsDeducted);
+    // 5) Calculate taxes as inclusive in net subtotal (5% GST: 2.5% CGST + 2.5% SGST)
+    const netSubtotal = Math.max(0, calculatedSubtotal - calculatedDiscount - coinsDeducted);
+    const taxableAmount = Math.round((netSubtotal / 1.05) * 100) / 100;
     const cgstRecalculated = Math.round(taxableAmount * 0.025 * 100) / 100;
     const sgstRecalculated = Math.round(taxableAmount * 0.025 * 100) / 100;
     const taxRecalculated = cgstRecalculated + sgstRecalculated;
 
-    // Subtotal + Tax + Shipping before wallet is applied
-    let finalPayableAmount = taxableAmount + taxRecalculated + shippingCost;
+    // Net Subtotal (already inclusive of GST) + Shipping before wallet is applied
+    let finalPayableAmount = netSubtotal + shippingCost;
 
     // 6) Calculate wallet deduction
     if (useWallet) {

@@ -5,21 +5,24 @@ import { motion } from 'framer-motion';
 import { Truck, Zap, Rocket } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { calculateClientShipping } from '../../utils/shippingCalculator';
+import SLink from '../SLink';
 
 const DeliveryMethod = () => {
-  const { deliveryMethod, setDeliveryMethod, nextStep, prevStep } = useCheckout();
+  const { deliveryMethod, setDeliveryMethod, nextStep, prevStep, shippingDetails } = useCheckout();
   const cartItems = useSelector((state) => state.user.cartItems);
   const subtotal = cartItems.reduce((acc, item) => acc + (item.price * item.quantity), 0);
-  const shippingQuote = calculateClientShipping({ cartItems, subtotal });
+  const shippingQuote = calculateClientShipping({ cartItems, subtotal, destination: shippingDetails });
 
   const standardCost = shippingQuote.isFreeDelivery ? 0 : shippingQuote.standardDeliveryCost;
+  const standardName = shippingQuote.deliveryMethodName || 'Standard Delivery';
+  const standardTime = shippingQuote.region === 'PUNE' ? '1-2 Business Days (Local)' : '3-5 Business Days';
 
   const deliveryOptions = [
     {
       id: 'standard',
-      name: 'Standard Delivery',
+      name: standardName,
       cost: standardCost,
-      estimatedTime: '5-7 Business Days',
+      estimatedTime: standardTime,
       icon: <Truck className="w-6 h-6" />
     },
     {
@@ -101,9 +104,18 @@ const DeliveryMethod = () => {
               </div>
 
               <div className="text-right">
-                <span className="font-black text-gray-900 dark:text-[#FFD600] text-lg">
+                <span className="font-black text-gray-900 dark:text-[#FFD600] text-lg block">
                   {option.cost === 0 ? 'FREE' : `₹${option.cost}`}
                 </span>
+                {option.cost > 0 && (
+                  <SLink
+                    to="/membership"
+                    onClick={(e) => e.stopPropagation()}
+                    className="text-[10px] text-amber-600 dark:text-[#FFD600] font-black hover:underline block mt-0.5 cursor-pointer whitespace-nowrap"
+                  >
+                    👑 Use Prime 1% for free delivery
+                  </SLink>
+                )}
               </div>
               
               {/* Custom Radio Button Indicator */}

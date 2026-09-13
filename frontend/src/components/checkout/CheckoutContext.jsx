@@ -8,21 +8,84 @@ export const useCheckout = () => {
 
 export const CheckoutProvider = ({ children }) => {
   const [currentStep, setCurrentStep] = useState(1);
-  const [shippingDetails, setShippingDetails] = useState({
-    fullName: '',
-    companyName: '',
-    email: '',
-    phone: '',
-    country: 'India',
-    state: '',
-    city: '',
-    zipCode: '',
-    flatNo: '',
-    address: '',
-    landmark: '',
-    latitude: 19.076,
-    longitude: 72.8777
+  const [shippingDetails, setShippingDetailsState] = useState(() => {
+    try {
+      const savedDest = localStorage.getItem("oil_delivery_destination");
+      const savedShip = localStorage.getItem("oil_shipping_details");
+      const destParsed = savedDest ? JSON.parse(savedDest) : null;
+      const shipParsed = savedShip ? JSON.parse(savedShip) : null;
+
+      if (shipParsed) {
+        return {
+          ...shipParsed,
+          city: destParsed?.city || shipParsed.city || '',
+          state: destParsed?.state || shipParsed.state || '',
+          zipCode: destParsed?.pincode || shipParsed.zipCode || '',
+          address: destParsed?.address || shipParsed.address || '',
+          latitude: destParsed?.latitude !== undefined ? destParsed.latitude : shipParsed.latitude,
+          longitude: destParsed?.longitude !== undefined ? destParsed.longitude : shipParsed.longitude,
+        };
+      }
+
+      if (destParsed) {
+        return {
+          fullName: '',
+          companyName: '',
+          email: '',
+          phone: '',
+          country: 'India',
+          state: destParsed.state || '',
+          city: destParsed.city || '',
+          zipCode: destParsed.pincode || '',
+          flatNo: '',
+          address: destParsed.address || '',
+          landmark: destParsed.district || '',
+          latitude: destParsed.latitude,
+          longitude: destParsed.longitude
+        };
+      }
+    } catch (e) {}
+
+    return {
+      fullName: '',
+      companyName: '',
+      email: '',
+      phone: '',
+      country: 'India',
+      state: '',
+      city: '',
+      zipCode: '',
+      flatNo: '',
+      address: '',
+      landmark: '',
+      latitude: null,
+      longitude: null
+    };
   });
+
+  const setShippingDetails = (newDetails) => {
+    setShippingDetailsState((prev) => {
+      const updated = typeof newDetails === 'function' ? newDetails(prev) : { ...prev, ...newDetails };
+      try {
+        localStorage.setItem("oil_shipping_details", JSON.stringify(updated));
+
+        // Synchronize structured delivery destination
+        const dest = {
+          address: updated.address || "",
+          city: updated.city || "",
+          district: updated.landmark || updated.district || "",
+          state: updated.state || "",
+          pincode: updated.zipCode || updated.pincode || "",
+          latitude: updated.latitude !== undefined && updated.latitude !== null ? Number(updated.latitude) : null,
+          longitude: updated.longitude !== undefined && updated.longitude !== null ? Number(updated.longitude) : null,
+          placeId: updated.placeId || ""
+        };
+        localStorage.setItem("oil_delivery_destination", JSON.stringify(dest));
+        window.dispatchEvent(new Event("deliveryDestinationChanged"));
+      } catch (e) {}
+      return updated;
+    });
+  };
   const [deliveryMethod, setDeliveryMethod] = useState({
     id: 'standard',
     name: 'Standard Delivery',

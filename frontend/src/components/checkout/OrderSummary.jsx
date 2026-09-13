@@ -2,24 +2,32 @@ import React from 'react';
 import { useCheckout } from './CheckoutContext';
 import { useSelector } from 'react-redux';
 import { calculateClientShipping } from '../../utils/shippingCalculator';
+import SLink from '../SLink';
 
 const OrderSummary = () => {
-  const { deliveryMethod, couponDetails, useWallet, useCommissionCoins, commissionCoinsBalance, canRedeemCoins } = useCheckout();
+  const { deliveryMethod, couponDetails, useWallet, useCommissionCoins, commissionCoinsBalance, canRedeemCoins, shippingDetails } = useCheckout();
   const cartItems = useSelector((state) => state.user.cartItems);
   
   const subtotal = cartItems.reduce((acc, item) => acc + (item.price * item.quantity), 0);
-  const shippingQuote = calculateClientShipping({ cartItems, subtotal, deliveryMethodId: deliveryMethod?.id || 'standard' });
+  const shippingQuote = calculateClientShipping({
+    cartItems,
+    subtotal,
+    destination: shippingDetails,
+    deliveryMethodId: deliveryMethod?.id || 'standard'
+  });
   const shippingCost = shippingQuote.deliveryCost;
   const discount = couponDetails?.discount || 0;
   
   const coinDiscount = (useCommissionCoins && canRedeemCoins) ? Math.min(subtotal, commissionCoinsBalance) : 0;
 
-  const taxableAmount = Math.max(0, subtotal - discount - coinDiscount);
-  const cgst = taxableAmount * 0.025;
-  const sgst = taxableAmount * 0.025;
+  const netSubtotal = Math.max(0, subtotal - discount - coinDiscount);
+  // Prices are inclusive of 5% GST (2.5% CGST + 2.5% SGST)
+  const taxableAmount = Math.round((netSubtotal / 1.05) * 100) / 100;
+  const cgst = Math.round(taxableAmount * 0.025 * 100) / 100;
+  const sgst = Math.round(taxableAmount * 0.025 * 100) / 100;
   const totalTax = cgst + sgst;
   
-  const total = Math.max(0, taxableAmount + totalTax + shippingCost);
+  const total = Math.max(0, netSubtotal + shippingCost);
 
   if (cartItems.length === 0) {
     return (
@@ -61,21 +69,36 @@ const OrderSummary = () => {
         </div>
         
         <div className="flex justify-between text-gray-600 dark:text-[#B7C1CE] text-sm font-medium">
-          <div className="flex items-center gap-1.5">
-            <span>Delivery</span>
-            {shippingQuote.totalWeight > 0 && (
-              <span className="text-[10px] text-gray-400 dark:text-[#818C9B] font-mono">({shippingQuote.totalWeight} kg)</span>
+          <div>
+            <div className="flex items-center gap-1.5">
+              <span>Delivery</span>
+              {shippingQuote.totalWeightKg > 0 && (
+                <span className="text-[10px] text-gray-400 dark:text-[#818C9B] font-mono">({shippingQuote.totalWeightKg} kg)</span>
+              )}
+            </div>
+            <span className="text-[11px] text-amber-600 dark:text-amber-400 font-semibold block">
+              {shippingQuote.deliveryMethodName}
+            </span>
+          </div>
+          <div className="text-right">
+            <span className={`font-bold ${shippingCost === 0 ? 'text-emerald-600 dark:text-emerald-400 font-extrabold' : 'text-gray-900 dark:text-[#F5F7FA]'}`}>
+              {shippingCost === 0 ? 'FREE' : `₹${shippingCost.toFixed(2)}`}
+            </span>
+            {shippingCost > 0 && (
+              <SLink
+                to="/membership"
+                className="text-[10px] text-amber-600 dark:text-[#FFD600] font-bold hover:underline block mt-0.5 cursor-pointer"
+              >
+                👑 Use Prime 1% for free delivery
+              </SLink>
             )}
           </div>
-          <span className={`font-bold ${shippingCost === 0 ? 'text-emerald-600 dark:text-emerald-400 font-extrabold' : 'text-gray-900 dark:text-[#F5F7FA]'}`}>
-            {shippingCost === 0 ? 'FREE' : `₹${shippingCost.toFixed(2)}`}
-          </span>
         </div>
 
         {!shippingQuote.isFreeDelivery && (
-          <div className="p-2.5 rounded-xl bg-amber-500/10 border border-amber-400/30 text-[11px] text-amber-900 dark:text-[#FFD600] font-bold">
+          <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-400/30 text-[11px] text-amber-900 dark:text-[#FFD600] font-bold space-y-2">
             <div className="flex justify-between items-center mb-1">
-              <span>🚚 Free Delivery at ₹1,000</span>
+              <span>🚚 Free delivery on orders above ₹1,000</span>
               <span className="font-mono">Add ₹{shippingQuote.amountNeededForFreeDelivery.toLocaleString('en-IN')} more</span>
             </div>
             <div className="w-full bg-amber-200/50 dark:bg-[#151B23] h-1.5 rounded-full overflow-hidden">
@@ -83,6 +106,15 @@ const OrderSummary = () => {
                 className="bg-amber-500 dark:bg-[#FFD600] h-full rounded-full transition-all duration-300"
                 style={{ width: `${shippingQuote.progressPercentage}%` }}
               />
+            </div>
+            <div className="pt-1.5 border-t border-amber-400/20 flex items-center justify-between">
+              <span className="text-[10px] text-gray-500 dark:text-[#818C9B] font-medium">Order under ₹1,000?</span>
+              <SLink
+                to="/membership"
+                className="inline-flex items-center gap-1 text-[10px] font-black uppercase text-amber-700 dark:text-[#FFD600] hover:underline cursor-pointer"
+              >
+                👑 Use Prime 1% for free delivery →
+              </SLink>
             </div>
           </div>
         )}
@@ -101,14 +133,14 @@ const OrderSummary = () => {
           </div>
         )}
 
-        <div className="flex justify-between text-gray-600 dark:text-[#B7C1CE] text-sm font-medium">
-          <span>CGST (2.5%)</span>
-          <span className="text-gray-900 dark:text-[#F5F7FA] font-bold">₹{cgst.toFixed(2)}</span>
+        <div className="flex justify-between text-gray-600 dark:text-[#B7C1CE] text-xs font-medium">
+          <span>CGST (2.5% - Incl.)</span>
+          <span className="text-gray-900 dark:text-[#F5F7FA] font-bold font-mono">₹{cgst.toFixed(2)}</span>
         </div>
 
-        <div className="flex justify-between text-gray-600 dark:text-[#B7C1CE] text-sm font-medium">
-          <span>SGST (2.5%)</span>
-          <span className="text-gray-900 dark:text-[#F5F7FA] font-bold">₹{sgst.toFixed(2)}</span>
+        <div className="flex justify-between text-gray-600 dark:text-[#B7C1CE] text-xs font-medium">
+          <span>SGST (2.5% - Incl.)</span>
+          <span className="text-gray-900 dark:text-[#F5F7FA] font-bold font-mono">₹{sgst.toFixed(2)}</span>
         </div>
 
         <div className="flex justify-between text-gray-900 dark:text-[#F7F9FC] text-lg font-black border-t border-gray-200 dark:border-[#27313D] pt-4 mt-2">

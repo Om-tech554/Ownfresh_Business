@@ -55,12 +55,12 @@ const ProductCard = ({ product, user, onAddToCart }) => {
 
   // Compute discount and prices
   const priceDetails = useMemo(() => {
-    const regPrice = selectedVariant ? selectedVariant.price : (product.price || 0);
-    const salePrice = selectedVariant ? selectedVariant.salePrice : null;
+    const regPrice = selectedVariant ? (selectedVariant.listingPrice || selectedVariant.price) : (product.price || 0);
+    const salePrice = selectedVariant ? (selectedVariant.sellingPrice || selectedVariant.salePrice) : null;
     const isDiscounted = salePrice && salePrice < regPrice;
-    const discountPercent = isDiscounted
+    const discountPercent = selectedVariant?.discountPercent || (isDiscounted
       ? Math.round(((regPrice - salePrice) / regPrice) * 100)
-      : 0;
+      : 0);
 
     return {
       regPrice,
@@ -236,12 +236,12 @@ const ProductCard = ({ product, user, onAddToCart }) => {
         <div className="flex items-end justify-between">
           <div className="flex flex-col">
             {priceDetails.isDiscounted ? (
-              <div className="flex items-center gap-1 sm:gap-1.5 mb-0.5">
-                <span className="text-red-600 dark:text-[#FFD600] font-black text-xs sm:text-sm">
-                  -{priceDetails.discountPercent}%
-                </span>
-                <span className="text-slate-400 dark:text-[#7F8997] line-through text-[9px] sm:text-xs font-semibold">
+              <div className="flex items-center gap-1.5 mb-0.5">
+                <span className="text-slate-400 dark:text-[#7F8997] line-through text-[10px] sm:text-xs font-semibold" title="Original / Listing Price">
                   ₹{Math.round(priceDetails.regPrice)}
+                </span>
+                <span className="text-emerald-700 dark:text-[#FFD600] bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200/60 dark:border-[#FFD600]/30 font-black text-[9px] sm:text-[10px] px-1.5 py-0.5 rounded uppercase tracking-wider">
+                  {priceDetails.discountPercent}% OFF
                 </span>
               </div>
             ) : null}

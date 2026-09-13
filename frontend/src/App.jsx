@@ -55,7 +55,10 @@ const CategoryLandingPage = lazyRetry(() => import('./pages/CategoryLandingPage'
 
 import { initGA, trackPageView } from './utils/analytics';
 
-export const serverUrl = (import.meta.env.VITE_API_URL || "http://localhost:10000").replace(/\/+$/, "");
+export const serverUrl = (() => {
+  const url = (import.meta.env.VITE_API_URL || "http://localhost:10000").replace(/\/+$/, "");
+  return url.startsWith("//") ? `https:${url}` : url;
+})();
 
 const LoadingFallback = () => (
   <div className="min-h-[70vh] flex flex-col items-center justify-center bg-gray-50">

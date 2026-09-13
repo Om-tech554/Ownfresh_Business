@@ -103,9 +103,11 @@ export const generateInvoicePdf = async (order) => {
         const qty = item.quantity || 1;
         const price = item.price || 0;
         const lineTotal = price * qty;
-        const cgst = lineTotal * 0.025;
-        const sgst = lineTotal * 0.025;
-        const total = lineTotal + cgst + sgst;
+        const unitBase = price / 1.05;
+        const itemTaxable = lineTotal / 1.05;
+        const cgst = itemTaxable * 0.025;
+        const sgst = itemTaxable * 0.025;
+        const total = lineTotal;
 
         if (index % 2 === 1) {
           doc.rect(30, currentY, 535, 18).fill("#F9FAFB");
@@ -121,7 +123,7 @@ export const generateInvoicePdf = async (order) => {
         }
 
         doc.font("Helvetica").text("1515", 260, currentY + 5, { width: 30, align: "center" });
-        doc.text(`₹${price.toFixed(2)}`, 300, currentY + 5, { width: 50, align: "right" });
+        doc.text(`₹${unitBase.toFixed(2)}`, 300, currentY + 5, { width: 50, align: "right" });
         doc.font("Helvetica-Bold").text(String(qty), 360, currentY + 5, { width: 30, align: "center" });
         doc.font("Helvetica").text(`₹${cgst.toFixed(2)}`, 400, currentY + 5, { width: 50, align: "right" });
         doc.text(`₹${sgst.toFixed(2)}`, 460, currentY + 5, { width: 50, align: "right" });
@@ -136,13 +138,14 @@ export const generateInvoicePdf = async (order) => {
       // 7. Calculations block
       currentY += 8;
       const subtotal = (order.items || []).reduce((sum, item) => sum + (item.price * item.quantity), 0);
-      const cgstVal = order.cgst || (subtotal * 0.025);
-      const sgstVal = order.sgst || (subtotal * 0.025);
+      const taxableSubtotal = Math.round((subtotal / 1.05) * 100) / 100;
+      const cgstVal = order.cgst || (taxableSubtotal * 0.025);
+      const sgstVal = order.sgst || (taxableSubtotal * 0.025);
 
       doc.fontSize(7.5).fillColor("#4B5563").font("Helvetica");
 
-      doc.text("Subtotal (Excl. Tax)", 380, currentY, { width: 100, align: "right" });
-      doc.text(`₹${subtotal.toFixed(2)}`, 490, currentY, { width: 70, align: "right" });
+      doc.text("Taxable Value", 380, currentY, { width: 100, align: "right" });
+      doc.text(`₹${taxableSubtotal.toFixed(2)}`, 490, currentY, { width: 70, align: "right" });
       currentY += 12;
 
       doc.text("CGST (2.5%)", 380, currentY, { width: 100, align: "right" });

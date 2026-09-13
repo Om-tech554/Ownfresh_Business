@@ -75,6 +75,24 @@ const ShippingForm = () => {
   });
 
   const watchAddress = watch('address');
+  const watchState = watch('state');
+  const watchCity = watch('city');
+  const watchZip = watch('zipCode');
+
+  // Live-sync destination fields so OrderSummary recalculates immediately
+  useEffect(() => {
+    if (watchState !== undefined || watchCity !== undefined || watchZip !== undefined || watchAddress !== undefined) {
+      setShippingDetails((prev) => ({
+        ...prev,
+        address: watchAddress !== undefined ? watchAddress : prev.address,
+        state: watchState !== undefined ? watchState : prev.state,
+        city: watchCity !== undefined ? watchCity : prev.city,
+        zipCode: watchZip !== undefined ? watchZip : prev.zipCode,
+        latitude: lat,
+        longitude: lon
+      }));
+    }
+  }, [watchAddress, watchState, watchCity, watchZip, lat, lon]);
 
   const onSubmit = (data) => {
     const finalPhone = data.phone.startsWith("+") ? data.phone : countryCode + data.phone;
@@ -88,6 +106,12 @@ const ShippingForm = () => {
 
   const fetchAddressFromCoords = async (latitude, longitude) => {
     let success = false;
+    let newCity = '';
+    let newState = '';
+    let newZip = '';
+    let newAddr = '';
+    let newCountry = 'India';
+
     if (apiKey) {
       try {
         const res = await fetch(
@@ -97,11 +121,11 @@ const ShippingForm = () => {
           const json = await res.json();
           const data = json.results?.[0];
           if (data) {
-            setValue('address', data.address_line1 || data.street || data.formatted || '');
-            setValue('city', data.city || data.county || '');
-            setValue('state', data.state || '');
-            setValue('zipCode', data.postcode || '');
-            setValue('country', data.country || 'India');
+            newAddr = data.address_line1 || data.street || data.formatted || '';
+            newCity = data.city || data.county || '';
+            newState = data.state || '';
+            newZip = data.postcode || '';
+            newCountry = data.country || 'India';
             success = true;
           }
         }
@@ -119,11 +143,11 @@ const ShippingForm = () => {
           const json = await res.json();
           const addr = json.address;
           if (addr) {
-            setValue('address', json.display_name?.split(',')[0] || addr.road || addr.suburb || '');
-            setValue('city', addr.city || addr.town || addr.village || addr.county || '');
-            setValue('state', addr.state || '');
-            setValue('zipCode', addr.postcode || '');
-            setValue('country', addr.country || 'India');
+            newAddr = json.display_name?.split(',')[0] || addr.road || addr.suburb || '';
+            newCity = addr.city || addr.town || addr.village || addr.county || '';
+            newState = addr.state || '';
+            newZip = addr.postcode || '';
+            newCountry = addr.country || 'India';
             success = true;
           }
         }
@@ -140,11 +164,11 @@ const ShippingForm = () => {
         if (res.ok) {
           const data = await res.json();
           if (data) {
-            setValue('address', data.locality || data.city || '');
-            setValue('city', data.city || data.locality || data.principalSubdivision || '');
-            setValue('state', data.principalSubdivision || '');
-            setValue('country', data.countryName || 'India');
-            setValue('zipCode', data.postcode || '');
+            newAddr = data.locality || data.city || '';
+            newCity = data.city || data.locality || data.principalSubdivision || '';
+            newState = data.principalSubdivision || '';
+            newCountry = data.countryName || 'India';
+            newZip = data.postcode || '';
             success = true;
           }
         }
@@ -152,6 +176,24 @@ const ShippingForm = () => {
         console.error('All reverse geocode services failed', err.message);
       }
     }
+
+    if (newAddr) setValue('address', newAddr, { shouldValidate: true, shouldDirty: true });
+    if (newCity) setValue('city', newCity, { shouldValidate: true, shouldDirty: true });
+    if (newState) setValue('state', newState, { shouldValidate: true, shouldDirty: true });
+    if (newZip) setValue('zipCode', newZip, { shouldValidate: true, shouldDirty: true });
+    if (newCountry) setValue('country', newCountry, { shouldValidate: true, shouldDirty: true });
+
+    // Explicitly synchronize shippingDetails immediately
+    setShippingDetails((prev) => ({
+      ...prev,
+      address: newAddr || prev.address,
+      city: newCity || prev.city,
+      state: newState || prev.state,
+      zipCode: newZip || prev.zipCode,
+      country: newCountry || prev.country,
+      latitude,
+      longitude
+    }));
   };
 
   const searchLocation = async () => {
@@ -175,11 +217,20 @@ const ShippingForm = () => {
               setLat(latitude);
               setLon(longitude);
               if (place.city || place.state) {
-                setValue('city', place.city || place.county || '');
-                setValue('state', place.state || '');
-                setValue('zipCode', place.postcode || '');
-                setValue('country', place.country || 'India');
+                setValue('city', place.city || place.county || '', { shouldValidate: true, shouldDirty: true });
+                setValue('state', place.state || '', { shouldValidate: true, shouldDirty: true });
+                setValue('zipCode', place.postcode || '', { shouldValidate: true, shouldDirty: true });
+                setValue('country', place.country || 'India', { shouldValidate: true, shouldDirty: true });
               }
+              setShippingDetails((prev) => ({
+                ...prev,
+                address: watchAddress,
+                city: place.city || place.county || prev.city,
+                state: place.state || prev.state,
+                zipCode: place.postcode || prev.zipCode,
+                latitude,
+                longitude
+              }));
               toast.success('Location found on map!', { id: toastId });
               found = true;
             }
@@ -203,6 +254,7 @@ const ShippingForm = () => {
             const longitude = parseFloat(place.lon);
             setLat(latitude);
             setLon(longitude);
+            await fetchAddressFromCoords(latitude, longitude);
             toast.success('Location found on map!', { id: toastId });
             found = true;
           } else {

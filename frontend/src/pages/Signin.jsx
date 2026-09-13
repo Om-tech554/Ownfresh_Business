@@ -74,7 +74,7 @@ const SignIn = () => {
         navigate(redirectPath);
       }
     } catch (error) {
-      const msg = error.response?.data?.message || "Invalid email or password!";
+      const msg = error.response?.data?.message || error.message || "Invalid email or password!";
       toast.error(msg);
     } finally {
       setLoading(false);

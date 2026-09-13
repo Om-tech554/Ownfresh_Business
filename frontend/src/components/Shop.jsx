@@ -241,6 +241,7 @@ const Shop = () => {
     setPriceRange(15000);
     setSortBy("newest");
     setVisibleCount(12);
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const sidebarContent = (
@@ -338,47 +339,73 @@ const Shop = () => {
             Categories
           </h3>
           {activeCategory !== "All" && (
-            <button onClick={() => setActiveCategory("All")} className="text-[10px] text-red-500 dark:text-[#FF5C6C] font-bold hover:underline cursor-pointer">
+            <SLink
+              to="/shop"
+              scroll={true}
+              onClick={() => {
+                setActiveCategory("All");
+                setVisibleCount(12);
+                setShowMobileFilters(false);
+              }}
+              className="text-[10px] text-red-500 dark:text-[#FF5C6C] font-bold hover:underline cursor-pointer"
+            >
               Reset
-            </button>
+            </SLink>
           )}
         </div>
         <ul className="flex flex-col gap-1 text-[11px] font-bold text-slate-600 dark:text-[#B7C1CE] uppercase tracking-wider">
-          <li
-            onClick={() => { setActiveCategory("All"); setVisibleCount(12); setShowMobileFilters(false); }}
-            className={`flex justify-between items-center p-2 rounded-xl cursor-pointer transition-colors ${
-              activeCategory === "All" ? "bg-[#1E971D] dark:bg-[#FFD600] text-white dark:text-[#111318] font-black" : "hover:bg-slate-50 dark:hover:bg-[#1D2530]"
-            }`}
-          >
-            <span>All Oils</span>
-            <span className={`px-2 py-0.5 rounded-md text-[10px] ${activeCategory === "All" ? "bg-white/20 dark:bg-black/20 text-white dark:text-[#111318]" : "bg-slate-100 dark:bg-[#151B23] text-slate-400 dark:text-[#818C9B]"}`}>
-              {products.length}
-            </span>
-          </li>
-          {Object.entries(categoriesMap).map(([title, count], idx) => (
-            <li
-              key={idx}
-              onClick={() => { setActiveCategory(title); setVisibleCount(12); setShowMobileFilters(false); }}
-              className={`flex justify-between items-center p-2 rounded-xl cursor-pointer transition-colors ${
-                activeCategory === title ? "bg-[#1E971D] dark:bg-[#FFD600] text-white dark:text-[#111318] font-black" : "hover:bg-slate-50 dark:hover:bg-[#1D2530]"
+          <li>
+            <SLink
+              to="/shop"
+              scroll={true}
+              onClick={() => {
+                setActiveCategory("All");
+                setVisibleCount(12);
+                setShowMobileFilters(false);
+              }}
+              className={`flex justify-between items-center p-2 rounded-xl cursor-pointer transition-colors w-full ${
+                activeCategory === "All" ? "bg-[#1E971D] dark:bg-[#FFD600] text-white dark:text-[#111318] font-black" : "hover:bg-slate-50 dark:hover:bg-[#1D2530]"
               }`}
             >
-              <span>{title}</span>
-              <span className={`px-2 py-0.5 rounded-md text-[10px] ${activeCategory === title ? "bg-white/20 dark:bg-black/20 text-white dark:text-[#111318]" : "bg-slate-100 dark:bg-[#151B23] text-slate-400 dark:text-[#818C9B]"}`}>
-                {count}
+              <span>All Oils</span>
+              <span className={`px-2 py-0.5 rounded-md text-[10px] ${activeCategory === "All" ? "bg-white/20 dark:bg-black/20 text-white dark:text-[#111318]" : "bg-slate-100 dark:bg-[#151B23] text-slate-400 dark:text-[#818C9B]"}`}>
+                {products.length}
               </span>
+            </SLink>
+          </li>
+          {Object.entries(categoriesMap).map(([title, count], idx) => (
+            <li key={idx}>
+              <SLink
+                to={`/shop?category=${encodeURIComponent(title)}`}
+                scroll={true}
+                onClick={() => {
+                  setActiveCategory(title);
+                  setVisibleCount(12);
+                  setShowMobileFilters(false);
+                }}
+                className={`flex justify-between items-center p-2 rounded-xl cursor-pointer transition-colors w-full ${
+                  activeCategory === title ? "bg-[#1E971D] dark:bg-[#FFD600] text-white dark:text-[#111318] font-black" : "hover:bg-slate-50 dark:hover:bg-[#1D2530]"
+                }`}
+              >
+                <span>{title}</span>
+                <span className={`px-2 py-0.5 rounded-md text-[10px] ${activeCategory === title ? "bg-white/20 dark:bg-black/20 text-white dark:text-[#111318]" : "bg-slate-100 dark:bg-[#151B23] text-slate-400 dark:text-[#818C9B]"}`}>
+                  {count}
+                </span>
+              </SLink>
             </li>
           ))}
         </ul>
       </div>
 
       {/* CLEAR ALL BUTTON */}
-      <button
+      <SLink
+        to="/shop"
+        scroll={true}
         onClick={clearAllFilters}
-        className="w-full py-3 bg-slate-100 dark:bg-[#1D2530] hover:bg-slate-200 dark:hover:bg-[#222B37] text-slate-700 dark:text-[#F5F7FA] border border-transparent dark:border-[#2A3440] rounded-xl text-xs font-black uppercase tracking-wider transition-colors cursor-pointer"
+        className="w-full py-3 bg-slate-100 dark:bg-[#1D2530] hover:bg-slate-200 dark:hover:bg-[#222B37] text-slate-700 dark:text-[#F5F7FA] border border-transparent dark:border-[#2A3440] rounded-xl text-xs font-black uppercase tracking-wider transition-colors cursor-pointer text-center block"
       >
         Clear All Filters
-      </button>
+      </SLink>
 
     </div>
   );

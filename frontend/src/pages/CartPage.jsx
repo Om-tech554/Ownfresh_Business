@@ -1,11 +1,12 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, ShoppingBag, Plus, Minus, Trash2, Droplets, Sparkles, ShieldCheck, CheckCircle2 } from 'lucide-react';
+import { ArrowLeft, ShoppingBag, Plus, Minus, Trash2, Droplets, Sparkles, ShieldCheck, CheckCircle2, MapPin } from 'lucide-react';
 import { addToCart, updateQuantity, removeFromCart } from '../redux/userslice';
 import SLink from "../components/SLink";
 import { motion, AnimatePresence } from 'framer-motion';
 import SmokyOilSpillBackground from '../components/cart/SmokyOilSpillBackground';
+import CartLocationModal from '../components/cart/CartLocationModal';
 import { calculateClientShipping } from '../utils/shippingCalculator';
 import { trackViewCart, trackRemoveFromCart, trackBeginCheckout } from '../utils/analytics';
 
@@ -13,14 +14,65 @@ const CartPage = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const cartItems = useSelector((state) => state.user.cartItems);
+  const reduxDestination = useSelector((state) => state.user.deliveryDestination);
+
+  const [showLocationModal, setShowLocationModal] = useState(false);
+
+  // Delivery destination state (persisted in localStorage, source of truth for shipping)
+  const [destination, setDestination] = useState(() => {
+    try {
+      const savedDest = localStorage.getItem("oil_delivery_destination");
+      if (savedDest) {
+        const parsed = JSON.parse(savedDest);
+        if (parsed && (parsed.state || parsed.city || parsed.address || parsed.latitude)) return parsed;
+      }
+      const savedShip = localStorage.getItem("oil_shipping_details");
+      if (savedShip) {
+        const parsed = JSON.parse(savedShip);
+        if (parsed && (parsed.state || parsed.city || parsed.address || parsed.latitude)) return parsed;
+      }
+    } catch (e) {}
+    return null;
+  });
+
+  // Sync with global location events (e.g. updated in Checkout / ShippingForm / Redux)
+  useEffect(() => {
+    const handleDestChange = () => {
+      try {
+        const saved = localStorage.getItem("oil_delivery_destination");
+        if (saved) {
+          setDestination(JSON.parse(saved));
+        }
+      } catch (e) {}
+    };
+    window.addEventListener("deliveryDestinationChanged", handleDestChange);
+    return () => window.removeEventListener("deliveryDestinationChanged", handleDestChange);
+  }, []);
+
+  useEffect(() => {
+    if (reduxDestination) {
+      setDestination(reduxDestination);
+    }
+  }, [reduxDestination]);
+
   const subtotal = cartItems.reduce((acc, item) => acc + (item.price * item.quantity), 0);
-  const shippingInfo = calculateClientShipping({ cartItems, subtotal });
-  const deliveryCharge = shippingInfo.deliveryCost;
-  const taxableAmount = subtotal;
-  const cgst = taxableAmount * 0.025;
-  const sgst = taxableAmount * 0.025;
+  const hasDestination = Boolean(destination && (destination.city || destination.state || destination.address || destination.latitude));
+
+  const shippingInfo = calculateClientShipping({
+    cartItems,
+    subtotal,
+    destination: hasDestination ? destination : null
+  });
+
+  const isFreeDelivery = shippingInfo.isFreeDelivery;
+  const deliveryCharge = hasDestination ? shippingInfo.deliveryCost : (isFreeDelivery ? 0 : null);
+
+  // Prices are inclusive of 5% GST (2.5% CGST + 2.5% SGST)
+  const taxableAmount = Math.round((subtotal / 1.05) * 100) / 100;
+  const cgst = Math.round(taxableAmount * 0.025 * 100) / 100;
+  const sgst = Math.round(taxableAmount * 0.025 * 100) / 100;
   const totalTax = cgst + sgst;
-  const finalTotal = taxableAmount + totalTax + deliveryCharge;
+  const finalTotal = subtotal + (deliveryCharge !== null ? deliveryCharge : 0);
 
   // GA4: Track Cart View
   useEffect(() => {
@@ -256,34 +308,118 @@ const CartPage = () => {
                     <Droplets size={14} className="text-amber-400" /> Order Summary
                   </h2>
                   
+                  {/* Free delivery prompt banner */}
+                  {!shippingInfo.isFreeDelivery && (
+                    <div className="p-3.5 rounded-2xl bg-gradient-to-r from-amber-500/15 via-yellow-500/10 to-amber-500/5 border border-amber-400/40 text-[11px] text-amber-300 font-bold mb-4 relative z-10 shadow-sm">
+                      <div className="flex justify-between items-center mb-1.5">
+                        <span>🚚 Free delivery on orders above ₹1,000</span>
+                        <span className="font-mono text-amber-200">Add ₹{shippingInfo.amountNeededForFreeDelivery.toLocaleString('en-IN')} more</span>
+                      </div>
+                      <div className="w-full bg-white/10 h-1.5 rounded-full overflow-hidden mb-2">
+                        <div
+                          className="bg-gradient-to-r from-amber-400 to-yellow-300 h-full rounded-full transition-all duration-300"
+                          style={{ width: `${shippingInfo.progressPercentage}%` }}
+                        />
+                      </div>
+                      <div className="pt-2 border-t border-amber-400/20 flex items-center justify-between gap-2">
+                        <span className="text-[10px] text-slate-300 font-medium">Under ₹1,000?</span>
+                        <SLink
+                          to="/membership"
+                          className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-[#FFD600] hover:bg-[#FFE45C] text-[#111318] font-black text-[10px] uppercase tracking-wider transition-all shadow-xs cursor-pointer"
+                        >
+                          👑 Use Prime 1% for free delivery
+                        </SLink>
+                      </div>
+                    </div>
+                  )}
+
                   <div className="space-y-4 mb-8 relative z-10 text-xs font-semibold text-slate-300">
+                    {/* Destination Detection & Selection Header */}
+                    {hasDestination ? (
+                      <div className="flex justify-between items-center pb-2.5 border-b border-white/10">
+                        <div className="flex flex-col min-w-0 pr-2">
+                          <span className="text-slate-400 text-[10px] uppercase tracking-wider font-semibold">Deliver To:</span>
+                          <span className="text-white font-bold text-xs truncate max-w-[200px]" title={destination.address || destination.city}>
+                            📍 {destination.city || destination.district || destination.address || "Destination Selected"}
+                            {destination.state ? `, ${destination.state}` : ""}
+                          </span>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setShowLocationModal(true)}
+                          className="text-amber-400 hover:text-yellow-300 text-[11px] font-bold underline cursor-pointer transition-colors flex-shrink-0"
+                        >
+                          Change
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="p-3 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-xs mb-3">
+                        <div className="flex items-start gap-2.5">
+                          <MapPin size={16} className="text-amber-400 flex-shrink-0 mt-0.5" />
+                          <div className="flex-1">
+                            <p className="text-slate-200 font-bold text-xs leading-snug">
+                              Select your delivery location to calculate delivery charges.
+                            </p>
+                            <button
+                              type="button"
+                              onClick={() => setShowLocationModal(true)}
+                              className="mt-2.5 inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-gradient-to-r from-amber-500 via-[#FFDD00] to-amber-600 text-slate-950 font-black rounded-xl text-[10px] uppercase tracking-wider shadow hover:brightness-110 active:scale-95 transition-all cursor-pointer"
+                            >
+                              <MapPin size={12} /> Choose Location
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
                     <div className="flex justify-between items-center">
-                      <span>Subtotal</span>
+                      <span>Items Subtotal (Incl. GST)</span>
                       <span className="text-white font-mono">₹{subtotal.toLocaleString('en-IN')}</span>
                     </div>
-                    <div className="flex justify-between items-center text-slate-400">
-                      <span>CGST (2.5%)</span>
+                    <div className="flex justify-between items-center text-slate-400 text-xs">
+                      <span>CGST (2.5% - Incl.)</span>
                       <span className="font-mono">₹{cgst.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
                     </div>
-                    <div className="flex justify-between items-center text-slate-400">
-                      <span>SGST (2.5%)</span>
+                    <div className="flex justify-between items-center text-slate-400 text-xs">
+                      <span>SGST (2.5% - Incl.)</span>
                       <span className="font-mono">₹{sgst.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <div className="flex items-center gap-1.5">
-                        <span>Delivery</span>
-                        {shippingInfo.totalWeight > 0 && (
-                          <span className="text-[10px] text-slate-400 font-mono font-normal">({shippingInfo.totalWeight} kg)</span>
-                        )}
+                      <div>
+                        <div className="flex items-center gap-1.5">
+                          <span>Delivery</span>
+                          {shippingInfo.totalWeightKg > 0 && (
+                            <span className="text-[10px] text-slate-400 font-mono font-normal">({shippingInfo.totalWeightKg} kg)</span>
+                          )}
+                        </div>
+                        <span className="text-[10px] text-amber-400 font-semibold block">
+                          {hasDestination ? shippingInfo.deliveryMethodName : (isFreeDelivery ? "Free Delivery Unlocked" : "Awaiting location")}
+                        </span>
                       </div>
-                      {shippingInfo.isFreeDelivery ? (
+                      {isFreeDelivery ? (
                         <span className="text-emerald-400 font-extrabold tracking-wider bg-emerald-500/10 px-2 py-0.5 rounded-md border border-emerald-500/30">
                           FREE
                         </span>
+                      ) : hasDestination ? (
+                        <div className="text-right">
+                          <span className="text-amber-300 font-extrabold font-mono block">
+                            ₹{deliveryCharge.toLocaleString('en-IN')}
+                          </span>
+                          <SLink
+                            to="/membership"
+                            className="text-[10px] text-[#FFD600] font-bold hover:underline block mt-0.5 cursor-pointer"
+                          >
+                            👑 Use Prime 1% for free delivery
+                          </SLink>
+                        </div>
                       ) : (
-                        <span className="text-amber-300 font-extrabold font-mono">
-                          ₹{deliveryCharge.toLocaleString('en-IN')}
-                        </span>
+                        <button
+                          type="button"
+                          onClick={() => setShowLocationModal(true)}
+                          className="text-amber-400 hover:underline text-xs font-bold cursor-pointer"
+                        >
+                          Select Location
+                        </button>
                       )}
                     </div>
                     
@@ -327,6 +463,14 @@ const CartPage = () => {
           </>
         )}
       </div>
+
+      {/* ── CART LOCATION PICKER MODAL ── */}
+      <CartLocationModal
+        isOpen={showLocationModal}
+        onClose={() => setShowLocationModal(false)}
+        currentDestination={destination}
+        onSelectDestination={(newDest) => setDestination(newDest)}
+      />
 
       {/* ── SMOOTH LIQUID OIL SPILL BACKGROUND IS PRESERVED ── */}
     </div>

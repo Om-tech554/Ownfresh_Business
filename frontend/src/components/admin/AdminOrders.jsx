@@ -5,12 +5,32 @@ import {
     Search, Loader2, Package, User, Clock, CheckCircle2, Truck, X, XCircle,
     MapPin, ExternalLink, Calendar, CreditCard, ChevronDown, Printer,
     MoreHorizontal, Filter, ArrowUpRight, Copy, Save, AlertCircle, Trash2,
-    UploadCloud, Send, ShieldAlert, Plus
+    UploadCloud, Send, ShieldAlert, Plus, Mail
 } from "lucide-react";
 import toast from "react-hot-toast";
 import { AnimatePresence, motion } from "framer-motion";
 import { useConfirm } from "../../hooks/ConfirmContext.jsx";
 import CreateManualOrderModal from "./CreateManualOrderModal.jsx";
+
+export const isPuneOrder = (order) => {
+    if (!order) return false;
+    if (order.isLocalDelivery) return true;
+    if (order.courierPartner && (order.courierPartner.toLowerCase().includes("local") || order.courierPartner.toLowerCase().includes("pune"))) return true;
+    const addr = order.deliveryAddress || {};
+    const city = (addr.city || "").toLowerCase();
+    const area = (addr.areaName || "").toLowerCase();
+    const text = (addr.text || "").toLowerCase();
+    const pincode = String(addr.pincode || addr.zipCode || "");
+    if (pincode.startsWith("411") || pincode.startsWith("412")) return true;
+    const puneKeywords = [
+        "pune", "pcmc", "pimpri", "chinchwad", "hadapsar", "kothrud", "hinjewadi",
+        "hinjawadi", "wakad", "baner", "balewadi", "viman nagar", "vimannagar",
+        "kondhwa", "shivajinagar", "aundh", "bavdhan", "katraj", "warje", "bibvewadi",
+        "yerawada", "magarpatta", "kharadi", "nigdi", "bhosari", "akurdi", "chakan",
+        "talawade", "vadgaon", "sinhagad", "koregaon park", "swargate", "deccan"
+    ];
+    return puneKeywords.some(kw => city.includes(kw) || area.includes(kw) || text.includes(kw));
+};
 
 const AdminOrders = () => {
     const confirm = useConfirm();
@@ -22,7 +42,7 @@ const AdminOrders = () => {
     const [updatingId, setUpdatingId] = useState(null);
     const [isManualOrderModalOpen, setIsManualOrderModalOpen] = useState(false);
 
-    // New Fulfillment workflow states
+    // Fulfillment workflow states
     const [carriers, setCarriers] = useState([]);
     const [courierPartner, setCourierPartner] = useState("Unknown Carrier");
     const [trackingId, setTrackingId] = useState("");
@@ -32,6 +52,13 @@ const AdminOrders = () => {
     const [emailPreview, setEmailPreview] = useState(null);
     const [testEmailAddress, setTestEmailAddress] = useState("");
     const [isPreparingEmail, setIsPreparingEmail] = useState(false);
+
+    // Delivery confirmation email states
+    const [deliveryEmailPreview, setDeliveryEmailPreview] = useState(null);
+    const [isPreparingDeliveryEmail, setIsPreparingDeliveryEmail] = useState(false);
+    const [isSendingDeliveryEmail, setIsSendingDeliveryEmail] = useState(false);
+    const [deliveryTestEmailAddress, setDeliveryTestEmailAddress] = useState("");
+    const [emailSectionTab, setEmailSectionTab] = useState("delivery");
 
     // Audit logs states
     const [showAuditModal, setShowAuditModal] = useState(false);
@@ -54,15 +81,27 @@ const AdminOrders = () => {
 
     useEffect(() => {
         if (selectedOrder) {
-            setCourierPartner(selectedOrder.courierPartner || "Unknown Carrier");
-            setTrackingId(selectedOrder.trackingId || "");
+            const isLocal = isPuneOrder(selectedOrder);
+            setCourierPartner(selectedOrder.courierPartner || (isLocal ? "Local Pune Delivery" : "Unknown Carrier"));
+            setTrackingId(selectedOrder.trackingId || (isLocal ? "LOCAL-PUNE" : ""));
             setReceiptUrl(selectedOrder.courierReceiptUrl || "");
             setReceiptRawText(selectedOrder.courierReceiptRawText || "");
+            setDeliveryEmailPreview(null);
+            setEmailPreview(null);
+            // If already delivered, or if Pune local order, default to delivery email tab!
+            if (selectedOrder.status === 'delivered' || selectedOrder.deliveryEmailSent || isLocal) {
+                setEmailSectionTab("delivery");
+            } else {
+                setEmailSectionTab("shipment");
+            }
         } else {
             setCourierPartner("Unknown Carrier");
             setTrackingId("");
             setReceiptUrl("");
             setReceiptRawText("");
+            setDeliveryEmailPreview(null);
+            setEmailPreview(null);
+            setEmailSectionTab("delivery");
         }
     }, [selectedOrder]);
 
@@ -147,6 +186,11 @@ const AdminOrders = () => {
                 if (selectedOrder?._id === orderId) {
                     setSelectedOrder({ ...selectedOrder, ...updates });
                 }
+                if (updates.status === "delivered") {
+                    toast.success("Order marked as Delivered! Prepare the delivery confirmation email below.", { duration: 5000 });
+                    setEmailSectionTab("delivery");
+                    handlePrepareDeliveryEmail(orderId);
+                }
             }
         } catch (error) {
             toast.error("Update failed");
@@ -209,19 +253,26 @@ const AdminOrders = () => {
     };
 
     const handleConfirmFulfillment = async (orderId) => {
-        if (!courierPartner || courierPartner === "Unknown Carrier") {
+        const isLocal = isPuneOrder(selectedOrder);
+        const resolvedCourier = courierPartner || (isLocal ? "Local Pune Delivery" : "");
+
+        if (!resolvedCourier || resolvedCourier === "Unknown Carrier") {
             return toast.error("Please select a valid Courier Partner");
         }
-        if (!trackingId?.trim()) {
+
+        // For Pune region orders: third-party couriers (DTDC/BlueDart) & tracking number are NOT required!
+        if (!isLocal && !trackingId?.trim()) {
             return toast.error("Please enter a Tracking Number");
         }
+
+        const resolvedTrackingId = (trackingId && trackingId.trim()) ? trackingId.trim() : (isLocal ? "LOCAL-PUNE" : "");
 
         try {
             const { data } = await axios.put(
                 `${serverUrl}/api/fulfillment/confirm/${orderId}`,
                 {
-                    courierPartner,
-                    trackingId,
+                    courierPartner: resolvedCourier,
+                    trackingId: resolvedTrackingId,
                     courierReceiptUrl: receiptUrl,
                     courierReceiptRawText: receiptRawText
                 },
@@ -229,7 +280,7 @@ const AdminOrders = () => {
             );
 
             if (data.success) {
-                toast.success("Fulfillment confirmed!");
+                toast.success(isLocal ? "Local Pune delivery confirmed (No tracking number needed)!" : "Fulfillment confirmed!");
                 setOrders(orders.map(o => o._id === orderId ? { ...o, ...data.order } : o));
                 setSelectedOrder({ ...selectedOrder, ...data.order });
                 handlePrepareEmail(orderId);
@@ -309,6 +360,318 @@ const AdminOrders = () => {
         } catch (error) {
             console.error("Fulfillment email sending failed:", error);
             toast.error(error.response?.data?.msg || "Failed to send shipment email");
+        }
+    };
+
+    const generateDeliveryEmailData = (order) => {
+        const isPune = isPuneOrder(order);
+        const customerName = order.user?.fullName || "Valued Customer";
+        const siteUrl = "https://myownfresh.com";
+        const orderId = order.customOrderId || (order._id ? order._id.toString().toUpperCase() : "ORDER");
+        const deliveryAddress = order.deliveryAddress?.text || [
+            order.deliveryAddress?.roomNumber,
+            order.deliveryAddress?.areaName,
+            order.deliveryAddress?.city,
+            order.deliveryAddress?.pincode
+        ].filter(Boolean).join(", ") || "Pune, Maharashtra";
+
+        const deliveredDate = new Date().toLocaleDateString("en-IN", {
+            day: "numeric",
+            month: "long",
+            year: "numeric"
+        });
+
+        const deliveryModeDisplay = isPune
+            ? "🛵 OwnFresh Direct Express (Pune Local Fleet - Hand Delivered)"
+            : (order.courierPartner || "Standard Express Courier");
+
+        const itemsHtml = (order.items || []).map(item => `
+            <tr>
+                <td style="padding: 10px 12px; border-bottom: 1px solid #EEEEEE; vertical-align: middle;">
+                    ${item.image ? `<img src="${item.image}" alt="${item.name}" style="width: 46px; height: 46px; object-fit: cover; border-radius: 8px; margin-right: 12px; vertical-align: middle; display: inline-block; border: 1px solid #E5E5E5;" />` : ''}
+                    <div style="display: inline-block; vertical-align: middle;">
+                        <span style="font-weight: 700; font-size: 13px; color: #222222;">${item.name}</span>
+                        ${item.variantName ? `<span style="font-size: 11px; color: #666666; display: block; margin-top: 2px;">Variant: ${item.variantName}</span>` : ''}
+                    </div>
+                </td>
+                <td style="padding: 10px 12px; border-bottom: 1px solid #EEEEEE; text-align: center; font-size: 13px; color: #555555; font-weight: 600;">${item.quantity}</td>
+                <td style="padding: 10px 12px; border-bottom: 1px solid #EEEEEE; text-align: right; font-size: 13px; font-weight: 800; color: #222222;">₹${((item.price || 0) * (item.quantity || 1)).toFixed(2)}</td>
+            </tr>
+        `).join('');
+
+        const html = `
+        <div style="background-color:#FFFDF2;padding:24px 12px;font-family:Arial,Helvetica,sans-serif;">
+          <div style="max-width:540px;margin:auto;background:#ffffff;border:1px solid #E5E5E5;border-radius:16px;overflow:hidden;box-shadow:0 6px 20px rgba(0,0,0,0.06);">
+            
+            <!-- Header with Logo & Order ID -->
+            <div style="background:#ffffff;border-bottom:1px solid #EAEAEA;padding:18px 24px;text-align:center;">
+              <a href="${siteUrl}" target="_blank" style="text-decoration:none;display:inline-block;">
+                <img src="https://res.cloudinary.com/dkhq2wlwg/image/upload/v1774962822/ownfresh_media/ndxvmcpisomjzsghrfjs.png" alt="OwnFresh Logo" style="height:48px;border:none;display:inline-block;vertical-align:middle;" />
+              </a>
+              <div style="margin-top:10px;">
+                <span style="display:inline-block;background:#FFF9DB;border:1px solid #FFE066;color:#5C4300;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:700;letter-spacing:0.5px;">
+                  Order ID: #${orderId}
+                </span>
+              </div>
+            </div>
+
+            <!-- Hero Banner -->
+            <div style="background: linear-gradient(135deg, #24672E 0%, #17421D 100%); padding: 26px 20px; text-align: center; color: #ffffff;">
+              <div style="font-size: 34px; line-height: 1; margin-bottom: 8px;">🥰</div>
+              <h1 style="margin: 0; font-size: 21px; font-weight: 800; letter-spacing: 0.5px; text-transform: uppercase;">Order Delivered Successfully!</h1>
+              <p style="margin: 6px 0 0; font-size: 13px; opacity: 0.92;">Pure, cold-pressed freshness at your doorstep</p>
+            </div>
+
+            <!-- Body Message -->
+            <div style="padding:28px 24px;color:#333333;">
+              <p style="font-size:17px;font-weight:700;color:#111111;margin-top:0;margin-bottom:14px;">
+                Hi ${customerName},
+              </p>
+
+              <p style="font-size:18px;font-weight:800;color:#24672E;line-height:1.4;margin:14px 0 8px 0;">
+                Your OwnFresh oil has been delivered successfully! 🥰
+              </p>
+
+              <p style="font-size:16px;font-weight:700;color:#C62828;margin:0 0 22px 0;">
+                Thank you for choosing OwnFresh! ❤️
+              </p>
+
+              ${isPune ? `
+              <!-- Pune Local Dedicated Delivery Callout -->
+              <div style="margin: 18px 0; padding: 14px 18px; background: #F1F8E9; border-left: 4px solid #24672E; border-radius: 8px; font-size: 13px; color: #2E7D32; line-height: 1.5;">
+                🛵 <b>OwnFresh Direct Pune Express:</b> Hand-delivered fresh directly to your doorstep in Pune with zero courier delays!
+              </div>
+              ` : ''}
+
+              <!-- Delivery Information Card -->
+              <div style="background:#F7F9F7;border:1px solid #D8E5D8;border-radius:12px;padding:18px;margin:22px 0;font-size:13px;line-height:1.7;">
+                <div style="margin-bottom:6px;"><b>📦 Order ID:</b> <span style="font-family:monospace;font-weight:700;color:#24672E;">#${orderId}</span></div>
+                <div style="margin-bottom:6px;"><b>📍 Delivered To:</b> ${deliveryAddress}</div>
+                <div style="margin-bottom:6px;"><b>📅 Delivery Date:</b> ${deliveredDate}</div>
+                <div style="margin-bottom:6px;">
+                  <b>🚚 Delivery Mode:</b> 
+                  ${isPune 
+                    ? `<span style="display:inline-block;background:#E8F5E9;color:#1B5E20;border:1px solid #A5D6A7;padding:3px 10px;border-radius:8px;font-size:12px;font-weight:700;">🛵 OwnFresh Direct Express (Pune Local Fleet)</span>`
+                    : `<span style="font-weight:700;color:#222222;">${order.courierPartner || "Standard Express Courier"}</span>`
+                  }
+                </div>
+                <div><b>💳 Payment:</b> ${order.PaymentMethod ? order.PaymentMethod.toUpperCase() : "PAID"} (₹${(order.totalAmount || 0).toFixed(2)})</div>
+              </div>
+
+              <!-- Items in Delivery Table -->
+              <h3 style="font-size:13px;color:#24672E;text-transform:uppercase;letter-spacing:1px;font-weight:800;margin:24px 0 10px;">Delivered Items</h3>
+              <table style="width:100%;border-collapse:collapse;margin-bottom:22px;border:1px solid #EEEEEE;border-radius:8px;overflow:hidden;">
+                <thead>
+                  <tr style="background:#F5F5F5;font-size:11px;text-transform:uppercase;color:#666666;font-weight:700;">
+                    <th style="padding:10px 12px;text-align:left;">Item</th>
+                    <th style="padding:10px 12px;text-align:center;width:50px;">Qty</th>
+                    <th style="padding:10px 12px;text-align:right;width:85px;">Price</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${itemsHtml}
+                </tbody>
+              </table>
+
+              <!-- Tax Invoice & Order Link -->
+              <div style="text-align:center;margin:28px 0 20px;">
+                <a href="${siteUrl}/my-orders" target="_blank" style="
+                  display:inline-block;
+                  padding:14px 30px;
+                  font-size:13px;
+                  font-weight:800;
+                  background:#FFD700;
+                  color:#000000;
+                  border-radius:10px;
+                  text-decoration:none;
+                  text-transform:uppercase;
+                  letter-spacing:0.5px;
+                  box-shadow:0 3px 10px rgba(0,0,0,0.08);
+                ">
+                  View Order & Download Tax Invoice →
+                </a>
+              </div>
+
+              <!-- Review & Feedback Callout -->
+              <div style="background:#FFF9E6;border:1px solid #FFE699;border-radius:10px;padding:16px;margin-top:22px;text-align:center;font-size:13px;color:#7A5E00;line-height:1.5;">
+                🌿 <b>Loving the taste of stone-pressed purity?</b><br />
+                We would truly appreciate your rating and review on our website!
+              </div>
+
+              <!-- Support Contact -->
+              <p style="font-size:13px;color:#666666;margin-top:24px;line-height:1.5;">
+                Have questions about this delivery or need support? Simply reply directly to this email or write to us at <a href="mailto:contact@myownfresh.com" style="color:#24672E;text-decoration:none;font-weight:700;">contact@myownfresh.com</a>.
+              </p>
+            </div>
+
+            <!-- Footer -->
+            <div style="background:#F5F5F5;padding:16px;text-align:center;font-size:12px;color:#777777;border-top:1px solid #EEEEEE;line-height:1.6;">
+              <p style="margin:0 0 4px 0;"><b>OwnFresh Agro Industries</b> — Pune, Maharashtra</p>
+              <p style="margin:0;">© ${new Date().getFullYear()} OwnFresh. All rights reserved.</p>
+            </div>
+          </div>
+        </div>
+        `;
+
+        const subject = isPune 
+            ? `Your OwnFresh oil has been delivered successfully via Pune Local Express! 🥰 - #${orderId}`
+            : `Your OwnFresh oil has been delivered successfully! 🥰 - #${orderId}`;
+        const text = `Hi ${customerName},\n\nYour OwnFresh oil has been delivered successfully! 🥰\n\nThank you for choosing OwnFresh! ❤️\n\nOrder ID: #${orderId}\nDelivered To: ${deliveryAddress}\nDelivery Mode: ${deliveryModeDisplay}\n\nView your order details & invoice: ${siteUrl}/my-orders\n\nHave questions or feedback? Reply directly to this email or write to us at contact@myownfresh.com.\n\nWarm regards,\nOwnFresh Agro Industries, Pune`;
+
+        return {
+            subject,
+            html,
+            text,
+            customerEmail: order.user?.email || ""
+        };
+    };
+
+    const handlePrepareDeliveryEmail = async (orderId) => {
+        setIsPreparingDeliveryEmail(true);
+        setDeliveryEmailPreview(null);
+        try {
+            // First attempt: call backend delivery preview endpoint
+            const { data } = await axios.post(
+                `${serverUrl}/api/fulfillment/preview-delivery-email/${orderId}`,
+                {},
+                { withCredentials: true }
+            );
+            if (data?.success) {
+                setDeliveryEmailPreview({
+                    subject: data.subject,
+                    html: data.html,
+                    text: data.text,
+                    customerEmail: data.customerEmail
+                });
+                return;
+            }
+        } catch (error) {
+            console.warn("Backend delivery preview endpoint fallback triggered:", error.message);
+        } finally {
+            setIsPreparingDeliveryEmail(false);
+        }
+
+        // Direct client-side preview generator guarantee (works even if API route returned 404)
+        const targetOrder = (orders || []).find(o => o._id === orderId) || selectedOrder;
+        if (targetOrder) {
+            const preview = generateDeliveryEmailData(targetOrder);
+            setDeliveryEmailPreview(preview);
+            toast.success("Delivery email preview prepared!");
+        } else {
+            toast.error("Order details not found");
+        }
+    };
+
+    const handleSendTestDeliveryEmail = async (orderId) => {
+        if (!deliveryTestEmailAddress.trim()) {
+            return toast.error("Please enter a test email address");
+        }
+        try {
+            // Try test-delivery-email first
+            try {
+                const { data } = await axios.post(
+                    `${serverUrl}/api/fulfillment/test-delivery-email/${orderId}`,
+                    {
+                        subject: deliveryEmailPreview.subject,
+                        html: deliveryEmailPreview.html,
+                        text: deliveryEmailPreview.text,
+                        testEmail: deliveryTestEmailAddress.trim()
+                    },
+                    { withCredentials: true }
+                );
+                if (data?.success) {
+                    return toast.success(data.msg || "Test delivery email sent!");
+                }
+            } catch (apiErr) {
+                if (apiErr.response?.status === 404) {
+                    // Fallback: use live /test-email endpoint which exists on backend
+                    const { data } = await axios.post(
+                        `${serverUrl}/api/fulfillment/test-email/${orderId}`,
+                        {
+                            subject: deliveryEmailPreview.subject,
+                            html: deliveryEmailPreview.html,
+                            text: deliveryEmailPreview.text,
+                            testEmail: deliveryTestEmailAddress.trim()
+                        },
+                        { withCredentials: true }
+                    );
+                    if (data?.success) {
+                        return toast.success(data.msg || "Test delivery email sent!");
+                    }
+                } else {
+                    throw apiErr;
+                }
+            }
+        } catch (error) {
+            console.error("Test delivery email failed:", error);
+            const errText = error.response?.data?.msg || error.response?.data?.message || "Failed to send test delivery email";
+            toast.error(errText);
+        }
+    };
+
+    const handleSendDeliveryEmail = async (orderId) => {
+        setIsSendingDeliveryEmail(true);
+        try {
+            let sent = false;
+            let updatedOrder = null;
+
+            // Try dedicated send-delivery-email endpoint first
+            try {
+                const { data } = await axios.post(
+                    `${serverUrl}/api/fulfillment/send-delivery-email/${orderId}`,
+                    {
+                        subject: deliveryEmailPreview.subject,
+                        html: deliveryEmailPreview.html,
+                        text: deliveryEmailPreview.text
+                    },
+                    { withCredentials: true }
+                );
+                if (data?.success) {
+                    sent = true;
+                    updatedOrder = data.order;
+                }
+            } catch (err) {
+                // If backend route returned 404, fallback to live send-email endpoint + status update
+                if (err.response?.status === 404) {
+                    console.log("send-delivery-email 404: falling back to send-email + status update");
+                    const sendRes = await axios.post(
+                        `${serverUrl}/api/fulfillment/send-email/${orderId}`,
+                        {
+                            subject: deliveryEmailPreview.subject,
+                            html: deliveryEmailPreview.html,
+                            text: deliveryEmailPreview.text
+                        },
+                        { withCredentials: true }
+                    );
+                    if (sendRes.data?.success) {
+                        sent = true;
+                        const statusRes = await axios.put(
+                            `${serverUrl}/api/order/status/${orderId}`,
+                            { status: "delivered" },
+                            { withCredentials: true }
+                        );
+                        if (statusRes.data?.success) {
+                            updatedOrder = { ...sendRes.data.order, status: "delivered", deliveryEmailSent: true, deliveryEmailSentAt: new Date() };
+                        }
+                    }
+                } else {
+                    throw err;
+                }
+            }
+
+            if (sent) {
+                toast.success("✓ Successful delivery email sent to customer!");
+                const finalOrder = updatedOrder || { ...selectedOrder, status: "delivered", deliveryEmailSent: true, deliveryEmailSentAt: new Date() };
+                setOrders(orders.map(o => o._id === orderId ? { ...o, ...finalOrder } : o));
+                setSelectedOrder({ ...selectedOrder, ...finalOrder });
+                setDeliveryEmailPreview(null);
+            }
+        } catch (error) {
+            console.error("Delivery email sending failed:", error);
+            const errText = error.response?.data?.msg || error.response?.data?.message || "Failed to send delivery email";
+            toast.error(errText);
+        } finally {
+            setIsSendingDeliveryEmail(false);
         }
     };
 
@@ -1075,19 +1438,19 @@ const AdminOrders = () => {
                             animate={{ opacity: 1, scale: 1, y: 0 }}
                             exit={{ opacity: 0, scale: 0.95, y: 20 }}
                             transition={{ type: "spring", duration: 0.4 }}
-                            className="bg-[#f0f2f2] w-full max-w-5xl max-h-[95vh] rounded-2xl shadow-2xl relative z-10 flex flex-col overflow-hidden border-t-8 border-slate-900"
+                            className="bg-[#f0f2f2] dark:bg-[#0B0F14] w-full max-w-5xl max-h-[95vh] rounded-2xl shadow-2xl relative z-10 flex flex-col overflow-hidden border-t-8 border-slate-900 dark:border-t-emerald-600"
                         >
 
                         {/* Amazon Style Compact Header */}
-                        <div className="bg-white px-8 py-5 border-b border-slate-300 flex items-center justify-between">
+                        <div className="bg-white dark:bg-[#111720] px-8 py-5 border-b border-slate-300 dark:border-slate-800 flex items-center justify-between">
                             <div className="flex items-center gap-4">
-                                <h3 className="text-lg font-black text-slate-900 uppercase tracking-tight">Order Fulfillment Center</h3>
-                                <div className="w-[1px] h-6 bg-slate-200"></div>
-                                <p className="text-xs font-black text-slate-500 font-mono">ID: {selectedOrder._id.toUpperCase()}</p>
+                                <h3 className="text-lg font-black text-slate-900 dark:text-white uppercase tracking-tight">Order Fulfillment Center</h3>
+                                <div className="w-[1px] h-6 bg-slate-200 dark:bg-slate-700"></div>
+                                <p className="text-xs font-black text-slate-500 dark:text-slate-400 font-mono">ID: {selectedOrder._id.toUpperCase()}</p>
                             </div>
                             <button
                                 onClick={() => setSelectedOrder(null)}
-                                className="w-10 h-10 flex items-center justify-center rounded-full border border-slate-200 bg-white text-slate-600 hover:bg-red-500 hover:text-white hover:rotate-90 hover:scale-105 transition-all duration-300 shadow-sm cursor-pointer"
+                                className="w-10 h-10 flex items-center justify-center rounded-full border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-red-500 hover:text-white hover:rotate-90 hover:scale-105 transition-all duration-300 shadow-sm cursor-pointer"
                                 title="Close Panel"
                             >
                                 <X size={18} />
@@ -1100,8 +1463,8 @@ const AdminOrders = () => {
                             <div className="lg:col-span-2 space-y-6">
 
                                 {/* Shipment Status Management */}
-                                <div className="bg-white p-8 rounded-xl border border-slate-300 shadow-sm">
-                                    <h4 className="text-[11px] font-black text-slate-900 uppercase tracking-widest mb-6 flex items-center gap-2">
+                                <div className="bg-white dark:bg-[#111720] p-8 rounded-xl border border-slate-300 dark:border-slate-800 shadow-sm">
+                                    <h4 className="text-[11px] font-black text-slate-900 dark:text-white uppercase tracking-widest mb-6 flex items-center gap-2">
                                         <Truck className="text-blue-500" size={16} /> Fulfillment Workflow
                                     </h4>
 
@@ -1110,7 +1473,7 @@ const AdminOrders = () => {
                                             <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest">Global Order Status</label>
                                             <div className="relative">
                                                 <select
-                                                    className="w-full p-4 bg-slate-50 border border-slate-200 rounded-xl outline-none font-bold text-xs appearance-none focus:border-blue-500 transition-all"
+                                                    className="w-full p-4 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 rounded-xl outline-none font-bold text-xs appearance-none focus:border-blue-500 transition-all"
                                                     value={selectedOrder.status}
                                                     onChange={(e) => handleUpdateField(selectedOrder._id, { status: e.target.value })}
                                                 >
@@ -1128,7 +1491,7 @@ const AdminOrders = () => {
                                             <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest">Financial Settlement</label>
                                             <div className="relative">
                                                 <select
-                                                    className="w-full p-4 bg-slate-50 border border-slate-200 rounded-xl outline-none font-bold text-xs appearance-none focus:border-emerald-500 transition-all"
+                                                    className="w-full p-4 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 rounded-xl outline-none font-bold text-xs appearance-none focus:border-emerald-500 transition-all"
                                                     value={selectedOrder.paymentStatus}
                                                     onChange={(e) => handleUpdateField(selectedOrder._id, { paymentStatus: e.target.value })}
                                                 >
@@ -1179,11 +1542,37 @@ const AdminOrders = () => {
                                     {/* Direct Manual Courier/Tracking Details Input */}
                                     {selectedOrder.labelPrinted && !selectedOrder.trackingId && (
                                         <div className="mt-8 pt-8 border-t border-slate-100 bg-slate-50 p-6 rounded-2xl border border-slate-200">
-                                            <h5 className="text-[10px] font-black text-[#24672E] uppercase tracking-widest mb-4">Enter Courier Details</h5>
+                                            <div className="flex items-center justify-between mb-4">
+                                                <h5 className="text-[10px] font-black text-[#24672E] uppercase tracking-widest">
+                                                    {isPuneOrder(selectedOrder) ? "Pune Local Delivery Dispatch" : "Enter Courier Details"}
+                                                </h5>
+                                                {isPuneOrder(selectedOrder) && (
+                                                    <span className="px-2.5 py-1 bg-emerald-100 text-emerald-800 border border-emerald-300 rounded-full text-[9px] font-black uppercase tracking-wider">
+                                                        📍 Pune Region (No DTDC/BlueDart Needed)
+                                                    </span>
+                                                )}
+                                            </div>
 
-                                            {/* Optional Receipt Upload Dropzone */}
+                                            {isPuneOrder(selectedOrder) && (
+                                                <div className="mb-6 p-4 bg-emerald-50 border border-emerald-300 rounded-2xl flex items-start gap-3">
+                                                    <MapPin className="w-5 h-5 text-emerald-700 flex-shrink-0 mt-0.5" />
+                                                    <div>
+                                                        <p className="text-xs font-black text-emerald-900 uppercase tracking-wide">
+                                                            Pune Destination — Local Courier / Fleet Delivery
+                                                        </p>
+                                                        <p className="text-[11px] font-bold text-emerald-700 mt-1 leading-relaxed">
+                                                            For deliveries within the Pune region, third-party courier services (DTDC / BlueDart) are <b>not used</b>. 
+                                                            Tracking numbers are <b>not required</b>. You can fulfill and dispatch this order directly!
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            {/* Optional Receipt Upload Dropzone - hide or keep optional */}
                                             <div className="mb-6">
-                                                <label className="block text-[9px] font-black text-slate-400 uppercase mb-2">Upload Courier Receipt (Optional - auto-fills via OCR)</label>
+                                                <label className="block text-[9px] font-black text-slate-400 uppercase mb-2">
+                                                    Upload Courier Receipt ({isPuneOrder(selectedOrder) ? "Optional for Pune" : "Optional - auto-fills via OCR"})
+                                                </label>
                                                 {receiptUrl ? (
                                                     <div className="bg-white border border-slate-200 p-3 rounded-xl flex items-center justify-between">
                                                         <span className="text-[10px] font-bold text-slate-500 truncate max-w-[250px]">{receiptUrl.split('/').pop()}</span>
@@ -1228,24 +1617,27 @@ const AdminOrders = () => {
 
                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                                                 <div>
-                                                    <label className="block text-[9px] font-black text-slate-400 uppercase mb-2">Courier Partner</label>
+                                                    <label className="block text-[9px] font-black text-slate-400 uppercase mb-2">Courier / Delivery Partner</label>
                                                     <select
                                                         value={courierPartner}
                                                         onChange={(e) => setCourierPartner(e.target.value)}
                                                         className="w-full p-3 bg-white border border-slate-200 rounded-xl outline-none font-bold text-xs"
                                                     >
-                                                        <option value="Unknown Carrier">Unknown Carrier</option>
-                                                        {carriers.map(c => <option key={c._id} value={c.name}>{c.name}</option>)}
+                                                        <option value="Unknown Carrier">Select Carrier / Mode...</option>
+                                                        <option value="Local Pune Delivery">Local Pune Delivery (Own Fleet / Direct - No Tracking)</option>
+                                                        {carriers.filter(c => c.name !== "Local Pune Delivery").map(c => <option key={c._id} value={c.name}>{c.name}</option>)}
                                                     </select>
                                                 </div>
                                                 <div>
-                                                    <label className="block text-[9px] font-black text-slate-400 uppercase mb-2">AWB / Tracking Number</label>
+                                                    <label className="block text-[9px] font-black text-slate-400 uppercase mb-2">
+                                                        AWB / Tracking Number {isPuneOrder(selectedOrder) ? "(Not Required for Pune)" : ""}
+                                                    </label>
                                                     <input
                                                         type="text"
                                                         value={trackingId}
                                                         onChange={(e) => setTrackingId(e.target.value)}
                                                         className="w-full p-3 bg-white border border-slate-200 rounded-xl outline-none font-bold text-xs"
-                                                        placeholder="Enter Tracking ID..."
+                                                        placeholder={isPuneOrder(selectedOrder) ? "Not required for local Pune delivery (optional)" : "Enter Tracking ID..."}
                                                     />
                                                 </div>
                                             </div>
@@ -1255,117 +1647,375 @@ const AdminOrders = () => {
                                                     onClick={() => handleConfirmFulfillment(selectedOrder._id)}
                                                     className="w-full bg-[#24672E] text-white py-3 rounded-xl text-[10px] font-black uppercase tracking-wider hover:bg-[#1E971D] transition-colors"
                                                 >
-                                                    Confirm Details
+                                                    {isPuneOrder(selectedOrder) ? "Confirm Local Pune Dispatch (No Tracking Needed)" : "Confirm Details"}
                                                 </button>
                                             </div>
                                         </div>
                                     )}
 
-                                    {/* Email Dispatcher Sandbox */}
-                                    {selectedOrder.trackingId && !selectedOrder.shipmentEmailSent && (
-                                        <div className="mt-8 pt-8 border-t border-slate-100">
-                                            {!emailPreview ? (
-                                                <div className="text-center py-4">
-                                                    {isPreparingEmail ? (
-                                                        <div className="flex flex-col items-center">
-                                                            <Loader2 className="w-6 h-6 text-blue-500 animate-spin mb-2" />
-                                                            <p className="text-[9px] font-black text-slate-400 uppercase">Generating Shipment Email Preview...</p>
+                                    {/* ========================================================================= */}
+                                    {/* CUSTOMER NOTIFICATION HUB (Dispatch Email & Successful Delivery Email) */}
+                                    {/* ========================================================================= */}
+                                    {(selectedOrder.trackingId || selectedOrder.labelPrinted || isPuneOrder(selectedOrder)) && (
+                                        <div className="mt-8 pt-8 border-t border-slate-100 dark:border-slate-800">
+                                            {/* Top Segmented Tab Switcher */}
+                                            <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
+                                                <div className="flex items-center gap-2">
+                                                    <Mail size={16} className="text-slate-700 dark:text-slate-300" />
+                                                    <h5 className="text-[11px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest">
+                                                        Customer Notification Hub
+                                                    </h5>
+                                                </div>
+                                                <div className="inline-flex bg-slate-100 dark:bg-slate-800 p-1 rounded-xl border border-slate-200 dark:border-slate-700">
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => {
+                                                            setEmailSectionTab("shipment");
+                                                            if (!emailPreview) handlePrepareEmail(selectedOrder._id);
+                                                        }}
+                                                        className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all flex items-center gap-1.5 ${
+                                                            emailSectionTab === "shipment"
+                                                                ? "bg-blue-600 text-white shadow-xs"
+                                                                : "text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white"
+                                                        }`}
+                                                    >
+                                                        <Send size={11} />
+                                                        1. Dispatch Email
+                                                        {selectedOrder.shipmentEmailSent && (
+                                                            <span className="ml-1 px-1.5 py-0.5 bg-blue-700 text-white rounded text-[8px]">Sent ✓</span>
+                                                        )}
+                                                    </button>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => {
+                                                            setEmailSectionTab("delivery");
+                                                            if (!deliveryEmailPreview) handlePrepareDeliveryEmail(selectedOrder._id);
+                                                        }}
+                                                        className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all flex items-center gap-1.5 ${
+                                                            emailSectionTab === "delivery"
+                                                                ? "bg-[#24672E] text-white shadow-xs"
+                                                                : "text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white"
+                                                        }`}
+                                                    >
+                                                        <CheckCircle2 size={11} />
+                                                        2. Successful Delivery Email {isPuneOrder(selectedOrder) ? "(Local Pune)" : ""}
+                                                        {selectedOrder.deliveryEmailSent && (
+                                                            <span className="ml-1 px-1.5 py-0.5 bg-emerald-700 text-white rounded text-[8px]">Sent ✓</span>
+                                                        )}
+                                                    </button>
+                                                </div>
+                                            </div>
+
+                                            {/* TAB 1: SHIPMENT / DISPATCH EMAIL */}
+                                            {emailSectionTab === "shipment" && (
+                                                <div>
+                                                    {/* Quick Switch Banner to Delivery Email */}
+                                                    <div className="flex flex-wrap items-center justify-between gap-2 p-3.5 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-300 dark:border-emerald-800 rounded-2xl mb-4">
+                                                        <div className="flex items-center gap-2.5">
+                                                            <span className="text-xl">📦</span>
+                                                            <div>
+                                                                <p className="text-[11px] font-black text-emerald-950 dark:text-emerald-200 uppercase">
+                                                                    Has this order been delivered to {selectedOrder.user?.fullName || 'the customer'}?
+                                                                </p>
+                                                                <p className="text-[10px] font-bold text-emerald-700 dark:text-emerald-300">
+                                                                    Send official Successful Delivery Email with greeting, Order ID, and celebration emoji 🥰
+                                                                </p>
+                                                            </div>
+                                                        </div>
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => {
+                                                                setEmailSectionTab("delivery");
+                                                                if (!deliveryEmailPreview) handlePrepareDeliveryEmail(selectedOrder._id);
+                                                            }}
+                                                            className="px-4 py-2 bg-[#24672E] text-white rounded-xl text-[10px] font-black uppercase tracking-wider hover:bg-[#1E971D] transition-all shadow-xs flex items-center gap-1.5"
+                                                        >
+                                                            <Mail size={12} /> Switch to Delivery Email →
+                                                        </button>
+                                                    </div>
+
+                                                    {selectedOrder.shipmentEmailSent && !emailPreview ? (
+                                                        <div className="bg-emerald-50 dark:bg-emerald-950/40 p-6 rounded-2xl border border-emerald-200 dark:border-emerald-800 flex flex-wrap items-center justify-between gap-4">
+                                                            <div>
+                                                                <h5 className="text-[10px] font-black text-emerald-800 dark:text-emerald-300 uppercase tracking-widest mb-1 flex items-center gap-2">
+                                                                    <CheckCircle2 size={14} /> Order Dispatched & Customer Notified
+                                                                </h5>
+                                                                <p className="text-[11px] font-bold text-slate-700 dark:text-slate-200 leading-relaxed">
+                                                                    Dispatch notification email was sent to <b>{selectedOrder.user?.email}</b> on <b>{new Date(selectedOrder.shipmentEmailSentAt).toLocaleString()}</b>.<br />
+                                                                    Delivery Mode: <b>{selectedOrder.courierPartner}</b>
+                                                                    {selectedOrder.trackingId && selectedOrder.trackingId !== "LOCAL-PUNE" && selectedOrder.trackingId !== "PUNE" && (
+                                                                        <> | Tracking: <b>{selectedOrder.trackingId}</b></>
+                                                                    )}
+                                                                </p>
+                                                            </div>
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => handlePrepareEmail(selectedOrder._id)}
+                                                                className="px-4 py-2 bg-white dark:bg-slate-800 border border-emerald-300 dark:border-emerald-700 text-emerald-800 dark:text-emerald-200 rounded-lg text-[9px] font-black uppercase tracking-wider hover:bg-emerald-100 dark:hover:bg-slate-700"
+                                                            >
+                                                                Resend / Preview
+                                                            </button>
+                                                        </div>
+                                                    ) : !emailPreview ? (
+                                                        <div className="text-center py-6 bg-slate-50 dark:bg-slate-800/60 border border-dashed border-slate-300 dark:border-slate-700 rounded-2xl p-6">
+                                                            {isPreparingEmail ? (
+                                                                <div className="flex flex-col items-center">
+                                                                    <Loader2 className="w-6 h-6 text-blue-500 animate-spin mb-2" />
+                                                                    <p className="text-[9px] font-black text-slate-400 uppercase">Generating Shipment Email Preview...</p>
+                                                                </div>
+                                                            ) : (
+                                                                <div>
+                                                                    <Send className="w-8 h-8 text-blue-500 mx-auto mb-2" />
+                                                                    <p className="text-xs font-bold text-slate-800 dark:text-slate-100 mb-1">Dispatch / Out-for-Delivery Notification</p>
+                                                                    <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 max-w-md mx-auto mb-4">
+                                                                        Notify the customer that their package is dispatched {isPuneOrder(selectedOrder) ? 'with Local Pune Delivery fleet.' : 'and on its way.'}
+                                                                    </p>
+                                                                    <button
+                                                                        onClick={() => handlePrepareEmail(selectedOrder._id)}
+                                                                        className="px-6 py-3 bg-blue-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-blue-700 transition-colors shadow-sm"
+                                                                    >
+                                                                        {isPuneOrder(selectedOrder) ? "Prepare Local Dispatch Email Preview" : "Prepare Shipment Email Preview"}
+                                                                    </button>
+                                                                </div>
+                                                            )}
                                                         </div>
                                                     ) : (
-                                                        <button
-                                                            onClick={() => handlePrepareEmail(selectedOrder._id)}
-                                                            className="px-6 py-3 bg-blue-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-blue-700 transition-colors"
-                                                        >
-                                                            Prepare Shipment Email Preview
-                                                        </button>
+                                                        <div className="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl p-6">
+                                                            <h5 className="text-[10px] font-black text-blue-600 dark:text-blue-400 uppercase tracking-widest mb-4">Shipment Email Dispatcher</h5>
+
+                                                            <div className="space-y-4 mb-4">
+                                                                <div>
+                                                                    <label className="block text-[9px] font-black text-slate-400 uppercase mb-1">Email Subject</label>
+                                                                    <input
+                                                                        type="text"
+                                                                        value={emailPreview.subject}
+                                                                        onChange={(e) => setEmailPreview({ ...emailPreview, subject: e.target.value })}
+                                                                        className="w-full p-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl outline-none font-bold text-xs text-slate-900 dark:text-slate-100"
+                                                                    />
+                                                                </div>
+                                                                <div>
+                                                                    <label className="block text-[9px] font-black text-slate-400 uppercase mb-1">Recipient</label>
+                                                                    <div className="p-3 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl font-mono text-[11px] text-slate-600 dark:text-slate-300">
+                                                                        {emailPreview.customerEmail}
+                                                                    </div>
+                                                                </div>
+                                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                                    <div>
+                                                                        <label className="block text-[9px] font-black text-slate-400 uppercase mb-1 font-bold">HTML Preview</label>
+                                                                        <iframe
+                                                                            srcDoc={emailPreview.html}
+                                                                            className="w-full h-64 border border-slate-200 dark:border-slate-700 rounded-xl bg-white"
+                                                                            title="HTML Email Preview"
+                                                                        />
+                                                                    </div>
+                                                                    <div>
+                                                                        <label className="block text-[9px] font-black text-slate-400 uppercase mb-1 font-bold">Plain Text Preview</label>
+                                                                        <textarea
+                                                                            value={emailPreview.text}
+                                                                            onChange={(e) => setEmailPreview({ ...emailPreview, text: e.target.value })}
+                                                                            className="w-full h-64 p-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl outline-none font-mono text-[10px] text-slate-900 dark:text-slate-100 resize-none"
+                                                                        />
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+
+                                                            <div className="flex gap-2 mb-4 bg-white dark:bg-slate-800/80 p-4 rounded-xl border border-slate-200 dark:border-slate-700">
+                                                                <input
+                                                                    type="email"
+                                                                    placeholder="Enter admin test email address..."
+                                                                    value={testEmailAddress}
+                                                                    onChange={(e) => setTestEmailAddress(e.target.value)}
+                                                                    className="flex-1 p-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl outline-none font-bold text-xs text-slate-900 dark:text-slate-100"
+                                                                />
+                                                                <button
+                                                                    onClick={() => handleSendTestEmail(selectedOrder._id)}
+                                                                    className="px-6 bg-slate-900 dark:bg-slate-700 text-white rounded-xl text-[10px] font-black uppercase tracking-wider hover:bg-slate-800 dark:hover:bg-slate-600 transition-colors"
+                                                                >
+                                                                    Test Send
+                                                                </button>
+                                                            </div>
+
+                                                            <div className="flex gap-2">
+                                                                <button
+                                                                    onClick={() => handleSendShipmentEmail(selectedOrder._id)}
+                                                                    className="flex-1 bg-blue-600 text-white py-3 rounded-xl text-[10px] font-black uppercase tracking-wider hover:bg-blue-700 transition-colors flex items-center justify-center gap-2"
+                                                                >
+                                                                    <Send size={12} /> Send Email to Customer
+                                                                </button>
+                                                                <button
+                                                                    onClick={() => setEmailPreview(null)}
+                                                                    className="px-6 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 text-slate-600 dark:text-slate-300 py-3 rounded-xl text-[10px] font-black uppercase tracking-wider hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
+                                                                >
+                                                                    Hide Preview
+                                                                </button>
+                                                            </div>
+                                                        </div>
                                                     )}
                                                 </div>
-                                            ) : (
-                                                <div className="bg-slate-50 border border-slate-200 rounded-2xl p-6">
-                                                    <h5 className="text-[10px] font-black text-blue-600 uppercase tracking-widest mb-4">Shipment Email Dispatcher</h5>
+                                            )}
 
-                                                    <div className="space-y-4 mb-4">
-                                                        <div>
-                                                            <label className="block text-[9px] font-black text-slate-400 uppercase mb-1">Email Subject</label>
-                                                            <input
-                                                                type="text"
-                                                                value={emailPreview.subject}
-                                                                onChange={(e) => setEmailPreview({ ...emailPreview, subject: e.target.value })}
-                                                                className="w-full p-3 bg-white border border-slate-200 rounded-xl outline-none font-bold text-xs"
-                                                            />
-                                                        </div>
-                                                        <div>
-                                                            <label className="block text-[9px] font-black text-slate-400 uppercase mb-1">Recipient</label>
-                                                            <div className="p-3 bg-slate-100 border border-slate-200 rounded-xl font-mono text-[11px] text-slate-600">
-                                                                {emailPreview.customerEmail}
-                                                            </div>
-                                                        </div>
-                                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                                            <div>
-                                                                <label className="block text-[9px] font-black text-slate-400 uppercase mb-1 font-bold">HTML Preview</label>
-                                                                <iframe
-                                                                    srcDoc={emailPreview.html}
-                                                                    className="w-full h-64 border border-slate-200 rounded-xl bg-white"
-                                                                    title="HTML Email Preview"
-                                                                />
+                                            {/* TAB 2: SUCCESSFUL DELIVERY EMAIL */}
+                                            {emailSectionTab === "delivery" && (
+                                                <div className="bg-emerald-50/70 dark:bg-emerald-950/40 border-2 border-emerald-200 dark:border-emerald-800/80 rounded-2xl p-6 shadow-sm">
+                                                    <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
+                                                        <div className="flex items-center gap-2.5">
+                                                            <div className="w-8 h-8 rounded-xl bg-emerald-600 dark:bg-emerald-500 flex items-center justify-center text-white dark:text-slate-950 shadow-sm">
+                                                                <CheckCircle2 size={18} />
                                                             </div>
                                                             <div>
-                                                                <label className="block text-[9px] font-black text-slate-400 uppercase mb-1 font-bold">Plain Text Preview</label>
-                                                                <textarea
-                                                                    value={emailPreview.text}
-                                                                    onChange={(e) => setEmailPreview({ ...emailPreview, text: e.target.value })}
-                                                                    className="w-full h-64 p-3 bg-white border border-slate-200 rounded-xl outline-none font-mono text-[10px] resize-none"
-                                                                />
+                                                                <h5 className="text-[11px] font-black text-emerald-950 dark:text-emerald-200 uppercase tracking-widest flex items-center gap-2">
+                                                                    Successful Delivery Confirmation Mailer
+                                                                </h5>
+                                                                <p className="text-[10px] font-bold text-emerald-700 dark:text-emerald-300 mt-0.5">
+                                                                    Mail the customer an official confirmation of successful delivery with logo, order ID, and celebration emoji.
+                                                                </p>
                                                             </div>
                                                         </div>
+                                                        {selectedOrder.deliveryEmailSent ? (
+                                                            <span className="px-3.5 py-1.5 bg-emerald-100 dark:bg-emerald-950/80 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-700/80 rounded-full text-[10px] font-black uppercase tracking-wider flex items-center gap-1.5 shadow-xs">
+                                                                <CheckCircle2 size={12} className="text-emerald-700 dark:text-emerald-300" />
+                                                                Delivered & Notified {selectedOrder.deliveryEmailSentAt ? `(${new Date(selectedOrder.deliveryEmailSentAt).toLocaleDateString()})` : ''}
+                                                            </span>
+                                                        ) : (
+                                                            <span className="px-3 py-1 bg-amber-100 dark:bg-amber-950/80 text-amber-900 dark:text-amber-300 border border-amber-300 dark:border-amber-700/80 rounded-full text-[9px] font-black uppercase tracking-wider">
+                                                                Pending Email Dispatch
+                                                            </span>
+                                                        )}
                                                     </div>
 
-                                                    <div className="flex gap-2 mb-4 bg-white p-4 rounded-xl border border-slate-200">
-                                                        <input
-                                                            type="email"
-                                                            placeholder="Enter admin test email address..."
-                                                            value={testEmailAddress}
-                                                            onChange={(e) => setTestEmailAddress(e.target.value)}
-                                                            className="flex-1 p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none font-bold text-xs"
-                                                        />
-                                                        <button
-                                                            onClick={() => handleSendTestEmail(selectedOrder._id)}
-                                                            className="px-6 bg-slate-900 text-white rounded-xl text-[10px] font-black uppercase tracking-wider hover:bg-slate-800 transition-colors"
-                                                        >
-                                                            Test Send
-                                                        </button>
-                                                    </div>
+                                                    {/* Auto-delivery status helper notice */}
+                                                    {selectedOrder.status !== 'delivered' && (
+                                                        <div className="bg-amber-50 dark:bg-amber-950/50 border border-amber-200 dark:border-amber-700/70 p-3.5 rounded-xl mb-4 flex items-center gap-2.5 text-[10px] font-bold text-amber-950 dark:text-amber-200">
+                                                            <span className="w-2 h-2 rounded-full bg-amber-500 dark:bg-amber-400 animate-pulse flex-shrink-0"></span>
+                                                            <span>
+                                                                Order status is currently <b className="uppercase font-black text-amber-900 dark:text-amber-100">"{selectedOrder.status}"</b>. 
+                                                                Sending this delivery email will automatically mark the order as <b className="text-emerald-800 dark:text-emerald-300 font-black">"DELIVERED"</b> in MongoDB Atlas!
+                                                            </span>
+                                                        </div>
+                                                    )}
 
-                                                    <div className="flex gap-2">
-                                                        <button
-                                                            onClick={() => handleSendShipmentEmail(selectedOrder._id)}
-                                                            className="flex-1 bg-blue-600 text-white py-3 rounded-xl text-[10px] font-black uppercase tracking-wider hover:bg-blue-700 transition-colors flex items-center justify-center gap-2"
-                                                        >
-                                                            <Send size={12} /> Send Email to Customer
-                                                        </button>
-                                                        <button
-                                                            onClick={() => setEmailPreview(null)}
-                                                            className="px-6 bg-white border border-slate-300 text-slate-600 py-3 rounded-xl text-[10px] font-black uppercase tracking-wider hover:bg-slate-100 transition-colors"
-                                                        >
-                                                            Hide Preview
-                                                        </button>
-                                                    </div>
+                                                    {selectedOrder.deliveryEmailSent && !deliveryEmailPreview && (
+                                                        <div className="bg-white dark:bg-slate-900 p-4 rounded-xl border border-emerald-200 dark:border-emerald-800 mb-4 flex items-center justify-between">
+                                                            <div>
+                                                                <p className="text-[11px] font-bold text-slate-700 dark:text-slate-200">
+                                                                    ✓ Delivery confirmation email was successfully sent to <span className="font-mono text-emerald-800 dark:text-emerald-300 font-black">{selectedOrder.user?.email}</span>
+                                                                </p>
+                                                                <p className="text-[9px] font-bold text-slate-400 dark:text-slate-400 mt-1 uppercase">
+                                                                    Sent at: {new Date(selectedOrder.deliveryEmailSentAt).toLocaleString()}
+                                                                </p>
+                                                            </div>
+                                                            <button
+                                                                onClick={() => handlePrepareDeliveryEmail(selectedOrder._id)}
+                                                                className="px-4 py-2 bg-emerald-100 dark:bg-emerald-950/70 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-700 hover:bg-emerald-200 dark:hover:bg-emerald-900/60 rounded-lg text-[9px] font-black uppercase tracking-wider transition-colors"
+                                                            >
+                                                                Resend / Preview
+                                                            </button>
+                                                        </div>
+                                                    )}
+
+                                                    {!deliveryEmailPreview ? (
+                                                        !selectedOrder.deliveryEmailSent && (
+                                                            <div className="text-center py-6 bg-white dark:bg-slate-900 rounded-xl border border-dashed border-emerald-300 dark:border-emerald-700 p-6">
+                                                                <Mail className="w-8 h-8 text-emerald-600 dark:text-emerald-400 mx-auto mb-2" />
+                                                                <p className="text-xs font-bold text-slate-800 dark:text-slate-100 mb-1">
+                                                                    Ready to send delivery confirmation to <b>{selectedOrder.user?.fullName || 'Customer'}</b>
+                                                                </p>
+                                                                <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 max-w-md mx-auto mb-4">
+                                                                    Includes OwnFresh logo, Order ID, "Hi {selectedOrder.user?.fullName}, Your OwnFresh oil has been delivered successfully! 🥰", delivered items, and invoice link.
+                                                                </p>
+                                                                {isPreparingDeliveryEmail ? (
+                                                                    <div className="flex flex-col items-center">
+                                                                        <Loader2 className="w-6 h-6 text-emerald-600 dark:text-emerald-400 animate-spin mb-2" />
+                                                                        <p className="text-[9px] font-black text-slate-400 dark:text-slate-400 uppercase">Generating Delivery Email Preview...</p>
+                                                                    </div>
+                                                                ) : (
+                                                                    <button
+                                                                        onClick={() => handlePrepareDeliveryEmail(selectedOrder._id)}
+                                                                        className="px-6 py-3 bg-[#24672E] text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-[#1E971D] transition-colors shadow-md inline-flex items-center gap-2 cursor-pointer"
+                                                                    >
+                                                                        <Send size={12} /> Prepare Delivery Email Preview
+                                                                    </button>
+                                                                )}
+                                                            </div>
+                                                        )
+                                                    ) : (
+                                                        <div className="bg-white dark:bg-slate-900 border border-emerald-300 dark:border-emerald-700 rounded-2xl p-6 shadow-sm">
+                                                            <div className="flex items-center justify-between pb-4 mb-4 border-b border-slate-100 dark:border-slate-800">
+                                                                <h6 className="text-[10px] font-black text-emerald-800 dark:text-emerald-300 uppercase tracking-widest flex items-center gap-2">
+                                                                    <Mail size={14} /> Successful Delivery Email Dispatcher
+                                                                </h6>
+                                                                <span className="text-[10px] font-mono text-slate-600 dark:text-slate-300 font-bold">
+                                                                    Recipient: {deliveryEmailPreview.customerEmail}
+                                                                </span>
+                                                            </div>
+
+                                                            <div className="space-y-4 mb-4">
+                                                                <div>
+                                                                    <label className="block text-[9px] font-black text-slate-400 dark:text-slate-400 uppercase mb-1">Subject</label>
+                                                                    <input
+                                                                        type="text"
+                                                                        value={deliveryEmailPreview.subject}
+                                                                        onChange={(e) => setDeliveryEmailPreview({ ...deliveryEmailPreview, subject: e.target.value })}
+                                                                        className="w-full p-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl outline-none font-bold text-xs text-slate-900 dark:text-slate-100 focus:border-emerald-500"
+                                                                    />
+                                                                </div>
+
+                                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                                    <div>
+                                                                        <label className="block text-[9px] font-black text-slate-400 dark:text-slate-400 uppercase mb-1 font-bold">HTML Preview</label>
+                                                                        <iframe
+                                                                            srcDoc={deliveryEmailPreview.html}
+                                                                            className="w-full h-72 border border-slate-200 dark:border-slate-700 rounded-xl bg-white"
+                                                                            title="Delivery Email HTML Preview"
+                                                                        />
+                                                                    </div>
+                                                                    <div>
+                                                                        <label className="block text-[9px] font-black text-slate-400 dark:text-slate-400 uppercase mb-1 font-bold">Plain Text Preview</label>
+                                                                        <textarea
+                                                                            value={deliveryEmailPreview.text}
+                                                                            onChange={(e) => setDeliveryEmailPreview({ ...deliveryEmailPreview, text: e.target.value })}
+                                                                            className="w-full h-72 p-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl outline-none font-mono text-[10px] text-slate-900 dark:text-slate-100 resize-none focus:border-emerald-500"
+                                                                        />
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+
+                                                            <div className="flex gap-2 mb-4 bg-slate-50 dark:bg-slate-800/80 p-4 rounded-xl border border-slate-200 dark:border-slate-700">
+                                                                <input
+                                                                    type="email"
+                                                                    placeholder="Enter test email address for delivery preview..."
+                                                                    value={deliveryTestEmailAddress}
+                                                                    onChange={(e) => setDeliveryTestEmailAddress(e.target.value)}
+                                                                    className="flex-1 p-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl outline-none font-bold text-xs text-slate-900 dark:text-slate-100"
+                                                                />
+                                                                <button
+                                                                    onClick={() => handleSendTestDeliveryEmail(selectedOrder._id)}
+                                                                    className="px-6 bg-slate-900 dark:bg-slate-700 text-white rounded-xl text-[10px] font-black uppercase tracking-wider hover:bg-slate-800 dark:hover:bg-slate-600 transition-colors cursor-pointer"
+                                                                >
+                                                                    Test Send
+                                                                </button>
+                                                            </div>
+
+                                                            <div className="flex gap-3">
+                                                                <button
+                                                                    onClick={() => handleSendDeliveryEmail(selectedOrder._id)}
+                                                                    disabled={isSendingDeliveryEmail}
+                                                                    className="flex-1 bg-[#24672E] text-white py-3.5 rounded-xl text-[10px] font-black uppercase tracking-wider hover:bg-[#1E971D] transition-colors flex items-center justify-center gap-2 shadow-md disabled:opacity-50 cursor-pointer"
+                                                                >
+                                                                    {isSendingDeliveryEmail ? <Loader2 size={14} className="animate-spin" /> : <Send size={14} />}
+                                                                    Send Delivery Confirmation Email to Customer
+                                                                </button>
+                                                                <button
+                                                                    onClick={() => setDeliveryEmailPreview(null)}
+                                                                    className="px-6 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 text-slate-600 dark:text-slate-300 py-3.5 rounded-xl text-[10px] font-black uppercase tracking-wider hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors cursor-pointer"
+                                                                >
+                                                                    Hide Preview
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                    )}
                                                 </div>
                                             )}
-                                        </div>
-                                    )}
-
-                                    {/* Already Shipped Notification */}
-                                    {selectedOrder.shipmentEmailSent && (
-                                        <div className="mt-8 pt-8 border-t border-slate-100 bg-emerald-50 p-6 rounded-2xl border border-emerald-200">
-                                            <h5 className="text-[10px] font-black text-emerald-800 uppercase tracking-widest mb-2 flex items-center gap-2">
-                                                <CheckCircle2 size={14} /> Order Shipped & Notified
-                                            </h5>
-                                            <p className="text-[11px] font-bold text-slate-700 leading-relaxed">
-                                                The shipment email was successfully sent to the customer on <b>{new Date(selectedOrder.shipmentEmailSentAt).toLocaleString()}</b>.<br/>
-                                                AWB/Tracking Code: <b>{selectedOrder.trackingId}</b> via <b>{selectedOrder.courierPartner}</b>.<br/>
-                                                <a href={selectedOrder.trackingUrl} target="_blank" rel="noreferrer" className="text-emerald-700 hover:underline font-black uppercase mt-2 inline-block">Track Package ↗</a>
-                                            </p>
                                         </div>
                                     )}
                                 </div>

@@ -84,12 +84,27 @@ const orderSchema = new mongoose.Schema({
   shipmentEmailSentAt: {
     type: Date
   },
+  deliveryEmailSent: {
+    type: Boolean,
+    default: false
+  },
+  deliveryEmailSentAt: {
+    type: Date
+  },
+  isLocalDelivery: {
+    type: Boolean,
+    default: false
+  },
   adminNotes: {
     type: String
   },
   deliveryAddress: {
     roomNumber: String,
     areaName: String,
+    city: String,
+    state: String,
+    pincode: String,
+    country: String,
     text: String,
     phone: String,
     latitude: Number,

@@ -4,12 +4,20 @@ import Order from "../models/ordermodel.js";
 import AuditLog from "../models/auditLogModel.js";
 import { runImageOcr, runPdfTextExtraction, extractCourierDetails } from "../utils/ocrService.js";
 import { logEvent } from "../utils/auditLogger.js";
-import { sendCustomMail, generateShipmentEmailHtml } from "../utils/mail.js";
+import { sendCustomMail, generateShipmentEmailHtml, generateDeliverySuccessEmailHtml, sendOrderDeliveredMail } from "../utils/mail.js";
+import { determineDeliveryRegion } from "../services/shippingService.js";
 
 // GET ALL ACTIVE CARRIERS
 export const getCarriers = async (req, res) => {
   try {
-    const carriers = await Carrier.find({ active: true }).sort({ name: 1 });
+    let carriers = await Carrier.find({ active: true }).sort({ name: 1 });
+    const hasLocal = carriers.some(c => c.name.toLowerCase().includes("local") || c.name.toLowerCase().includes("pune"));
+    if (!hasLocal) {
+      carriers = [
+        { _id: "local-pune", name: "Local Pune Delivery", baseTrackingUrl: "", active: true },
+        ...carriers
+      ];
+    }
     res.status(200).json({ success: true, carriers });
   } catch (error) {
     console.error("Failed to load carriers:", error.message);
@@ -81,27 +89,44 @@ export const confirmFulfillment = async (req, res) => {
       return res.status(400).json({ success: false, msg: "Invalid Order ID" });
     }
 
-    if (!courierPartner || !trackingId) {
-      return res.status(400).json({ success: false, msg: "Courier partner and Tracking ID are required" });
-    }
-
     const order = await Order.findById(id);
     if (!order) {
       return res.status(404).json({ success: false, msg: "Order not found" });
     }
 
-    // Look up carrier to build tracking URL
-    const carrier = await Carrier.findOne({ name: courierPartner });
-    const baseTrackingUrl = carrier ? carrier.baseTrackingUrl : "";
-    let trackingUrl = baseTrackingUrl + trackingId;
-    if (courierPartner && courierPartner.toLowerCase() === "trackon") {
-      trackingUrl = baseTrackingUrl || "https://trackon.in/";
+    // Determine if destination is within Pune region
+    const isPune = (order.deliveryAddress && determineDeliveryRegion(order.deliveryAddress) === "PUNE") ||
+                   (courierPartner && (courierPartner.toLowerCase().includes("local") || courierPartner.toLowerCase().includes("pune"))) ||
+                   order.isLocalDelivery;
+
+    const resolvedPartner = courierPartner || (isPune ? "Local Pune Delivery" : "");
+    if (!resolvedPartner || resolvedPartner === "Unknown Carrier") {
+      return res.status(400).json({ success: false, msg: "Please select a valid Courier Partner" });
+    }
+
+    // For Pune deliveries: third-party couriers (DTDC, BlueDart) & tracking number are NOT required
+    if (!isPune && (!trackingId || !trackingId.trim())) {
+      return res.status(400).json({ success: false, msg: "Tracking ID is required for out-of-Pune shipments" });
+    }
+
+    const resolvedTrackingId = (trackingId && trackingId.trim()) ? trackingId.trim() : (isPune ? "LOCAL-PUNE" : "");
+
+    // Look up carrier to build tracking URL (if applicable)
+    let trackingUrl = "";
+    if (!isPune && resolvedTrackingId) {
+      const carrier = await Carrier.findOne({ name: resolvedPartner });
+      const baseTrackingUrl = carrier ? carrier.baseTrackingUrl : "";
+      trackingUrl = baseTrackingUrl + resolvedTrackingId;
+      if (resolvedPartner.toLowerCase() === "trackon") {
+        trackingUrl = baseTrackingUrl || "https://trackon.in/";
+      }
     }
 
     // Update Order fields
-    order.courierPartner = courierPartner;
-    order.trackingId = trackingId;
+    order.courierPartner = resolvedPartner;
+    order.trackingId = resolvedTrackingId;
     order.trackingUrl = trackingUrl;
+    order.isLocalDelivery = isPune;
     if (courierReceiptUrl) order.courierReceiptUrl = courierReceiptUrl;
     if (courierReceiptRawText) order.courierReceiptRawText = courierReceiptRawText;
 
@@ -115,7 +140,7 @@ export const confirmFulfillment = async (req, res) => {
     await logEvent({
       eventType: "TRACKING_GENERATION",
       req,
-      details: { orderId: id, courierPartner, trackingId, trackingUrl }
+      details: { orderId: id, courierPartner: resolvedPartner, trackingId: resolvedTrackingId, trackingUrl, isLocalDelivery: isPune }
     });
 
     if (courierReceiptUrl) {
@@ -128,7 +153,7 @@ export const confirmFulfillment = async (req, res) => {
 
     res.status(200).json({
       success: true,
-      msg: "Fulfillment confirmed and tracking URL generated!",
+      msg: isPune ? "Local Pune fulfillment confirmed (No tracking number needed)!" : "Fulfillment confirmed and tracking URL generated!",
       order
     });
   } catch (error) {
@@ -155,13 +180,24 @@ export const previewShipmentEmail = async (req, res) => {
       return res.status(400).json({ success: false, msg: "The user account associated with this order has been deleted. Cannot preview shipment email." });
     }
 
-    if (!order.trackingId || !order.courierPartner) {
-      return res.status(400).json({ success: false, msg: "Order lacks tracking ID or courier partner. Please confirm fulfillment first." });
+    const isPune = order.isLocalDelivery ||
+                   (order.deliveryAddress && determineDeliveryRegion(order.deliveryAddress) === "PUNE") ||
+                   (order.courierPartner && (order.courierPartner.toLowerCase().includes("local") || order.courierPartner.toLowerCase().includes("pune"))) ||
+                   order.trackingId === "PUNE" ||
+                   order.trackingId === "LOCAL-PUNE";
+
+    if (!order.courierPartner || (!isPune && !order.trackingId)) {
+      return res.status(400).json({ success: false, msg: "Order lacks fulfillment details. Please confirm fulfillment first." });
     }
 
     const html = generateShipmentEmailHtml(order, order.trackingUrl);
-    const subject = `Your OwnFresh Order has been shipped! - #${order._id.toString().toUpperCase()}`;
-    const text = `Hi ${order.user.fullName},\n\nYour order #${order._id.toString().toUpperCase()} has been handed over to ${order.courierPartner}.\nTracking Number: ${order.trackingId}\nTrack here: ${order.trackingUrl}\n\nThank you for shopping with OwnFresh!`;
+    const orderIdCode = order.customOrderId || order._id.toString().toUpperCase();
+    const subject = isPune 
+      ? `Your OwnFresh Order is Out for Local Pune Delivery! - #${orderIdCode}`
+      : `Your OwnFresh Order has been shipped! - #${orderIdCode}`;
+    const text = isPune
+      ? `Hi ${order.user.fullName},\n\nYour order #${orderIdCode} is out for delivery with our Local Pune Delivery Fleet.\nDelivery Address: ${order.deliveryAddress?.text || 'Pune'}\n\nThank you for shopping with OwnFresh!`
+      : `Hi ${order.user.fullName},\n\nYour order #${orderIdCode} has been handed over to ${order.courierPartner}.\nTracking Number: ${order.trackingId}\nTrack here: ${order.trackingUrl}\n\nThank you for shopping with OwnFresh!`;
 
     await logEvent({
       eventType: "EMAIL_PREVIEW",
@@ -179,6 +215,135 @@ export const previewShipmentEmail = async (req, res) => {
   } catch (error) {
     console.error("Fulfillment email preview failed:", error.message);
     res.status(500).json({ success: false, msg: "Server error generating email preview" });
+  }
+};
+
+// GENERATE SUCCESSFUL DELIVERY EMAIL PREVIEW
+export const previewDeliveryEmail = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ success: false, msg: "Invalid Order ID" });
+    }
+
+    const order = await Order.findById(id).populate("user", "fullName email");
+    if (!order) {
+      return res.status(404).json({ success: false, msg: "Order not found" });
+    }
+
+    if (!order.user) {
+      return res.status(400).json({ success: false, msg: "The user account associated with this order has been deleted. Cannot preview delivery email." });
+    }
+
+    const html = generateDeliverySuccessEmailHtml(order);
+    const orderIdCode = order.customOrderId || order._id.toString().toUpperCase();
+    const siteUrl = process.env.FRONTEND_URL || "https://myownfresh.com";
+    const deliveryAddress = order.deliveryAddress?.text || [
+      order.deliveryAddress?.roomNumber,
+      order.deliveryAddress?.areaName,
+      order.deliveryAddress?.city,
+      order.deliveryAddress?.pincode
+    ].filter(Boolean).join(", ") || "Pune, Maharashtra";
+
+    const subject = `Your OwnFresh oil has been delivered successfully! 🥰 - #${orderIdCode}`;
+    const text = `Hi ${order.user.fullName},\n\nYour OwnFresh oil has been delivered successfully! 🥰\n\nThank you for choosing OwnFresh! ❤️\n\nOrder ID: #${orderIdCode}\nDelivered To: ${deliveryAddress}\nDelivery Mode: ${order.courierPartner || "Local Pune Delivery (Own Fleet)"}\n\nView your order details & invoice: ${siteUrl}/my-orders\n\nHave questions or feedback? Reply directly to this email or write to us at contact@myownfresh.com.\n\nWarm regards,\nOwnFresh Agro Industries, Pune`;
+
+    await logEvent({
+      eventType: "DELIVERY_EMAIL_PREVIEW",
+      req,
+      details: { orderId: id }
+    });
+
+    res.status(200).json({
+      success: true,
+      subject,
+      html,
+      text,
+      customerEmail: order.user.email
+    });
+  } catch (error) {
+    console.error("Delivery email preview failed:", error.message);
+    res.status(500).json({ success: false, msg: "Server error generating delivery email preview" });
+  }
+};
+
+// SEND TEST DELIVERY EMAIL
+export const sendTestDeliveryEmail = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { subject, html, text, testEmail } = req.body;
+
+    if (!testEmail) {
+      return res.status(400).json({ success: false, msg: "Test email address is required" });
+    }
+
+    await sendOrderDeliveredMail({
+      to: testEmail,
+      subject: `[TEST] ${subject}`,
+      html,
+      text
+    });
+
+    await logEvent({
+      eventType: "TEST_DELIVERY_EMAIL_SENT",
+      req,
+      details: { orderId: id, recipient: testEmail }
+    });
+
+    res.status(200).json({ success: true, msg: `Test delivery email successfully sent to ${testEmail}` });
+  } catch (error) {
+    console.error("Test delivery email send failed:", error.message);
+    res.status(500).json({ success: false, msg: "Email delivery failed: " + error.message });
+  }
+};
+
+// SEND SUCCESSFUL DELIVERY EMAIL TO CUSTOMER
+export const sendDeliveryEmail = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { subject, html, text } = req.body;
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ success: false, msg: "Invalid Order ID" });
+    }
+
+    const order = await Order.findById(id).populate("user", "fullName email");
+    if (!order) {
+      return res.status(404).json({ success: false, msg: "Order not found" });
+    }
+
+    if (!order.user) {
+      return res.status(400).json({ success: false, msg: "The user account associated with this order has been deleted. Cannot send delivery email." });
+    }
+
+    await sendOrderDeliveredMail({
+      to: order.user.email,
+      subject,
+      html,
+      text
+    });
+
+    // Update order status and delivery email timestamps
+    order.status = "delivered";
+    order.deliveryEmailSent = true;
+    order.deliveryEmailSentAt = new Date();
+    await order.save();
+
+    await logEvent({
+      eventType: "DELIVERY_EMAIL_SENT",
+      req,
+      details: { orderId: id, recipient: order.user.email }
+    });
+
+    res.status(200).json({
+      success: true,
+      msg: "Delivery confirmation email sent to customer!",
+      order
+    });
+  } catch (error) {
+    console.error("Delivery email sending failed:", error.message);
+    res.status(500).json({ success: false, msg: "Email delivery failed: " + error.message });
   }
 };
 

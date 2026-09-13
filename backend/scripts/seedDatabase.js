@@ -22,46 +22,52 @@ dotenv.config({ path: path.join(__dirname, "../.env") });
 
 const oilPriceMap = {
   "Sunflower Oil": {
-    "250 ml": { price: 180, salePrice: 148 },
-    "500 ml": { price: 300, salePrice: 246 },
-    "1 Litre": { price: 540, salePrice: 443 },
-    "5 Litre": { price: 4320, salePrice: 3542 },
-    "15 Litre": { price: 11880, salePrice: 9742 }
+    "250 ml": { price: 216, salePrice: 180, status: "Inactive" },
+    "500 ml": { price: 330, salePrice: 275, status: "Active" },
+    "1 Litre": { price: 582, salePrice: 485, status: "Active" },
+    "2 Litre": { price: 1074, salePrice: 895, status: "Active" },
+    "5 Litre": { price: 4656, salePrice: 3880, status: "Active" },
+    "15 Litre": { price: 12804, salePrice: 10670, status: "Active" }
   },
   "Safflower Oil": {
-    "250 ml": { price: 190, salePrice: 156 },
-    "500 ml": { price: 320, salePrice: 262 },
-    "1 Litre": { price: 580, salePrice: 476 },
-    "5 Litre": { price: 4640, salePrice: 3805 },
-    "15 Litre": { price: 12760, salePrice: 10463 }
+    "250 ml": { price: 228, salePrice: 190, status: "Inactive" },
+    "500 ml": { price: 390, salePrice: 325, status: "Active" },
+    "1 Litre": { price: 702, salePrice: 585, status: "Active" },
+    "2 Litre": { price: 1296, salePrice: 1080, status: "Active" },
+    "5 Litre": { price: 5616, salePrice: 4680, status: "Active" },
+    "15 Litre": { price: 15444, salePrice: 12870, status: "Active" }
   },
   "Groundnut Oil": {
-    "250 ml": { price: 195, salePrice: 160 },
-    "500 ml": { price: 330, salePrice: 271 },
-    "1 Litre": { price: 605, salePrice: 496 },
-    "5 Litre": { price: 4840, salePrice: 3969 },
-    "15 Litre": { price: 13310, salePrice: 10914 }
+    "250 ml": { price: 234, salePrice: 195, status: "Inactive" },
+    "500 ml": { price: 372, salePrice: 310, status: "Active" },
+    "1 Litre": { price: 666, salePrice: 555, status: "Active" },
+    "2 Litre": { price: 1230, salePrice: 1025, status: "Active" },
+    "5 Litre": { price: 5328, salePrice: 4440, status: "Active" },
+    "15 Litre": { price: 14652, salePrice: 12210, status: "Active" }
   },
   "Sesame Oil": {
-    "250 ml": { price: 210, salePrice: 172 },
-    "500 ml": { price: 360, salePrice: 295 },
-    "1 Litre": { price: 680, salePrice: 558 },
-    "5 Litre": { price: 5440, salePrice: 4461 },
-    "15 Litre": { price: 14960, salePrice: 12267 }
+    "250 ml": { price: 234, salePrice: 195, status: "Active" },
+    "500 ml": { price: 408, salePrice: 340, status: "Active" },
+    "1 Litre": { price: 738, salePrice: 615, status: "Active" },
+    "2 Litre": { price: 1362, salePrice: 1135, status: "Active" },
+    "5 Litre": { price: 5904, salePrice: 4920, status: "Active" },
+    "15 Litre": { price: 16236, salePrice: 13530, status: "Active" }
   },
   "Mustard Oil": {
-    "250 ml": { price: 185, salePrice: 152 },
-    "500 ml": { price: 315, salePrice: 258 },
-    "1 Litre": { price: 575, salePrice: 472 },
-    "5 Litre": { price: 4600, salePrice: 3772 },
-    "15 Litre": { price: 12650, salePrice: 10373 }
+    "250 ml": { price: 210, salePrice: 175, status: "Active" },
+    "500 ml": { price: 354, salePrice: 295, status: "Active" },
+    "1 Litre": { price: 630, salePrice: 525, status: "Active" },
+    "2 Litre": { price: 1164, salePrice: 970, status: "Active" },
+    "5 Litre": { price: 5040, salePrice: 4200, status: "Active" },
+    "15 Litre": { price: 13860, salePrice: 11550, status: "Active" }
   },
   "Coconut Oil": {
-    "250 ml": { price: 350, salePrice: 308 },
-    "500 ml": { price: 635, salePrice: 559 },
-    "1 Litre": { price: 1205, salePrice: 1060 },
-    "5 Litre": { price: 6025, salePrice: 5302 },
-    "15 Litre": { price: 18075, salePrice: 15906 }
+    "250 ml": { price: 426, salePrice: 355, status: "Active" },
+    "500 ml": { price: 780, salePrice: 650, status: "Active" },
+    "1 Litre": { price: 1488, salePrice: 1240, status: "Active" },
+    "2 Litre": { price: 2754, salePrice: 2295, status: "Active" },
+    "5 Litre": { price: 7440, salePrice: 6200, status: "Active" },
+    "15 Litre": { price: 22320, salePrice: 18600, status: "Active" }
   }
 };
 

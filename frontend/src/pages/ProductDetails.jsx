@@ -531,13 +531,13 @@ const ProductDetails = () => {
   }, [product, selectedVariant]);
 
   const displayName = getDynamicName(product?.name, selectedVariant?.name);
-  const currentPrice = selectedVariant ? (selectedVariant.salePrice || selectedVariant.price) : (product?.price || 0);
-  const regularPrice = selectedVariant ? selectedVariant.price : (product?.price || 0);
+  const currentPrice = selectedVariant ? (selectedVariant.sellingPrice || selectedVariant.salePrice || selectedVariant.price) : (product?.price || 0);
+  const regularPrice = selectedVariant ? (selectedVariant.listingPrice || selectedVariant.price) : (product?.price || 0);
   const finalQuantity = Number(selectedQty) || 1;
-  const isDiscounted = selectedVariant?.salePrice && selectedVariant.salePrice < selectedVariant.price;
-  const discountPercent = isDiscounted
-    ? Math.round(((selectedVariant.price - selectedVariant.salePrice) / selectedVariant.price) * 100)
-    : 0;
+  const isDiscounted = currentPrice < regularPrice;
+  const discountPercent = selectedVariant?.discountPercent || (isDiscounted
+    ? Math.round(((regularPrice - currentPrice) / regularPrice) * 100)
+    : 0);
 
   /* Product Schema for Google Rich Snippets */
   const productSchema = useMemo(() => {
@@ -599,7 +599,7 @@ const ProductDetails = () => {
       variantId: selectedVariant._id,
       name: displayName,
       variantName: selectedVariant.name,
-      price: selectedVariant.salePrice || selectedVariant.price,
+      price: selectedVariant.sellingPrice || selectedVariant.salePrice || selectedVariant.price,
       shippingWeight: selectedVariant.shippingWeight || 0,
       weight: selectedVariant.weight || selectedVariant.name || "",
       image: itemImage,
@@ -629,7 +629,7 @@ const ProductDetails = () => {
       variantId: selectedVariant._id,
       name: displayName,
       variantName: selectedVariant.name,
-      price: selectedVariant.salePrice || selectedVariant.price,
+      price: selectedVariant.sellingPrice || selectedVariant.salePrice || selectedVariant.price,
       shippingWeight: selectedVariant.shippingWeight || 0,
       weight: selectedVariant.weight || selectedVariant.name || "",
       image: itemImage,
@@ -869,6 +869,24 @@ const ProductDetails = () => {
                   </div>
                 )}
               </div>
+
+              {/* Low Price / Order Under ₹1,000 Prime Free Delivery Banner */}
+              {(currentPrice * finalQuantity) < 1000 && (
+                <div className="mt-3 p-3 rounded-2xl bg-amber-50 dark:bg-[#1D2530] border border-amber-200/80 dark:border-[#2A3440] flex items-center justify-between gap-2 shadow-2xs">
+                  <div className="flex items-center gap-2">
+                    <span className="text-base">👑</span>
+                    <span className="text-[11px] font-bold text-slate-700 dark:text-[#F5F7FA]">
+                      Price under ₹1,000? <strong className="text-amber-700 dark:text-[#FFD600]">Use Prime 1% for free delivery</strong>
+                    </span>
+                  </div>
+                  <SLink
+                    to="/membership"
+                    className="text-[10px] font-black text-[#1E971D] dark:text-[#FFD600] uppercase tracking-wider hover:underline whitespace-nowrap cursor-pointer"
+                  >
+                    Join Prime →
+                  </SLink>
+                </div>
+              )}
 
               {/* Short Description */}
               <p className="mt-6 text-slate-600 dark:text-[#B7C1CE] text-sm sm:text-base leading-relaxed">

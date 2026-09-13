@@ -310,9 +310,10 @@ const OrderSuccess = () => {
                   const qty = item.quantity || 1;
                   const itemPrice = item.price || 0;
                   const lineTotal = itemPrice * qty;
-                  const itemCgst = lineTotal * 0.025;
-                  const itemSgst = lineTotal * 0.025;
-                  const totalWithTax = lineTotal + itemCgst + itemSgst;
+                  const itemTaxable = lineTotal / 1.05;
+                  const itemCgst = itemTaxable * 0.025;
+                  const itemSgst = itemTaxable * 0.025;
+                  const totalWithTax = lineTotal;
 
                   return (
                     <tr key={index} className="text-gray-800">
@@ -339,7 +340,7 @@ const OrderSuccess = () => {
           <div className="flex justify-end pt-4 border-t border-gray-200">
             <div className="w-64 space-y-2 text-[11px] text-gray-600">
               <div className="flex justify-between">
-                <span>Subtotal (Excl. Tax)</span>
+                <span>Items Subtotal (Incl. GST)</span>
                 <span className="font-bold text-gray-900">
                   ₹{(orderDetails?.items?.reduce((sum, item) => sum + (item.price * item.quantity), 0) || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </span>
@@ -347,23 +348,14 @@ const OrderSuccess = () => {
 
               {orderDetails?.cgst > 0 && (
                 <div className="flex justify-between">
-                  <span>CGST (2.5%)</span>
+                  <span>CGST (2.5% - Incl.)</span>
                   <span className="font-bold text-gray-900">₹{orderDetails.cgst.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                 </div>
               )}
               {orderDetails?.sgst > 0 && (
                 <div className="flex justify-between">
-                  <span>SGST (2.5%)</span>
+                  <span>SGST (2.5% - Incl.)</span>
                   <span className="font-bold text-gray-900">₹{orderDetails.sgst.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
-                </div>
-              )}
-
-              {!(orderDetails?.cgst > 0) && (
-                <div className="flex justify-between">
-                  <span>GST (5%)</span>
-                  <span className="font-bold text-gray-900">
-                    ₹{((orderDetails?.items?.reduce((sum, item) => sum + (item.price * item.quantity), 0) || 0) * 0.05).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                  </span>
                 </div>
               )}
 

@@ -226,9 +226,10 @@ const OrderDetails = () => {
                                     const qty = item.quantity || 1;
                                     const itemPrice = item.price || 0;
                                     const lineTotal = itemPrice * qty;
-                                    const itemCgst = lineTotal * 0.025;
-                                    const itemSgst = lineTotal * 0.025;
-                                    const totalWithTax = lineTotal + itemCgst + itemSgst;
+                                    const itemTaxable = lineTotal / 1.05;
+                                    const itemCgst = itemTaxable * 0.025;
+                                    const itemSgst = itemTaxable * 0.025;
+                                    const totalWithTax = lineTotal;
                                     
                                     return (
                                         <tr key={index} className="text-gray-800">
@@ -255,7 +256,7 @@ const OrderDetails = () => {
                     <div className="flex justify-end pt-2 border-t border-gray-200">
                         <div className="w-64 space-y-1.5 text-[10px] text-gray-600">
                             <div className="flex justify-between">
-                                <span>Subtotal (Excl. Tax)</span>
+                                <span>Items Subtotal (Incl. GST)</span>
                                 <span className="font-bold text-gray-900">
                                     ₹{(order?.items?.reduce((sum, item) => sum + (item.price * item.quantity), 0) || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                 </span>
@@ -263,23 +264,14 @@ const OrderDetails = () => {
                             
                             {order?.cgst > 0 && (
                                 <div className="flex justify-between">
-                                    <span>CGST (2.5%)</span>
+                                    <span>CGST (2.5% - Incl.)</span>
                                     <span className="font-bold text-gray-900">₹{order.cgst.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                                 </div>
                             )}
                             {order?.sgst > 0 && (
                                 <div className="flex justify-between">
-                                    <span>SGST (2.5%)</span>
+                                    <span>SGST (2.5% - Incl.)</span>
                                     <span className="font-bold text-gray-900">₹{order.sgst.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
-                                </div>
-                            )}
-                            
-                            {!(order?.cgst > 0) && (
-                                <div className="flex justify-between">
-                                    <span>GST (5%)</span>
-                                    <span className="font-bold text-gray-900">
-                                        ₹{((order?.items?.reduce((sum, item) => sum + (item.price * item.quantity), 0) || 0) * 0.05).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                                    </span>
                                 </div>
                             )}
 
@@ -370,14 +362,27 @@ const OrderDetails = () => {
                                         <div className="bg-blue-50 dark:bg-[#151B23] p-6 rounded-3xl border border-blue-100 dark:border-[#27313D] flex items-center justify-between">
                                             <div>
                                                 <p className="text-[9px] font-black text-blue-600 dark:text-blue-400 uppercase tracking-widest flex items-center gap-2 mb-1">
-                                                    <Truck size={12} /> Shipment Tracking
+                                                    <Truck size={12} /> {order.isLocalDelivery || order.courierPartner === 'Local Pune Delivery' ? "Local Pune Delivery" : "Shipment Tracking"}
                                                 </p>
-                                                <p className="text-sm font-black text-slate-900 dark:text-[#F5F7FA] font-mono uppercase">{order.trackingId}</p>
+                                                <p className="text-sm font-black text-slate-900 dark:text-[#F5F7FA] font-mono uppercase">
+                                                    {order.isLocalDelivery || order.courierPartner === 'Local Pune Delivery' || order.trackingId === 'LOCAL-PUNE' ? "Direct OwnFresh Fleet" : order.trackingId}
+                                                </p>
                                                 <p className="text-[10px] font-bold text-slate-500 dark:text-[#818C9B] mt-1 uppercase">Courier: {order.courierPartner}</p>
                                             </div>
-                                            <button className="bg-white dark:bg-[#1D2530] border border-blue-200 dark:border-[#303B48] text-blue-600 dark:text-blue-400 px-5 py-2.5 rounded-xl text-[10px] font-black uppercase hover:bg-blue-600 dark:hover:bg-blue-600 hover:text-white transition-all">
-                                                Live Track →
-                                            </button>
+                                            {order.trackingUrl ? (
+                                                <a
+                                                    href={order.trackingUrl}
+                                                    target="_blank"
+                                                    rel="noreferrer"
+                                                    className="bg-white dark:bg-[#1D2530] border border-blue-200 dark:border-[#303B48] text-blue-600 dark:text-blue-400 px-5 py-2.5 rounded-xl text-[10px] font-black uppercase hover:bg-blue-600 dark:hover:bg-blue-600 hover:text-white transition-all inline-block"
+                                                >
+                                                    Live Track ↗
+                                                </a>
+                                            ) : (
+                                                <span className="bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-wider">
+                                                    Direct Delivery
+                                                </span>
+                                            )}
                                         </div>
                                     )}
                                 </div>

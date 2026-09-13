@@ -8,6 +8,9 @@ import {
   previewShipmentEmail,
   sendTestShipmentEmail,
   sendShipmentEmail,
+  previewDeliveryEmail,
+  sendTestDeliveryEmail,
+  sendDeliveryEmail,
   toggleLabelPrinted,
   getOrderAuditLogs
 } from "../controllers/fulfillmentController.js";
@@ -20,6 +23,9 @@ router.put("/confirm/:id", isAuth, isAdmin, confirmFulfillment);
 router.post("/preview-email/:id", isAuth, isAdmin, previewShipmentEmail);
 router.post("/test-email/:id", isAuth, isAdmin, sendTestShipmentEmail);
 router.post("/send-email/:id", isAuth, isAdmin, sendShipmentEmail);
+router.post("/preview-delivery-email/:id", isAuth, isAdmin, previewDeliveryEmail);
+router.post("/test-delivery-email/:id", isAuth, isAdmin, sendTestDeliveryEmail);
+router.post("/send-delivery-email/:id", isAuth, isAdmin, sendDeliveryEmail);
 router.put("/label-printed/:id", isAuth, isAdmin, toggleLabelPrinted);
 router.get("/audit-logs/:orderId", isAuth, isAdmin, getOrderAuditLogs);
 

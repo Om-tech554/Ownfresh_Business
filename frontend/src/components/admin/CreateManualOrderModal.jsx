@@ -231,9 +231,10 @@ const CreateManualOrderModal = ({ isOpen, onClose, onSuccess }) => {
 
   useEffect(() => {
     if (isGST) {
-      const taxable = Math.max(0, subtotal - Number(discountAmount || 0));
-      const calculatedCgst = taxable * 0.025;
-      const calculatedSgst = taxable * 0.025;
+      const netSubtotal = Math.max(0, subtotal - Number(discountAmount || 0));
+      const taxable = Math.round((netSubtotal / 1.05) * 100) / 100;
+      const calculatedCgst = Math.round(taxable * 0.025 * 100) / 100;
+      const calculatedSgst = Math.round(taxable * 0.025 * 100) / 100;
       setCgst(calculatedCgst);
       setSgst(calculatedSgst);
       setTaxAmount(calculatedCgst + calculatedSgst);
@@ -245,8 +246,8 @@ const CreateManualOrderModal = ({ isOpen, onClose, onSuccess }) => {
   }, [isGST, subtotal, discountAmount]);
 
   const finalTotal = useMemo(() => {
-    return Math.max(0, subtotal - Number(discountAmount || 0) + Number(taxAmount || 0));
-  }, [subtotal, discountAmount, taxAmount]);
+    return Math.max(0, subtotal - Number(discountAmount || 0));
+  }, [subtotal, discountAmount]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();

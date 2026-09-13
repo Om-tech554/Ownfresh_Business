@@ -86,15 +86,23 @@ const OrderReview = () => {
 
   // Cart calculations
   const subtotal = (cartItems || []).reduce((acc, item) => acc + (item.price * item.quantity), 0);
-  const shippingQuote = calculateClientShipping({ cartItems, subtotal, deliveryMethodId: deliveryMethod?.id || 'standard' });
+  const activeDestination = isEditingAddress ? editAddressForm : shippingDetails;
+  const shippingQuote = calculateClientShipping({
+    cartItems,
+    subtotal,
+    destination: activeDestination,
+    deliveryMethodId: deliveryMethod?.id || 'standard'
+  });
   const shippingCost = shippingQuote.deliveryCost;
   const discount = couponDetails?.discount || 0;
   const coinDiscount = (useCommissionCoins && canRedeemCoins) ? Math.min(subtotal, commissionCoinsBalance) : 0;
-  const taxableAmount = Math.max(0, subtotal - discount - coinDiscount);
-  const cgst = taxableAmount * 0.025;
-  const sgst = taxableAmount * 0.025;
+  const netSubtotal = Math.max(0, subtotal - discount - coinDiscount);
+  // Prices are inclusive of 5% GST (2.5% CGST + 2.5% SGST)
+  const taxableAmount = Math.round((netSubtotal / 1.05) * 100) / 100;
+  const cgst = Math.round(taxableAmount * 0.025 * 100) / 100;
+  const sgst = Math.round(taxableAmount * 0.025 * 100) / 100;
   const totalTax = cgst + sgst;
-  const finalAmount = taxableAmount + totalTax + shippingCost;
+  const finalAmount = Math.max(0, netSubtotal + shippingCost);
 
   const handleApplyCoupon = async () => {
     if (!couponInput.trim()) return toast.error("Enter coupon code");
@@ -232,6 +240,11 @@ const OrderReview = () => {
         deliveryAddress: {
           roomNumber: `${shippingDetails?.flatNo || ""} (Landmark: ${shippingDetails?.landmark || ""})`,
           areaName: shippingDetails?.city,
+          city: shippingDetails?.city,
+          state: shippingDetails?.state,
+          pincode: shippingDetails?.zipCode,
+          zipCode: shippingDetails?.zipCode,
+          country: shippingDetails?.country || "India",
           text: `${shippingDetails?.flatNo ? shippingDetails.flatNo + ', ' : ''}${shippingDetails?.address || ''}, ${shippingDetails?.landmark ? 'Near ' + shippingDetails.landmark + ', ' : ''}${shippingDetails?.city || ''}, ${shippingDetails?.state || ''}, ${shippingDetails?.country || 'India'} - ${shippingDetails?.zipCode || ''}`,
           phone: shippingDetails?.phone || user.mobile || "",
           latitude: shippingDetails?.latitude,
@@ -653,11 +666,16 @@ const OrderReview = () => {
               )}
 
               <div className="flex justify-between items-center">
-                <div className="flex items-center gap-1.5">
-                  <span>Delivery Charges</span>
-                  {shippingQuote.totalWeight > 0 && (
-                    <span className="text-[10px] text-slate-400 dark:text-[#818C9B] font-mono">({shippingQuote.totalWeight} kg)</span>
-                  )}
+                <div>
+                  <div className="flex items-center gap-1.5">
+                    <span>Delivery Charges</span>
+                    {shippingQuote.totalWeightKg > 0 && (
+                      <span className="text-[10px] text-slate-400 dark:text-[#818C9B] font-mono">({shippingQuote.totalWeightKg} kg)</span>
+                    )}
+                  </div>
+                  <span className="text-[10px] text-amber-500 font-bold block">
+                    {shippingQuote.deliveryMethodName}
+                  </span>
                 </div>
                 <span className="text-white dark:text-[#F5F7FA] font-mono">
                   {shippingCost === 0 ? <strong className="text-emerald-400">FREE</strong> : `₹${shippingCost.toFixed(2)}`}
@@ -667,11 +685,11 @@ const OrderReview = () => {
               {/* Tax Breakdowns */}
               <div className="pt-2 border-t border-white/10 dark:border-[#27313D] space-y-1.5 text-[11px] text-slate-400 dark:text-[#818C9B] font-medium">
                 <div className="flex justify-between items-center">
-                  <span>CGST (2.5%)</span>
+                  <span>CGST (2.5% - Incl.)</span>
                   <span className="font-mono">₹{cgst.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span>SGST (2.5%)</span>
+                  <span>SGST (2.5% - Incl.)</span>
                   <span className="font-mono">₹{sgst.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                 </div>
               </div>

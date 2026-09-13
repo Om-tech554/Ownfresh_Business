@@ -65,6 +65,9 @@ export const updateOrderStatus = async (req, res) => {
     if (trackingId !== undefined) updateFields.trackingId = trackingId;
     if (courierPartner !== undefined) updateFields.courierPartner = courierPartner;
     if (adminNotes !== undefined) updateFields.adminNotes = adminNotes;
+    if (req.body.isLocalDelivery !== undefined) updateFields.isLocalDelivery = req.body.isLocalDelivery;
+    if (req.body.deliveryEmailSent !== undefined) updateFields.deliveryEmailSent = req.body.deliveryEmailSent;
+    if (req.body.deliveryEmailSentAt !== undefined) updateFields.deliveryEmailSentAt = req.body.deliveryEmailSentAt;
 
     const order = await Order.findByIdAndUpdate(
       id,

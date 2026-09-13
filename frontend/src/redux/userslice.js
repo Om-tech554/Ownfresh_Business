@@ -102,13 +102,43 @@ try {
   storedUser = null;
 }
 
+let storedDestination = null;
+try {
+  const destRaw = localStorage.getItem("oil_delivery_destination");
+  if (destRaw && destRaw !== "undefined") {
+    storedDestination = JSON.parse(destRaw);
+  } else {
+    // Fallback migration check from saved shipping details if address exists
+    const shipRaw = localStorage.getItem("oil_shipping_details");
+    if (shipRaw && shipRaw !== "undefined") {
+      const parsed = JSON.parse(shipRaw);
+      if (parsed.address || parsed.city || parsed.state || parsed.latitude) {
+        storedDestination = {
+          address: parsed.address || "",
+          city: parsed.city || "",
+          district: parsed.landmark || "",
+          state: parsed.state || "",
+          pincode: parsed.zipCode || parsed.pincode || "",
+          latitude: parsed.latitude || null,
+          longitude: parsed.longitude || null,
+          placeId: ""
+        };
+      }
+    }
+  }
+} catch (err) {
+  storedDestination = null;
+}
+
 const userSlice = createSlice({
   name: "user",
   initialState: {
     userData: storedUser,
     city: null,
-    stateName: null,        // ✅ ADDED
-    fullAddress: null,      // ✅ ADDED
+    stateName: null,        // Device state
+    fullAddress: null,      // Device address
+    currentUserLocation: null, // Device physical coordinates & location object
+    deliveryDestination: storedDestination, // Selected order delivery destination (source of truth for shipping)
     loading: false,
     cartItems: JSON.parse(localStorage.getItem("oil_cart") || "[]"),
   },
@@ -143,6 +173,28 @@ const userSlice = createSlice({
     // ADDRESS (line1 or line2)
     setCurrentAddress: (state, action) => {
       state.fullAddress = action.payload;
+    },
+
+    // PHYSICAL DEVICE CURRENT LOCATION
+    setCurrentUserLocation: (state, action) => {
+      state.currentUserLocation = action.payload;
+    },
+
+    // SELECTED ORDER DELIVERY DESTINATION
+    setDeliveryDestination: (state, action) => {
+      state.deliveryDestination = action.payload;
+      if (action.payload) {
+        try {
+          localStorage.setItem("oil_delivery_destination", JSON.stringify(action.payload));
+        } catch (e) {}
+      } else {
+        localStorage.removeItem("oil_delivery_destination");
+      }
+    },
+
+    clearDeliveryDestination: (state) => {
+      state.deliveryDestination = null;
+      localStorage.removeItem("oil_delivery_destination");
     },
 
     addToCart: (state, action) => {
@@ -185,11 +237,11 @@ export const {
   setUserData,
   clearUser,
   setCity,
-
-  // ⭐ NEW EXPORTS ⭐
   setCurrentState,
   setCurrentAddress,
-
+  setCurrentUserLocation,
+  setDeliveryDestination,
+  clearDeliveryDestination,
   addToCart,
   updateQuantity,
   removeFromCart,
