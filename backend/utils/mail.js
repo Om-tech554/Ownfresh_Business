@@ -389,7 +389,7 @@ export const generateDeliverySuccessEmailHtml = (order) => {
         <div style="background: linear-gradient(135deg, #24672E 0%, #17421D 100%); padding: 26px 20px; text-align: center; color: #ffffff;">
           <div style="font-size: 34px; line-height: 1; margin-bottom: 8px;">🥰</div>
           <h1 style="margin: 0; font-size: 21px; font-weight: 800; letter-spacing: 0.5px; text-transform: uppercase;">Order Delivered Successfully!</h1>
-          <p style="margin: 6px 0 0; font-size: 13px; opacity: 0.92;">Pure, cold-pressed freshness at your doorstep</p>
+          <p style="margin: 6px 0 0; font-size: 13px; opacity: 0.92;">Pure, stone-pressed freshness at your doorstep</p>
         </div>
 
         <!-- Body Message -->
