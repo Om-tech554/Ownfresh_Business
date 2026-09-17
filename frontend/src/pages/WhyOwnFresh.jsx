@@ -226,7 +226,7 @@ const WhyOwnFresh = () => {
               <div className="space-y-4">
                 <h2 className="text-3xl md:text-5xl font-black text-black dark:text-[#F7F9FC] leading-tight tracking-tight uppercase">
                   From Soil to Soul: <br />
-                  <span className="text-[#24672E] dark:text-[#19C37D] font-serif italic font-normal">Crafting Purity</span>, One Drop at a Time
+                  <span className="text-[#24672E] dark:text-[#19C37D] font-sans font-semibold italic font-normal">Crafting Purity</span>, One Drop at a Time
                 </h2>
                 <div className="w-20 h-1 bg-[#FFDD00] dark:bg-[#FFD600] rounded-full" />
               </div>

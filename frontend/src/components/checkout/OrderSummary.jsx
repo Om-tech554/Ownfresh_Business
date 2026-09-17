@@ -98,7 +98,7 @@ const OrderSummary = () => {
         {!shippingQuote.isFreeDelivery && (
           <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-400/30 text-[11px] text-amber-900 dark:text-[#FFD600] font-bold space-y-2">
             <div className="flex justify-between items-center mb-1">
-              <span>🚚 Free delivery on orders above ₹1,000</span>
+              <span>🚚 Eligible for FREE DELIVERY over Rs. 1,500/- OR 2 Kg & above</span>
               <span className="font-mono">Add ₹{shippingQuote.amountNeededForFreeDelivery.toLocaleString('en-IN')} more</span>
             </div>
             <div className="w-full bg-amber-200/50 dark:bg-[#151B23] h-1.5 rounded-full overflow-hidden">
@@ -108,7 +108,7 @@ const OrderSummary = () => {
               />
             </div>
             <div className="pt-1.5 border-t border-amber-400/20 flex items-center justify-between">
-              <span className="text-[10px] text-gray-500 dark:text-[#818C9B] font-medium">Order under ₹1,000?</span>
+              <span className="text-[10px] text-gray-500 dark:text-[#818C9B] font-medium">Under Rs. 1,500 / 2 Kg?</span>
               <SLink
                 to="/membership"
                 className="inline-flex items-center gap-1 text-[10px] font-black uppercase text-amber-700 dark:text-[#FFD600] hover:underline cursor-pointer"

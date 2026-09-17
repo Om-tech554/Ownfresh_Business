@@ -79,7 +79,7 @@ const ShippingPolicy = () => {
           <section>
             <h2 className="text-xl font-bold text-black dark:text-[#F7F9FC] mb-3">5. Shipping Charges</h2>
             <p>
-              Applicable shipping charges, if any, will be displayed during checkout before payment. Free shipping offers may be available on selected products or promotional campaigns.
+              Applicable shipping charges, if any, will be displayed during checkout before payment. Eligible for FREE DELIVERY on Invoice Amount over Rs. 1,500/- OR when the Order Volume is 2 Kg & above. For other orders, standard weight-based shipping rates apply.
             </p>
           </section>
 

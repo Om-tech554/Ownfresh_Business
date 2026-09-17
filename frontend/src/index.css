@@ -7,9 +7,9 @@
   --color-brand-yellow: #FFD600;
   --color-brand-black: #101318;
   --color-brand-dark: #0B0F14;
-  --font-serif: "Playfair Display", serif;
-  --font-sans: "Poppins", "Montserrat", sans-serif;
-  --font-playfair: "Playfair Display", serif;
+  --font-serif: "Poppins", sans-serif;
+  --font-sans: "Poppins", sans-serif;
+  --font-playfair: "Poppins", sans-serif;
 }
 
 /* ==========================================================================
@@ -67,7 +67,7 @@ html.dark {
    ========================================================================== */
 html,
 body {
-  font-family: "Poppins", "Montserrat", sans-serif;
+  font-family: "Poppins", sans-serif;
   color: var(--text-primary);
   background-color: var(--bg-primary);
   overflow-x: clip;
@@ -469,7 +469,7 @@ h2,
 h3,
 .font-serif,
 .logo-title {
-  font-family: "Playfair Display", serif;
+  font-family: "Poppins", sans-serif;
 }
 
 p,
@@ -481,7 +481,7 @@ label,
 span,
 table,
 .font-sans {
-  font-family: "Poppins", "Montserrat", sans-serif;
+  font-family: "Poppins", sans-serif;
 }
 
 /* Mobile input zoom prevention (iOS zooms in if font-size < 16px) */
@@ -507,7 +507,7 @@ table,
 }
 
 @utility heading-premium {
-  @apply text-[#181818] dark:text-[#F7F9FC] font-bold tracking-tight leading-tight uppercase font-serif;
+  @apply text-[#181818] dark:text-[#F7F9FC] font-bold tracking-tight leading-tight uppercase font-sans;
 }
 
 /* Safe Area Inset Helpers */
@@ -577,7 +577,7 @@ textarea,
 .admin-panel input,
 .admin-panel button,
 .admin-panel textarea {
-  font-family: "Poppins", "Montserrat", sans-serif;
+  font-family: "Poppins", sans-serif;
 }
 
 html.dark .admin-panel {

@@ -75,7 +75,7 @@ const StonePressProcessTimeline = () => {
             <span className="text-[10px] md:text-xs font-black uppercase tracking-[0.25em] text-[#1E971D] dark:text-[#FFD600] bg-emerald-50 dark:bg-[#1D2530] border border-emerald-200 dark:border-[#303B48] px-3.5 py-1.5 rounded-full inline-flex items-center gap-1.5 mb-2.5">
               <RotateCcw size={13} className="text-[#1E971D] dark:text-[#FFD600]" /> Farm-To-Bottle Transparency
             </span>
-            <h2 className="text-2xl sm:text-3xl md:text-5xl font-black text-slate-900 dark:text-[#F7F9FC] uppercase tracking-tight font-serif">
+            <h2 className="text-2xl sm:text-3xl md:text-5xl font-black text-slate-900 dark:text-[#F7F9FC] uppercase tracking-tight font-sans font-semibold">
               How Our <span className="text-[#1E971D] dark:text-[#FFD600]">Stone-Pressed</span> Oils Are Made
             </h2>
             <p className="text-xs sm:text-sm md:text-base text-slate-600 dark:text-[#B7C1CE] font-medium mt-2 max-w-2xl leading-relaxed">

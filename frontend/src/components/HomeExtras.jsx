@@ -155,7 +155,7 @@ export const FAQSection = () => {
         <section className="w-full bg-[#fcfcfc] dark:bg-[#0B0F14] py-20 px-6 md:px-12 lg:px-24 border-t border-gray-100 dark:border-[#202731] font-sans transition-colors duration-250">
             <div className="max-w-4xl mx-auto">
                 <div className="text-center mb-16">
-                    <h2 className="text-3xl md:text-5xl font-black text-[#181818] dark:text-[#F7F9FC] tracking-tight uppercase font-serif">Got <span className="text-[#1E971D] dark:text-[#FFD600]">Questions?</span></h2>
+                    <h2 className="text-3xl md:text-5xl font-black text-[#181818] dark:text-[#F7F9FC] tracking-tight uppercase font-sans font-semibold">Got <span className="text-[#1E971D] dark:text-[#FFD600]">Questions?</span></h2>
                     <p className="uppercase text-gray-500 dark:text-[#818C9B] font-bold tracking-widest text-xs mt-4">Frequently Asked Questions</p>
                 </div>
                 <div className="flex flex-col gap-4">

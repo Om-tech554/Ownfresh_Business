@@ -87,7 +87,7 @@ const ReferralDashboard = () => {
                 {/* Header Section */}
                 <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                     <div>
-                        <h1 className="text-3xl font-black text-slate-900 dark:text-[#F7F9FC] tracking-tight font-playfair">
+                        <h1 className="text-3xl font-black text-slate-900 dark:text-[#F7F9FC] tracking-tight font-sans font-semibold">
                             Referrals & Rewards
                         </h1>
                         <p className="text-slate-500 dark:text-[#B7C1CE] font-medium text-sm mt-1">
@@ -163,7 +163,7 @@ const ReferralDashboard = () => {
                             <div className="bg-emerald-500/20 dark:bg-emerald-950/50 text-emerald-400 dark:text-[#19C37D] border border-emerald-500/30 inline-block px-3 py-1.5 rounded-full text-xs font-black uppercase tracking-wider">
                                 Referral Reward Program
                             </div>
-                            <h2 className="text-3xl font-black tracking-tight max-w-lg leading-tight font-playfair text-white dark:text-[#F7F9FC]">
+                            <h2 className="text-3xl font-black tracking-tight max-w-lg leading-tight font-sans font-semibold text-white dark:text-[#F7F9FC]">
                                 Give ₹50. Get ₹100.
                             </h2>
                             <p className="text-slate-300 dark:text-[#B7C1CE] text-sm max-w-md leading-relaxed">

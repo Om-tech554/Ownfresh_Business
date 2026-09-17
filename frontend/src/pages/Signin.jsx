@@ -183,7 +183,7 @@ const SignIn = () => {
             </span>
           </div>
 
-          <h2 className="text-2xl font-black mb-2 leading-tight uppercase tracking-tight text-slate-900 dark:text-[#F7F9FC] font-serif">
+          <h2 className="text-2xl font-semibold mb-2 leading-tight uppercase tracking-tight text-slate-900 dark:text-[#F7F9FC] font-sans">
             Pure Botanical Oils <span className="text-[#1E971D] dark:text-[#FFD600]">For Healthy Living</span>
           </h2>
           <p className="text-xs font-medium text-slate-600 dark:text-[#B7C1CE] mb-4 leading-relaxed">
@@ -227,7 +227,7 @@ const SignIn = () => {
             </div>
             
             <h1
-              className="text-2xl sm:text-3xl font-black tracking-tight mb-1 font-serif uppercase text-[#24672E] dark:text-[#FFD600]"
+              className="text-2xl sm:text-3xl font-semibold tracking-tight mb-1 font-sans uppercase text-[#24672E] dark:text-[#FFD600]"
             >
               Welcome Back
             </h1>

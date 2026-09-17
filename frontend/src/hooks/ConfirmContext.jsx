@@ -111,7 +111,7 @@ export const ConfirmProvider = ({ children }) => {
               </div>
 
               {/* Title */}
-              <h3 className="text-xl font-bold text-gray-900 mb-2 font-playfair">
+              <h3 className="text-xl font-bold text-gray-900 mb-2 font-sans font-semibold">
                 {config.title}
               </h3>
 

@@ -176,7 +176,7 @@ const ProductCard = ({ product, user, onAddToCart }) => {
       </span>
 
       {/* Title */}
-      <h3 className="text-xs sm:text-sm text-slate-900 dark:text-[#F5F7FA] font-extrabold leading-tight mb-1.5 sm:mb-2 uppercase line-clamp-2 min-h-[2rem] sm:min-h-[2.5rem]">
+      <h3 className="text-xs sm:text-sm text-slate-900 dark:text-[#F5F7FA] font-sans font-semibold leading-tight mb-1.5 sm:mb-2 uppercase line-clamp-2 min-h-[2rem] sm:min-h-[2.5rem]">
         {displayName}
       </h3>
 
@@ -197,32 +197,7 @@ const ProductCard = ({ product, user, onAddToCart }) => {
         <span className="text-[8px] sm:text-[10px] text-slate-400 dark:text-[#818C9B] font-semibold">({ratingDetails.reviewsCount})</span>
       </div>
 
-      {/* Dynamic Variant Bottle Size Selectors */}
-      {activeVariants.length > 1 && (
-        <div className="flex flex-wrap gap-1 sm:gap-1.5 mb-3 sm:mb-4" onClick={(e) => e.preventDefault()}>
-          {activeVariants.map((variant) => {
-            const isSelected = selectedVariant?._id === variant._id;
-            return (
-              <button
-                key={variant._id}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setSelectedVariant(variant);
-                }}
-                className={`px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-lg text-[8px] sm:text-[10px] font-black uppercase tracking-wider border transition-all cursor-pointer ${isSelected
-                    ? "bg-[#1E971D] dark:bg-[#FFD600] border-[#1E971D] dark:border-[#FFD600] text-white dark:text-[#111318] shadow-sm scale-105"
-                    : "bg-slate-50 dark:bg-[#1D2530] border-slate-200 dark:border-[#27313D] text-slate-600 dark:text-[#B7C1CE] hover:bg-slate-100 dark:hover:bg-[#222B37] hover:border-slate-300 dark:hover:border-[#34404E]"
-                  }`}
-              >
-                {variant.name}
-              </button>
-            );
-          })}
-        </div>
-      )}
 
-      {/* Spacer when no variant selector is present */}
-      {activeVariants.length <= 1 && <div className="h-4"></div>}
 
       {/* Price & Cart CTA Block */}
       <div className="mt-auto pt-3 sm:pt-4 border-t border-slate-100 dark:border-[#27313D] w-full">

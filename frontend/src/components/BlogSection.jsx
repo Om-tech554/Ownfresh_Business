@@ -37,7 +37,7 @@ const BlogSection = ({ limit = null }) => {
             </span>
             <div className="h-1 w-10 bg-yellow-400 dark:bg-[#FFD600] rounded-full"></div>
           </div>
-          <h2 className="text-4xl font-black text-gray-900 dark:text-[#F7F9FC] text-center uppercase tracking-tight font-serif">
+          <h2 className="text-4xl font-black text-gray-900 dark:text-[#F7F9FC] text-center uppercase tracking-tight font-sans font-semibold">
             Latest <span className="text-yellow-500 dark:text-[#FFD600]">Insights</span>
           </h2>
         </div>

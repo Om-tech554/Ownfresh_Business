@@ -23,7 +23,8 @@
  * =========================================================================
  */
 
-export const FREE_DELIVERY_THRESHOLD = 1000;
+export const FREE_DELIVERY_THRESHOLD = 1500;
+export const FREE_DELIVERY_WEIGHT_THRESHOLD = 2.0;
 
 // Configurable Pune local delivery operation boundaries
 export const PUNE_DELIVERY_CONFIG = {
@@ -373,10 +374,13 @@ export const calculateDeliveryCharge = ({
   const normalizedDest = normalizeDestination(destination);
   const region = determineDeliveryRegion(normalizedDest);
 
-  // 3. Free Delivery Eligibility Rule: Subtotal strictly > ₹1,000 (₹1,000 exactly is NOT free)
-  const isFreeDelivery = safeSubtotal > FREE_DELIVERY_THRESHOLD;
+    // 3. Free Delivery Eligibility Rule: Invoice Amount over Rs. 1,500/- OR Order Volume 2 Kg & above
+  const isFreeDelivery = (safeSubtotal > FREE_DELIVERY_THRESHOLD) || (totalWeightKg >= FREE_DELIVERY_WEIGHT_THRESHOLD);
   const amountNeeded = isFreeDelivery ? 0 : Math.max(0, (FREE_DELIVERY_THRESHOLD + 1) - safeSubtotal);
-  const progressPercentage = Math.min(100, Math.round((safeSubtotal / FREE_DELIVERY_THRESHOLD) * 100));
+  const weightNeeded = isFreeDelivery ? 0 : Math.max(0, normalizeWeight(FREE_DELIVERY_WEIGHT_THRESHOLD - totalWeightKg));
+  const subtotalProgress = Math.min(100, Math.round((safeSubtotal / FREE_DELIVERY_THRESHOLD) * 100));
+  const weightProgress = Math.min(100, Math.round((totalWeightKg / FREE_DELIVERY_WEIGHT_THRESHOLD) * 100));
+  const progressPercentage = isFreeDelivery ? 100 : Math.max(subtotalProgress, weightProgress);
 
   // 4. Calculate Base Delivery Charge according to Region
   let baseDeliveryCharge = 0;
@@ -458,6 +462,8 @@ export const calculateDeliveryCharge = ({
     subtotal: safeSubtotal,
     isFreeDelivery,
     freeDeliveryThreshold: FREE_DELIVERY_THRESHOLD,
+    freeDeliveryWeightThreshold: FREE_DELIVERY_WEIGHT_THRESHOLD,
+    weightNeededForFreeDelivery: typeof weightNeeded !== "undefined" ? weightNeeded : 0,
     amountNeededForFreeDelivery: amountNeeded,
     progressPercentage,
     message: freeDeliveryMessage,

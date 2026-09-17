@@ -159,7 +159,7 @@ const CategoryLandingPage = ({ defaultCategory = null }) => {
       "Cold-extracted below 45°C to preserve vital nutrients and enzymes",
       "Zero chemical refining, bleaching, or deodorizing",
       "100% pure single-origin seeds from local farmers",
-      "₹1,000+ orders qualify for 100% FREE DELIVERY"
+      "Eligible for FREE DELIVERY on Invoice Amount over Rs. 1,500/- OR when the Order Volume is 2 Kg & above."
     ],
     faqs: [
       {
@@ -168,7 +168,7 @@ const CategoryLandingPage = ({ defaultCategory = null }) => {
       },
       {
         q: "What is the delivery policy for MyOwnFresh?",
-        a: "Orders of ₹1,000 or more enjoy 100% FREE delivery across India. For orders below ₹1,000, low weight-based delivery charges apply."
+        a: "Eligible for FREE DELIVERY on Invoice Amount over Rs. 1,500/- OR when the Order Volume is 2 Kg & above."
       }
     ]
   };

@@ -831,7 +831,7 @@ const ProductDetails = () => {
               </div>
 
               {/* Title */}
-              <h1 className="text-2xl sm:text-4xl font-black text-slate-900 dark:text-[#F7F9FC] tracking-tight uppercase leading-tight mt-2">
+              <h1 className="text-2xl sm:text-4xl font-sans font-semibold text-slate-900 dark:text-[#F7F9FC] tracking-tight uppercase leading-tight mt-2">
                 {displayName || cleanProductName(product.name)}
               </h1>
 
@@ -871,12 +871,12 @@ const ProductDetails = () => {
               </div>
 
               {/* Low Price / Order Under ₹1,000 Prime Free Delivery Banner */}
-              {(currentPrice * finalQuantity) < 1000 && (
+              {(currentPrice * finalQuantity) < 1500 && (
                 <div className="mt-3 p-3 rounded-2xl bg-amber-50 dark:bg-[#1D2530] border border-amber-200/80 dark:border-[#2A3440] flex items-center justify-between gap-2 shadow-2xs">
                   <div className="flex items-center gap-2">
                     <span className="text-base">👑</span>
                     <span className="text-[11px] font-bold text-slate-700 dark:text-[#F5F7FA]">
-                      Price under ₹1,000? <strong className="text-amber-700 dark:text-[#FFD600]">Use Prime 1% for free delivery</strong>
+                      Eligible for <strong className="text-amber-700 dark:text-[#FFD600]">FREE DELIVERY on Invoice over Rs. 1,500/- OR 2 Kg & above</strong>
                     </span>
                   </div>
                   <SLink

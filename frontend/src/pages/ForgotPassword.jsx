@@ -326,7 +326,7 @@ const ForgotPassword = () => {
       >
         {/* Brand */}
         <h1
-          className="text-3xl font-black mb-2 text-center text-[#FFD600] font-serif uppercase tracking-wider"
+          className="text-3xl font-semibold mb-2 text-center text-[#FFD600] font-sans uppercase tracking-wider"
         >
           OwnFresh
         </h1>

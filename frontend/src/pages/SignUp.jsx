@@ -239,7 +239,7 @@ const SignUp = () => {
             </span>
           </div>
 
-          <h2 className="text-2xl font-black mb-2 leading-tight uppercase tracking-tight text-slate-900 dark:text-[#F7F9FC] font-serif">
+          <h2 className="text-2xl font-semibold mb-2 leading-tight uppercase tracking-tight text-slate-900 dark:text-[#F7F9FC] font-sans">
             Join Thousands of <span className="text-[#1E971D] dark:text-[#FFD600]">Healthy Families</span>
           </h2>
           <p className="text-xs font-medium text-slate-600 dark:text-[#B7C1CE] mb-4 leading-relaxed">
@@ -283,7 +283,7 @@ const SignUp = () => {
             </div>
             
             <h1
-              className="text-2xl sm:text-3xl font-black tracking-tight mb-1 font-serif uppercase text-[#24672E] dark:text-[#FFD600]"
+              className="text-2xl sm:text-3xl font-semibold tracking-tight mb-1 font-sans uppercase text-[#24672E] dark:text-[#FFD600]"
             >
               Create Account
             </h1>
@@ -468,7 +468,7 @@ const SignUp = () => {
       {showEmailOtpModal && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-white dark:bg-[#1D2530] rounded-3xl p-8 max-w-sm w-full space-y-4 shadow-2xl border border-amber-100 dark:border-[#2A3440]">
-            <h3 className="text-lg font-black text-slate-900 dark:text-[#F7F9FC] uppercase text-center font-serif">
+            <h3 className="text-lg font-semibold text-slate-900 dark:text-[#F7F9FC] uppercase text-center font-sans">
               Verify Email OTP
             </h3>
             <p className="text-xs text-slate-600 dark:text-[#B7C1CE] text-center">

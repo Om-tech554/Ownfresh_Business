@@ -78,7 +78,7 @@ const ShopByPurpose = () => {
             <span className="text-[10px] md:text-xs font-black uppercase tracking-[0.25em] text-[#1E971D] dark:text-[#FFD600] bg-emerald-100/60 dark:bg-[#1D2530] border border-emerald-200/80 dark:border-[#303B48] px-3.5 py-1.5 rounded-full inline-flex items-center gap-1.5 mb-2.5">
               <Sparkles size={13} className="text-[#1E971D] dark:text-[#FFD600]" /> Intent-Based Oil Selection
             </span>
-            <h2 className="text-2xl sm:text-3xl md:text-5xl font-black text-slate-900 dark:text-[#F8FAFC] uppercase tracking-tight font-serif">
+            <h2 className="text-2xl sm:text-3xl md:text-5xl font-black text-slate-900 dark:text-[#F8FAFC] uppercase tracking-tight font-sans font-semibold">
               Shop by <span className="text-[#1E971D] dark:text-[#FFD600]">Culinary &amp; Health</span> Purpose
             </h2>
             <p className="text-xs sm:text-sm md:text-base text-slate-600 dark:text-[#CBD5E1] font-medium mt-2 max-w-2xl leading-relaxed">

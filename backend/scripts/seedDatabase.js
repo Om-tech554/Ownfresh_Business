@@ -22,52 +22,52 @@ dotenv.config({ path: path.join(__dirname, "../.env") });
 
 const oilPriceMap = {
   "Sunflower Oil": {
-    "250 ml": { price: 216, salePrice: 180, status: "Inactive" },
-    "500 ml": { price: 330, salePrice: 275, status: "Active" },
-    "1 Litre": { price: 582, salePrice: 485, status: "Active" },
-    "2 Litre": { price: 1074, salePrice: 895, status: "Active" },
-    "5 Litre": { price: 4656, salePrice: 3880, status: "Active" },
-    "15 Litre": { price: 12804, salePrice: 10670, status: "Active" }
+    "250 ml": { price: 238, salePrice: 216, status: "Inactive" },
+    "500 ml": { price: 413, salePrice: 375, status: "Active" },
+    "1 Litre": { price: 622, salePrice: 565, status: "Active" },
+    "2 Litre": { price: 1150, salePrice: 1045, status: "Active" },
+    "5 Litre": { price: 4972, salePrice: 4520, status: "Active" },
+    "15 Litre": { price: 13673, salePrice: 12430, status: "Active" }
   },
   "Safflower Oil": {
-    "250 ml": { price: 228, salePrice: 190, status: "Inactive" },
-    "500 ml": { price: 390, salePrice: 325, status: "Active" },
-    "1 Litre": { price: 702, salePrice: 585, status: "Active" },
-    "2 Litre": { price: 1296, salePrice: 1080, status: "Active" },
-    "5 Litre": { price: 5616, salePrice: 4680, status: "Active" },
-    "15 Litre": { price: 15444, salePrice: 12870, status: "Active" }
+    "250 ml": { price: 251, salePrice: 228, status: "Inactive" },
+    "500 ml": { price: 453, salePrice: 412, status: "Active" },
+    "1 Litre": { price: 704, salePrice: 640, status: "Active" },
+    "2 Litre": { price: 1302, salePrice: 1184, status: "Active" },
+    "5 Litre": { price: 5632, salePrice: 5120, status: "Active" },
+    "15 Litre": { price: 15488, salePrice: 14080, status: "Active" }
   },
   "Groundnut Oil": {
-    "250 ml": { price: 234, salePrice: 195, status: "Inactive" },
-    "500 ml": { price: 372, salePrice: 310, status: "Active" },
-    "1 Litre": { price: 666, salePrice: 555, status: "Active" },
-    "2 Litre": { price: 1230, salePrice: 1025, status: "Active" },
-    "5 Litre": { price: 5328, salePrice: 4440, status: "Active" },
-    "15 Litre": { price: 14652, salePrice: 12210, status: "Active" }
+    "250 ml": { price: 257, salePrice: 234, status: "Inactive" },
+    "500 ml": { price: 429, salePrice: 390, status: "Active" },
+    "1 Litre": { price: 666, salePrice: 605, status: "Active" },
+    "2 Litre": { price: 1231, salePrice: 1119, status: "Active" },
+    "5 Litre": { price: 5324, salePrice: 4840, status: "Active" },
+    "15 Litre": { price: 14641, salePrice: 13310, status: "Active" }
   },
   "Sesame Oil": {
-    "250 ml": { price: 234, salePrice: 195, status: "Active" },
-    "500 ml": { price: 408, salePrice: 340, status: "Active" },
-    "1 Litre": { price: 738, salePrice: 615, status: "Active" },
-    "2 Litre": { price: 1362, salePrice: 1135, status: "Active" },
-    "5 Litre": { price: 5904, salePrice: 4920, status: "Active" },
-    "15 Litre": { price: 16236, salePrice: 13530, status: "Active" }
+    "250 ml": { price: 319, salePrice: 290, status: "Active" },
+    "500 ml": { price: 457, salePrice: 415, status: "Active" },
+    "1 Litre": { price: 715, salePrice: 650, status: "Active" },
+    "2 Litre": { price: 1323, salePrice: 1203, status: "Active" },
+    "5 Litre": { price: 5200, salePrice: 5200, status: "Active" },
+    "15 Litre": { price: 15730, salePrice: 14300, status: "Active" }
   },
   "Mustard Oil": {
-    "250 ml": { price: 210, salePrice: 175, status: "Active" },
-    "500 ml": { price: 354, salePrice: 295, status: "Active" },
-    "1 Litre": { price: 630, salePrice: 525, status: "Active" },
-    "2 Litre": { price: 1164, salePrice: 970, status: "Active" },
-    "5 Litre": { price: 5040, salePrice: 4200, status: "Active" },
-    "15 Litre": { price: 13860, salePrice: 11550, status: "Active" }
+    "250 ml": { price: 193, salePrice: 175, status: "Active" },
+    "500 ml": { price: 418, salePrice: 380, status: "Active" },
+    "1 Litre": { price: 644, salePrice: 585, status: "Active" },
+    "2 Litre": { price: 1190, salePrice: 1082, status: "Active" },
+    "5 Litre": { price: 5148, salePrice: 4680, status: "Active" },
+    "15 Litre": { price: 14157, salePrice: 12870, status: "Active" }
   },
   "Coconut Oil": {
-    "250 ml": { price: 426, salePrice: 355, status: "Active" },
-    "500 ml": { price: 780, salePrice: 650, status: "Active" },
-    "1 Litre": { price: 1488, salePrice: 1240, status: "Active" },
-    "2 Litre": { price: 2754, salePrice: 2295, status: "Active" },
-    "5 Litre": { price: 7440, salePrice: 6200, status: "Active" },
-    "15 Litre": { price: 22320, salePrice: 18600, status: "Active" }
+    "250 ml": { price: 460, salePrice: 418, status: "Active" },
+    "500 ml": { price: 765, salePrice: 695, status: "Active" },
+    "1 Litre": { price: 1331, salePrice: 1210, status: "Active" },
+    "2 Litre": { price: 2463, salePrice: 2239, status: "Active" },
+    "5 Litre": { price: 6655, salePrice: 6050, status: "Active" },
+    "15 Litre": { price: 19965, salePrice: 18150, status: "Active" }
   }
 };
 

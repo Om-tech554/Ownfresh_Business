@@ -312,7 +312,7 @@ const CartPage = () => {
                   {!shippingInfo.isFreeDelivery && (
                     <div className="p-3.5 rounded-2xl bg-gradient-to-r from-amber-500/15 via-yellow-500/10 to-amber-500/5 border border-amber-400/40 text-[11px] text-amber-300 font-bold mb-4 relative z-10 shadow-sm">
                       <div className="flex justify-between items-center mb-1.5">
-                        <span>🚚 Free delivery on orders above ₹1,000</span>
+                        <span>🚚 Eligible for FREE DELIVERY over Rs. 1,500/- OR 2 Kg & above</span>
                         <span className="font-mono text-amber-200">Add ₹{shippingInfo.amountNeededForFreeDelivery.toLocaleString('en-IN')} more</span>
                       </div>
                       <div className="w-full bg-white/10 h-1.5 rounded-full overflow-hidden mb-2">
@@ -322,7 +322,7 @@ const CartPage = () => {
                         />
                       </div>
                       <div className="pt-2 border-t border-amber-400/20 flex items-center justify-between gap-2">
-                        <span className="text-[10px] text-slate-300 font-medium">Under ₹1,000?</span>
+                        <span className="text-[10px] text-slate-300 font-medium">Under Rs. 1,500 / 2 Kg?</span>
                         <SLink
                           to="/membership"
                           className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-[#FFD600] hover:bg-[#FFE45C] text-[#111318] font-black text-[10px] uppercase tracking-wider transition-all shadow-xs cursor-pointer"
@@ -477,4 +477,4 @@ const CartPage = () => {
   );
 };
 
-export default CartPage;
+export default CartPage;

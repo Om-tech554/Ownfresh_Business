@@ -90,7 +90,7 @@ const ProductSection = ({ limit = null }) => {
 
       {/* HEADER */}
       <div className="flex flex-col items-center mb-10 text-center px-6">
-        <h2 className="text-3xl md:text-5xl font-black text-black dark:text-[#F7F9FC] tracking-tight uppercase font-serif">
+        <h2 className="text-3xl md:text-5xl font-black text-black dark:text-[#F7F9FC] tracking-tight uppercase font-sans font-semibold">
           {limit ? "Featured Products" : "All Products"}
         </h2>
         <div className="w-16 h-1 bg-[#FFDD00] dark:bg-[#FFD600] mt-6 rounded-full"></div>
