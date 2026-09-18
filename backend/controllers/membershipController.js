@@ -97,9 +97,9 @@ export const initiateMembershipPhonePePayment = async (req, res) => {
       plan = await MembershipPlan.create({
         name: "OwnFresh Prime Membership",
         price: 299,
-        durationDays: 365,
+        durationDays: 90,
         commissionRatePercentage: 1,
-        description: "Join OwnFresh Prime to earn 1% Commission Coins on every transaction.",
+        description: "Get an exclusive 10% instant discount on MRP on all cold-pressed oils and earn 1% Commission Credit Coins on every transaction. Valid for 3 months (90 days).",
         features: [
           "Earn 1% Commission Credit Coins on all orders",
           "Redeem coins directly at checkout (150 threshold)",
@@ -343,7 +343,7 @@ export const checkMembershipPhonePeStatus = async (req, res) => {
 
     if (response.data && response.data.success && response.data.code === "PAYMENT_SUCCESS") {
       let plan = await MembershipPlan.findOne({ status: "Active" });
-      const durationMs = ((plan?.durationDays) || 365) * 24 * 60 * 60 * 1000;
+      const durationMs = ((plan?.durationDays) || 90) * 24 * 60 * 60 * 1000;
       const expiresAt = new Date(Date.now() + durationMs);
 
       user.isMember = true;
@@ -405,7 +405,7 @@ export const phonepeMembershipCallback = async (req, res) => {
       const user = await User.findById(merchantUserId);
       if (user) {
         let plan = await MembershipPlan.findOne({ status: "Active" });
-        const durationMs = ((plan?.durationDays) || 365) * 24 * 60 * 60 * 1000;
+        const durationMs = ((plan?.durationDays) || 90) * 24 * 60 * 60 * 1000;
         const expiresAt = new Date(Date.now() + durationMs);
 
         user.isMember = true;
@@ -499,7 +499,7 @@ export const getPlans = async (req, res) => {
       const defaultPlan = await MembershipPlan.create({
         name: "OwnFresh Prime Membership",
         price: 299,
-        durationDays: 365,
+        durationDays: 90,
         commissionRatePercentage: 1,
         description: "Join OwnFresh Prime to earn 1% Commission Coins on every transaction. Coins reset in 45 days. Minimum 150 coins to redeem.",
         features: [
@@ -544,7 +544,7 @@ export const purchaseMembership = async (req, res) => {
       return res.status(404).json({ success: false, msg: "Membership plan not found" });
     }
 
-    const durationMs = (plan.durationDays || 365) * 24 * 60 * 60 * 1000;
+    const durationMs = (plan.durationDays || 90) * 24 * 60 * 60 * 1000;
     const expiresAt = new Date(Date.now() + durationMs);
 
     const user = await User.findById(userId);
@@ -737,7 +737,7 @@ export const validateAndRedeemCoins = async (req, res) => {
  */
 export const adminUpdateUserMembership = async (req, res) => {
   try {
-    const { userId, isMember, days = 365, planName = "OwnFresh Prime Membership" } = req.body;
+    const { userId, isMember, days = 90, planName = "OwnFresh Prime Membership" } = req.body;
 
     const user = await User.findById(userId);
     if (!user) return res.status(404).json({ success: false, msg: "User not found" });
@@ -859,4 +859,12 @@ export const adminUpdatePlan = async (req, res) => {
     console.error("Admin update plan error:", error);
     res.status(500).json({ success: false, msg: "Failed to update plan" });
   }
+};
+
+/**
+ * Helper: Validate active Prime Membership
+ */
+export const isUserActivePrimeMember = (user) => {
+  if (!user || !user.isMember || !user.membershipExpiresAt) return false;
+  return new Date(user.membershipExpiresAt) > new Date();
 };

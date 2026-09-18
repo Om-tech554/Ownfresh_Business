@@ -12,6 +12,7 @@ import {
   Leaf,
   Flame,
   Sparkles,
+  Crown,
   Maximize2,
   X,
   ChevronLeft,
@@ -39,6 +40,7 @@ import { addToCart } from "../redux/userslice";
 import ProductCard from "../components/ProductCard";
 import Navbar from "../components/Navbar";
 import { cleanProductName, getDynamicName } from "../utils/productUtils";
+import { isUserActivePrime, calculateItemPricing } from "../utils/primeUtils";
 import SLink from "../components/SLink";
 import SEO from "../components/SEO";
 import ProductReviews from "../components/ProductReviews";

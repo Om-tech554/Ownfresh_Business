@@ -399,6 +399,8 @@ export const createOrder = async (req, res) => {
       deliveryCharge: shippingCost,
       totalWeight: totalOrderWeight,
       deliveryMethod: resolvedDeliveryMethod,
+      isPrimeMemberOrder: isPrimeMember,
+      primeDiscountAmount: calculatedPrimeDiscount,
       discountAmount: calculatedDiscount,
       couponCode: couponRecord ? couponRecord.code : "",
       referralCode: referralCode ? String(referralCode).trim().toUpperCase() : "",

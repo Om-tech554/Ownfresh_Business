@@ -1,11 +1,16 @@
 import React, { useState, useMemo } from "react";
 import { Link } from "react-router-dom";
-import { Star, ShoppingCart, Award, Leaf, ShieldCheck, Tag as TagIcon, Sparkles } from "lucide-react";
+import { Star, ShoppingCart, Award, Leaf, ShieldCheck, Tag as TagIcon, Sparkles, Crown } from "lucide-react";
+import { useSelector } from "react-redux";
+import { isUserActivePrime, calculateItemPricing } from "../utils/primeUtils";
 import SLink from "./SLink";
 import { cleanProductName, getDynamicName } from "../utils/productUtils";
 import { trackAddToCart } from "../utils/analytics";
 
 const ProductCard = ({ product, user, onAddToCart }) => {
+  const reduxUser = useSelector((state) => state.user?.userData);
+  const currentUser = user || reduxUser;
+  const isPrime = isUserActivePrime(currentUser);
   // Get active variants
   const activeVariants = useMemo(() => {
     return product.variants?.filter((v) => v.status === "Active" && !v.name?.toLowerCase().includes("gift") && !v.name?.toLowerCase().includes("eco packaging")) || [];

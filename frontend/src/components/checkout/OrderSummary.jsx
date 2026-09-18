@@ -2,6 +2,7 @@ import React from 'react';
 import { useCheckout } from './CheckoutContext';
 import { useSelector } from 'react-redux';
 import { calculateClientShipping } from '../../utils/shippingCalculator';
+import { isUserActivePrime, calculateItemPricing, calculateCartPrimeTotals } from '../../utils/primeUtils';
 import SLink from '../SLink';
 
 const OrderSummary = () => {

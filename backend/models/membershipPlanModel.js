@@ -13,7 +13,7 @@ const membershipPlanSchema = new mongoose.Schema(
     },
     durationDays: {
       type: Number,
-      default: 365
+      default: 90 // 3 months validity
     },
     commissionRatePercentage: {
       type: Number,
@@ -21,7 +21,7 @@ const membershipPlanSchema = new mongoose.Schema(
     },
     description: {
       type: String,
-      default: "Earn 1% Commission Credit Coins on every transaction. Coins reset in 45 days. Minimum 150 coins to redeem."
+      default: "Get an exclusive 10% instant discount on MRP on all cold-pressed oils and earn 1% Commission Credit Coins on every transaction. Valid for 3 months (90 days)."
     },
     features: [
       {

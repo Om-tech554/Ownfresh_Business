@@ -11,6 +11,8 @@ import { Truck, CreditCard, Tag, Sparkles, MapPin, Phone, ArrowLeft, ArrowRight 
 import { appCheck } from '../../../firebase';
 import { getToken } from 'firebase/app-check';
 import { calculateClientShipping } from '../../utils/shippingCalculator';
+import { isUserActivePrime, calculateItemPricing, calculateCartPrimeTotals } from '../../utils/primeUtils';
+import { Crown } from 'lucide-react';
 
 const serverUrl = import.meta.env.VITE_API_URL || "http://localhost:10000";
 

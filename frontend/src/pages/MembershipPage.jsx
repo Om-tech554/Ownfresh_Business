@@ -189,7 +189,7 @@ const MembershipPage = () => {
           <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-8">
             <div className="space-y-4 max-w-2xl text-center md:text-left">
               <div className="inline-flex items-center gap-2 bg-emerald-500/20 dark:bg-[#062B2A] border border-emerald-400/30 dark:border-[#19C37D]/40 text-emerald-300 dark:text-[#19C37D] px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-widest">
-                <Crown className="w-4 h-4 text-[#EFDB27] dark:text-[#FFD600]" /> Official 1% Prime Rewards Program
+                <Crown className="w-4 h-4 text-[#EFDB27] dark:text-[#FFD600]" /> Official 1% Prime Membership • 3 Months Access
               </div>
 
               <h1 className="text-3xl md:text-5xl font-black uppercase tracking-tight text-white dark:text-[#F4F7FA] leading-tight">
@@ -197,7 +197,7 @@ const MembershipPage = () => {
               </h1>
 
               <p className="text-gray-300 dark:text-[#B4C0CF] text-sm md:text-base font-medium leading-relaxed">
-                Join our exclusive Prime Membership. Every purchase earns you 1% redeemable Credit Coins in your wallet. Coins can be redeemed directly at checkout once you reach 150 coins!
+                Join our exclusive 1% Prime Membership. Enjoy an instant 10% discount on MRPs across all pure stone-pressed oils, plus earn 1% redeemable Credit Coins on every order for 3 full months (90 days)!
               </p>
             </div>
 
@@ -225,7 +225,7 @@ const MembershipPage = () => {
                 </div>
               ) : (
                 <span className="inline-block mt-2 text-xs font-bold text-amber-300 dark:text-[#FFD600] bg-amber-950/80 border border-amber-500/40 dark:border-[#FFD600]/30 px-3 py-1 rounded-full">
-                  Upgrade to Earn 1%
+                  Get 10% OFF MRP & 1% Coins
                 </span>
               )}
             </div>
@@ -363,7 +363,7 @@ const MembershipPage = () => {
                     ₹{currentSelectedPlan.price}
                   </span>
                   <span className="text-xs text-gray-400 dark:text-[#818C9B] font-normal block">
-                    /{currentSelectedPlan.durationDays || 365} Days
+                    /{currentSelectedPlan.durationDays || 90} Days (3 Months)
                   </span>
                 </div>
               </div>
@@ -452,7 +452,7 @@ const MembershipPage = () => {
                   className="w-full bg-[#FFD600] hover:bg-[#FFE45C] text-[#111318] font-black py-4 rounded-2xl uppercase tracking-widest text-xs transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer"
                 >
                   <Crown className="w-4 h-4 text-[#111318]" />
-                  Sign In to Join Prime (₹{currentSelectedPlan.price}/Year)
+                  Sign In to Join Prime (₹{currentSelectedPlan.price}/3 Months)
                 </button>
               ) : membershipStatus.isMember ? (
                 <div className="space-y-2">
@@ -471,7 +471,7 @@ const MembershipPage = () => {
                     ) : (
                       <RefreshCw className="w-3.5 h-3.5" />
                     )}
-                    {purchasing ? "Processing..." : `Extend / Renew for 1 Year (₹${currentSelectedPlan.price})`}
+                    {purchasing ? "Processing..." : `Extend / Renew for 3 Months (₹${currentSelectedPlan.price})`}
                   </button>
                 </div>
               ) : (
@@ -486,7 +486,7 @@ const MembershipPage = () => {
                   ) : (
                     <Zap className="w-4 h-4 text-[#111318]" />
                   )}
-                  {purchasing ? "Opening Payment Gateway..." : `Pay ₹${currentSelectedPlan.price} & Activate Prime`}
+                  {purchasing ? "Opening Payment Gateway..." : `Pay ₹${currentSelectedPlan.price} & Activate 3 Months Prime`}
                 </button>
               )}
             </div>

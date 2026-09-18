@@ -112,7 +112,7 @@ const PrimeMembershipManager = () => {
         {
           userId,
           isMember: !currentIsMember,
-          days: 365,
+          days: 90, // 3 months validity
           planName: planForm.name
         },
         { withCredentials: true }
@@ -265,7 +265,7 @@ const PrimeMembershipManager = () => {
 
             <div>
               <label className="text-[10px] font-black uppercase tracking-widest text-gray-500 block mb-1">
-                Annual Membership Price (₹)
+                Prime 1% Membership Price (3 Months / 90 Days) (₹)
               </label>
               <input
                 type="number"

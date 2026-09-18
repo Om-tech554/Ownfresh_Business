@@ -12,6 +12,8 @@ const orderSchema = new mongoose.Schema({
     name: String,
     variantName: String, // Added to store variant text (e.g. "1 Liter")
     price: Number,
+    mrp: Number,
+    isDiscountedPrime: { type: Boolean, default: false },
     quantity: Number,
     image: String
   }],
@@ -135,6 +137,14 @@ const orderSchema = new mongoose.Schema({
     default: 0
   },
   taxAmount: {
+    type: Number,
+    default: 0
+  },
+  isPrimeMemberOrder: {
+    type: Boolean,
+    default: false
+  },
+  primeDiscountAmount: {
     type: Number,
     default: 0
   },

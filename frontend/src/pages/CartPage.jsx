@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, ShoppingBag, Plus, Minus, Trash2, Droplets, Sparkles, ShieldCheck, CheckCircle2, MapPin } from 'lucide-react';
+import { ArrowLeft, ShoppingBag,
+  Crown, Plus, Minus, Trash2, Droplets, Sparkles, ShieldCheck, CheckCircle2, MapPin } from 'lucide-react';
 import { addToCart, updateQuantity, removeFromCart } from '../redux/userslice';
 import SLink from "../components/SLink";
 import { motion, AnimatePresence } from 'framer-motion';
