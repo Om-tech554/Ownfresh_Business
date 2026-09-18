@@ -38,7 +38,7 @@ const FONT_WEIGHT_OPTIONS = [
 
 const SettingsManager = () => {
   const [announcements, setAnnouncements] = useState({
-    announcement1: "🎉 FREE SHIPPING ON ORDERS ABOVE ₹999",
+    announcement1: "🎉 FREE SHIPPING ON ORDERS ABOVE ₹1500",
     announcement2: "🌿 AUTHENTIC TRADITIONAL STONE PRESSED BOTANIC OILS",
     announcement3: "👑 JOIN PRIME 1% TO EARN REDEEMABLE COIN COMMISSIONS",
     announcement4: "📦 EXPRESS 2-DAY DELIVERY ACROSS INDIA"
@@ -177,7 +177,7 @@ const SettingsManager = () => {
 
             <div className="space-y-4">
               {[
-                { key: "announcement1", label: "Sentence 1 (Main Promotional Banner)", ph: "🎉 FREE SHIPPING ON ORDERS ABOVE ₹999" },
+                { key: "announcement1", label: "Sentence 1 (Main Promotional Banner)", ph: "🎉 FREE SHIPPING ON ORDERS ABOVE ₹1500" },
                 { key: "announcement2", label: "Sentence 2 (Product Quality Highlight)", ph: "🌿 AUTHENTIC TRADITIONAL STONE PRESSED BOTANIC OILS" },
                 { key: "announcement3", label: "Sentence 3 (Prime 1% Commission Reward)", ph: "👑 JOIN PRIME 1% TO EARN REDEEMABLE COIN COMMISSIONS" },
                 { key: "announcement4", label: "Sentence 4 (Delivery / Special Offer)", ph: "📦 EXPRESS 2-DAY DELIVERY ACROSS INDIA" }

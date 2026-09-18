@@ -87,11 +87,18 @@ const OrderReview = () => {
   // Cart calculations
   const subtotal = (cartItems || []).reduce((acc, item) => acc + (item.price * item.quantity), 0);
   const activeDestination = isEditingAddress ? editAddressForm : shippingDetails;
+  const isSpecialCoupon = Boolean(
+    couponDetails?.isApplied && (
+      couponDetails.requiresDeliveryCharge || 
+      couponDetails.applicableUsers === 'SELECTED_USERS'
+    )
+  );
   const shippingQuote = calculateClientShipping({
     cartItems,
     subtotal,
     destination: activeDestination,
-    deliveryMethodId: deliveryMethod?.id || 'standard'
+    deliveryMethodId: deliveryMethod?.id || 'standard',
+    disableFreeDelivery: isSpecialCoupon
   });
   const shippingCost = shippingQuote.deliveryCost;
   const discount = couponDetails?.discount || 0;
@@ -114,8 +121,19 @@ const OrderReview = () => {
       }, { withCredentials: true });
 
       if (data.success) {
-        setCouponDetails({ code: couponInput, discount: data.discountAmount, isApplied: true });
-        toast.success(`Coupon applied! ₹${data.discountAmount} saved.`);
+        const reqDeliv = Boolean(data.requiresDeliveryCharge || data.applicableUsers === "SELECTED_USERS");
+        setCouponDetails({
+          code: couponInput.trim().toUpperCase(),
+          discount: data.discountAmount,
+          isApplied: true,
+          requiresDeliveryCharge: reqDeliv,
+          applicableUsers: data.applicableUsers
+        });
+        if (reqDeliv) {
+          toast.success(`Exclusive promo ${couponInput.trim().toUpperCase()} applied! Saved ₹${data.discountAmount}. (Standard delivery charges apply)`);
+        } else {
+          toast.success(`Coupon applied! ₹${data.discountAmount} saved.`);
+        }
       }
     } catch (error) {
       toast.error(error.response?.data?.message || "Invalid coupon");
@@ -652,10 +670,17 @@ const OrderReview = () => {
               </div>
 
               {discount > 0 && (
-                <div className="flex justify-between items-center text-emerald-400">
-                  <span>Coupon Discount ({couponDetails?.code})</span>
-                  <span className="font-mono">-₹{discount.toLocaleString('en-IN')}</span>
-                </div>
+                <>
+                  <div className="flex justify-between items-center text-emerald-400">
+                    <span>Coupon Discount ({couponDetails?.code})</span>
+                    <span className="font-mono">-₹{discount.toLocaleString('en-IN')}</span>
+                  </div>
+                  {isSpecialCoupon && (
+                    <div className="p-2 rounded-lg bg-amber-500/10 border border-amber-400/30 text-[10px] text-amber-300 font-bold flex items-center gap-1.5">
+                      <span>🚚 Standard delivery charges apply for this exclusive coupon</span>
+                    </div>
+                  )}
+                </>
               )}
 
               {coinDiscount > 0 && (

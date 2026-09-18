@@ -3,13 +3,29 @@ import mongoose from "mongoose";
 const cartActivitySchema = new mongoose.Schema({
   action: {
     type: String,
-    enum: ["add", "remove", "view", "begin_checkout", "purchase"],
+    enum: ["add", "remove", "view", "begin_checkout", "purchase", "shipping_info"],
     required: true
   },
   user: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "User",
     default: null
+  },
+  userName: {
+    type: String,
+    trim: true,
+    default: ""
+  },
+  userEmail: {
+    type: String,
+    trim: true,
+    lowercase: true,
+    default: ""
+  },
+  userPhone: {
+    type: String,
+    trim: true,
+    default: ""
   },
   sessionId: {
     type: String,
@@ -40,6 +56,48 @@ const cartActivitySchema = new mongoose.Schema({
     type: Number,
     default: 0
   },
+  cartItems: [
+    {
+      productId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Product",
+        default: null
+      },
+      name: {
+        type: String,
+        default: ""
+      },
+      variantName: {
+        type: String,
+        default: ""
+      },
+      price: {
+        type: Number,
+        default: 0
+      },
+      quantity: {
+        type: Number,
+        default: 1
+      },
+      image: {
+        type: String,
+        default: ""
+      }
+    }
+  ],
+  customerDetails: {
+    fullName: { type: String, default: "" },
+    email: { type: String, default: "" },
+    phone: { type: String, default: "" },
+    address: { type: String, default: "" },
+    city: { type: String, default: "" },
+    state: { type: String, default: "" },
+    zipCode: { type: String, default: "" }
+  },
+  ipAddress: {
+    type: String,
+    default: ""
+  },
   orderId: {
     type: String,
     default: null
@@ -53,5 +111,7 @@ const cartActivitySchema = new mongoose.Schema({
 cartActivitySchema.index({ createdAt: -1 });
 cartActivitySchema.index({ action: 1, createdAt: -1 });
 cartActivitySchema.index({ user: 1, isPurchased: 1 });
+cartActivitySchema.index({ sessionId: 1 });
+cartActivitySchema.index({ userEmail: 1 });
 
 export default mongoose.models.CartActivity || mongoose.model("CartActivity", cartActivitySchema);

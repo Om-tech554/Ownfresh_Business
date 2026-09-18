@@ -5,6 +5,7 @@ import toast from "react-hot-toast";
 import { AnimatePresence, motion } from "framer-motion";
 import { useConfirm } from "../../hooks/ConfirmContext.jsx";
 import ImagePickerModal from "./ImagePickerModal";
+import MasterRateCard from "./MasterRateCard";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:10000";
 
@@ -243,6 +244,9 @@ const InventoryManager = () => {
         </div>
       </div>
 
+      {/* Master Intelligent Rate Card Section */}
+      <MasterRateCard onUpdated={fetchData} />
+
       {/* Search & Filters Controls */}
       <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm mb-6 flex flex-wrap items-center gap-4">
         <div className="flex-1 min-w-[280px] relative">
@@ -387,7 +391,7 @@ const InventoryManager = () => {
       {/* Variant Modal */}
       <AnimatePresence>
         {showVariantModal && (
-          <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[2000] flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -399,24 +403,33 @@ const InventoryManager = () => {
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="bg-white rounded-3xl w-full max-w-lg shadow-2xl overflow-hidden z-10"
+              className="bg-white rounded-3xl w-full max-w-lg shadow-2xl overflow-hidden z-10 flex flex-col my-auto max-h-[90vh]"
             >
-              <div className="p-6 bg-[#1E971D] text-white flex justify-between items-center">
-                <h3 className="text-lg font-black uppercase tracking-wider">
-                  {selectedVariant ? "Edit Bottle Size Variation" : "Add New Bottle Size"}
-                </h3>
-                <button onClick={() => setShowVariantModal(false)} className="text-white hover:rotate-90 transition-transform text-2xl">
+              <div className="px-6 py-5 bg-gradient-to-r from-emerald-900 via-[#167a17] to-[#1E971D] text-white flex justify-between items-center shrink-0">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-xl bg-white/15 flex items-center justify-center">
+                    <Package className="w-4 h-4 text-white" />
+                  </div>
+                  <h3 className="text-base font-extrabold uppercase tracking-wider text-white">
+                    {selectedVariant ? "Edit Bottle Size Variation" : "Add New Bottle Size"}
+                  </h3>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowVariantModal(false)}
+                  className="w-8 h-8 rounded-xl bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors text-white font-bold text-lg"
+                >
                   &times;
                 </button>
               </div>
 
-              <form onSubmit={handleSaveVariant} className="p-6 space-y-4 max-h-[80vh] overflow-y-auto">
+              <form onSubmit={handleSaveVariant} className="p-6 space-y-4 overflow-y-auto flex-1">
                 <div>
-                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">
+                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">
                     Parent Oil Product *
                   </label>
                   <select
-                    className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 outline-none"
+                    className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:bg-white focus:ring-2 focus:ring-[#1E971D] focus:border-[#1E971D] outline-none transition-all"
                     value={formData.product}
                     onChange={(e) => setFormData({ ...formData, product: e.target.value })}
                     required
@@ -432,26 +445,26 @@ const InventoryManager = () => {
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">
+                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">
                       Bottle Size / Name *
                     </label>
                     <input
                       type="text"
                       placeholder="e.g. 500ml, 5 Litre"
                       required
-                      className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800"
+                      className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:bg-white focus:ring-2 focus:ring-[#1E971D] focus:border-[#1E971D] outline-none transition-all"
                       value={formData.name}
                       onChange={(e) => setFormData({ ...formData, name: e.target.value, size: e.target.value })}
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">
+                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">
                       SKU Code
                     </label>
                     <input
                       type="text"
                       placeholder="e.g. OF-500ML"
-                      className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800"
+                      className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:bg-white focus:ring-2 focus:ring-[#1E971D] focus:border-[#1E971D] outline-none transition-all"
                       value={formData.sku}
                       onChange={(e) => setFormData({ ...formData, sku: e.target.value })}
                     />
@@ -460,27 +473,27 @@ const InventoryManager = () => {
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">
+                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">
                       Regular Price (₹) *
                     </label>
                     <input
                       type="number"
                       required
                       min="0"
-                      className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800"
+                      className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:bg-white focus:ring-2 focus:ring-[#1E971D] focus:border-[#1E971D] outline-none transition-all"
                       value={formData.price}
                       onChange={(e) => setFormData({ ...formData, price: e.target.value })}
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">
+                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">
                       Sale Price (₹)
                     </label>
                     <input
                       type="number"
                       min="0"
                       placeholder="Optional"
-                      className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800"
+                      className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:bg-white focus:ring-2 focus:ring-[#1E971D] focus:border-[#1E971D] outline-none transition-all"
                       value={formData.salePrice}
                       onChange={(e) => setFormData({ ...formData, salePrice: e.target.value })}
                     />
@@ -489,24 +502,24 @@ const InventoryManager = () => {
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">
+                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">
                       Stock Quantity *
                     </label>
                     <input
                       type="number"
                       required
                       min="0"
-                      className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800"
+                      className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:bg-white focus:ring-2 focus:ring-[#1E971D] focus:border-[#1E971D] outline-none transition-all"
                       value={formData.stockQuantity}
                       onChange={(e) => setFormData({ ...formData, stockQuantity: e.target.value })}
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">
+                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">
                       Status
                     </label>
                     <select
-                      className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800"
+                      className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:bg-white focus:ring-2 focus:ring-[#1E971D] focus:border-[#1E971D] outline-none transition-all"
                       value={formData.status}
                       onChange={(e) => setFormData({ ...formData, status: e.target.value })}
                     >
@@ -518,7 +531,7 @@ const InventoryManager = () => {
 
                 {/* Variation Bottle Image Picker */}
                 <div>
-                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">
+                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">
                     Bottle Photo for this Size
                   </label>
                   <div className="flex items-center gap-3">
@@ -530,24 +543,24 @@ const InventoryManager = () => {
                     <button
                       type="button"
                       onClick={() => setShowImagePicker(true)}
-                      className="flex-1 p-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2"
+                      className="flex-1 p-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2 transition-colors"
                     >
                       <ImageIcon size={14} /> {formData.image ? "Change Bottle Photo" : "Select Bottle Photo from Gallery"}
                     </button>
                   </div>
                 </div>
 
-                <div className="pt-4 flex justify-end gap-3">
+                <div className="pt-4 flex items-center justify-end gap-3 border-t border-slate-100">
                   <button
                     type="button"
                     onClick={() => setShowVariantModal(false)}
-                    className="px-5 py-2.5 text-slate-600 font-bold text-xs uppercase tracking-wider"
+                    className="px-5 py-2.5 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-100 font-bold text-xs uppercase tracking-wider transition-colors"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
-                    className="px-6 py-2.5 bg-[#1E971D] text-white rounded-xl font-bold text-xs uppercase tracking-wider shadow-md hover:bg-[#167a17]"
+                    className="px-6 py-2.5 bg-gradient-to-r from-[#167a17] to-[#1E971D] hover:from-[#136814] hover:to-[#167a17] text-white rounded-xl font-black text-xs uppercase tracking-wider shadow-md hover:shadow-lg transition-all"
                   >
                     {selectedVariant ? "Update Bottle Size" : "Create Bottle Size"}
                   </button>
@@ -561,7 +574,7 @@ const InventoryManager = () => {
       {/* Bulk Update Modal */}
       <AnimatePresence>
         {showBulkModal && (
-          <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[2000] flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -573,19 +586,23 @@ const InventoryManager = () => {
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="bg-white rounded-3xl w-full max-w-md shadow-2xl overflow-hidden z-10"
+              className="bg-white rounded-3xl w-full max-w-md shadow-2xl overflow-hidden z-10 flex flex-col my-auto max-h-[90vh]"
             >
-              <div className="p-6 bg-blue-600 text-white flex justify-between items-center">
-                <h3 className="text-lg font-black uppercase tracking-wider">Bulk Price Update</h3>
-                <button onClick={() => setShowBulkModal(false)} className="text-white hover:rotate-90 transition-transform text-2xl">
+              <div className="p-6 bg-gradient-to-r from-blue-700 to-blue-600 text-white flex justify-between items-center shrink-0">
+                <h3 className="text-base font-black uppercase tracking-wider">Bulk Price Update</h3>
+                <button
+                  type="button"
+                  onClick={() => setShowBulkModal(false)}
+                  className="w-8 h-8 rounded-xl bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors text-white font-bold text-lg"
+                >
                   &times;
                 </button>
               </div>
-              <form onSubmit={handleBulkUpdate} className="p-6 space-y-4">
+              <form onSubmit={handleBulkUpdate} className="p-6 space-y-4 overflow-y-auto flex-1">
                 <div>
                   <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Category</label>
                   <select
-                    className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800"
+                    className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:bg-white focus:ring-2 focus:ring-blue-600 focus:border-blue-600 outline-none transition-all"
                     value={bulkData.categoryId}
                     onChange={(e) => setBulkData({ ...bulkData, categoryId: e.target.value })}
                     required
@@ -604,23 +621,23 @@ const InventoryManager = () => {
                     type="number"
                     required
                     placeholder="e.g. 5 or -5"
-                    className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800"
+                    className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:bg-white focus:ring-2 focus:ring-blue-600 focus:border-blue-600 outline-none transition-all"
                     value={bulkData.percentageIncrease}
                     onChange={(e) => setBulkData({ ...bulkData, percentageIncrease: e.target.value })}
                   />
                   <p className="text-xs text-slate-400 mt-1">Use a negative number to apply discounts across all bottle sizes.</p>
                 </div>
-                <div className="pt-4 flex justify-end gap-3">
+                <div className="pt-4 flex items-center justify-end gap-3 border-t border-slate-100">
                   <button
                     type="button"
                     onClick={() => setShowBulkModal(false)}
-                    className="px-5 py-2 text-slate-600 font-bold text-xs uppercase"
+                    className="px-5 py-2.5 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-100 font-bold text-xs uppercase tracking-wider transition-colors"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
-                    className="px-6 py-2.5 bg-blue-600 text-white rounded-xl font-bold text-xs uppercase tracking-wider shadow-md hover:bg-blue-700"
+                    className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold text-xs uppercase tracking-wider shadow-md hover:shadow-lg transition-all"
                   >
                     Apply Update
                   </button>

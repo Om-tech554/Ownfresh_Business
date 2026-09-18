@@ -1,3 +1,4 @@
+import jwt from "jsonwebtoken";
 import mongoose from "mongoose";
 import Order from "../models/ordermodel.js";
 import User from "../models/usermodel.js";
@@ -27,7 +28,7 @@ export const getDashboardMetrics = async (req, res) => {
 
     // Fetch all non-deleted orders for accurate calculations
     const allOrders = await Order.find({ deletedByUser: { $ne: true } })
-      .populate("user", "name email phone isMember createdAt")
+      .populate("user", "fullName userName email mobile isMember role createdAt")
       .select("totalAmount deliveryCharge paymentStatus status PaymentMethod items createdAt user")
       .lean();
 
@@ -332,23 +333,40 @@ export const getSearchAnalytics = async (req, res) => {
  */
 export const getAbandonedCarts = async (req, res) => {
   try {
-    const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
     const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
 
     const abandonedActivities = await CartActivity.find({
-      action: { $in: ["add", "begin_checkout"] },
+      action: { $in: ["add", "begin_checkout", "shipping_info", "view"] },
       isPurchased: false,
-      createdAt: { $gte: sevenDaysAgo, $lte: oneHourAgo }
+      createdAt: { $gte: sevenDaysAgo }
     })
-      .populate("user", "name email phone")
-      .populate("productId", "name price image")
+      .populate("user", "fullName userName email mobile role")
+      .populate("productId", "name price image images")
+      .populate("cartItems.productId", "name price image images")
       .sort({ createdAt: -1 })
-      .limit(30)
+      .limit(60)
       .lean();
+
+    const normalized = abandonedActivities.map(item => {
+      const userName = item.userName || item.user?.fullName || item.user?.userName || item.customerDetails?.fullName || "";
+      const userEmail = item.userEmail || item.user?.email || item.customerDetails?.email || "";
+      const userPhone = item.userPhone || item.user?.mobile || item.customerDetails?.phone || "";
+
+      return {
+        ...item,
+        userName,
+        userEmail,
+        userPhone,
+        customerName: userName,
+        customerEmail: userEmail,
+        customerPhone: userPhone,
+        isRegistered: Boolean(item.user?._id)
+      };
+    });
 
     res.status(200).json({
       success: true,
-      abandonedCarts: abandonedActivities
+      abandonedCarts: normalized
     });
   } catch (error) {
     console.error("Cart abandonment fetch error:", error);
@@ -439,13 +457,13 @@ export const exportReport = async (req, res) => {
     }
 
     if (type === "customers") {
-      const users = await User.find().select("name email phone isMember role createdAt").sort({ createdAt: -1 }).lean();
+      const users = await User.find().select("fullName userName email mobile isMember role createdAt").sort({ createdAt: -1 }).lean();
       let csv = "Customer Name,Email,Phone,Prime Member,Role,Joined Date\n";
 
       users.forEach(u => {
-        const name = (u.name || "").replace(/,/g, " ");
+        const name = (u.fullName || u.userName || "").replace(/,/g, " ");
         const email = u.email || "";
-        const phone = u.phone || "";
+        const phone = u.mobile || "";
         const prime = u.isMember ? "Yes" : "No";
         const role = u.role || "user";
         const joined = new Date(u.createdAt).toISOString().split("T")[0];
@@ -455,6 +473,35 @@ export const exportReport = async (req, res) => {
 
       res.setHeader("Content-Type", "text/csv");
       res.setHeader("Content-Disposition", `attachment; filename="myownfresh_customers_${Date.now()}.csv"`);
+      return res.status(200).send(csv);
+    }
+
+    if (type === "abandoned") {
+      const activities = await CartActivity.find({
+        action: { $in: ["add", "begin_checkout", "shipping_info"] },
+        isPurchased: false
+      })
+        .populate("user", "fullName userName email mobile")
+        .populate("productId", "name")
+        .sort({ createdAt: -1 })
+        .limit(200)
+        .lean();
+
+      let csv = "Customer Name,Email,Phone,Action,Products,Cart Value,Session ID,Date\n";
+      activities.forEach(a => {
+        const name = (a.userName || a.user?.fullName || a.user?.userName || a.customerDetails?.fullName || "Guest Visitor").replace(/,/g, " ");
+        const email = a.userEmail || a.user?.email || a.customerDetails?.email || "";
+        const phone = a.userPhone || a.user?.mobile || a.customerDetails?.phone || "";
+        const action = a.action === "begin_checkout" ? "Started Checkout" : (a.action === "shipping_info" ? "Shipping Entered" : "Added to Cart");
+        const items = (a.cartItems?.map(i => `${i.name || "Oil"} (${i.variantName || ""}) x${i.quantity || 1}`).join("; ") || a.productId?.name || a.variantName || "Item").replace(/,/g, " ");
+        const val = a.cartValue || a.price || 0;
+        const sess = a.sessionId || "";
+        const date = new Date(a.createdAt).toISOString();
+        csv += `"${name}","${email}","${phone}","${action}","${items}",${val},"${sess}","${date}"\n`;
+      });
+
+      res.setHeader("Content-Type", "text/csv");
+      res.setHeader("Content-Disposition", `attachment; filename="myownfresh_abandoned_carts_${Date.now()}.csv"`);
       return res.status(200).send(csv);
     }
 
@@ -493,10 +540,74 @@ export const logSearch = async (req, res) => {
 
 export const logCartActivity = async (req, res) => {
   try {
-    const { action, productId, variantName, price, quantity, cartValue, itemCount, orderId } = req.body;
+    const {
+      action,
+      productId,
+      variantName,
+      price,
+      quantity,
+      cartValue,
+      itemCount,
+      orderId,
+      cartItems,
+      sessionId,
+      userEmail,
+      userName,
+      userPhone,
+      customerDetails
+    } = req.body;
+
     if (!action) return res.status(400).json({ success: false });
 
-    await CartActivity.create({
+    // 1. Try to resolve user from auth token if available
+    let resolvedUser = null;
+    let resolvedEmail = userEmail ? userEmail.trim().toLowerCase() : "";
+    let resolvedName = userName ? userName.trim() : "";
+    let resolvedPhone = userPhone ? userPhone.trim() : "";
+
+    let token = req.cookies?.token;
+    if (!token && req.headers.authorization && req.headers.authorization.startsWith("Bearer ")) {
+      token = req.headers.authorization.split(" ")[1];
+    }
+    if (token && process.env.JWT_SECRET) {
+      try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        if (decoded?.userId) {
+          resolvedUser = await User.findById(decoded.userId).select("fullName userName email mobile");
+        }
+      } catch (err) {}
+    }
+
+    // 2. Direct body user check
+    if (!resolvedUser && req.body.user && mongoose.Types.ObjectId.isValid(req.body.user)) {
+      resolvedUser = await User.findById(req.body.user).select("fullName userName email mobile");
+    }
+
+    // 3. Fallback check by email
+    if (resolvedUser) {
+      resolvedEmail = resolvedEmail || resolvedUser.email;
+      resolvedName = resolvedName || resolvedUser.fullName || resolvedUser.userName;
+      resolvedPhone = resolvedPhone || resolvedUser.mobile;
+    } else if (resolvedEmail) {
+      const existingUser = await User.findOne({ email: resolvedEmail }).select("fullName userName email mobile");
+      if (existingUser) {
+        resolvedUser = existingUser;
+        resolvedName = resolvedName || existingUser.fullName || existingUser.userName;
+        resolvedPhone = resolvedPhone || existingUser.mobile;
+      }
+    }
+
+    // 4. Extract from customer details
+    if (customerDetails) {
+      if (!resolvedName && customerDetails.fullName) resolvedName = customerDetails.fullName;
+      if (!resolvedEmail && customerDetails.email) resolvedEmail = customerDetails.email.trim().toLowerCase();
+      if (!resolvedPhone && customerDetails.phone) resolvedPhone = customerDetails.phone;
+    }
+
+    const rawIp = req.headers["x-forwarded-for"] || req.socket?.remoteAddress || "";
+    const ipAddress = typeof rawIp === "string" ? rawIp.split(",")[0].trim() : "";
+
+    const activity = await CartActivity.create({
       action,
       productId: mongoose.Types.ObjectId.isValid(productId) ? productId : null,
       variantName: variantName || "",
@@ -505,12 +616,39 @@ export const logCartActivity = async (req, res) => {
       cartValue: Number(cartValue) || 0,
       itemCount: Number(itemCount) || 0,
       orderId: orderId || null,
-      user: req.user?._id || null,
+      user: resolvedUser?._id || null,
+      userName: resolvedName || "",
+      userEmail: resolvedEmail || "",
+      userPhone: resolvedPhone || "",
+      sessionId: sessionId || null,
+      cartItems: Array.isArray(cartItems) ? cartItems : [],
+      customerDetails: customerDetails || {},
+      ipAddress,
       isPurchased: action === "purchase"
     });
 
-    res.status(200).json({ success: true });
+    // 5. Retroactively backfill earlier anonymous activities for this session
+    if ((resolvedUser || resolvedEmail) && sessionId) {
+      await CartActivity.updateMany(
+        {
+          sessionId,
+          user: null,
+          $or: [{ userEmail: "" }, { userEmail: null }, { userEmail: { $exists: false } }]
+        },
+        {
+          $set: {
+            user: resolvedUser?._id || null,
+            userEmail: resolvedEmail,
+            userName: resolvedName,
+            userPhone: resolvedPhone
+          }
+        }
+      ).catch(() => {});
+    }
+
+    res.status(200).json({ success: true, id: activity._id });
   } catch (e) {
-    res.status(200).json({ success: true }); // non-blocking
+    console.error("logCartActivity error:", e);
+    res.status(200).json({ success: true }); // non-blocking telemetry
   }
 };

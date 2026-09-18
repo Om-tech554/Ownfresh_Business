@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState } from 'react';
+import { identifyCustomer } from '../../utils/analytics';
 
 const CheckoutContext = createContext();
 
@@ -82,6 +83,10 @@ export const CheckoutProvider = ({ children }) => {
         };
         localStorage.setItem("oil_delivery_destination", JSON.stringify(dest));
         window.dispatchEvent(new Event("deliveryDestinationChanged"));
+
+        if (updated.email || updated.phone || updated.fullName) {
+          identifyCustomer(updated);
+        }
       } catch (e) {}
       return updated;
     });
@@ -95,7 +100,9 @@ export const CheckoutProvider = ({ children }) => {
   const [couponDetails, setCouponDetails] = useState({
     code: '',
     discount: 0,
-    isApplied: false
+    isApplied: false,
+    requiresDeliveryCharge: false,
+    applicableUsers: 'ALL_USERS'
   });
   const [useWallet, setUseWallet] = useState(false);
   const [referralCode, setReferralCode] = useState('');

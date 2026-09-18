@@ -10,6 +10,8 @@ import {
   CheckCircle2,
   X,
   Users,
+  UserCheck,
+  Search,
   Percent,
   Coins
 } from "lucide-react";
@@ -24,6 +26,20 @@ const CouponManager = () => {
   const [loading, setLoading] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
   const [analytics, setAnalytics] = useState({ totalCoupons: 0, activeCoupons: 0, totalUses: 0 });
+  const [allCustomers, setAllCustomers] = useState([]);
+  const [customerSearch, setCustomerSearch] = useState("");
+  const [selectedCustomerChips, setSelectedCustomerChips] = useState([]);
+
+  const fetchCustomers = async () => {
+    try {
+      const res = await axios.get(`${serverUrl}/api/user/admin/all`, { withCredentials: true });
+      if (res.data?.users) {
+        setAllCustomers(res.data.users);
+      }
+    } catch (e) {
+      console.warn("Could not fetch customer list for coupon manager:", e);
+    }
+  };
   
   // Form State
   const [formData, setFormData] = useState({
@@ -60,17 +76,43 @@ const CouponManager = () => {
 
   useEffect(() => {
     fetchCoupons();
+    fetchCustomers();
   }, []);
+
+  const handleSelectCustomer = (customer) => {
+    if (selectedCustomerChips.some(c => c._id === customer._id)) {
+      toast.error("Customer already added");
+      return;
+    }
+    const updated = [...selectedCustomerChips, customer];
+    setSelectedCustomerChips(updated);
+    setFormData(prev => ({
+      ...prev,
+      selectedUsersListText: updated.map(c => c._id).join(", ")
+    }));
+    setCustomerSearch("");
+  };
+
+  const handleRemoveCustomerChip = (id) => {
+    const updated = selectedCustomerChips.filter(c => c._id !== id);
+    setSelectedCustomerChips(updated);
+    setFormData(prev => ({
+      ...prev,
+      selectedUsersListText: updated.map(c => c._id).join(", ")
+    }));
+  };
 
   const handleCreate = async (e) => {
     e.preventDefault();
     setLoading(true);
     try {
-      // Parse selected users if any
+      // Parse and sanitize selected users (strips any brackets, quotes, whitespace)
       let selectedUsersList = [];
       if (formData.selectedUsersListText) {
-        selectedUsersList = formData.selectedUsersListText
-          .split(",")
+        const cleanReg = new RegExp("[\[\]'\"`]", "g");
+        const raw = formData.selectedUsersListText.replace(cleanReg, " ").trim();
+        selectedUsersList = raw
+          .split(/[\s,]+/)
           .map(item => item.trim())
           .filter(Boolean);
       }
@@ -107,6 +149,8 @@ const CouponManager = () => {
         applicableUsers: "ALL_USERS",
         selectedUsersListText: ""
       });
+      setSelectedCustomerChips([]);
+      setCustomerSearch("");
       
       fetchCoupons();
     } catch (error) {
@@ -192,6 +236,16 @@ const CouponManager = () => {
               <h3 className="text-2xl font-black text-slate-900 mb-1">{coupon.code}</h3>
               {coupon.affiliateId && (
                 <span className="bg-purple-100 text-purple-700 px-2 py-0.5 rounded text-[8px] font-black uppercase">Affiliate</span>
+              )}
+              {(coupon.applicableUsers === "SELECTED_USERS" || coupon.requiresDeliveryCharge) && (
+                <div className="flex flex-col items-end gap-1">
+                  <span className="bg-amber-100 text-amber-800 px-2 py-0.5 rounded text-[8px] font-black uppercase">
+                    🎯 {coupon.selectedUsersList?.length || 0} Customers
+                  </span>
+                  <span className="bg-orange-100 text-orange-900 border border-orange-200/60 px-1.5 py-0.5 rounded text-[7px] font-black uppercase">
+                    🚚 Delivery Charges Apply
+                  </span>
+                </div>
               )}
             </div>
             
@@ -300,14 +354,135 @@ const CouponManager = () => {
               </div>
 
               {formData.applicableUsers === "SELECTED_USERS" && (
-                <div>
-                  <label className="block text-xs font-black text-slate-600 uppercase mb-1">Selected User IDs (comma separated)</label>
-                  <textarea 
-                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-[#24672E] text-xs font-mono"
-                    placeholder="e.g. 60d5ec4b8f1d2e1438bf2248, 60d5ec4b8f1d2e1438bf2249"
-                    value={formData.selectedUsersListText}
-                    onChange={(e) => setFormData({...formData, selectedUsersListText: e.target.value})}
-                  />
+                <div className="space-y-3 p-4 bg-emerald-50/50 border border-emerald-200 rounded-2xl">
+                  {/* Delivery Charges Notice */}
+                  <div className="p-2.5 bg-amber-50 border border-amber-200 rounded-xl text-[11px] text-amber-900 font-bold flex items-center gap-2">
+                    <span className="text-sm">🚚</span>
+                    <span>
+                      Standard Delivery Charges Apply: Target customers using this personalized promo code will pay standard delivery charges regardless of cart value.
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <label className="block text-xs font-black text-emerald-900 uppercase">
+                      Select Target Customers
+                    </label>
+                    <span className="text-[10px] text-emerald-700 font-bold">
+                      {selectedCustomerChips.length} selected
+                    </span>
+                  </div>
+
+                  {/* Customer Search & Quick Pick */}
+                  <div className="relative">
+                    <div className="flex items-center gap-2 bg-white border border-emerald-300 rounded-xl px-3 py-2">
+                      <Search className="w-4 h-4 text-emerald-600 shrink-0" />
+                      <input
+                        type="text"
+                        placeholder="Search by customer name, email, or ID..."
+                        className="w-full text-xs font-semibold outline-none bg-transparent"
+                        value={customerSearch}
+                        onChange={(e) => setCustomerSearch(e.target.value)}
+                      />
+                      {customerSearch && (
+                        <button
+                          type="button"
+                          onClick={() => setCustomerSearch("")}
+                          className="text-slate-400 hover:text-slate-600 cursor-pointer"
+                        >
+                          <X className="w-3.5 h-3.5" />
+                        </button>
+                      )}
+                    </div>
+
+                    {/* Filtered Dropdown */}
+                    {customerSearch.trim() && (
+                      <div className="absolute z-20 left-0 right-0 mt-1 bg-white border border-slate-200 rounded-xl shadow-xl max-h-48 overflow-y-auto divide-y divide-slate-100">
+                        {allCustomers
+                          .filter(c => {
+                            const q = customerSearch.toLowerCase();
+                            return (
+                              (c.fullName && c.fullName.toLowerCase().includes(q)) ||
+                              (c.email && c.email.toLowerCase().includes(q)) ||
+                              (c.userName && c.userName.toLowerCase().includes(q)) ||
+                              (c._id && c._id.toLowerCase().includes(q))
+                            );
+                          })
+                          .slice(0, 8)
+                          .map(cust => (
+                            <button
+                              key={cust._id}
+                              type="button"
+                              onClick={() => handleSelectCustomer(cust)}
+                              className="w-full text-left px-3 py-2 hover:bg-emerald-50 transition-colors flex items-center justify-between cursor-pointer"
+                            >
+                              <div className="min-w-0">
+                                <p className="text-xs font-extrabold text-slate-800 truncate">
+                                  {cust.fullName || cust.userName || "Customer"}
+                                </p>
+                                <p className="text-[10px] text-slate-500 truncate">
+                                  {cust.email} {cust.mobile && `• ${cust.mobile}`}
+                                </p>
+                              </div>
+                              <span className="text-[10px] font-mono font-bold text-emerald-700 bg-emerald-100 px-1.5 py-0.5 rounded shrink-0 ml-2">
+                                #{cust._id.slice(-6)}
+                              </span>
+                            </button>
+                          ))}
+                        {allCustomers.filter(c => {
+                          const q = customerSearch.toLowerCase();
+                          return (
+                            (c.fullName && c.fullName.toLowerCase().includes(q)) ||
+                            (c.email && c.email.toLowerCase().includes(q)) ||
+                            (c.userName && c.userName.toLowerCase().includes(q)) ||
+                            (c._id && c._id.toLowerCase().includes(q))
+                          );
+                        }).length === 0 && (
+                          <div className="p-3 text-center text-xs text-slate-400">
+                            No customers matching "{customerSearch}"
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Selected Customer Badges */}
+                  {selectedCustomerChips.length > 0 && (
+                    <div className="flex flex-wrap gap-1.5 pt-1">
+                      {selectedCustomerChips.map(cust => (
+                        <span
+                          key={cust._id}
+                          className="inline-flex items-center gap-1 px-2.5 py-1 bg-white border border-emerald-300 text-emerald-900 rounded-lg text-xs font-bold shadow-2xs"
+                        >
+                          <UserCheck className="w-3 h-3 text-emerald-600" />
+                          <span>{cust.fullName || cust.email}</span>
+                          <span className="text-[9px] font-mono text-emerald-600 font-extrabold">#{cust._id.slice(-6)}</span>
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveCustomerChip(cust._id)}
+                            className="text-slate-400 hover:text-rose-600 ml-1 cursor-pointer"
+                          >
+                            <X className="w-3 h-3" />
+                          </button>
+                        </span>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Advanced manual input / ID list */}
+                  <div>
+                    <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">
+                      Customer IDs / Emails (Comma separated or auto-populated)
+                    </label>
+                    <textarea 
+                      className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl outline-none focus:border-[#24672E] text-xs font-mono"
+                      placeholder="e.g. 6aa7f6f2a696a27557f4d292 or f4d292 or user@email.com"
+                      rows={2}
+                      value={formData.selectedUsersListText}
+                      onChange={(e) => setFormData({...formData, selectedUsersListText: e.target.value})}
+                    />
+                    <p className="text-[10px] text-slate-400 mt-1">
+                      Full IDs, 6-character short IDs (e.g. <code className="text-emerald-700 font-bold">f4d292</code>), and emails are automatically resolved.
+                    </p>
+                  </div>
                 </div>
               )}
 

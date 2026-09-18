@@ -26,7 +26,7 @@ const Navbar = () => {
     const [searchQuery, setSearchQuery] = useState("");
     const [searchResults, setSearchResults] = useState([]);
     const [showDropdown, setShowDropdown] = useState(false);
-    const [announcement, setAnnouncement] = useState("🎉 FREE SHIPPING ON ORDERS ABOVE ₹999 • 🌿 PREMIUM GRADE PURE OIL & STONE PRESSED BOTANIC OILS • 👑 JOIN PRIME 1% TO EARN REDEEMABLE COIN COMMISSIONS • 📦 EXPRESS 2-DAY DELIVERY ACROSS INDIA");
+    const [announcement, setAnnouncement] = useState("🎉 FREE SHIPPING ON ORDERS ABOVE ₹1500 • 🌿 PREMIUM GRADE PURE OIL & STONE PRESSED BOTANIC OILS • 👑 JOIN PRIME 1% TO EARN REDEEMABLE COIN COMMISSIONS • 📦 EXPRESS 2-DAY DELIVERY ACROSS INDIA");
     const [announcementWeight, setAnnouncementWeight] = useState("ultra");
 
     const getAnnouncementFontWeightClass = (weight) => {

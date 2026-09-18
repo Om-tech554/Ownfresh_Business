@@ -9,11 +9,18 @@ const OrderSummary = () => {
   const cartItems = useSelector((state) => state.user.cartItems);
   
   const subtotal = cartItems.reduce((acc, item) => acc + (item.price * item.quantity), 0);
+  const isSpecialCoupon = Boolean(
+    couponDetails?.isApplied && (
+      couponDetails.requiresDeliveryCharge || 
+      couponDetails.applicableUsers === 'SELECTED_USERS'
+    )
+  );
   const shippingQuote = calculateClientShipping({
     cartItems,
     subtotal,
     destination: shippingDetails,
-    deliveryMethodId: deliveryMethod?.id || 'standard'
+    deliveryMethodId: deliveryMethod?.id || 'standard',
+    disableFreeDelivery: isSpecialCoupon
   });
   const shippingCost = shippingQuote.deliveryCost;
   const discount = couponDetails?.discount || 0;
@@ -79,6 +86,11 @@ const OrderSummary = () => {
             <span className="text-[11px] text-amber-600 dark:text-amber-400 font-semibold block">
               {shippingQuote.deliveryMethodName}
             </span>
+            {isSpecialCoupon && (
+              <span className="text-[10px] text-amber-700 dark:text-amber-300 font-bold block mt-0.5">
+                Special promo: Delivery charges apply
+              </span>
+            )}
           </div>
           <div className="text-right">
             <span className={`font-bold ${shippingCost === 0 ? 'text-emerald-600 dark:text-emerald-400 font-extrabold' : 'text-gray-900 dark:text-[#F5F7FA]'}`}>
@@ -95,7 +107,11 @@ const OrderSummary = () => {
           </div>
         </div>
 
-        {!shippingQuote.isFreeDelivery && (
+        {isSpecialCoupon ? (
+          <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-400/30 text-[11px] text-amber-900 dark:text-[#FFD600] font-bold">
+            🚚 Standard delivery charges apply for exclusive promo code "{couponDetails?.code}".
+          </div>
+        ) : !shippingQuote.isFreeDelivery && (
           <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-400/30 text-[11px] text-amber-900 dark:text-[#FFD600] font-bold space-y-2">
             <div className="flex justify-between items-center mb-1">
               <span>🚚 Eligible for FREE DELIVERY over Rs. 1,500/- OR 2 Kg & above</span>

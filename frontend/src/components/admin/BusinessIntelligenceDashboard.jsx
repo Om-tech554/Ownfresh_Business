@@ -41,7 +41,12 @@ import {
   Filter,
   Eye,
   FileSpreadsheet,
-  History
+  History,
+  Mail,
+  Phone,
+  MessageSquare,
+  ExternalLink,
+  Copy
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -737,59 +742,276 @@ const BusinessIntelligenceDashboard = () => {
 
       {/* ══════════════════════════════════════════════════ */}
       {/* 4. SECTION: CART ABANDONMENT */}
-      {/* ══════════════════════════════════════════════════ */}
-      {activeSection === 'abandoned' && (
-        <div className="bg-white rounded-3xl border border-slate-200 shadow-xs p-6 sm:p-8 space-y-6">
-          <div>
-            <span className="text-[10px] font-black uppercase tracking-widest text-[#1E971D] block">Recovery Pipeline</span>
-            <h2 className="text-xl sm:text-2xl font-black text-slate-900">Abandoned Carts Tracking</h2>
-            <p className="text-xs text-slate-500 font-semibold mt-1">
-              Customers who added oil products or started checkout without completing the order.
-            </p>
-          </div>
+      {activeSection === 'abandoned' && (() => {
+        const totalValue = abandonedCarts.reduce(
+          (sum, item) => sum + Number(item.cartValue || (item.price * (item.quantity || 1)) || 0),
+          0
+        );
+        const contactableCount = abandonedCarts.filter(
+          item => item.customerEmail || item.userEmail || item.user?.email || item.customerPhone || item.userPhone || item.user?.mobile
+        ).length;
 
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs font-semibold text-slate-600">
-              <thead className="bg-slate-50 uppercase text-[10px] tracking-wider text-slate-400 border-b border-slate-200">
-                <tr>
-                  <th className="py-3 px-4">Customer / Session</th>
-                  <th className="py-3 px-4">Product Added</th>
-                  <th className="py-3 px-4">Size / Variant</th>
-                  <th className="py-3 px-4 text-right">Value</th>
-                  <th className="py-3 px-4 text-right">Last Action</th>
-                  <th className="py-3 px-4 text-right">Time</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {abandonedCarts.length > 0 ? (
-                  abandonedCarts.map((item, idx) => (
-                    <tr key={idx} className="hover:bg-slate-50/60 transition-colors">
-                      <td className="py-3.5 px-4 font-bold text-slate-900">
-                        {item.user?.name || item.user?.email || "Anonymous Visitor"}
-                      </td>
-                      <td className="py-3.5 px-4">{item.productId?.name || "Stone Pressed Oil"}</td>
-                      <td className="py-3.5 px-4">{item.variantName || "Standard"}</td>
-                      <td className="py-3.5 px-4 text-right font-mono font-bold text-slate-900">₹{item.price || item.cartValue}</td>
-                      <td className="py-3.5 px-4 text-right font-bold text-amber-600 uppercase text-[10px]">
-                        {item.action === 'begin_checkout' ? 'Started Checkout' : 'Added to Cart'}
-                      </td>
-                      <td className="py-3.5 px-4 text-right text-slate-400 text-[11px]">
-                        {new Date(item.createdAt).toLocaleDateString("en-IN", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}
+        return (
+          <div className="bg-white rounded-3xl border border-slate-200 shadow-xs p-6 sm:p-8 space-y-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div>
+                <span className="text-[10px] font-black uppercase tracking-widest text-[#1E971D] block">
+                  Recovery Pipeline & Visitor Intelligence
+                </span>
+                <h2 className="text-xl sm:text-2xl font-black text-slate-900">Abandoned Carts Tracking</h2>
+                <p className="text-xs text-slate-500 font-semibold mt-1">
+                  Identify who visited, which edible oils they added to their cart, and their verified contact info for recovery.
+                </p>
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => handleExportCSV('abandoned')}
+                  className="inline-flex items-center gap-1.5 px-4 py-2 bg-[#1E971D] text-white rounded-xl text-xs font-extrabold shadow-md hover:bg-[#167415] transition-colors cursor-pointer"
+                >
+                  <Download className="w-3.5 h-3.5" /> Export Abandoned CSV
+                </button>
+              </div>
+            </div>
+
+            {/* Quick Metrics Cards */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="p-4 rounded-2xl bg-amber-50/70 border border-amber-200/80 flex items-center justify-between">
+                <div>
+                  <span className="text-[10px] uppercase font-black tracking-wider text-amber-700 block">Total Abandoned</span>
+                  <span className="text-2xl font-black text-amber-900 font-mono">{abandonedCarts.length}</span>
+                </div>
+                <div className="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center text-amber-700 font-bold">
+                  <ShoppingCart className="w-5 h-5" />
+                </div>
+              </div>
+
+              <div className="p-4 rounded-2xl bg-emerald-50/70 border border-emerald-200/80 flex items-center justify-between">
+                <div>
+                  <span className="text-[10px] uppercase font-black tracking-wider text-emerald-700 block">Identified Leads</span>
+                  <span className="text-2xl font-black text-emerald-900 font-mono">{contactableCount}</span>
+                  <span className="text-[10px] text-emerald-600 font-semibold block">With Name / Email / Phone</span>
+                </div>
+                <div className="w-10 h-10 rounded-xl bg-emerald-100 flex items-center justify-center text-emerald-700 font-bold">
+                  <Users className="w-5 h-5" />
+                </div>
+              </div>
+
+              <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 flex items-center justify-between">
+                <div>
+                  <span className="text-[10px] uppercase font-black tracking-wider text-slate-500 block">Potential Revenue</span>
+                  <span className="text-2xl font-black text-slate-900 font-mono">₹{totalValue.toLocaleString('en-IN')}</span>
+                  <span className="text-[10px] text-slate-500 font-semibold block">Recoverable Cart Value</span>
+                </div>
+                <div className="w-10 h-10 rounded-xl bg-slate-200/80 flex items-center justify-center text-slate-700 font-bold">
+                  <DollarSign className="w-5 h-5" />
+                </div>
+              </div>
+            </div>
+
+            <div className="overflow-x-auto rounded-2xl border border-slate-200">
+              <table className="w-full text-left text-xs font-semibold text-slate-600">
+                <thead className="bg-slate-50 uppercase text-[10px] tracking-wider text-slate-500 border-b border-slate-200">
+                  <tr>
+                    <th className="py-3.5 px-4">Customer Identity</th>
+                    <th className="py-3.5 px-4">What They Did / Products Added</th>
+                    <th className="py-3.5 px-4 text-right">Cart Value</th>
+                    <th className="py-3.5 px-4 text-center">Funnel Stage</th>
+                    <th className="py-3.5 px-4 text-right">Activity Time</th>
+                    <th className="py-3.5 px-4 text-center">Recovery Action</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {abandonedCarts.length > 0 ? (
+                    abandonedCarts.map((item, idx) => {
+                      const name = item.customerName || item.userName || item.user?.fullName || item.user?.userName || item.customerDetails?.fullName || "";
+                      const email = item.customerEmail || item.userEmail || item.user?.email || item.customerDetails?.email || "";
+                      const phone = item.customerPhone || item.userPhone || item.user?.mobile || item.customerDetails?.phone || "";
+                      const isReg = Boolean(item.isRegistered || item.user?._id);
+                      const displayVal = item.cartValue || (item.price * (item.quantity || 1)) || 0;
+
+                      // What products did they have
+                      const itemsList = Array.isArray(item.cartItems) && item.cartItems.length > 0
+                        ? item.cartItems
+                        : (item.productId ? [{
+                            name: item.productId?.name || "Stone Pressed Oil",
+                            variantName: item.variantName || "Standard",
+                            price: item.price || 0,
+                            quantity: item.quantity || 1,
+                            image: item.productId?.image || ""
+                          }] : []);
+
+                      return (
+                        <tr key={item._id || idx} className="hover:bg-slate-50/80 transition-colors">
+                          {/* 1. Customer Identity */}
+                          <td className="py-3.5 px-4 align-top">
+                            <div className="space-y-1">
+                              <div className="flex items-center gap-1.5 flex-wrap">
+                                <span className="font-extrabold text-slate-900 text-sm">
+                                  {name || (email ? email.split('@')[0] : ("Guest Visitor #" + (item.sessionId ? item.sessionId.slice(-6).toUpperCase() : (idx + 1))))}
+                                </span>
+                                {isReg ? (
+                                  <span className="text-[9px] bg-emerald-100 text-emerald-800 font-black px-1.5 py-0.5 rounded-full uppercase tracking-wider">
+                                    Registered User
+                                  </span>
+                                ) : email ? (
+                                  <span className="text-[9px] bg-sky-100 text-sky-800 font-bold px-1.5 py-0.5 rounded-full uppercase tracking-wider">
+                                    Checkout Lead
+                                  </span>
+                                ) : (
+                                  <span className="text-[9px] bg-slate-100 text-slate-600 font-bold px-1.5 py-0.5 rounded-full uppercase tracking-wider">
+                                    Guest Session
+                                  </span>
+                                )}
+                              </div>
+
+                              {email && (
+                                <div className="flex items-center gap-1 text-[11px] text-indigo-600 font-medium">
+                                  <Mail className="w-3 h-3 shrink-0" />
+                                  <a href={"mailto:" + email} className="hover:underline truncate max-w-[200px]" title={email}>
+                                    {email}
+                                  </a>
+                                </div>
+                              )}
+
+                              {phone && (
+                                <div className="flex items-center gap-1 text-[10px] text-slate-500 font-mono">
+                                  <Phone className="w-3 h-3 shrink-0 text-emerald-600" />
+                                  <span>{phone}</span>
+                                </div>
+                              )}
+
+                              {item.sessionId && (
+                                <span className="text-[9px] text-slate-400 font-mono block">
+                                  ID: {item.sessionId.slice(-10)}
+                                </span>
+                              )}
+                            </div>
+                          </td>
+
+                          {/* 2. What They Did / Products Added */}
+                          <td className="py-3.5 px-4 align-top">
+                            {itemsList.length > 0 ? (
+                              <div className="space-y-1.5 max-w-xs">
+                                {itemsList.map((prod, pIdx) => (
+                                  <div key={pIdx} className="flex items-center gap-2">
+                                    {prod.image && (
+                                      <img
+                                        src={prod.image}
+                                        alt={prod.name}
+                                        className="w-7 h-7 rounded-md object-cover border border-slate-200 shrink-0"
+                                      />
+                                    )}
+                                    <div className="min-w-0">
+                                      <p className="text-xs font-bold text-slate-800 truncate" title={prod.name}>
+                                        {prod.name}
+                                      </p>
+                                      <p className="text-[10px] text-slate-500">
+                                        <span className="font-semibold text-slate-700">{prod.variantName || "Standard"}</span>
+                                        {" • "}
+                                        <span>Qty: {prod.quantity || 1}</span>
+                                        {prod.price > 0 && <span> • ₹{prod.price}</span>}
+                                      </p>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            ) : (
+                              <div className="text-slate-500 text-xs">
+                                <span className="font-bold text-slate-700">{item.productId?.name || "Stone Pressed Oil"}</span>
+                                <span className="text-[10px] block text-slate-400">
+                                  {item.variantName || "Standard Pack"} (Qty: {item.quantity || 1})
+                                </span>
+                              </div>
+                            )}
+                          </td>
+
+                          {/* 3. Cart Value */}
+                          <td className="py-3.5 px-4 align-top text-right font-mono font-black text-sm text-slate-900">
+                            ₹{Number(displayVal).toLocaleString('en-IN')}
+                          </td>
+
+                          {/* 4. Last Action / Funnel Stage */}
+                          <td className="py-3.5 px-4 align-top text-center">
+                            {item.action === 'begin_checkout' ? (
+                              <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-amber-100 text-amber-800 font-extrabold rounded-full text-[10px] uppercase tracking-wider">
+                                Started Checkout
+                              </span>
+                            ) : item.action === 'shipping_info' ? (
+                              <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-indigo-100 text-indigo-800 font-extrabold rounded-full text-[10px] uppercase tracking-wider">
+                                Shipping Info Entered
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-emerald-100 text-emerald-800 font-extrabold rounded-full text-[10px] uppercase tracking-wider">
+                                Added to Cart
+                              </span>
+                            )}
+                          </td>
+
+                          {/* 5. Time */}
+                          <td className="py-3.5 px-4 align-top text-right text-slate-500 text-[11px] whitespace-nowrap">
+                            <span className="font-bold text-slate-700 block">
+                              {new Date(item.createdAt).toLocaleDateString("en-IN", {
+                                month: "short",
+                                day: "numeric",
+                                year: "numeric"
+                              })}
+                            </span>
+                            <span className="text-[10px] text-slate-400">
+                              {new Date(item.createdAt).toLocaleTimeString("en-IN", {
+                                hour: "2-digit",
+                                minute: "2-digit"
+                              })}
+                            </span>
+                          </td>
+
+                          {/* 6. Quick Recovery Action */}
+                          <td className="py-3.5 px-4 align-top text-center">
+                            <div className="flex items-center justify-center gap-1.5 flex-wrap">
+                              {email ? (
+                                <a
+                                  href={"mailto:" + email + "?subject=We%20Saved%20Your%20MyOwnFresh%20Cart!&body=Hi%20" + encodeURIComponent(name || 'there') + ",%0A%0AWe%20noticed%20you%20left%20fresh%20stone%20pressed%20oils%20in%20your%20cart.%20Complete%20your%20order%20now%20to%20enjoy%20pure,%20unadulterated%20wellness.%0A%0AReturn%20to%20Cart:%20https://myownfresh.com/cart%0A%0AWarm%20regards,%0AMyOwnFresh%20Team"}
+                                  className="inline-flex items-center gap-1 px-2.5 py-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 rounded-lg text-[10px] font-black transition-colors"
+                                  title="Send recovery email"
+                                >
+                                  <Mail className="w-3 h-3" /> Email
+                                </a>
+                              ) : null}
+
+                              {phone ? (
+                                <a
+                                  href={"https://wa.me/" + phone.replace(/[^0-9]/g, '') + "?text=" + encodeURIComponent("Hi " + (name || 'there') + ", we noticed you visited MyOwnFresh and added fresh stone pressed oils to your cart. Can we assist you in completing your order? https://myownfresh.com/cart")}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="inline-flex items-center gap-1 px-2.5 py-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 rounded-lg text-[10px] font-black transition-colors"
+                                  title="Chat on WhatsApp"
+                                >
+                                  <MessageSquare className="w-3 h-3" /> WhatsApp
+                                </a>
+                              ) : null}
+
+                              {!email && !phone && (
+                                <span className="text-[10px] text-slate-400 font-semibold italic">
+                                  No contact yet
+                                </span>
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })
+                  ) : (
+                    <tr>
+                      <td colSpan={6} className="py-10 text-center text-slate-400 font-medium">
+                        No abandoned carts detected in the last 7 days.
                       </td>
                     </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td colSpan={6} className="py-8 text-center text-slate-400">
-                      No abandoned carts detected in the last 7 days.
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
+                  )}
+                </tbody>
+              </table>
+            </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
 
       {/* ══════════════════════════════════════════════════ */}
       {/* 5. SECTION: INVENTORY & STOCK ALERTS */}

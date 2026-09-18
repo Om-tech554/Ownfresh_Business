@@ -308,7 +308,8 @@ export const calculateDeliveryCharge = ({
   destination = null,
   deliveryMethodId = "standard",
   pincode = "",
-  state = ""
+  state = "",
+  disableFreeDelivery = false
 }) => {
   const safeSubtotal = Math.max(0, Number(subtotal) || 0);
   const effectiveItems = (items && items.length > 0) ? items : (cartItems || []);
@@ -337,9 +338,9 @@ export const calculateDeliveryCharge = ({
   const normalizedDest = normalizeDestination(effectiveDestination);
   const region = determineDeliveryRegion(normalizedDest);
 
-  // 3. Free Delivery Rule: Strictly > ₹1,000
-  // 3. Free Delivery Rule: Subtotal > Rs. 1,500 OR Order Volume >= 2 Kg
-  const isFreeDelivery = (safeSubtotal > FREE_DELIVERY_THRESHOLD) || (totalWeightKg >= FREE_DELIVERY_WEIGHT_THRESHOLD);
+  // 3. Free Delivery Rule: Subtotal > Rs. 1,500 OR Order Volume >= 2 Kg (unless disableFreeDelivery is set)
+  const qualifiesForFreeDelivery = (safeSubtotal > FREE_DELIVERY_THRESHOLD) || (totalWeightKg >= FREE_DELIVERY_WEIGHT_THRESHOLD);
+  const isFreeDelivery = !disableFreeDelivery && qualifiesForFreeDelivery;
   const amountNeeded = isFreeDelivery ? 0 : Math.max(0, (FREE_DELIVERY_THRESHOLD + 1) - safeSubtotal);
   const weightNeeded = isFreeDelivery ? 0 : Math.max(0, Number((FREE_DELIVERY_WEIGHT_THRESHOLD - totalWeightKg).toFixed(2)));
   const subtotalProgress = Math.min(100, Math.round((safeSubtotal / FREE_DELIVERY_THRESHOLD) * 100));
@@ -402,9 +403,11 @@ export const calculateDeliveryCharge = ({
     deliveryCost = standardDeliveryCost + 300;
   }
 
-  const freeDeliveryMessage = isFreeDelivery
-    ? "🎉 Free Delivery Unlocked"
-    : `Add ₹${amountNeeded.toLocaleString('en-IN')} more OR ${weightNeeded} kg more for FREE delivery`;
+  const freeDeliveryMessage = disableFreeDelivery
+    ? "Standard delivery charges apply with this exclusive promo code"
+    : (isFreeDelivery
+      ? "🎉 Free Delivery Unlocked"
+      : `Add ₹${amountNeeded.toLocaleString('en-IN')} more OR ${weightNeeded} kg more for FREE delivery`);
 
   return {
     region,

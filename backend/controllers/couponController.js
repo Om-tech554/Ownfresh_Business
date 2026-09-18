@@ -1,6 +1,99 @@
+import mongoose from "mongoose";
 import Coupon from "../models/couponModel.js";
 import Order from "../models/ordermodel.js";
 import User from "../models/usermodel.js";
+
+/**
+ * Robust helper: Resolves any user inputs (full ObjectIds, 6-char short IDs,
+ * emails, phones, usernames, or bracketed/quoted strings) into valid mongoose ObjectIds.
+ */
+export const resolveSelectedUsers = async (rawInput) => {
+  if (!rawInput) return [];
+
+  // 1. Normalize rawInput into array of string tokens
+  let tokens = [];
+  if (Array.isArray(rawInput)) {
+    tokens = rawInput;
+  } else if (typeof rawInput === "string") {
+    let cleaned = rawInput.trim();
+    if (cleaned.startsWith("[") && cleaned.endsWith("]")) {
+      try {
+        tokens = JSON.parse(cleaned.replace(/'/g, '"'));
+      } catch (e) {
+        cleaned = cleaned.replace(/[\[\]'"`]/g, " ");
+        tokens = cleaned.split(/[\s,]+/);
+      }
+    } else {
+      tokens = cleaned.split(/[\s,]+/);
+    }
+  }
+
+  // Flatten and strip any lingering quotes or brackets
+  const cleanTokens = [];
+  tokens.forEach(t => {
+    if (typeof t === "string") {
+      const stripped = t.replace(/[\[\]'"`]/g, "").trim();
+      if (stripped) cleanTokens.push(stripped);
+    } else if (t && typeof t === "object") {
+      if (t._id) cleanTokens.push(String(t._id));
+      else if (t.id) cleanTokens.push(String(t.id));
+    }
+  });
+
+  if (cleanTokens.length === 0) return [];
+
+  // Load all users from DB once for quick, flexible matching
+  const allUsers = await User.find().select("_id email fullName userName mobile").lean();
+  const resolvedMap = new Map();
+
+  for (const token of cleanTokens) {
+    let matchedUser = null;
+    const lower = token.toLowerCase();
+
+    // 1. Exact 24-char ObjectId match
+    if (mongoose.Types.ObjectId.isValid(token) && token.length === 24) {
+      matchedUser = allUsers.find(u => u._id.toString().toLowerCase() === lower);
+      if (!matchedUser) {
+        // Even if not in loaded list, if valid 24 hex chars check directly in DB
+        const directUser = await User.findById(token).select("_id").lean();
+        if (directUser) matchedUser = directUser;
+      }
+    }
+
+    // 2. Short / Partial ID (e.g. 'f4d292')
+    if (!matchedUser && /^[0-9a-fA-F]{4,24}$/.test(token)) {
+      matchedUser = allUsers.find(u => 
+        u._id.toString().toLowerCase().endsWith(lower) || 
+        u._id.toString().toLowerCase().includes(lower)
+      );
+    }
+
+    // 3. Email address
+    if (!matchedUser && token.includes("@")) {
+      matchedUser = allUsers.find(u => (u.email || "").toLowerCase() === lower);
+    }
+
+    // 4. Mobile / Phone number
+    if (!matchedUser && /\d{4,}/.test(token)) {
+      const digits = token.replace(/[^0-9]/g, "");
+      matchedUser = allUsers.find(u => (u.mobile || "").replace(/[^0-9]/g, "").includes(digits));
+    }
+
+    // 5. Username or Full Name
+    if (!matchedUser) {
+      matchedUser = allUsers.find(u =>
+        (u.userName && u.userName.toLowerCase() === lower) ||
+        (u.fullName && u.fullName.toLowerCase() === lower)
+      );
+    }
+
+    if (matchedUser) {
+      resolvedMap.set(matchedUser._id.toString(), new mongoose.Types.ObjectId(matchedUser._id));
+    }
+  }
+
+  return Array.from(resolvedMap.values());
+};
 
 // CREATE COUPON (Admin)
 export const createCoupon = async (req, res) => {
@@ -19,27 +112,47 @@ export const createCoupon = async (req, res) => {
       selectedUsersList 
     } = req.body;
 
+    if (!code) {
+      return res.status(400).json({ message: "Coupon code is required" });
+    }
+
     const existingCoupon = await Coupon.findOne({ code: code.toUpperCase() });
     if (existingCoupon) {
       return res.status(400).json({ message: "Promo code already exists" });
     }
 
+    let resolvedUsers = [];
+    if (applicableUsers === "SELECTED_USERS") {
+      resolvedUsers = await resolveSelectedUsers(selectedUsersList);
+      if (selectedUsersList && (Array.isArray(selectedUsersList) ? selectedUsersList.length > 0 : String(selectedUsersList).trim().length > 0) && resolvedUsers.length === 0) {
+        return res.status(400).json({
+          message: "No registered customers found matching the provided customer IDs or emails. Please verify and select valid customers."
+        });
+      }
+    }
+
+    const requiresDeliveryCharge = req.body.requiresDeliveryCharge !== undefined 
+      ? Boolean(req.body.requiresDeliveryCharge)
+      : (applicableUsers === "SELECTED_USERS");
+
     const newCoupon = await Coupon.create({
-      code,
+      code: code.toUpperCase(),
       discountType: discountType === "percentage" ? "PERCENTAGE" : discountType === "fixed" ? "FIXED_AMOUNT" : discountType,
-      discountValue,
-      minimumOrderAmount: minimumOrderAmount || 0,
-      maximumDiscountAmount: maximumDiscountAmount || null,
-      usageLimit: usageLimit || null,
-      perUserLimit: perUserLimit || 1,
+      discountValue: Number(discountValue),
+      minimumOrderAmount: Number(minimumOrderAmount) || 0,
+      maximumDiscountAmount: maximumDiscountAmount ? Number(maximumDiscountAmount) : null,
+      usageLimit: usageLimit ? Number(usageLimit) : null,
+      perUserLimit: Number(perUserLimit) || 1,
       startDate: startDate ? new Date(startDate) : new Date(),
       expiryDate: new Date(expiryDate),
       applicableUsers: applicableUsers || "ALL_USERS",
-      selectedUsersList: selectedUsersList || []
+      selectedUsersList: resolvedUsers,
+      requiresDeliveryCharge
     });
 
     res.status(201).json({ success: true, coupon: newCoupon });
   } catch (error) {
+    console.error("createCoupon error:", error);
     res.status(500).json({ message: error.message });
   }
 };
@@ -47,7 +160,9 @@ export const createCoupon = async (req, res) => {
 // GET ALL COUPONS (Admin)
 export const getAllCoupons = async (req, res) => {
   try {
-    const coupons = await Coupon.find().sort({ createdAt: -1 });
+    const coupons = await Coupon.find()
+      .populate("selectedUsersList", "fullName userName email mobile")
+      .sort({ createdAt: -1 });
     res.status(200).json(coupons);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -58,12 +173,28 @@ export const getAllCoupons = async (req, res) => {
 export const updateCoupon = async (req, res) => {
   try {
     const { id } = req.params;
-    const coupon = await Coupon.findByIdAndUpdate(id, req.body, { new: true });
+    const updateData = { ...req.body };
+
+    if (updateData.code) {
+      updateData.code = updateData.code.toUpperCase();
+    }
+    if (updateData.discountType) {
+      updateData.discountType = updateData.discountType === "percentage" ? "PERCENTAGE" : updateData.discountType === "fixed" ? "FIXED_AMOUNT" : updateData.discountType;
+    }
+    if (updateData.applicableUsers === "SELECTED_USERS" && updateData.selectedUsersList !== undefined) {
+      updateData.selectedUsersList = await resolveSelectedUsers(updateData.selectedUsersList);
+      if (updateData.requiresDeliveryCharge === undefined) {
+        updateData.requiresDeliveryCharge = true;
+      }
+    }
+
+    const coupon = await Coupon.findByIdAndUpdate(id, updateData, { new: true });
     if (!coupon) {
       return res.status(404).json({ message: "Coupon not found" });
     }
     res.status(200).json({ success: true, coupon });
   } catch (error) {
+    console.error("updateCoupon error:", error);
     res.status(500).json({ message: error.message });
   }
 };
@@ -108,13 +239,8 @@ export const validateCoupon = async (req, res) => {
       return res.status(400).json({ message: "Promo code has expired" });
     }
 
-    // Check overall usage limit
-    if (coupon.usageLimit && coupon.usedCount >= coupon.usageLimit) {
-      return res.status(400).json({ message: "Promo code usage limit has been reached" });
-    }
-
-    // Check user-specific limit
-    if (userId) {
+    // Check per-user limit
+    if (userId && coupon.perUserLimit) {
       const userUsageCount = await Order.countDocuments({
         user: userId,
         couponCode: coupon.code,
@@ -162,11 +288,22 @@ export const validateCoupon = async (req, res) => {
     discountAmount = Math.min(discountAmount, amount);
     const finalAmount = amount - discountAmount;
 
+    const requiresDeliveryCharge = Boolean(
+      coupon.applicableUsers === "SELECTED_USERS" || 
+      coupon.requiresDeliveryCharge === true || 
+      (Array.isArray(coupon.selectedUsersList) && coupon.selectedUsersList.length > 0)
+    );
+
     res.status(200).json({
       success: true,
       discountAmount,
       finalAmount,
-      couponCode: coupon.code
+      couponCode: coupon.code,
+      applicableUsers: coupon.applicableUsers,
+      requiresDeliveryCharge,
+      message: requiresDeliveryCharge 
+        ? `Exclusive coupon ${coupon.code} applied! Standard delivery charges apply.` 
+        : `Coupon ${coupon.code} applied! Saved ₹${discountAmount}.`
     });
   } catch (error) {
     console.error(error);
@@ -188,27 +325,6 @@ export const getPublicCoupons = async (req, res) => {
     }).sort({ createdAt: -1 });
 
     res.status(200).json(coupons);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-};
-
-// GET ADMIN COUPONS ANALYTICS
-export const getCouponsAnalytics = async (req, res) => {
-  try {
-    const coupons = await Coupon.find();
-    const totalCoupons = coupons.length;
-    const activeCoupons = coupons.filter(c => c.isActive).length;
-    const totalUses = coupons.reduce((sum, c) => sum + c.usedCount, 0);
-
-    res.status(200).json({
-      success: true,
-      analytics: {
-        totalCoupons,
-        activeCoupons,
-        totalUses
-      }
-    });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

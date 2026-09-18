@@ -264,11 +264,20 @@ export const createOrder = async (req, res) => {
       placeId: deliveryAddress?.placeId || ""
     };
 
+    const requiresDeliveryCharge = Boolean(
+      couponRecord && (
+        couponRecord.applicableUsers === "SELECTED_USERS" ||
+        couponRecord.requiresDeliveryCharge === true ||
+        (Array.isArray(couponRecord.selectedUsersList) && couponRecord.selectedUsersList.length > 0)
+      )
+    );
+
     const shippingResult = calculateShipping({
       items: validatedItems,
       subtotal: calculatedSubtotal,
       destination,
-      deliveryMethodId: deliveryMethodId || "standard"
+      deliveryMethodId: deliveryMethodId || "standard",
+      disableFreeDelivery: requiresDeliveryCharge
     });
     const shippingCost = shippingResult.deliveryCharge;
     const totalOrderWeight = shippingResult.totalWeightKg;

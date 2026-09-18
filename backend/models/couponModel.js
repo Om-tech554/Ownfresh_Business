@@ -66,10 +66,36 @@ const couponSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       default: null
+    },
+    requiresDeliveryCharge: {
+      type: Boolean,
+      default: false
     }
   },
   { timestamps: true }
 );
+
+// Pre-validate safeguard to sanitize any dirty/bracketed/stringified inputs in selectedUsersList
+couponSchema.pre("validate", function () {
+  if (this.applicableUsers === "SELECTED_USERS" || (Array.isArray(this.selectedUsersList) && this.selectedUsersList.length > 0)) {
+    this.requiresDeliveryCharge = true;
+  }
+  if (this.selectedUsersList && Array.isArray(this.selectedUsersList)) {
+    this.selectedUsersList = this.selectedUsersList
+      .map(item => {
+        if (!item) return null;
+        if (typeof item === "string") {
+          const cleaned = item.replace(/[\[\]'"`]/g, "").trim();
+          if (mongoose.Types.ObjectId.isValid(cleaned) && cleaned.length === 24) {
+            return new mongoose.Types.ObjectId(cleaned);
+          }
+          return null; // drop any uncastable raw strings so CastError is never thrown
+        }
+        return item;
+      })
+      .filter(Boolean);
+  }
+});
 
 const Coupon = mongoose.model("Coupon", couponSchema);
 export default Coupon;

@@ -149,6 +149,116 @@ export const trackSearch = (searchTerm, resultsCount = 0) => {
 };
 
 /**
+ * Helper: Retrieve active visitor identity & persistent session for telemetry
+ */
+export const getVisitorContext = () => {
+  try {
+    let sessionId = localStorage.getItem("ownfresh_session_id");
+    if (!sessionId) {
+      sessionId = `sess_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+      localStorage.setItem("ownfresh_session_id", sessionId);
+    }
+
+    let user = null;
+    let userName = "";
+    let userEmail = "";
+    let userPhone = "";
+
+    const rawUser = localStorage.getItem("oil_user");
+    if (rawUser && rawUser !== "undefined") {
+      try {
+        const parsed = JSON.parse(rawUser);
+        user = parsed._id || null;
+        userName = parsed.fullName || parsed.userName || parsed.name || "";
+        userEmail = parsed.email || "";
+        userPhone = parsed.mobile || parsed.phone || "";
+      } catch (e) {}
+    }
+
+    let customerDetails = null;
+    const rawShip = localStorage.getItem("oil_shipping_details");
+    if (rawShip && rawShip !== "undefined") {
+      try {
+        const parsedShip = JSON.parse(rawShip);
+        customerDetails = {
+          fullName: parsedShip.fullName || parsedShip.name || "",
+          email: parsedShip.email || "",
+          phone: parsedShip.phone || "",
+          address: parsedShip.address || "",
+          city: parsedShip.city || "",
+          state: parsedShip.state || "",
+          zipCode: parsedShip.zipCode || parsedShip.pincode || ""
+        };
+        if (!userName && customerDetails.fullName) userName = customerDetails.fullName;
+        if (!userEmail && customerDetails.email) userEmail = customerDetails.email;
+        if (!userPhone && customerDetails.phone) userPhone = customerDetails.phone;
+      } catch (e) {}
+    }
+
+    const token = localStorage.getItem("oil_token") || "";
+
+    return {
+      sessionId,
+      user,
+      userName,
+      userEmail,
+      userPhone,
+      customerDetails,
+      token
+    };
+  } catch (err) {
+    return { sessionId: null, user: null, userName: "", userEmail: "", userPhone: "", customerDetails: null, token: "" };
+  }
+};
+
+/**
+ * Centralized cart telemetry dispatcher
+ */
+export const sendCartActivity = async (payload = {}) => {
+  try {
+    const ctx = getVisitorContext();
+    const API_BASE_URL = (import.meta.env.VITE_API_URL || "http://localhost:10000").replace(/\/+$/, "");
+
+    const headers = { "Content-Type": "application/json" };
+    if (ctx.token) {
+      headers["Authorization"] = `Bearer ${ctx.token}`;
+    }
+
+    const fullPayload = {
+      ...payload,
+      sessionId: ctx.sessionId,
+      user: payload.user || ctx.user,
+      userName: payload.userName || ctx.userName,
+      userEmail: payload.userEmail || ctx.userEmail,
+      userPhone: payload.userPhone || ctx.userPhone,
+      customerDetails: payload.customerDetails || ctx.customerDetails
+    };
+
+    fetch(`${API_BASE_URL}/api/analytics/log-cart-activity`, {
+      method: "POST",
+      headers,
+      body: JSON.stringify(fullPayload)
+    }).catch(() => {});
+  } catch (e) {}
+};
+
+/**
+ * Identify customer contact during checkout or form interactions
+ */
+export const identifyCustomer = (contact = {}) => {
+  if (!contact) return;
+  try {
+    sendCartActivity({
+      action: "shipping_info",
+      userName: contact.fullName || contact.name || "",
+      userEmail: contact.email || "",
+      userPhone: contact.phone || "",
+      customerDetails: contact
+    });
+  } catch (e) {}
+};
+
+/**
  * 4. Add to Cart
  */
 export const trackAddToCart = (product, variant = null, quantity = 1) => {
@@ -161,20 +271,26 @@ export const trackAddToCart = (product, variant = null, quantity = 1) => {
     items: [item],
   });
 
-  // Track cart activity for cart abandonment analysis
+  // Track cart activity for cart abandonment analysis with customer identity
   try {
-    const API_BASE_URL = (import.meta.env.VITE_API_URL || "http://localhost:10000").replace(/\/+$/, "");
-    fetch(`${API_BASE_URL}/api/analytics/log-cart-activity`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        action: "add",
-        productId: item.item_id,
-        variantName: item.item_variant,
-        price: item.price,
-        quantity: item.quantity,
-      }),
-    }).catch(() => {});
+    sendCartActivity({
+      action: "add",
+      productId: item.item_id,
+      variantName: item.item_variant,
+      price: item.price,
+      quantity: item.quantity,
+      cartValue: item.price * (item.quantity || 1),
+      cartItems: [
+        {
+          productId: item.item_id,
+          name: product.name || product.title || "Stone Pressed Oil",
+          variantName: item.item_variant,
+          price: item.price,
+          quantity: item.quantity,
+          image: product.image || (Array.isArray(product.images) ? product.images[0] : "") || ""
+        }
+      ]
+    });
   } catch (e) {}
 };
 
@@ -222,18 +338,23 @@ export const trackBeginCheckout = (cartItems = [], totalValue = 0, coupon = "") 
     items,
   });
 
-  // Inform backend funnel
+  // Inform backend funnel with complete cart items and customer identity
   try {
-    const API_BASE_URL = (import.meta.env.VITE_API_URL || "http://localhost:10000").replace(/\/+$/, "");
-    fetch(`${API_BASE_URL}/api/analytics/log-cart-activity`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        action: "begin_checkout",
-        cartValue: Number(totalValue) || 0,
-        itemCount: items.length,
-      }),
-    }).catch(() => {});
+    const detailedItems = (cartItems || []).map((ci) => ({
+      productId: ci._id || ci.productId || (ci.product && ci.product._id) || null,
+      name: ci.name || ci.title || (ci.product && ci.product.name) || "Stone Pressed Oil",
+      variantName: ci.variantName || (ci.variant && ci.variant.name) || ci.volume || "",
+      price: Number(ci.price || ci.salePrice || 0),
+      quantity: Number(ci.quantity || 1),
+      image: ci.image || (ci.product && ci.product.image) || ""
+    }));
+
+    sendCartActivity({
+      action: "begin_checkout",
+      cartValue: Number(totalValue) || 0,
+      itemCount: items.length,
+      cartItems: detailedItems
+    });
   } catch (e) {}
 };
 
@@ -306,16 +427,12 @@ export const trackPurchase = (order = {}) => {
 
   // Mark cart purchased on backend
   try {
-    const API_BASE_URL = (import.meta.env.VITE_API_URL || "http://localhost:10000").replace(/\/+$/, "");
-    fetch(`${API_BASE_URL}/api/analytics/log-cart-activity`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        action: "purchase",
-        orderId: transactionId,
-        totalAmount: totalValue,
-      }),
-    }).catch(() => {});
+    sendCartActivity({
+      action: "purchase",
+      orderId: transactionId,
+      cartValue: totalValue,
+      totalAmount: totalValue
+    });
   } catch (e) {}
 };
 
@@ -332,4 +449,7 @@ export default {
   trackAddShippingInfo,
   trackAddPaymentInfo,
   trackPurchase,
+  getVisitorContext,
+  sendCartActivity,
+  identifyCustomer,
 };

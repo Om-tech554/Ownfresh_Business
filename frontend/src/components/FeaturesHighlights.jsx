@@ -6,7 +6,7 @@ const FeaturesHighlights = () => {
     {
       icon: FaShoppingCart,
       title: "Free Shipping",
-      subtitle: "On all orders over ₹999",
+      subtitle: "On all orders over ₹1500",
     },
     {
       icon: FaHeadset,

@@ -1,3 +1,5 @@
+
+
 import React, { useState, useEffect, useMemo } from "react";
 import axios from "axios";
 import { serverUrl } from "../../App";
@@ -57,7 +59,7 @@ const CreateManualOrderModal = ({ isOpen, onClose, onSuccess }) => {
   const [clientType, setClientType] = useState("Non-GST");
   const [couponCode, setCouponCode] = useState("");
   const [couponValidating, setCouponValidating] = useState(false);
-  
+
   // Format current local date for datetime-local input (YYYY-MM-DDTHH:mm)
   const getCurrentLocalDateTime = () => {
     const now = new Date();
@@ -309,8 +311,8 @@ const CreateManualOrderModal = ({ isOpen, onClose, onSuccess }) => {
   return (
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
-          
+        <div className="fixed inset-0 z-[2000] flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
+
           {/* Animated Overlay Backdrop */}
           <motion.div
             initial={{ opacity: 0 }}
@@ -328,7 +330,7 @@ const CreateManualOrderModal = ({ isOpen, onClose, onSuccess }) => {
             transition={{ duration: 0.2, ease: "easeOut" }}
             className="bg-white rounded-3xl shadow-2xl border border-gray-200 w-full max-w-4xl max-h-[92vh] overflow-y-auto flex flex-col font-sans relative z-10 my-auto"
           >
-            
+
             {/* Modal Header Bar */}
             <div className="sticky top-0 bg-white z-20 px-8 py-5 border-b border-gray-100 flex items-center justify-between shadow-xs">
               <div className="flex items-center gap-3">
@@ -358,7 +360,7 @@ const CreateManualOrderModal = ({ isOpen, onClose, onSuccess }) => {
 
             {/* Modal Form Body */}
             <form onSubmit={handleSubmit} className="p-8 space-y-8 flex-1">
-              
+
               {/* SECTION 1: Customer Info */}
               <div className="bg-gray-50/70 p-6 rounded-2xl border border-gray-200/80 space-y-4">
                 <h3 className="text-xs font-black uppercase tracking-widest text-slate-900 flex items-center gap-2 border-b border-gray-200 pb-3">
@@ -381,7 +383,7 @@ const CreateManualOrderModal = ({ isOpen, onClose, onSuccess }) => {
                     onFocus={() => setShowCustomerDropdown(true)}
                     className="w-full border-2 border-gray-200 rounded-xl p-3 text-xs font-bold focus:border-[#24672E] outline-none transition-all bg-white"
                   />
-                  
+
                   {showCustomerDropdown && searchCustomerQuery.trim() !== "" && (
                     <div className="absolute left-0 right-0 mt-1 max-h-60 overflow-y-auto bg-white border border-gray-200 rounded-xl shadow-xl z-30 divide-y divide-gray-100">
                       {allCustomers
