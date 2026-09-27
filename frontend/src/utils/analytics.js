@@ -4,7 +4,10 @@
  * Strict Privacy: Never transmits passwords, payment card details, auth tokens, or PII.
  */
 
-const GA_MEASUREMENT_ID = import.meta.env.VITE_GA_MEASUREMENT_ID || "G-E6M9R9P9E7";
+const GA_MEASUREMENT_ID =
+  import.meta.env.VITE_GA_MEASUREMENT_ID ||
+  import.meta.env.VITE_GA_TRACKING_ID ||
+  "G-BB6RGNVWCR";
 
 let isInitialized = false;
 
@@ -25,7 +28,11 @@ export const initGA = () => {
   }
 
   // Load GA4 gtag.js script if measurement ID exists and not already injected
-  if (GA_MEASUREMENT_ID && !document.getElementById("ga4-script")) {
+  const hasExistingGtag =
+    document.getElementById("ga4-script") ||
+    document.querySelector('script[src*="googletagmanager.com/gtag/js"]');
+
+  if (GA_MEASUREMENT_ID && !hasExistingGtag && !GA_MEASUREMENT_ID.startsWith("%")) {
     const script = document.createElement("script");
     script.id = "ga4-script";
     script.async = true;
@@ -436,6 +443,16 @@ export const trackPurchase = (order = {}) => {
   } catch (e) {}
 };
 
+/**
+ * 11. Contact & Lead Interaction (WhatsApp, Phone Call, Email)
+ */
+export const trackContactClick = (channel = "whatsapp", label = "") => {
+  sendEvent("contact_click", {
+    contact_channel: channel,
+    contact_label: label,
+  });
+};
+
 export default {
   initGA,
   trackPageView,
@@ -449,6 +466,7 @@ export default {
   trackAddShippingInfo,
   trackAddPaymentInfo,
   trackPurchase,
+  trackContactClick,
   getVisitorContext,
   sendCartActivity,
   identifyCustomer,

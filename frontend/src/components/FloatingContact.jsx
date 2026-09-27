@@ -3,6 +3,7 @@ import { useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FaWhatsapp, FaPhone, FaEnvelope } from 'react-icons/fa6';
 import { MessageSquare, X } from 'lucide-react';
+import { trackContactClick } from '../utils/analytics';
 
 const FloatingContact = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -58,6 +59,7 @@ const FloatingContact = () => {
                 href={opt.url}
                 target="_blank"
                 rel="noopener noreferrer"
+                onClick={() => trackContactClick(opt.name.toLowerCase().replace(/\s+/g, '_'), opt.name)}
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: 20 }}

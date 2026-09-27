@@ -9,5 +9,8 @@
     "import-data": "npm --prefix backend run import-data",
     "backup-wp": "npm --prefix backend run backup-wp",
     "build": "cd backend && npm install --include=dev && cd ../frontend && npm install --include=dev && npm run build"
+  },
+  "dependencies": {
+    "express-mongo-sanitize": "^2.2.0"
   }
 }
