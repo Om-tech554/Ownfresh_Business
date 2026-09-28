@@ -12,7 +12,7 @@ router.get("/sitemap.xml", async (req, res) => {
 
     // 1. Core Static Pages
     const staticPages = [
-      { path: "", priority: "1.0", changefreq: "daily" },
+      { path: "/", priority: "1.0", changefreq: "daily" },
       { path: "/shop", priority: "0.9", changefreq: "daily" },
       { path: "/oils", priority: "0.9", changefreq: "daily" },
       { path: "/whyownfresh", priority: "0.8", changefreq: "weekly" },
