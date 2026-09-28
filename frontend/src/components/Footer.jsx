@@ -106,6 +106,18 @@ const Footer = () => {
                 </SLink>
               </li>
             ))}
+            <li className="w-fit">
+              <a
+                href="https://g.page/r/CTej_HfDEw9REBI/review"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group relative inline-flex items-center gap-1.5 transition-all duration-300 hover:text-black dark:text-[#AEB8C5] dark:hover:text-[#FFD600] font-medium text-sm"
+              >
+                <img src="https://www.google.com/favicon.ico" alt="Google" className="w-3.5 h-3.5" />
+                Write us on Google
+                <span className="absolute left-0 -bottom-1 h-[2px] w-0 bg-black dark:bg-[#FFD600] transition-all duration-300 group-hover:w-full"></span>
+              </a>
+            </li>
           </ul>
         </div>
 

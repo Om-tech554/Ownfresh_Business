@@ -43,13 +43,24 @@ const ProductReviews = ({ productId, productName }) => {
           <p className="text-xs text-gray-500 dark:text-[#818C9B] mt-1">Verified reviews from authentic OwnFresh buyers</p>
         </div>
 
-        <button
-          onClick={() => setIsModalOpen(true)}
-          className="bg-amber-400 dark:bg-[#FFD600] hover:bg-amber-300 dark:hover:bg-[#FFE45C] text-gray-950 dark:text-[#111318] font-bold px-5 py-2.5 rounded-xl text-xs flex items-center justify-center gap-2 transition-all shadow-sm w-full md:w-auto cursor-pointer"
-        >
-          <MessageSquare className="w-4 h-4" />
-          Write a Review
-        </button>
+        <div className="flex flex-wrap items-center gap-2.5 w-full md:w-auto">
+          <a
+            href="https://g.page/r/CTej_HfDEw9REBI/review"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="bg-white dark:bg-[#151B23] hover:bg-slate-50 dark:hover:bg-[#1D2530] text-slate-800 dark:text-[#F7F9FC] border border-slate-200 dark:border-[#2D3748] hover:border-emerald-500 font-bold px-4 py-2.5 rounded-xl text-xs flex items-center justify-center gap-2 transition-all shadow-xs w-full sm:w-auto cursor-pointer"
+          >
+            <img src="https://www.google.com/favicon.ico" alt="Google" className="w-3.5 h-3.5" />
+            Write us on Google
+          </a>
+          <button
+            onClick={() => setIsModalOpen(true)}
+            className="bg-amber-400 dark:bg-[#FFD600] hover:bg-amber-300 dark:hover:bg-[#FFE45C] text-gray-950 dark:text-[#111318] font-bold px-5 py-2.5 rounded-xl text-xs flex items-center justify-center gap-2 transition-all shadow-sm w-full sm:w-auto cursor-pointer"
+          >
+            <MessageSquare className="w-4 h-4" />
+            Write a Review
+          </button>
+        </div>
       </div>
 
       {/* Ratings Summary & Star Distribution */}

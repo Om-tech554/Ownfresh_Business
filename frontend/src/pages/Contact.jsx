@@ -74,6 +74,16 @@ const Contact = () => {
                     <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black text-black dark:text-[#F7F9FC] leading-snug sm:leading-tight uppercase tracking-tight max-w-3xl">
                         Connect with <span className="inline-block">OwnFresh</span> for <span className="text-[#24672E] dark:text-[#FFD600]">Premium Oils</span>
                     </h1>
+                    <a
+                        href="https://g.page/r/CTej_HfDEw9REBI/review"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="mt-6 inline-flex items-center gap-2.5 bg-white dark:bg-[#171D26] hover:bg-slate-50 dark:hover:bg-[#1F2733] border border-gray-200 dark:border-[#27313D] hover:border-emerald-500 px-5 py-2.5 rounded-full text-xs font-bold text-gray-800 dark:text-[#F7F9FC] shadow-sm hover:shadow-md transition-all cursor-pointer group"
+                    >
+                        <img src="https://www.google.com/favicon.ico" alt="Google" className="w-4 h-4" />
+                        <span>Write us on Google</span>
+                        <span className="text-amber-400 font-bold ml-1">★★★★★</span>
+                    </a>
                 </div>
             </section>
 

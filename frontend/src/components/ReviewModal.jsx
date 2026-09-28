@@ -4,7 +4,7 @@ import { toast } from "react-hot-toast";
 import { Star, X, CheckCircle, ExternalLink } from "lucide-react";
 import { serverUrl } from "../App";
 
-const GOOGLE_BUSINESS_REVIEW_URL = "https://g.page/r/myownfresh/review"; // Fallback Google Review link
+const GOOGLE_BUSINESS_REVIEW_URL = "https://g.page/r/CTej_HfDEw9REBI/review";
 
 const ReviewModal = ({ isOpen, onClose, productId = null, productName = "", onReviewSubmitted }) => {
   const [rating, setRating] = useState(5);
@@ -85,7 +85,7 @@ const ReviewModal = ({ isOpen, onClose, productId = null, productName = "", onRe
               }`}
           >
             <img src="https://www.google.com/favicon.ico" alt="Google" className="w-3.5 h-3.5" />
-            Google Business Review
+            Write us on Google
           </button>
         </div>
 
@@ -96,18 +96,19 @@ const ReviewModal = ({ isOpen, onClose, productId = null, productName = "", onRe
               <div className="w-16 h-16 bg-emerald-50 rounded-2xl flex items-center justify-center mx-auto text-emerald-600 border border-emerald-100">
                 <img src="https://www.google.com/favicon.ico" alt="Google" className="w-8 h-8" />
               </div>
-              <h4 className="text-lg font-bold text-gray-900">Review Us on Google Business</h4>
+              <h4 className="text-lg font-bold text-gray-900">Write us on Google</h4>
               <p className="text-gray-600 text-xs leading-relaxed max-w-sm mx-auto">
-                Love OwnFresh? Help others discover authentic stone pressed oils by leaving a 5-star review on Google!
+                Love OwnFresh? Help others discover authentic stone pressed oils by leaving your valuable rating & review on Google!
               </p>
               <a
                 href={GOOGLE_BUSINESS_REVIEW_URL}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-6 py-3 rounded-xl text-sm transition-all shadow-md hover:shadow-lg w-full"
+                className="inline-flex items-center justify-center gap-2 bg-[#1E971D] hover:bg-[#167015] text-white font-bold px-6 py-3.5 rounded-xl text-sm transition-all shadow-md hover:shadow-lg w-full"
               >
-                Open Google Business Review
-                <ExternalLink className="w-4 h-4" />
+                <img src="https://www.google.com/favicon.ico" alt="Google" className="w-4 h-4 bg-white rounded-full p-0.5" />
+                Write us on Google
+                <ExternalLink className="w-4 h-4 ml-1" />
               </a>
             </div>
           ) : (
