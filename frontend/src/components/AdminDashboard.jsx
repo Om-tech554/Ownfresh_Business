@@ -6,7 +6,7 @@ import BlogList from './admin/BlogList';
 import AdminOrders from './admin/AdminOrders';
 import AdminCustomers from './admin/AdminCustomers';
 import { useSelector } from 'react-redux';
-import { Package, BookOpen, Ticket, ShoppingCart, Layers, Users, Image as ImageIcon, Settings, BarChart3, Crown, Star, Sparkles, Tag } from "lucide-react";
+import { Package, BookOpen, Ticket, ShoppingCart, Layers, Users, Image as ImageIcon, Settings, BarChart3, Crown, Star, Sparkles, Tag, Activity } from "lucide-react";
 import CouponManager from './admin/CouponManager';
 import CampaignManager from './admin/CampaignManager';
 import CategoryManager from './admin/CategoryManager';
@@ -18,6 +18,7 @@ import PrimeMembershipManager from './admin/PrimeMembershipManager';
 import ReviewManager from './admin/ReviewManager';
 import SupportTicketManager from './admin/SupportTicketManager';
 import TagManager from './admin/TagManager';
+import GoogleInsightsManager from './admin/GoogleInsightsManager';
 
 
 function AdminDashboard() {
@@ -46,6 +47,17 @@ function AdminDashboard() {
               >
                 <BarChart3 className="w-4 h-4 text-[#F9DD19]" />
                 Dashboard
+              </button>
+
+              <button
+                onClick={() => setActiveTab("google-insights")}
+                className={`flex items-center gap-2 px-6 py-2.5 rounded-xl font-bold transition-all whitespace-nowrap ${activeTab === "google-insights"
+                    ? "bg-[#1E971D] text-white shadow-lg shadow-[#1E971D]/20 font-extrabold"
+                    : "text-slate-500 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-[#1D2530] hover:text-slate-900 dark:hover:text-white"
+                  }`}
+              >
+                <Activity className="w-4 h-4 text-[#F9DD19]" />
+                Google & Web Insights
               </button>
 
               <button
@@ -234,6 +246,7 @@ function AdminDashboard() {
 
       <div className="mt-6">
         {activeTab === "dashboard" && userData?.role === "admin" && <BusinessIntelligenceDashboard />}
+        {activeTab === "google-insights" && userData?.role === "admin" && <GoogleInsightsManager />}
         {activeTab === "products" && userData?.role === "admin" && <ProductList />}
         {activeTab === "inventory" && userData?.role === "admin" && <InventoryManager />}
         {activeTab === "blogs" && (userData?.role === "admin" || userData?.role === "blogger") && <BlogList />}

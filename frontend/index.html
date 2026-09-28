@@ -9,37 +9,25 @@
   <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
   <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover" />
+  <meta name="google-site-verification" content="ZA8fyPIb9QseLadX3TgcK0OVmt1lr9TmpxUnRfJGByI" />
   <meta name="google-site-verification" content="JvwX_0krQ3ONfG9PWGLDZgkPrmQNDz866opzlMoXXcE" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
   <title>OwnFresh | Premium Grade Pure Oil</title>
 
-  <!-- Google Analytics (GA4) - Loaded dynamically with OwnFresh Measurement ID -->
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-BB6RGNVWCR"></script>
   <script>
-    (function () {
-      let gaId = '%VITE_GA_TRACKING_ID%';
-      if (!gaId || gaId.startsWith('%') || gaId === 'G-XXXXXXXXXX') {
-        gaId = 'G-BB6RGNVWCR';
-      }
-      if (gaId) {
-        const script = document.createElement('script');
-        script.id = 'ga4-script';
-        script.async = true;
-        script.src = 'https://www.googletagmanager.com/gtag/js?id=' + gaId;
-        document.head.appendChild(script);
-
-        window.dataLayer = window.dataLayer || [];
-        function gtag() { dataLayer.push(arguments); }
-        window.gtag = gtag;
-        gtag('js', new Date());
-        gtag('config', gaId, {
-          send_page_view: false, // SPA handles page views manually
-          anonymize_ip: true,
-          cookie_flags: 'SameSite=None;Secure'
-        });
-      }
-    })();
+    window.dataLayer = window.dataLayer || [];
+    function gtag() { dataLayer.push(arguments); }
+    window.gtag = gtag;
+    gtag('js', new Date());
+    gtag('config', 'G-BB6RGNVWCR', {
+      send_page_view: false, // SPA handles page views manually
+      anonymize_ip: true,
+      cookie_flags: 'SameSite=None;Secure'
+    });
   </script>
 </head>
 

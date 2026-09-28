@@ -64,10 +64,73 @@ const sendEvent = (eventName, params = {}) => {
   }
 };
 
+let trackedScrollMilestones = new Set();
+
 /**
- * Track SPA Page View
+ * Reset scroll milestones on page change
+ */
+export const resetScrollTracking = () => {
+  trackedScrollMilestones = new Set();
+};
+
+/**
+ * Initialize scroll depth tracker across pages
+ */
+export const initScrollDepthTracker = () => {
+  if (typeof window === "undefined" || window._hasScrollDepthListener) return;
+  window._hasScrollDepthListener = true;
+
+  let ticking = false;
+  window.addEventListener(
+    "scroll",
+    () => {
+      if (!ticking) {
+        window.requestAnimationFrame(() => {
+          const scrollTop = window.scrollY || document.documentElement.scrollTop;
+          const winHeight = window.innerHeight;
+          const docHeight = Math.max(
+            document.body.scrollHeight,
+            document.documentElement.scrollHeight,
+            document.body.offsetHeight,
+            document.documentElement.offsetHeight
+          );
+
+          if (docHeight <= winHeight) {
+            ticking = false;
+            return;
+          }
+
+          const scrollPercent = Math.min(
+            100,
+            Math.round(((scrollTop + winHeight) / docHeight) * 100)
+          );
+
+          [25, 50, 75, 90].forEach((milestone) => {
+            if (scrollPercent >= milestone && !trackedScrollMilestones.has(milestone)) {
+              trackedScrollMilestones.add(milestone);
+              sendEvent("scroll_depth", {
+                percent_scrolled: milestone,
+                page_path: window.location.pathname,
+                page_title: document.title,
+              });
+            }
+          });
+
+          ticking = false;
+        });
+        ticking = true;
+      }
+    },
+    { passive: true }
+  );
+};
+
+/**
+ * Track SPA Page View & reset scroll milestones
  */
 export const trackPageView = (path, title = document.title) => {
+  resetScrollTracking();
+  initScrollDepthTracker();
   sendEvent("page_view", {
     page_location: window.location.href,
     page_path: path || window.location.pathname,
