@@ -27,6 +27,8 @@ import { cleanProductName, getDynamicName } from "../utils/productUtils";
 import ProductCard from "./ProductCard";
 import { trackViewItemList, trackSearch } from "../utils/analytics";
 
+import preloadedProducts from "../data/preloadedProducts.json";
+
 const BOTTLE_SIZES = ["All", "250 ml", "500 ml", "1 Litre", "2 Litre", "5 Litre", "15 Litre"];
 
 const SORT_OPTIONS = [
@@ -47,8 +49,9 @@ const PURPOSE_CHIPS = [
 ];
 
 const Shop = () => {
-  const [products, setProducts] = useState([]);
-  const [loading, setLoading] = useState(true);
+  // Pre-seed with preloaded catalogue so search crawlers & users get 0ms paint and never hit Soft 404
+  const [products, setProducts] = useState(preloadedProducts || []);
+  const [loading, setLoading] = useState(false);
   const [activeCategory, setActiveCategory] = useState("All");
   const [selectedPurpose, setSelectedPurpose] = useState("all");
   const [selectedSize, setSelectedSize] = useState("All");
@@ -68,18 +71,25 @@ const Shop = () => {
   const API_BASE_URL = (import.meta.env.VITE_API_URL || "http://localhost:10000").replace(/\/+$/, "");
 
   useEffect(() => {
+    let isMounted = true;
     const fetchProducts = async () => {
       try {
-        setLoading(true);
-        const res = await axios.get(`${API_BASE_URL}/api/product/all?limit=1000`);
-        setProducts(res.data.products || []);
+        const res = await axios.get(`${API_BASE_URL}/api/product/all?limit=1000`, { timeout: 10000 });
+        if (isMounted && res.data?.products && res.data.products.length > 0) {
+          setProducts(res.data.products);
+        }
       } catch (error) {
-        toast.error("Technical error: Unable to load inventory");
+        console.warn("Using preloaded product inventory:", error?.message);
       } finally {
-        setLoading(false);
+        if (isMounted) {
+          setLoading(false);
+        }
       }
     };
     fetchProducts();
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   const categoriesMap = useMemo(() => {
