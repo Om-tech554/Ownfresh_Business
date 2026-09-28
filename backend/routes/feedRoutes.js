@@ -29,41 +29,46 @@ router.get(["/google-merchant.xml", "/google-shopping.xml"], async (req, res) =>
       variantsByProductId[pid].push(v);
     });
 
+    const escapeXml = (str) => {
+      if (!str) return "";
+      return String(str)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&apos;");
+    };
+
+    const cleanBranding = (text) => {
+      if (!text) return "";
+      return String(text)
+        .replace(/100%\s*(pure|natural)?\s*/gi, "")
+        .replace(/cold\s*(&|and)?\s*stone\s*pressed/gi, "Stone Pressed")
+        .replace(/cold\s*pressed/gi, "Stone Pressed")
+        .replace(/\s+/g, " ")
+        .trim();
+    };
+
     const itemsXml = [];
 
     for (const prod of products) {
       const categoryName = prod.category?.name || "Edible Oils";
-      const productType = `Food & Beverage > Cooking Oils > Stone Pressed ${categoryName}`;
-      const description = (prod.shortDesc || prod.description || "100% pure cold stone pressed edible oil extracted slowly without heat or chemical refining.").replace(/[<>&'"]/g, (c) => {
-        switch (c) {
-          case '<': return '&lt;';
-          case '>': return '&gt;';
-          case '&': return '&amp;';
-          case '\'': return '&apos;';
-          case '"': return '&quot;';
-          default: return c;
-        }
-      });
+      const productType = escapeXml(`Food & Beverage > Cooking Oils > Stone Pressed ${categoryName}`);
+      const rawDesc = prod.shortDesc || prod.description || "Authentic traditional stone pressed edible oil extracted slowly without heat or chemical refining.";
+      const description = escapeXml(cleanBranding(rawDesc.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim()));
 
       const activeVariants = variantsByProductId[String(prod._id)] || [];
 
       if (activeVariants.length > 0) {
         for (const variant of activeVariants) {
           const varPrice = Number(variant.salePrice || variant.price || prod.price || 0).toFixed(2);
-          const varImage = variant.image || (variant.images && variant.images[0]) || prod.image || "https://res.cloudinary.com/dkhq2wlwg/image/upload/v1774962822/ownfresh_media/ndxvmcpisomjzsghrfjs.png";
+          const varImage = escapeXml(variant.image || (variant.images && variant.images[0]) || prod.image || "https://res.cloudinary.com/dkhq2wlwg/image/upload/v1774962822/ownfresh_media/ndxvmcpisomjzsghrfjs.png");
           const inStock = (variant.stockQuantity === undefined || variant.stockQuantity > 0);
           const availability = inStock ? "in_stock" : "out_of_stock";
           const shippingWeight = variant.shippingWeight ? `${variant.shippingWeight} kg` : "1 kg";
-          const title = `${prod.name} - ${variant.name || 'Standard'}`.replace(/[<>&'"]/g, (c) => {
-            switch (c) {
-              case '<': return '&lt;';
-              case '>': return '&gt;';
-              case '&': return '&amp;';
-              case '\'': return '&apos;';
-              case '"': return '&quot;';
-              default: return c;
-            }
-          });
+          const rawTitle = `${prod.name} - ${variant.name || 'Standard'}`;
+          const title = escapeXml(cleanBranding(rawTitle));
+          const link = escapeXml(`${baseUrl}/product/${prod._id}`);
 
           itemsXml.push(`
     <item>
@@ -71,7 +76,7 @@ router.get(["/google-merchant.xml", "/google-shopping.xml"], async (req, res) =>
       <g:item_group_id>${prod._id}</g:item_group_id>
       <g:title>${title}</g:title>
       <g:description>${description}</g:description>
-      <g:link>${baseUrl}/product/${prod._id}</g:link>
+      <g:link>${link}</g:link>
       <g:image_link>${varImage}</g:image_link>
       <g:condition>new</g:condition>
       <g:availability>${availability}</g:availability>
@@ -89,26 +94,19 @@ router.get(["/google-merchant.xml", "/google-shopping.xml"], async (req, res) =>
         }
       } else {
         const prodPrice = Number(prod.price || 0).toFixed(2);
-        const prodImage = prod.image || "https://res.cloudinary.com/dkhq2wlwg/image/upload/v1774962822/ownfresh_media/ndxvmcpisomjzsghrfjs.png";
+        const prodImage = escapeXml(prod.image || "https://res.cloudinary.com/dkhq2wlwg/image/upload/v1774962822/ownfresh_media/ndxvmcpisomjzsghrfjs.png");
         const inStock = (prod.stock === undefined || prod.stock > 0);
         const availability = inStock ? "in_stock" : "out_of_stock";
-        const title = (prod.name || "Stone Pressed Oil").replace(/[<>&'"]/g, (c) => {
-          switch (c) {
-            case '<': return '&lt;';
-            case '>': return '&gt;';
-            case '&': return '&amp;';
-            case '\'': return '&apos;';
-            case '"': return '&quot;';
-            default: return c;
-          }
-        });
+        const rawTitle = prod.name || "Stone Pressed Oil";
+        const title = escapeXml(cleanBranding(rawTitle));
+        const link = escapeXml(`${baseUrl}/product/${prod._id}`);
 
         itemsXml.push(`
     <item>
       <g:id>${prod._id}</g:id>
       <g:title>${title}</g:title>
       <g:description>${description}</g:description>
-      <g:link>${baseUrl}/product/${prod._id}</g:link>
+      <g:link>${link}</g:link>
       <g:image_link>${prodImage}</g:image_link>
       <g:condition>new</g:condition>
       <g:availability>${availability}</g:availability>
@@ -131,7 +129,7 @@ router.get(["/google-merchant.xml", "/google-shopping.xml"], async (req, res) =>
   <channel>
     <title>MyOwnFresh - Stone Pressed Edible Oils</title>
     <link>${baseUrl}</link>
-    <description>Official Google Merchant Center Product Feed for MyOwnFresh Cold &amp; Stone Pressed Cooking Oils.</description>
+    <description>Official Google Merchant Center Product Feed for MyOwnFresh Stone Pressed Cooking Oils.</description>
 ${itemsXml.join("")}
   </channel>
 </rss>`;

@@ -13,7 +13,7 @@ const CATEGORY_DATA = {
   "groundnut-oil": {
     name: "Stone Pressed Groundnut Oil",
     categoryKey: "Groundnut Oil",
-    tagline: "100% Traditional Stone Pressed Peanut Oil with Authentic Nutty Aroma",
+    tagline: "Traditional Stone Pressed Peanut Oil with Authentic Nutty Aroma",
     badge: "Heart-Healthy & High Smoke Point",
     heroImage: "https://res.cloudinary.com/dkhq2wlwg/image/upload/v1774962822/ownfresh_media/ndxvmcpisomjzsghrfjs.png",
     intro: "Our stone-pressed (Kacchi Ghani) groundnut oil is extracted slowly using natural granite stone mills at room temperature (<45°C). By avoiding heat and chemical solvents, we preserve natural plant sterols, resveratrol, and vitamin E, giving you a deep golden oil packed with rich nutty flavor and heart-protecting antioxidants.",
@@ -41,7 +41,7 @@ const CATEGORY_DATA = {
   "sesame-oil": {
     name: "Stone Pressed Sesame Oil (Til Oil)",
     categoryKey: "Sesame Oil",
-    tagline: "Pure Gingelly / Til Oil Extracted with Natural Granite Wood-Stone Mills",
+    tagline: "Pure Gingelly / Til Oil Extracted with Natural Granite Stone Mills",
     badge: "Ayurvedic Super-Oil & Ancient Cooking Elixir",
     heroImage: "https://res.cloudinary.com/dkhq2wlwg/image/upload/v1774962822/ownfresh_media/ndxvmcpisomjzsghrfjs.png",
     intro: "Revered as the 'Queen of Oils' in Ayurveda, our stone-pressed sesame oil is crushed from the finest whole sesame seeds. Rich in sesamol and sesamolin lignans, it delivers a distinctly warm, nutty taste and deep holistic wellness properties for cooking and body care.",
@@ -49,16 +49,16 @@ const CATEGORY_DATA = {
       "Packed with powerful natural antioxidants: Sesamol & Sesamolin",
       "Balances Vata dosha and supports healthy cardiovascular function",
       "Deep golden color and signature roasted nutty flavor for authentic South & North Indian cuisine",
-      "100% Raw, single-origin seeds, zero adulteration"
+      "Raw, single-origin seeds, zero adulteration"
     ],
     faqs: [
       {
         q: "Can I use stone-pressed sesame oil for cooking as well as massage?",
-        a: "Yes. Our sesame oil is 100% pure food-grade stone-pressed oil. It is wonderful for dosas, stir-fries, and tadkas, while also pure enough for Ayurvedic Abhyanga massage and oil pulling."
+        a: "Yes. Our sesame oil is pure food-grade stone-pressed oil. It is wonderful for dosas, stir-fries, and tadkas, while also pure enough for Ayurvedic Abhyanga massage and oil pulling."
       },
       {
         q: "Does your sesame oil contain palm oil or synthetic additives?",
-        a: "No! MyOwnFresh stone-pressed oils are strictly 100% single-ingredient oils with zero blending, zero palm oil, and zero synthetic additives."
+        a: "No! MyOwnFresh stone-pressed oils are strictly single-ingredient oils with zero blending, zero palm oil, and zero synthetic additives."
       }
     ]
   },
@@ -68,7 +68,7 @@ const CATEGORY_DATA = {
     tagline: "Strong Pungency, High Allyl Isothiocyanate & Authentic Kacchi Ghani Flavor",
     badge: "Traditional Immunity & High Pungency",
     heroImage: "https://res.cloudinary.com/dkhq2wlwg/image/upload/v1774962822/ownfresh_media/ndxvmcpisomjzsghrfjs.png",
-    intro: "Experience the genuine zing of authentic Kacchi Ghani mustard oil. Extracted at low speeds in cold stone presses, it preserves natural allyl isothiocyanates, essential Omega-3 (ALA) and Omega-6 fatty acids, creating the quintessential pungent punch loved in pickles, curries, and winter cooking.",
+    intro: "Experience the genuine zing of authentic Kacchi Ghani mustard oil. Extracted at low speeds in traditional stone presses, it preserves natural allyl isothiocyanates, essential Omega-3 (ALA) and Omega-6 fatty acids, creating the quintessential pungent punch loved in pickles, curries, and winter cooking.",
     benefits: [
       "Signature sharp aroma & pungent taste from natural Allyl Isothiocyanate",
       "Optimum 1:1 ratio of Omega-3 and Omega-6 essential fatty acids",
@@ -78,7 +78,7 @@ const CATEGORY_DATA = {
     faqs: [
       {
         q: "Why is stone pressed mustard oil better for pickles?",
-        a: "Cold stone-pressed mustard oil preserves natural antimicrobial compounds and antioxidants that act as natural food preservatives, keeping your homemade pickles fresh and flavorful without artificial additives."
+        a: "Traditional stone-pressed mustard oil preserves natural antimicrobial compounds and antioxidants that act as natural food preservatives, keeping your homemade pickles fresh and flavorful without artificial additives."
       }
     ]
   },
@@ -88,7 +88,7 @@ const CATEGORY_DATA = {
     tagline: "Fresh Sun-Dried Copra Extracted for Pure Tropical Nutrition & Aroma",
     badge: "Rich in Lauric Acid (MCTs)",
     heroImage: "https://res.cloudinary.com/dkhq2wlwg/image/upload/v1774962822/ownfresh_media/ndxvmcpisomjzsghrfjs.png",
-    intro: "Extracted from premium sulfur-free copra coconuts using cold stone ghani techniques, our coconut oil is crystal clear with a delicate, fresh coconut aroma. Rich in medium-chain triglycerides (MCTs) and lauric acid for fast energy, culinary delight, and holistic wellness.",
+    intro: "Extracted from premium sulfur-free copra coconuts using traditional stone ghani techniques, our coconut oil is crystal clear with a delicate, fresh coconut aroma. Rich in medium-chain triglycerides (MCTs) and lauric acid for fast energy, culinary delight, and holistic wellness.",
     benefits: [
       "Over 50% Lauric Acid — converts readily into clean metabolic energy",
       "Natural tropical fragrance without deodorizing chemicals or bleaches",
@@ -98,7 +98,7 @@ const CATEGORY_DATA = {
     faqs: [
       {
         q: "Why does pure coconut oil solidify in winter?",
-        a: "Natural unrefined coconut oil has a melting point of approximately 24°C (76°F). Solidification at cooler temperatures is a natural physical property and proof of 100% purity with zero liquid paraffin or adulterants."
+        a: "Natural unrefined coconut oil has a melting point of approximately 24°C (76°F). Solidification at cooler temperatures is a natural physical property and proof of natural purity with zero liquid paraffin or adulterants."
       }
     ]
   },
@@ -118,21 +118,21 @@ const CATEGORY_DATA = {
     faqs: [
       {
         q: "Is stone pressed sunflower oil different from refined sunflower oil?",
-        a: "Refined sunflower oil undergoes aggressive degumming, neutralization with caustic soda, and high-temp deodorization. Stone-pressed sunflower oil is simply cold-pressed and micro-filtered, retaining vitamins and natural golden hue."
+        a: "Refined sunflower oil undergoes aggressive degumming, neutralization with caustic soda, and high-temp deodorization. Stone-pressed sunflower oil is simply stone-pressed and micro-filtered, retaining vitamins and natural golden hue."
       }
     ]
   },
   "almond-oil": {
     name: "Pure Stone Pressed Sweet Almond Oil",
     categoryKey: "Almond Oil",
-    tagline: "100% Cold Stone Extracted Sweet Almond Oil for Nutrition & Glow",
+    tagline: "Traditional Stone Extracted Sweet Almond Oil for Nutrition & Glow",
     badge: "Premium Food & Skin Grade",
     heroImage: "https://res.cloudinary.com/dkhq2wlwg/image/upload/v1774962822/ownfresh_media/ndxvmcpisomjzsghrfjs.png",
-    intro: "Crafted from hand-selected sweet almonds (Badam Giri) using slow cold-stone extraction. Extremely rich in Vitamin E, Omega-9 oleic acid, and minerals for memory nourishment, infant massage, and gourmet salads.",
+    intro: "Crafted from hand-selected sweet almonds (Badam Giri) using slow stone extraction. Extremely rich in Vitamin E, Omega-9 oleic acid, and minerals for memory nourishment, infant massage, and gourmet salads.",
     benefits: [
       "Highest natural concentration of Vitamin E",
       "Supports cognitive wellness and healthy skin radiance",
-      "100% edible and cosmetic multi-purpose purity",
+      "Edible and cosmetic multi-purpose purity",
       "Extracted at <40°C in small artisanal batches"
     ],
     faqs: [
