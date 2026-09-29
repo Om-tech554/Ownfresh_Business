@@ -55,9 +55,10 @@ const GoogleInsightsManager = () => {
 
   const GA_ID = "G-BB6RGNVWCR";
   const SITE_URL = "https://myownfresh.com";
-  const GA_ACCOUNT_EMAIL = "my1ownfresh@gmail.com";
+  const GA_ACCOUNT_EMAILS = ["technewity@gmail.com", "my1ownfresh@gmail.com"];
 
   // Google Deep Links
+  const GA_ADMIN_URL = "https://analytics.google.com/analytics/web/#/admin";
   const GA_REALTIME_URL = "https://analytics.google.com/analytics/web/#/reports/dashboard";
   const GA_EVENTS_URL = "https://analytics.google.com/analytics/web/#/reports/events";
   const GSC_PERFORMANCE_URL = `https://search.google.com/search-console/performance/search-result?resource_id=${encodeURIComponent(SITE_URL + "/")}`;
@@ -102,12 +103,25 @@ const GoogleInsightsManager = () => {
               </div>
             </div>
 
-            <div className="bg-white/10 backdrop-blur-md px-4 py-2.5 rounded-2xl border border-white/10 sm:col-span-2 flex items-center gap-3">
-              <CheckCircle2 className="w-4 h-4 text-[#F9DD19]" />
-              <div>
-                <p className="text-slate-400 text-[10px] font-bold uppercase tracking-wider">Master Google Account</p>
-                <p className="font-extrabold text-amber-200">{GA_ACCOUNT_EMAIL}</p>
+            <div className="bg-white/10 backdrop-blur-md px-4 py-2.5 rounded-2xl border border-white/10 sm:col-span-2 flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <CheckCircle2 className="w-4 h-4 text-[#F9DD19] shrink-0" />
+                <div>
+                  <p className="text-slate-400 text-[10px] font-bold uppercase tracking-wider">Authorized Google Analytics Accounts</p>
+                  <p className="font-extrabold text-amber-200 text-xs sm:text-sm">
+                    {GA_ACCOUNT_EMAILS.join(" • ")}
+                  </p>
+                </div>
               </div>
+              <a
+                href={GA_ADMIN_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="shrink-0 px-2.5 py-1 bg-white/10 hover:bg-white/20 text-white rounded-lg text-[10px] font-black uppercase tracking-wider transition-colors inline-flex items-center gap-1"
+                title="Manage user access and email sharing in Google Analytics"
+              >
+                Manage Access <ExternalLink className="w-3 h-3" />
+              </a>
             </div>
           </div>
         </div>
@@ -470,6 +484,7 @@ const GoogleInsightsManager = () => {
             { id: "search_console", label: "1. Show Search Console in GA4 Menu" },
             { id: "scrolls", label: "2. How to View Scrolls & Clicks in GA4" },
             { id: "funnel", label: "3. Build E-Commerce Drop-Off Funnel" },
+            { id: "invite_users", label: "4. Add Emails & Scheduled Reports" },
           ].map((tab) => (
             <button
               key={tab.id}
@@ -549,6 +564,55 @@ const GoogleInsightsManager = () => {
                 </li>
                 <li>You will get an automated visual conversion bar chart showing exact conversion drop-offs.</li>
               </ol>
+            </div>
+          </div>
+        )}
+        {activeGuide === "invite_users" && (
+          <div className="space-y-4 text-xs text-slate-700 dark:text-slate-300 leading-relaxed animate-fadeIn">
+            <div className="p-4 rounded-2xl bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-800/50 text-indigo-950 dark:text-indigo-200 space-y-4">
+              <div>
+                <h4 className="font-black text-sm text-indigo-900 dark:text-indigo-200">
+                  Step 1: Grant Access to technewity@gmail.com in GA4
+                </h4>
+                <p className="mt-1">
+                  Add <strong>technewity@gmail.com</strong> as an Administrator so both accounts have independent, full access:
+                </p>
+                <ol className="list-decimal list-inside space-y-1 font-semibold text-indigo-900 dark:text-indigo-300 pt-1">
+                  <li>Click the <strong>Manage Access</strong> button above (or open Google Analytics → click the bottom-left ⚙️ <strong>Admin</strong> gear).</li>
+                  <li>Under Property Settings, click <strong>Property Access Management</strong>.</li>
+                  <li>Click the blue <strong>+ (Plus)</strong> button in the top-right corner → choose <strong>Add users</strong>.</li>
+                  <li>Enter email: <code className="font-mono bg-indigo-200/60 dark:bg-indigo-900/60 px-1 rounded">technewity@gmail.com</code></li>
+                  <li>Select direct role: <strong>Administrator</strong> (or Editor), and keep <em>"Notify new users by email"</em> checked.</li>
+                  <li>Click <strong>Add</strong>.</li>
+                </ol>
+              </div>
+
+              <div className="pt-2 border-t border-indigo-200/60 dark:border-indigo-800/60">
+                <h4 className="font-black text-sm text-indigo-900 dark:text-indigo-200">
+                  Step 2: Setup Automated Scheduled Email Reports (Both Inboxes)
+                </h4>
+                <p className="mt-1">
+                  Have Google automatically email daily or weekly performance digests to <strong>technewity@gmail.com</strong> and <strong>my1ownfresh@gmail.com</strong>:
+                </p>
+                <ol className="list-decimal list-inside space-y-1 font-semibold text-indigo-900 dark:text-indigo-300 pt-1">
+                  <li>In Google Analytics, click <strong>Reports → Reports snapshot</strong>.</li>
+                  <li>In the top right corner, click the <strong>Share this report</strong> icon (arrow/share icon).</li>
+                  <li>Select <strong>Schedule email</strong>.</li>
+                  <li>Add both recipient emails: <code className="font-mono bg-indigo-200/60 dark:bg-indigo-900/60 px-1 rounded">technewity@gmail.com</code> and <code className="font-mono bg-indigo-200/60 dark:bg-indigo-900/60 px-1 rounded">my1ownfresh@gmail.com</code>.</li>
+                  <li>Select frequency (e.g. <strong>Weekly on Monday</strong>) and click <strong>Save</strong>.</li>
+                </ol>
+              </div>
+
+              <div className="pt-2 border-t border-indigo-200/60 dark:border-indigo-800/60">
+                <h4 className="font-black text-sm text-indigo-900 dark:text-indigo-200">
+                  Step 3: Google Search Console (SEO Keywords) Access
+                </h4>
+                <ol className="list-decimal list-inside space-y-1 font-semibold text-indigo-900 dark:text-indigo-300 pt-1">
+                  <li>Open <a href="https://search.google.com/search-console" target="_blank" rel="noreferrer" className="underline font-bold">Search Console</a> with your existing account.</li>
+                  <li>Click <strong>Settings</strong> (bottom-left) → <strong>Users and permissions</strong> → <strong>Add user</strong>.</li>
+                  <li>Add <code className="font-mono bg-indigo-200/60 dark:bg-indigo-900/60 px-1 rounded">technewity@gmail.com</code> with <strong>Full</strong> permission.</li>
+                </ol>
+              </div>
             </div>
           </div>
         )}
