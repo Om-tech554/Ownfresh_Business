@@ -62,6 +62,7 @@ const AdminProductEditor = () => {
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(isEditing);
   const [saving, setSaving] = useState(false);
+  const [aiGenerating, setAiGenerating] = useState(false);
 
   // Fetch Categories & Tags
   const fetchMetadata = async () => {
@@ -270,6 +271,36 @@ const AdminProductEditor = () => {
     }
   };
 
+  const handleAiGenerateProduct = async () => {
+    if (!name.trim()) {
+      toast.error("Please enter a Product Title / Name first so AI knows what to write!");
+      return;
+    }
+    setAiGenerating(true);
+    try {
+      const selectedCategoryObj = categories.find((c) => c._id === category);
+      const categoryName = selectedCategoryObj?.name || "";
+      const res = await axios.post(`${API_BASE_URL}/api/product/ai/generate`, {
+        name,
+        category: categoryName,
+      });
+
+      if (res.data?.success && res.data?.result) {
+        const { shortDesc: aiShort, description: aiDesc } = res.data.result;
+        if (aiShort) setShortDesc(aiShort);
+        if (aiDesc) setDescription(aiDesc);
+        toast.success("AI generated product description and highlights!");
+      } else {
+        toast.error(res.data?.message || "Failed to generate content");
+      }
+    } catch (err) {
+      console.error("AI Generation error:", err);
+      toast.error(err.response?.data?.message || err.message || "AI generation failed");
+    } finally {
+      setAiGenerating(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex justify-center pt-32 bg-[#fafafa]">
@@ -334,9 +365,28 @@ const AdminProductEditor = () => {
 
             {/* Short Description */}
             <div>
-              <label className="text-xs font-black text-slate-500 uppercase tracking-widest mb-1.5 block">
-                Short Description *
-              </label>
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="text-xs font-black text-slate-500 uppercase tracking-widest block">
+                  Short Description *
+                </label>
+                <button
+                  type="button"
+                  onClick={handleAiGenerateProduct}
+                  disabled={aiGenerating}
+                  className="inline-flex items-center gap-1.5 px-3 py-1 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white rounded-xl text-xs font-bold shadow-xs hover:shadow-md transition-all disabled:opacity-50 cursor-pointer"
+                  title="Auto-generate product description and highlights using Gemini AI"
+                >
+                  {aiGenerating ? (
+                    <>
+                      <Loader2 size={13} className="animate-spin" /> Writing with Gemini AI...
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles size={13} /> Auto-Write with AI
+                    </>
+                  )}
+                </button>
+              </div>
               <textarea
                 placeholder="Key benefits and extraction highlights..."
                 className="w-full text-sm font-medium text-slate-700 bg-slate-50 rounded-2xl p-4 h-24 resize-none focus:ring-2 focus:ring-[#1E971D]/20 focus:bg-white outline-none transition-all placeholder:text-slate-300"

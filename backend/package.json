@@ -6,7 +6,7 @@
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
-    "dev": "nodemon index.js",
+    "dev": "nodemon -e js,mjs,json,env index.js",
     "backup-wp": "node scripts/backupWordpressData.js",
     "backup-db": "node scripts/backupDatabase.js",
     "restore-db": "node scripts/restoreDatabase.js",

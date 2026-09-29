@@ -406,7 +406,7 @@ const RankMathSEOSidebar = ({
         toast.success("AI generated content successfully!");
       }
     } catch (err) {
-      toast.error(err.response?.data?.message || "AI Call failed. Please check OPENAI_API_KEY.");
+      toast.error(err.response?.data?.message || "AI generation failed. Please check your AI API key.");
     } finally {
       setAiLoading(false);
     }

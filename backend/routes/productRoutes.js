@@ -5,6 +5,7 @@ import Product from "../models/productModel.js";
 import ProductVariant from "../models/productVariantModel.js";
 import Category from "../models/categoryModel.js";
 import Tag from "../models/tagModel.js";
+import { generateProductContent } from "../services/ai/articleAiService.js";
 
 const router = express.Router();
 
@@ -442,6 +443,23 @@ router.delete("/delete/:id", async (req, res) => {
     res.json({ success: true, message: "Product and associated variants deleted successfully" });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+/* -------------------------------------------
+   AI GENERATE PRODUCT DESCRIPTION
+------------------------------------------- */
+router.post("/ai/generate", async (req, res) => {
+  try {
+    const { name, category, keyBenefits } = req.body;
+    if (!name) {
+      return res.status(400).json({ success: false, message: "Product name is required for AI generation" });
+    }
+    const result = await generateProductContent({ name, category, keyBenefits });
+    return res.json({ success: true, result });
+  } catch (error) {
+    console.error("Product AI Generation Failed:", error);
+    return res.status(500).json({ success: false, message: error.message });
   }
 });
 

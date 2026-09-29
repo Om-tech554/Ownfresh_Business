@@ -178,5 +178,5 @@ app.listen(port, async () => {
         }
     }, 9 * 60 * 1000); // Self-ping every 9 minutes
 
-    console.log(`🚀 Server running on port ${port}`);
-})
+    console.log(`🚀 Server running on port ${port} (AI Engine: Gemini / Multi-Provider Active)`);
+});
