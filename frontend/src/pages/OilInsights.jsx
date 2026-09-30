@@ -143,13 +143,12 @@ const OilInsights = () => {
 
   return (
     <>
-      <Helmet>
-        <title>Blog - OwnFresh Insights & Health Benefits</title>
-        <meta
-          name="description"
-          content="Discover the latest health benefits, nutritional science, and lifestyle tips on healthy stone-pressed cooking oils directly from OwnFresh Insights."
-        />
-      </Helmet>
+      <SEO
+        title="OwnFresh Insights & Health Benefits"
+        description="Discover the latest health benefits, nutritional science, and lifestyle tips on healthy stone-pressed cooking oils directly from OwnFresh Insights."
+        keywords="stone pressed oil blogs, oil health benefits, kacchi ghani benefits, cooking oil nutrition, OwnFresh insights"
+        url="/insights"
+      />
       <Navbar />
 
       <div className="w-full bg-[#fcfcfc] dark:bg-[#0B0F14] min-h-screen py-10 pb-28 lg:pb-16 px-4 sm:px-8 md:px-12 lg:px-20 font-sans transition-colors duration-250">

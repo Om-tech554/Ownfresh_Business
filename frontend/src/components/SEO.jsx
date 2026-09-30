@@ -15,7 +15,7 @@ const SEO = ({
   const siteName = "MyOwnFresh";
   const defaultTitle = "MyOwnFresh | Pure Stone Pressed Edible Oils";
   const fullTitle = title ? `${title} | ${siteName}` : defaultTitle;
-  const defaultDescription = "MyOwnFresh offers authentic, chemical-free stone pressed edible cooking oils (Groundnut, Sesame, Mustard, Coconut, Almond). Free delivery on orders ₹1,000+.";
+  const defaultDescription = "MyOwnFresh offers authentic, chemical-free stone pressed edible cooking oils (Groundnut, Sesame, Mustard, Coconut, Safflower, Sunflower). Free delivery on eligible orders.";
   const metaDescription = description || defaultDescription;
   
   const metaImage = image || "https://res.cloudinary.com/dkhq2wlwg/image/upload/v1774962822/ownfresh_media/ndxvmcpisomjzsghrfjs.png";
