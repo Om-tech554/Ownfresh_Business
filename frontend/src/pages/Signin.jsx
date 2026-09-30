@@ -150,8 +150,8 @@ const SignIn = () => {
     <div className="min-h-screen flex w-full font-sans bg-[#FCFBF7] dark:bg-[#0B0F14] relative overflow-x-hidden transition-colors duration-200">
       <SEO
         title="Sign In | OwnFresh - Premium Stone Pressed Cooking Oils"
-        description="Sign in to your OwnFresh account with Google or email. Order authentic 100% pure cold-pressed botanical oils, track deliveries, and manage your 1% Prime rewards."
-        keywords="sign in, ownfresh login, google login, pure stone pressed oil, cold pressed cooking oil india"
+        description="Sign in to your OwnFresh account with Google or email. Order authentic premium quality stone-pressed botanical oils, track deliveries, and manage your 1% Prime rewards."
+        keywords="sign in, ownfresh login, google login, pure stone pressed oil, pure stone pressed cooking oil india"
       />
 
       {/* ── LEFT COLUMN: BRAND SHOWCASE HERO (DESKTOP) ── */}
@@ -176,7 +176,7 @@ const SignIn = () => {
         <div className="absolute bottom-10 left-12 right-12 z-10 bg-white/90 dark:bg-[#171D26]/90 backdrop-blur-xl p-8 rounded-3xl border border-white/60 dark:border-[#27313D] text-slate-800 dark:text-[#F5F7FA] shadow-2xl">
           <div className="flex items-center gap-2 mb-3">
             <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-50 dark:bg-emerald-950/40 text-[#1E971D] dark:text-[#FFD600] border border-emerald-200/80 dark:border-emerald-800/40 text-[10px] font-black uppercase tracking-wider rounded-full shadow-xs">
-              <CheckCircle2 size={12} className="text-[#1E971D] dark:text-[#FFD600]" /> 100% Stone Pressed Purity
+              <CheckCircle2 size={12} className="text-[#1E971D] dark:text-[#FFD600]" /> Premium Quality Stone Pressed Purity
             </span>
             <span className="inline-flex items-center gap-1 text-[10px] font-extrabold text-amber-800 dark:text-[#FFD600] bg-amber-100/90 dark:bg-amber-950/60 px-2.5 py-1 rounded-full shadow-xs border border-transparent dark:border-amber-700/30">
               <Sparkles className="w-3 h-3 text-amber-600 dark:text-[#FFD600]" /> 1% Prime Rewards

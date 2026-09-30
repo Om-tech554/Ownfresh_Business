@@ -2,7 +2,6 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import axios from 'axios';
 import Navbar from '../components/Navbar';
-import Footer from '../components/Footer';
 import SEO from '../components/SEO';
 import ProductCard from '../components/ProductCard';
 import { Sparkles, ShieldCheck, Heart, Award, ArrowRight, HelpCircle, ChevronDown, ChevronUp, Droplets, CheckCircle2 } from 'lucide-react';
@@ -15,7 +14,7 @@ const CATEGORY_DATA = {
     categoryKey: "Groundnut Oil",
     tagline: "Traditional Stone Pressed Peanut Oil with Authentic Nutty Aroma",
     badge: "Heart-Healthy & High Smoke Point",
-    heroImage: "https://res.cloudinary.com/dkhq2wlwg/image/upload/v1774962822/ownfresh_media/ndxvmcpisomjzsghrfjs.png",
+    heroImage: "https://res.cloudinary.com/dkhq2wlwg/image/upload/v1786010997/products/Groundnut-3.png",
     intro: "Our stone-pressed (Kacchi Ghani) groundnut oil is extracted slowly using natural granite stone mills at room temperature (<45°C). By avoiding heat and chemical solvents, we preserve natural plant sterols, resveratrol, and vitamin E, giving you a deep golden oil packed with rich nutty flavor and heart-protecting antioxidants.",
     benefits: [
       "Zero Trans Fats & High Monounsaturated Fatty Acids (MUFA)",
@@ -43,7 +42,7 @@ const CATEGORY_DATA = {
     categoryKey: "Sesame Oil",
     tagline: "Pure Gingelly / Til Oil Extracted with Natural Granite Stone Mills",
     badge: "Ayurvedic Super-Oil & Ancient Cooking Elixir",
-    heroImage: "https://res.cloudinary.com/dkhq2wlwg/image/upload/v1774962822/ownfresh_media/ndxvmcpisomjzsghrfjs.png",
+    heroImage: "https://res.cloudinary.com/dkhq2wlwg/image/upload/v1786011005/products/sesame-3.png",
     intro: "Revered as the 'Queen of Oils' in Ayurveda, our stone-pressed sesame oil is crushed from the finest whole sesame seeds. Rich in sesamol and sesamolin lignans, it delivers a distinctly warm, nutty taste and deep holistic wellness properties for cooking and body care.",
     benefits: [
       "Packed with powerful natural antioxidants: Sesamol & Sesamolin",
@@ -67,7 +66,7 @@ const CATEGORY_DATA = {
     categoryKey: "Mustard Oil",
     tagline: "Strong Pungency, High Allyl Isothiocyanate & Authentic Kacchi Ghani Flavor",
     badge: "Traditional Immunity & High Pungency",
-    heroImage: "https://res.cloudinary.com/dkhq2wlwg/image/upload/v1774962822/ownfresh_media/ndxvmcpisomjzsghrfjs.png",
+    heroImage: "https://res.cloudinary.com/dkhq2wlwg/image/upload/v1786010978/products/Mustard-3.png",
     intro: "Experience the genuine zing of authentic Kacchi Ghani mustard oil. Extracted at low speeds in traditional stone presses, it preserves natural allyl isothiocyanates, essential Omega-3 (ALA) and Omega-6 fatty acids, creating the quintessential pungent punch loved in pickles, curries, and winter cooking.",
     benefits: [
       "Signature sharp aroma & pungent taste from natural Allyl Isothiocyanate",
@@ -87,7 +86,7 @@ const CATEGORY_DATA = {
     categoryKey: "Coconut Oil",
     tagline: "Fresh Sun-Dried Copra Extracted for Pure Tropical Nutrition & Aroma",
     badge: "Rich in Lauric Acid (MCTs)",
-    heroImage: "https://res.cloudinary.com/dkhq2wlwg/image/upload/v1774962822/ownfresh_media/ndxvmcpisomjzsghrfjs.png",
+    heroImage: "https://res.cloudinary.com/dkhq2wlwg/image/upload/v1786876701/products/coconut-3.png",
     intro: "Extracted from premium sulfur-free copra coconuts using traditional stone ghani techniques, our coconut oil is crystal clear with a delicate, fresh coconut aroma. Rich in medium-chain triglycerides (MCTs) and lauric acid for fast energy, culinary delight, and holistic wellness.",
     benefits: [
       "Over 50% Lauric Acid — converts readily into clean metabolic energy",
@@ -107,7 +106,7 @@ const CATEGORY_DATA = {
     categoryKey: "Sunflower Oil",
     tagline: "Light, Golden & Naturally Rich in Vitamin E for Heart Wellness",
     badge: "Lightweight & Neutral Cooking",
-    heroImage: "https://res.cloudinary.com/dkhq2wlwg/image/upload/v1774962822/ownfresh_media/ndxvmcpisomjzsghrfjs.png",
+    heroImage: "https://res.cloudinary.com/dkhq2wlwg/image/upload/v1786010989/products/sunflower-3.png",
     intro: "Our stone-pressed sunflower oil is extracted from non-GMO sunflower seeds without heat or harsh solvents. Light on the stomach with a subtle floral aroma, it is the perfect healthy cooking oil for salads, daily curries, and baking.",
     benefits: [
       "Natural source of Vitamin E & healthy polyunsaturated fats",
@@ -122,26 +121,30 @@ const CATEGORY_DATA = {
       }
     ]
   },
-  "almond-oil": {
-    name: "Pure Stone Pressed Sweet Almond Oil",
-    categoryKey: "Almond Oil",
-    tagline: "Traditional Stone Extracted Sweet Almond Oil for Nutrition & Glow",
-    badge: "Premium Food & Skin Grade",
-    heroImage: "https://res.cloudinary.com/dkhq2wlwg/image/upload/v1774962822/ownfresh_media/ndxvmcpisomjzsghrfjs.png",
-    intro: "Crafted from hand-selected sweet almonds (Badam Giri) using slow stone extraction. Extremely rich in Vitamin E, Omega-9 oleic acid, and minerals for memory nourishment, infant massage, and gourmet salads.",
+    "safflower-oil": {
+    name: "Stone Pressed Safflower Oil (Kardi Ka Tel)",
+    categoryKey: "Safflower Oil",
+    tagline: "Heart-Friendly High Linoleic Traditional Stone Pressed Kardi Oil",
+    badge: "Cholesterol Care & High Smoke Point",
+    heroImage: "https://res.cloudinary.com/dkhq2wlwg/image/upload/v1786877029/products/xqqbgwnyyslpumvaqoq1.png",
+    intro: "Extracted slowly from golden safflower (Kusum / Kardi) seeds using natural granite stone ghani at room temperature (<45°C). Rich in natural polyunsaturated fatty acids and phytosterols, our unrefined stone-pressed safflower oil supports cardiovascular health and light, non-greasy cooking.",
     benefits: [
-      "Highest natural concentration of Vitamin E",
-      "Supports cognitive wellness and healthy skin radiance",
-      "Edible and cosmetic multi-purpose purity",
-      "Extracted at <40°C in small artisanal batches"
+      "Rich in Omega-6 Linoleic Acid & natural Vitamin E",
+      "Assists in healthy lipid profiles and cholesterol regulation",
+      "High smoke point (232°C) suitable for versatile Indian sautéing, rotis & deep frying",
+      "Unbleached, solvent-free, pure single-origin oil"
     ],
     faqs: [
       {
-        q: "Can this sweet almond oil be consumed with milk?",
-        a: "Yes, 1-2 teaspoons of pure stone-pressed sweet almond oil in warm milk is a traditional Ayurvedic tonic for vitality, cognitive health, and smooth digestion."
+        q: "What is Kardi oil and why is it beneficial?",
+        a: "Kardi (Safflower) oil is traditionally valued across Western and Central India for heart wellness. Stone-pressed Kardi oil maintains natural linoleic acid and antioxidants that help support arterial elasticity and healthy cholesterol levels."
+      },
+      {
+        q: "Can stone-pressed safflower oil be used for high-temperature cooking?",
+        a: "Yes! High-quality stone-pressed safflower oil has a naturally high smoke point (approx. 232°C), making it one of the most heat-stable unrefined oils for Indian culinary preparations."
       }
     ]
-  }
+  },
 };
 
 const CategoryLandingPage = ({ defaultCategory = null }) => {
@@ -152,13 +155,13 @@ const CategoryLandingPage = ({ defaultCategory = null }) => {
     name: "Pure Stone Pressed Edible Oils",
     categoryKey: "Oils",
     tagline: "Traditional Kacchi Ghani Stone Pressed Cooking Oils Delivered Fresh",
-    badge: "100% Natural & Chemical Free",
+    badge: "Premium Quality & Chemical Free",
     heroImage: "https://res.cloudinary.com/dkhq2wlwg/image/upload/v1774962822/ownfresh_media/ndxvmcpisomjzsghrfjs.png",
-    intro: "Explore MyOwnFresh range of unrefined, cold stone pressed edible cooking oils. Extracted slowly without heat to protect your family's health, vitality, and authentic culinary heritage.",
+    intro: "Explore MyOwnFresh range of unrefined, traditional stone pressed edible cooking oils. Extracted slowly without heat to protect your family's health, vitality, and authentic culinary heritage.",
     benefits: [
       "Cold-extracted below 45°C to preserve vital nutrients and enzymes",
       "Zero chemical refining, bleaching, or deodorizing",
-      "100% pure single-origin seeds from local farmers",
+      "Premium single-origin seeds from local farmers",
       "Eligible for FREE DELIVERY on Invoice Amount over Rs. 1,500/- OR when the Order Volume is 2 Kg & above."
     ],
     faqs: [
@@ -254,7 +257,7 @@ const CategoryLandingPage = ({ defaultCategory = null }) => {
       <SEO
         title={categoryInfo.name}
         description={categoryInfo.intro.slice(0, 160)}
-        keywords={`${categoryInfo.name}, cold pressed oil, stone pressed oil, wood pressed oil, traditional oil, unrefined cooking oil`}
+        keywords={`${categoryInfo.name}, stone pressed ${categoryInfo.categoryKey || "oil"}, authentic stone pressed oil, traditional stone ghani oil, pure unrefined cooking oil, wood stone pressed oil, OwnFresh stone pressed oil`}
         url={`/category/${currentSlug}`}
         image={categoryInfo.heroImage}
         schemaMarkup={schemaMarkup}
@@ -272,39 +275,56 @@ const CategoryLandingPage = ({ defaultCategory = null }) => {
           <span className="text-slate-900">{categoryInfo.name}</span>
         </nav>
 
-        {/* Hero Section */}
-        <div className="bg-gradient-to-br from-[#1E971D] via-[#167415] to-[#125511] rounded-3xl p-8 sm:p-12 text-white shadow-xl relative overflow-hidden mb-12">
+        {/* Hero Section with Perfect Matching Product Bottle Picture */}
+        <div className="bg-gradient-to-br from-[#1E971D] via-[#167415] to-[#125511] rounded-3xl p-6 sm:p-10 lg:p-12 text-white shadow-xl relative overflow-hidden mb-12">
           <div className="absolute -right-16 -bottom-16 w-80 h-80 bg-[#FFDD00]/10 rounded-full blur-3xl pointer-events-none" />
           
-          <div className="max-w-3xl space-y-4 relative z-10">
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 bg-black/25 backdrop-blur-md rounded-full text-xs font-black uppercase tracking-widest text-[#FFDD00] border border-white/10">
-              <Sparkles className="w-3.5 h-3.5" />
-              {categoryInfo.badge}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center relative z-10">
+            {/* Left Content (8 cols on desktop) */}
+            <div className="lg:col-span-8 space-y-4">
+              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 bg-black/25 backdrop-blur-md rounded-full text-xs font-black uppercase tracking-widest text-[#FFDD00] border border-white/10">
+                <Sparkles className="w-3.5 h-3.5" />
+                {categoryInfo.badge}
+              </div>
+
+              <h1 className="text-3xl sm:text-4xl md:text-5xl font-black tracking-tight leading-tight">
+                {categoryInfo.name}
+              </h1>
+
+              <p className="text-base sm:text-lg text-emerald-100/90 leading-relaxed font-medium">
+                {categoryInfo.tagline}
+              </p>
+
+              <p className="text-sm text-emerald-50/80 leading-relaxed max-w-2xl pt-2">
+                {categoryInfo.intro}
+              </p>
+
+              {/* Value Badges */}
+              <div className="pt-4 flex flex-wrap gap-2.5 sm:gap-3 text-xs font-bold">
+                <span className="inline-flex items-center gap-1.5 bg-white/10 backdrop-blur-md px-3 py-1.5 rounded-xl text-white">
+                  <ShieldCheck className="w-4 h-4 text-[#FFDD00]" /> Authentic Stone Pressed
+                </span>
+                <span className="inline-flex items-center gap-1.5 bg-white/10 backdrop-blur-md px-3 py-1.5 rounded-xl text-white">
+                  <Droplets className="w-4 h-4 text-[#FFDD00]" /> Unrefined & Chemical Free
+                </span>
+                <span className="inline-flex items-center gap-1.5 bg-white/10 backdrop-blur-md px-3 py-1.5 rounded-xl text-white">
+                  <Award className="w-4 h-4 text-[#FFDD00]" /> Free Delivery on ₹1,500+ / 2kg
+                </span>
+              </div>
             </div>
 
-            <h1 className="text-3xl sm:text-4xl md:text-5xl font-black tracking-tight leading-tight">
-              {categoryInfo.name}
-            </h1>
-
-            <p className="text-base sm:text-lg text-emerald-100/90 leading-relaxed font-medium">
-              {categoryInfo.tagline}
-            </p>
-
-            <p className="text-sm text-emerald-50/80 leading-relaxed max-w-2xl pt-2">
-              {categoryInfo.intro}
-            </p>
-
-            {/* Value Badges */}
-            <div className="pt-4 flex flex-wrap gap-4 text-xs font-bold">
-              <span className="inline-flex items-center gap-1.5 bg-white/10 backdrop-blur-md px-3 py-1.5 rounded-xl text-white">
-                <ShieldCheck className="w-4 h-4 text-[#FFDD00]" /> 100% Cold Stone Pressed
-              </span>
-              <span className="inline-flex items-center gap-1.5 bg-white/10 backdrop-blur-md px-3 py-1.5 rounded-xl text-white">
-                <Droplets className="w-4 h-4 text-[#FFDD00]" /> Unrefined & Chemical Free
-              </span>
-              <span className="inline-flex items-center gap-1.5 bg-white/10 backdrop-blur-md px-3 py-1.5 rounded-xl text-white">
-                <Award className="w-4 h-4 text-[#FFDD00]" /> Free Delivery on ₹1,000+
-              </span>
+            {/* Right Picture Showcase (4 cols on desktop) */}
+            <div className="lg:col-span-4 flex justify-center">
+              <div className="relative w-48 sm:w-56 lg:w-64 aspect-square bg-white/15 dark:bg-black/30 backdrop-blur-md rounded-3xl p-4 sm:p-5 border border-white/20 shadow-2xl flex flex-col items-center justify-center group overflow-hidden">
+                <img
+                  src={categoryInfo.heroImage}
+                  alt={categoryInfo.name}
+                  className="max-h-[82%] max-w-[82%] object-contain filter drop-shadow-[0_15px_15px_rgba(0,0,0,0.3)] transition-transform duration-500 group-hover:scale-105"
+                />
+                <span className="mt-2 px-3 py-1 bg-black/40 backdrop-blur-md rounded-full text-[10px] font-black uppercase tracking-wider text-[#FFDD00] border border-white/10 truncate max-w-[90%]">
+                  {categoryInfo.name}
+                </span>
+              </div>
             </div>
           </div>
         </div>
@@ -362,7 +382,7 @@ const CategoryLandingPage = ({ defaultCategory = null }) => {
               ))}
             </div>
           ) : filteredProducts.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2.5 xs:gap-3 sm:gap-6">
               {filteredProducts.map(product => (
                 <ProductCard key={product._id} product={product} />
               ))}
@@ -445,8 +465,7 @@ const CategoryLandingPage = ({ defaultCategory = null }) => {
         )}
       </main>
 
-      <Footer />
-    </div>
+      </div>
   );
 };
 

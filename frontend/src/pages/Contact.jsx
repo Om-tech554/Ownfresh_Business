@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import Navbar from '../components/Navbar';
+import SEO from '../components/SEO';
 import { Phone, Mail, MapPin, Share2, QrCode, Download } from 'lucide-react';
 import { FaInstagram, FaFacebookF, FaXTwitter, FaYoutube, FaLinkedinIn } from "react-icons/fa6";
 import { useNavigate } from 'react-router-dom';
@@ -60,7 +61,30 @@ const Contact = () => {
 
     return (
         <div className="w-full bg-white dark:bg-[#0B0F14] min-h-screen relative z-0 transition-colors duration-250">
-            <Navbar />
+                  <SEO
+        title="Contact OwnFresh | Stone Pressed Oil Production Facility Pune"
+        description="Contact OwnFresh Agro Industries in Dhayari, Pune. Get direct farm-fresh stone pressed cooking oils, order queries, bulk orders, and customer support. Call +91 89997 73438."
+        keywords="contact ownfresh, stone pressed oil pune, cold stone pressed oil manufacturers pune, dhayari pune oil factory, bulk cooking oil enquiry, ownfresh agro industries"
+        url="/contact"
+        schemaMarkup={{
+    "@context": "https://schema.org",
+    "@type": "LocalBusiness",
+    "name": "OWNFRESH AGRO INDUSTRIES",
+    "image": "https://res.cloudinary.com/dkhq2wlwg/image/upload/v1774962822/ownfresh_media/ndxvmcpisomjzsghrfjs.png",
+    "telephone": "+918999773438",
+    "email": "contact@myownfresh.com",
+    "address": {
+      "@type": "PostalAddress",
+      "streetAddress": "1, Vir Maruti Complex, 30/13 Dhayari",
+      "addressLocality": "Pune",
+      "addressRegion": "Maharashtra",
+      "postalCode": "411041",
+      "addressCountry": "IN"
+    },
+    "url": "https://myownfresh.com/contact"
+  }}
+      />
+      <Navbar />
 
             {/* 1. HERO SECTION */}
             <section className="w-full bg-[#FAFAFA] dark:bg-[#111720] py-14 sm:py-20 md:py-24 px-4 sm:px-6 md:px-12 relative overflow-hidden border-b border-gray-100 dark:border-[#202832] flex flex-col items-center justify-center text-center">

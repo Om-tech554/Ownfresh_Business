@@ -116,7 +116,7 @@ const CartPage = () => {
                 Your <span className="bg-gradient-to-r from-amber-400 via-yellow-300 to-amber-200 bg-clip-text text-transparent">Shopping Cart</span>
               </h1>
               <p className="text-[10px] text-amber-300/80 uppercase tracking-widest font-bold hidden sm:block">
-                100% Stone-Pressed • Direct from Traditional Kolhu
+                Premium Stone-Pressed • Direct from Traditional Kolhu
               </p>
             </div>
           </div>

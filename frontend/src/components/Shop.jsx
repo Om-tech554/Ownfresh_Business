@@ -423,9 +423,9 @@ const Shop = () => {
   return (
     <>
       <SEO
-        title="Shop Stone Pressed Oils | Multiple Bottle Sizes"
-        description="Browse our collection of premium stone-pressed oils in 250ml, 500ml, 1 Litre, 2 Litre, and 5 Litre bottles. Traditional, unrefined, and chemical-free."
-        keywords="shop stone pressed oil, buy organic oil online, 5 litre cooking oil, mustard oil 1 litre"
+        title="Buy Premium Quality Stone Pressed Cooking Oils Online | OwnFresh Store"
+        description="Shop authentic, chemical-free stone pressed cooking oils in 250ml, 500ml, 1 Litre, 2 Litre, 5 Litre & 15 Litre bottles. Traditional granite stone churned Groundnut, Sesame, Mustard, Coconut, Safflower & Sunflower oils. Free delivery on orders ₹1,000+."
+        keywords="buy stone pressed oil online, stone pressed groundnut oil, stone pressed sesame oil, kacchi ghani mustard oil, stone pressed coconut oil, stone pressed safflower oil, unrefined cooking oil india, 5 litre cooking oil can, best edible oil brand in india, OwnFresh"
         url="/shop"
       />
       <Navbar />

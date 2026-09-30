@@ -2,7 +2,7 @@ import React, { useEffect, useState, useMemo } from "react";
 import Navbar from "../components/Navbar";
 import axios from "axios";
 import SLink from "../components/SLink";
-import { Helmet } from "react-helmet-async";
+import SEO from "../components/SEO";
 import {
   ChevronLeft,
   ChevronRight,
@@ -428,7 +428,7 @@ const OilInsights = () => {
                         {p.name}
                       </h4>
                       <p className="text-[11px] text-slate-300 dark:text-[#B7C1CE] font-medium line-clamp-2 mb-3">
-                        {p.shortDesc || "100% Stone-pressed, friction-cold extracted unheated unrefined cooking oil."}
+                        {p.shortDesc || "Premium stone-pressed, friction-cold extracted unheated unrefined cooking oil."}
                       </p>
                       <div className="flex items-center justify-between pt-2 border-t border-white/10 dark:border-[#27313D]">
                         <div>
@@ -505,7 +505,7 @@ const OilInsights = () => {
                 </li>
                 <li className="flex items-start gap-2">
                   <CheckCircle2 size={14} className="text-emerald-600 dark:text-[#19C37D] mt-0.5 shrink-0" />
-                  <span>100% Zero Hexane & Chemical Refining</span>
+                  <span>Zero Hexane & Chemical Refining</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <CheckCircle2 size={14} className="text-emerald-600 dark:text-[#19C37D] mt-0.5 shrink-0" />

@@ -189,11 +189,11 @@ const App = () => {
           <Route path="/oils" element={<CategoryLandingPage />} />
           <Route path="/category/:slug" element={<CategoryLandingPage />} />
           <Route path="/groundnut-oil" element={<CategoryLandingPage defaultCategory="Groundnut Oil" />} />
+          <Route path="/safflower-oil" element={<CategoryLandingPage defaultCategory="Safflower Oil" />} />
           <Route path="/sesame-oil" element={<CategoryLandingPage defaultCategory="Sesame Oil" />} />
           <Route path="/mustard-oil" element={<CategoryLandingPage defaultCategory="Mustard Oil" />} />
           <Route path="/coconut-oil" element={<CategoryLandingPage defaultCategory="Coconut Oil" />} />
           <Route path="/sunflower-oil" element={<CategoryLandingPage defaultCategory="Sunflower Oil" />} />
-          <Route path="/almond-oil" element={<CategoryLandingPage defaultCategory="Almond Oil" />} />
 
           <Route path="/blog/:id" element={<UserBlogDetails />} />
           <Route path="/cart" element={<CartPage />} />

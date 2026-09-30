@@ -489,17 +489,15 @@ const GoogleInsightsManager = () => {
             <button
               key={tab.id}
               onClick={() => setActiveGuide(tab.id)}
-              className={`px-4 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${
-                activeGuide === tab.id
+              className={`px-4 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${activeGuide === tab.id
                   ? "bg-slate-900 dark:bg-[#FFD600] text-white dark:text-black shadow-sm"
                   : "text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800"
-              }`}
+                }`}
             >
               {tab.label}
             </button>
           ))}
         </div>
-
         {/* Tab Content */}
         {activeGuide === "search_console" && (
           <div className="space-y-4 text-xs text-slate-700 dark:text-slate-300 leading-relaxed animate-fadeIn">

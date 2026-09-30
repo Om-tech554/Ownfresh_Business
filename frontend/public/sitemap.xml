@@ -58,6 +58,17 @@
   </url>
   <url>
     <loc>https://myownfresh.com/groundnut-oil</loc>
+  </url>
+  <url>
+    <loc>https://myownfresh.com/safflower-oil</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://myownfresh.com/oilinsights</loc>
+    <changefreq>daily</changefreq>
+    <priority>0.85</priority>
+  </url>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
@@ -78,11 +89,6 @@
   </url>
   <url>
     <loc>https://myownfresh.com/sunflower-oil</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://myownfresh.com/almond-oil</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>

@@ -464,7 +464,7 @@ const UserBlogDetails = () => {
                   {blog.author || "OwnFresh Culinary Science Team"}
                 </h4>
                 <p className="text-xs text-slate-500 dark:text-[#818C9B] mt-1 leading-relaxed">
-                  Dedicated to reviving India's ancient wood/stone Kolhu churning heritage, bringing 100% pure, chemical-free cold pressed nutrition to modern families.
+                  Dedicated to reviving India's ancient wood/stone Kolhu churning heritage, bringing premium quality, chemical-free stone pressed nutrition to modern families.
                 </p>
               </div>
             </div>
@@ -543,7 +543,7 @@ const UserBlogDetails = () => {
                     {featuredProduct.name}
                   </h4>
                   <p className="text-[11px] text-slate-300 dark:text-[#B7C1CE] font-medium line-clamp-2 mb-3">
-                    {featuredProduct.shortDesc || "100% Pure, unrefined stone-pressed oil churned at 14–16 RPM."}
+                    {featuredProduct.shortDesc || "Premium quality, unrefined stone-pressed oil churned at 14–16 RPM."}
                   </p>
                   <div className="flex items-center justify-between pt-2 border-t border-white/10 dark:border-[#27313D]">
                     <div>
@@ -633,7 +633,7 @@ const UserBlogDetails = () => {
                 </li>
                 <li className="flex items-start gap-2">
                   <CheckCircle2 size={14} className="text-emerald-600 dark:text-[#19C37D] mt-0.5 shrink-0" />
-                  <span>100% Native Whole Seeds</span>
+                  <span>Premium Native Whole Seeds</span>
                 </li>
               </ul>
             </div>

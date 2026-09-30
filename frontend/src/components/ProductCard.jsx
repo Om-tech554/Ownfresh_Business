@@ -111,10 +111,10 @@ const ProductCard = ({ product, user, onAddToCart }) => {
   return (
     <SLink
       to={`/product/${product._id}`}
-      className="group relative bg-white dark:bg-[#171D26] border border-slate-200/90 dark:border-[#27313D] rounded-2xl sm:rounded-3xl p-3.5 sm:p-5 transition-all duration-300 hover:shadow-2xl hover:dark:bg-[#1C232D] hover:dark:border-[#34404E] hover:border-[#1E971D]/60 flex flex-col cursor-pointer w-full text-left"
+      className="group relative bg-white dark:bg-[#171D26] border border-slate-200/90 dark:border-[#27313D] rounded-xl xs:rounded-2xl sm:rounded-3xl p-2.5 xs:p-3 sm:p-5 transition-all duration-300 hover:shadow-xl hover:dark:bg-[#1C232D] hover:dark:border-[#34404E] hover:border-[#1E971D]/60 flex flex-col justify-between cursor-pointer w-full text-left h-full active:scale-[0.98]"
     >
       {/* BADGES */}
-      <div className="absolute top-2.5 left-2.5 sm:top-4 sm:left-4 flex flex-col gap-1.5 z-10">
+      <div className="absolute top-1.5 left-1.5 xs:top-2 xs:left-2 sm:top-3.5 sm:left-3.5 flex flex-col gap-1 z-10 max-w-[85%]">
         {/* Dynamic Product Badges */}
         {product.tags && product.tags.slice(0, 2).map((tag, idx) => {
           if (!tag) return null;
@@ -153,7 +153,7 @@ const ProductCard = ({ product, user, onAddToCart }) => {
       </div>
 
       {/* Product Image Wrapper */}
-      <div className="relative h-36 sm:h-48 w-full rounded-xl sm:rounded-2xl overflow-hidden bg-slate-50 dark:bg-[#151B23] border border-slate-100 dark:border-[#202832] mb-3 sm:mb-4 flex items-center justify-center p-2 sm:p-4">
+      <div className="relative h-28 xs:h-36 sm:h-48 w-full rounded-lg xs:rounded-xl sm:rounded-2xl overflow-hidden bg-slate-50 dark:bg-[#151B23] border border-slate-100 dark:border-[#202832] mb-2 sm:mb-4 flex items-center justify-center p-1.5 xs:p-2 sm:p-4">
         <img
           key={displayImage}
           src={displayImage}
@@ -176,12 +176,12 @@ const ProductCard = ({ product, user, onAddToCart }) => {
       </div>
 
       {/* Category */}
-      <span className="text-[9px] sm:text-[10px] font-black text-slate-400 dark:text-[#818C9B] uppercase tracking-widest mb-1 sm:mb-1.5">
+      <span className="text-[8px] xs:text-[9px] sm:text-[10px] font-black text-slate-400 dark:text-[#818C9B] uppercase tracking-widest mb-0.5 sm:mb-1.5 truncate block">
         {product.category?.name || "Traditional Stone Pressed"}
       </span>
 
       {/* Title */}
-      <h3 className="text-xs sm:text-sm text-slate-900 dark:text-[#F5F7FA] font-sans font-semibold leading-tight mb-1.5 sm:mb-2 uppercase line-clamp-2 min-h-[2rem] sm:min-h-[2.5rem]">
+      <h3 className="text-[11px] xs:text-xs sm:text-sm text-slate-900 dark:text-[#F5F7FA] font-sans font-semibold leading-tight mb-1 sm:mb-2 uppercase line-clamp-2 min-h-[1.75rem] xs:min-h-[2rem] sm:min-h-[2.5rem]">
         {displayName}
       </h3>
 
@@ -205,7 +205,7 @@ const ProductCard = ({ product, user, onAddToCart }) => {
 
 
       {/* Price & Cart CTA Block */}
-      <div className="mt-auto pt-3 sm:pt-4 border-t border-slate-100 dark:border-[#27313D] w-full">
+      <div className="mt-auto pt-2 xs:pt-2.5 sm:pt-4 border-t border-slate-100 dark:border-[#27313D] w-full">
         {/* Low Stock Warning */}
         {selectedVariant && selectedVariant.stockQuantity > 0 && selectedVariant.stockQuantity <= 10 && (
           <p className="text-[8px] sm:text-[10px] font-bold text-orange-600 dark:text-[#FFD600] mb-1.5 uppercase tracking-wide animate-pulse">
@@ -225,7 +225,7 @@ const ProductCard = ({ product, user, onAddToCart }) => {
                 </span>
               </div>
             ) : null}
-            <span className="text-lg sm:text-2xl font-black text-slate-900 dark:text-[#F5F7FA] font-mono">
+            <span className="text-sm xs:text-base sm:text-2xl font-black text-slate-900 dark:text-[#F5F7FA] font-mono leading-none">
               ₹{Math.round(priceDetails.displayPrice)}
             </span>
           </div>
@@ -234,7 +234,7 @@ const ProductCard = ({ product, user, onAddToCart }) => {
             <button
               onClick={handleCartClick}
               disabled={isAdded || selectedVariant?.stockQuantity <= 0}
-              className={`p-2.5 sm:p-3 rounded-xl sm:rounded-2xl flex items-center justify-center transition-all duration-300 cursor-pointer ${isAdded
+              className={`p-1.5 xs:p-2 sm:p-3 rounded-lg xs:rounded-xl sm:rounded-2xl flex items-center justify-center transition-all duration-300 cursor-pointer shrink-0 ${isAdded
                   ? "bg-green-600 dark:bg-[#19C37D] text-white"
                   : selectedVariant?.stockQuantity <= 0
                     ? "bg-slate-100 dark:bg-[#1D2530] text-slate-400 dark:text-[#5E6875] cursor-not-allowed"

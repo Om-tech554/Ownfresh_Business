@@ -34,10 +34,21 @@ const UserDashboard = () => {
     <div className="w-full">
       <MarketingPopUp />
       <SEO
-        title="Premium Stone Pressed Oils & Organic Products"
-        description="Shop the best Premium Grade Pure Oil natural, stone-pressed oils and organic products at Own Fresh. Pure, healthy, and delivered fresh to your doorstep."
-        keywords="stone pressed oil, pure organic oil, fresh natural oil, healthy cooking oil, buy stone pressed oil online"
+        title="OwnFresh | Premium Quality Stone Pressed Cooking Oils (Wood & Granite Churned)"
+        description="Buy authentic stone pressed cooking oils online in India. Premium quality unrefined Groundnut, Sesame, Mustard, Coconut, Safflower & Sunflower oils. Churned slowly below 45°C in granite stone mills without chemicals. Free delivery ₹1,000+."
+        keywords="stone pressed oil, stone pressed groundnut oil, kacchi ghani mustard oil, stone pressed sesame oil, stone pressed coconut oil, stone pressed safflower oil, unrefined cooking oil india, traditional stone churned oil, best cooking oil india, healthy edible oil, buy stone pressed oil online, OwnFresh"
         url="/"
+        schemaMarkup={{
+          "@context": "https://schema.org",
+          "@type": "WebSite",
+          "name": "OwnFresh",
+          "url": "https://myownfresh.com/",
+          "potentialAction": {
+            "@type": "SearchAction",
+            "target": "https://myownfresh.com/shop?search={search_term_string}",
+            "query-input": "required name=search_term_string"
+          }
+        }}
       />
       <Navbar />
       <HeroSection />

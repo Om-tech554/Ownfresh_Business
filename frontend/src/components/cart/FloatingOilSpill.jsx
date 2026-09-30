@@ -195,8 +195,8 @@ const FloatingOilSpill = () => {
                 ? "0 10px 30px rgba(217, 119, 6, 0.6), inset 0 2px 6px rgba(255, 255, 255, 0.6)"
                 : "0 8px 24px rgba(217, 119, 6, 0.45), inset 0 2px 4px rgba(255, 255, 255, 0.5)"
             }}
-            title="100% Pure Cold-Pressed Oil Guarantee"
-            aria-label="Pure Cold-Pressed Oil Info"
+            title="Premium Quality Stone-Pressed Oil Guarantee"
+            aria-label="Pure Stone-Pressed Oil Info"
           >
             {/* Glossy Liquid Shine Highlight Reflection */}
             <div

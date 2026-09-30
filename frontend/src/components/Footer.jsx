@@ -49,7 +49,7 @@ const Footer = () => {
 
   return (
     <footer className="print:hidden bg-[#f5f5f5] dark:bg-[#080B10] text-gray-600 dark:text-[#8C97A6] border-t border-transparent dark:border-[#202731] pt-16 pb-36 sm:pb-32 lg:pb-12 px-6 md:px-20 transition-colors duration-250">
-      <div className="grid sm:grid-cols-2 md:grid-cols-4 gap-12">
+      <div className="grid sm:grid-cols-2 md:grid-cols-5 gap-8 lg:gap-12">
 
         {/* Column 1 */}
         <div>
@@ -82,6 +82,32 @@ const Footer = () => {
               </a>
             ))}
           </div>
+        </div>
+
+                {/* Stone Pressed Oils (SEO Internal Links) */}
+        <div>
+          <h3 className="text-lg font-semibold text-black dark:text-[#E8ECF2] mb-6">Stone Pressed Oils</h3>
+          <ul className="space-y-3.5 text-sm">
+            {[
+              { name: "Groundnut Oil", path: "/groundnut-oil" },
+              { name: "Sesame Oil (Til)", path: "/sesame-oil" },
+              { name: "Mustard Oil (Sarson)", path: "/mustard-oil" },
+              { name: "Virgin Coconut Oil", path: "/coconut-oil" },
+              { name: "Safflower Oil (Kardi)", path: "/safflower-oil" },
+              { name: "Sunflower Oil", path: "/sunflower-oil" },
+              { name: "Shop All Oils", path: "/shop" },
+            ].map((oil, idx) => (
+              <li key={idx} className="w-fit">
+                <SLink
+                  to={oil.path}
+                  className="group relative inline-block transition-all duration-300 hover:text-black dark:text-[#AEB8C5] dark:hover:text-[#FFD600]"
+                >
+                  {oil.name}
+                  <span className="absolute left-0 -bottom-1 h-[2px] w-0 bg-black dark:bg-[#FFD600] transition-all duration-300 group-hover:w-full"></span>
+                </SLink>
+              </li>
+            ))}
+          </ul>
         </div>
 
         {/* Company */}

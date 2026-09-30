@@ -15,6 +15,7 @@ router.get("/sitemap.xml", async (req, res) => {
       { path: "/", priority: "1.0", changefreq: "daily" },
       { path: "/shop", priority: "0.9", changefreq: "daily" },
       { path: "/oils", priority: "0.9", changefreq: "daily" },
+      { path: "/oilinsights", priority: "0.85", changefreq: "daily" },
       { path: "/whyownfresh", priority: "0.8", changefreq: "weekly" },
       { path: "/contact", priority: "0.7", changefreq: "monthly" },
       { path: "/gallery", priority: "0.7", changefreq: "weekly" },
@@ -28,11 +29,11 @@ router.get("/sitemap.xml", async (req, res) => {
     // 2. Oil Category Landing Pages
     const categoryPages = [
       { path: "/groundnut-oil", priority: "0.9", changefreq: "weekly" },
+      { path: "/safflower-oil", priority: "0.9", changefreq: "weekly" },
       { path: "/sesame-oil", priority: "0.9", changefreq: "weekly" },
       { path: "/mustard-oil", priority: "0.9", changefreq: "weekly" },
       { path: "/coconut-oil", priority: "0.9", changefreq: "weekly" },
       { path: "/sunflower-oil", priority: "0.8", changefreq: "weekly" },
-      { path: "/almond-oil", priority: "0.8", changefreq: "weekly" },
       { path: "/category/groundnut-oil", priority: "0.8", changefreq: "weekly" },
       { path: "/category/sesame-oil", priority: "0.8", changefreq: "weekly" },
       { path: "/category/mustard-oil", priority: "0.8", changefreq: "weekly" },

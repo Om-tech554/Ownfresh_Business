@@ -96,14 +96,14 @@ const ShopByPurpose = () => {
         </div>
 
         {/* Purpose Cards Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 xs:gap-3 sm:gap-6">
           {PURPOSES.map((purpose) => {
             const Icon = purpose.icon;
             return (
               <div
                 key={purpose.id}
                 onClick={() => navigate(`/shop?category=${encodeURIComponent(purpose.categoryFilter)}`)}
-                className={`group relative ${purpose.bgLight} dark:bg-[#171D26] border ${purpose.borderCol} dark:border-[#27313D] dark:hover:border-[#FFD600]/50 rounded-2xl sm:rounded-3xl p-5 sm:p-7 flex flex-col justify-between hover:shadow-xl hover:-translate-y-1 transition-all duration-300 cursor-pointer overflow-hidden active:scale-[0.99]`}
+                className={`group relative ${purpose.bgLight} dark:bg-[#171D26] border ${purpose.borderCol} dark:border-[#27313D] dark:hover:border-[#FFD600]/50 rounded-xl xs:rounded-2xl sm:rounded-3xl p-3 xs:p-4 sm:p-7 flex flex-col justify-between hover:shadow-xl hover:-translate-y-1 transition-all duration-300 cursor-pointer overflow-hidden active:scale-[0.99]`}
               >
                 {/* Subtle Decorative Circle */}
                 <div
@@ -115,21 +115,21 @@ const ShopByPurpose = () => {
                   {/* Top Badge & Icon */}
                   <div className="flex items-center justify-between gap-2 mb-4 sm:mb-5">
                     <div
-                      className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-white dark:bg-[#111720] shadow-xs border border-slate-200/80 dark:border-[#27313D] flex items-center justify-center transition-transform group-hover:scale-110 shrink-0"
+                      className="w-8 h-8 xs:w-10 xs:h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-white dark:bg-[#111720] shadow-xs border border-slate-200/80 dark:border-[#27313D] flex items-center justify-center transition-transform group-hover:scale-110 shrink-0"
                       style={{ color: purpose.color }}
                     >
                       <Icon size={20} />
                     </div>
-                    <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-wider px-2.5 sm:px-3 py-1 bg-white/90 dark:bg-[#111720] rounded-full border border-slate-200/60 dark:border-[#27313D] text-slate-700 dark:text-[#CBD5E1] shadow-xs truncate max-w-[170px]">
+                    <span className="text-[7.5px] xs:text-[8.5px] sm:text-[10px] font-black uppercase tracking-wider px-1.5 xs:px-2.5 sm:px-3 py-0.5 sm:py-1 bg-white/90 dark:bg-[#111720] rounded-full border border-slate-200/60 dark:border-[#27313D] text-slate-700 dark:text-[#CBD5E1] shadow-xs truncate max-w-[170px]">
                       {purpose.badge}
                     </span>
                   </div>
 
                   {/* Title & Subtitle */}
-                  <h3 className="text-base sm:text-lg md:text-xl font-black text-slate-900 dark:text-[#F8FAFC] uppercase tracking-tight mb-1.5 sm:mb-2 group-hover:text-[#1E971D] dark:group-hover:text-[#FFD600] transition-colors leading-snug">
+                  <h3 className="text-xs xs:text-sm sm:text-lg md:text-xl font-black text-slate-900 dark:text-[#F8FAFC] uppercase tracking-tight mb-1.5 sm:mb-2 group-hover:text-[#1E971D] dark:group-hover:text-[#FFD600] transition-colors leading-snug">
                     {purpose.title}
                   </h3>
-                  <p className="text-xs text-slate-600 dark:text-[#94A3B8] font-medium leading-relaxed mb-3 sm:mb-4">
+                  <p className="text-[10px] xs:text-xs text-slate-600 dark:text-[#94A3B8] font-medium leading-tight mb-2 sm:mb-4 line-clamp-2">
                     {purpose.subtitle}
                   </p>
                 </div>

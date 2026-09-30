@@ -206,7 +206,7 @@ const SignUp = () => {
     <div className="min-h-screen flex w-full font-sans bg-[#FCFBF7] dark:bg-[#0B0F14] relative overflow-x-hidden transition-colors duration-200">
       <SEO
         title="Create Account | OwnFresh - Pure Stone Pressed Oils"
-        description="Join OwnFresh today with Google 1-Click or email. Enjoy authentic traditional cold-pressed cooking oils, 1% Prime reward coins, and direct farm purity."
+        description="Join OwnFresh today with Google 1-Click or email. Enjoy authentic traditional stone-pressed cooking oils, 1% Prime reward coins, and direct farm purity."
         keywords="sign up, create account, ownfresh register, google sign up, pure stone pressed oils india"
       />
 
@@ -243,13 +243,13 @@ const SignUp = () => {
             Join Thousands of <span className="text-[#1E971D] dark:text-[#FFD600]">Healthy Families</span>
           </h2>
           <p className="text-xs font-medium text-slate-600 dark:text-[#B7C1CE] mb-4 leading-relaxed">
-            Create an account to unlock exclusive Prime discounts, instant delivery alerts, and pure unadulterated cold-pressed cooking oils.
+            Create an account to unlock exclusive Prime discounts, instant delivery alerts, and pure unadulterated stone-pressed cooking oils.
           </p>
 
           <div className="flex flex-wrap gap-2 pt-1 border-t border-slate-200/60 dark:border-[#27313D]">
             <span className="px-2.5 py-1 bg-slate-100/80 dark:bg-[#1D2530] text-slate-700 dark:text-[#B7C1CE] rounded-lg text-[9px] font-extrabold uppercase tracking-wide">Stone Pressed</span>
             <span className="px-2.5 py-1 bg-slate-100/80 dark:bg-[#1D2530] text-slate-700 dark:text-[#B7C1CE] rounded-lg text-[9px] font-extrabold uppercase tracking-wide">FSSAI Certified</span>
-            <span className="px-2.5 py-1 bg-slate-100/80 dark:bg-[#1D2530] text-slate-700 dark:text-[#B7C1CE] rounded-lg text-[9px] font-extrabold uppercase tracking-wide">100% Single Origin</span>
+            <span className="px-2.5 py-1 bg-slate-100/80 dark:bg-[#1D2530] text-slate-700 dark:text-[#B7C1CE] rounded-lg text-[9px] font-extrabold uppercase tracking-wide">Premium Single Origin</span>
           </div>
         </div>
       </div>

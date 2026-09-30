@@ -74,7 +74,7 @@ const OIL_KNOWLEDGE_BASE = {
       },
       {
         q: "How does stone pressing differ from industrial refined peanut oil?",
-        a: "Refined peanut oils are treated with hexane chemical solvents, caustic soda bleaching, and 200°C deodorization which strips away all resveratrol and vitamin E. OwnFresh stone pressing uses slow granite pestles without any chemicals, preserving 100% natural nutty flavor and active antioxidants."
+        a: "Refined peanut oils are treated with hexane chemical solvents, caustic soda bleaching, and 200°C deodorization which strips away all resveratrol and vitamin E. OwnFresh stone pressing uses slow granite pestles without any chemicals, preserving natural nutty flavor and active antioxidants."
       },
       {
         q: "Why is the oil slightly thick and richly colored?",
@@ -130,7 +130,7 @@ const OIL_KNOWLEDGE_BASE = {
     themeColor: "#16A34A",
     smokePoint: "177°C (350°F)",
     shelfLife: "12 Months",
-    origin: "100% Sulfur-Free Sun-Dried Coastal Copra",
+    origin: "Sulfur-Free Sun-Dried Coastal Copra",
     extractionType: "Cold Stone Kolhu Pressing",
     fatProfile: "65% Medium Chain Triglycerides (MCTs) • 50%+ Lauric Acid",
     aromaProfile: "Fresh, sweet, natural coconut aroma with water-like clarity",
@@ -146,7 +146,7 @@ const OIL_KNOWLEDGE_BASE = {
     faqs: [
       {
         q: "Why does OwnFresh Coconut Oil solidify during winter?",
-        a: "Pure stone-pressed coconut oil naturally solidifies below 24°C (75°F) because of its high concentration of healthy saturated MCTs and Lauric Acid. This is a hallmark proof of 100% unadulterated coconut oil with zero chemical mineral oil blending."
+        a: "Pure stone-pressed coconut oil naturally solidifies below 24°C (75°F) because of its high concentration of healthy saturated MCTs and Lauric Acid. This is a hallmark proof of unadulterated coconut oil with zero chemical mineral oil blending."
       },
       {
         q: "Is this coconut oil suitable for daily Ayurvedic oil pulling (Gandusha)?",
@@ -154,7 +154,7 @@ const OIL_KNOWLEDGE_BASE = {
       },
       {
         q: "Can I use it for my baby's massage and scalp nourishing?",
-        a: "Yes, it is 100% gentle, food-grade, and free of synthetic fragrances or mineral oils, making it safe and nourishing for sensitive baby skin and hair growth."
+        a: "Yes, it is gentle, food-grade, and free of synthetic fragrances or mineral oils, making it safe and nourishing for sensitive baby skin and hair growth."
       },
       {
         q: "What makes sulfur-free copra so important?",
@@ -192,7 +192,7 @@ const OIL_KNOWLEDGE_BASE = {
       },
       {
         q: "Does this sesame oil contain any added palm or mineral oil blends?",
-        a: "Never. Every drop of OwnFresh Sesame Oil is 100% single-press from graded sesame seeds, with zero blending or dilution."
+        a: "Never. Every drop of OwnFresh Sesame Oil is single-press from graded sesame seeds, with zero blending or dilution."
       }
     ]
   },
@@ -258,7 +258,7 @@ const OIL_KNOWLEDGE_BASE = {
   },
   combo: {
     categoryName: "Multi-Oil Combo Pack",
-    badgeTitle: "Complete Kitchen Starter Bundle • 100% Stone Pressed",
+    badgeTitle: "Complete Kitchen Starter Bundle • Premium Stone Pressed",
     themeColor: "#1E971D",
     smokePoint: "177°C – 250°C (Variety-dependent)",
     shelfLife: "9 to 12 Months",
@@ -282,7 +282,7 @@ const OIL_KNOWLEDGE_BASE = {
       },
       {
         q: "What oil varieties are included in the combo pack?",
-        a: "OwnFresh combo packs feature our bestselling 100% stone-pressed oils including Groundnut, Mustard, Coconut, Sesame, Safflower, and Sunflower oils to satisfy all your daily kitchen cooking needs."
+        a: "OwnFresh combo packs feature our bestselling premium stone-pressed oils including Groundnut, Mustard, Coconut, Sesame, Safflower, and Sunflower oils to satisfy all your daily kitchen cooking needs."
       }
     ]
   }
@@ -558,9 +558,9 @@ const ProductDetails = () => {
           "sku": selectedVariant?.sku || String(product._id),
           "brand": {
             "@type": "Brand",
-            "name": "MyOwnFresh"
+            "name": "OwnFresh"
           },
-          "category": typeof product.category === "object" ? product.category?.name : product.category || "Cooking Oils",
+          "category": "Food & Beverage > Cooking Oils > Stone Pressed Oils",
           "offers": {
             "@type": "Offer",
             "priceCurrency": "INR",
@@ -1356,7 +1356,7 @@ const ProductDetails = () => {
                       <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-[#818C9B]">Zero-Heat Friction</span>
                     </div>
                     <div>
-                      <span className="text-xl sm:text-2xl font-black text-[#EFDB27] dark:text-[#FFD600] block font-mono">100%</span>
+                      <span className="text-xl sm:text-2xl font-black text-[#EFDB27] dark:text-[#FFD600] block font-mono">Pure</span>
                       <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-[#818C9B]">Single-Origin Seeds</span>
                     </div>
                     <div>
@@ -1512,7 +1512,7 @@ const ProductDetails = () => {
               <div className="mt-10 pt-6 border-t border-slate-100 dark:border-[#27313D] flex flex-wrap items-center justify-between gap-4 text-[11px] font-bold text-slate-500 dark:text-[#818C9B]">
                 <div className="flex items-center gap-2">
                   <ShieldCheck size={16} className="text-[#1E971D] dark:text-[#19C37D]" />
-                  <span>100% Single-Origin Kernels</span>
+                  <span>Premium Single-Origin Kernels</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <RotateCcw size={16} className="text-[#1E971D] dark:text-[#19C37D]" />
@@ -1536,7 +1536,7 @@ const ProductDetails = () => {
               Other Stone Pressed Oils You May Like
             </h2>
 
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5 xs:gap-3 sm:gap-6">
               {recentProducts.map((p) => (
                 <ProductCard
                   key={p._id}
