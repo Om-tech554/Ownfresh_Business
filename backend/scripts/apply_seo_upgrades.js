@@ -390,19 +390,15 @@ updateFile("backend/routes/sitemapRoutes.js", (code) => {
 updateFile("frontend/public/sitemap.xml", (code) => {
   let updated = code;
   if (!updated.includes("<loc>https://myownfresh.com/safflower-oil</loc>")) {
-    const safflowerUrl = `  <url>
+    const safflowerUrl = `
+  <url>
     <loc>https://myownfresh.com/safflower-oil</loc>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
-  </url>
-  <url>
-    <loc>https://myownfresh.com/oilinsights</loc>
-    <changefreq>daily</changefreq>
-    <priority>0.85</priority>
   </url>`;
     updated = updated.replace(
-      "<loc>https://myownfresh.com/groundnut-oil</loc>",
-      `<loc>https://myownfresh.com/groundnut-oil</loc>\n  </url>\n${safflowerUrl}`
+      /(<loc>https:\/\/myownfresh\.com\/groundnut-oil<\/loc>[\s\S]*?<\/url>)/,
+      `$1${safflowerUrl}`
     );
   }
   return updated;
