@@ -236,13 +236,36 @@ router.get("/all", async (req, res) => {
 ------------------------------------------- */
 router.get("/:id", async (req, res) => {
   try {
-    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
-      return res.status(400).json({ success: false, message: "Invalid Product ID" });
-    }
-    const product = await Product.findById(req.params.id)
+    let product;
+    if (mongoose.Types.ObjectId.isValid(req.params.id)) {
+      product = await Product.findById(req.params.id)
+        .populate("category")
+        .populate("tags")
+        .lean();
+    } else {
+      // Slug or name search (e.g. from legacy backlinks)
+      const cleanSlug = decodeURIComponent(req.params.id).replace(/[-_]/g, " ").trim();
+      product = await Product.findOne({
+        $or: [
+          { name: { $regex: cleanSlug, $options: "i" } },
+          { sku: { $regex: req.params.id, $options: "i" } }
+        ]
+      })
       .populate("category")
       .populate("tags")
       .lean();
+
+      // If still not found, try oil type keywords like 'groundnut', 'sesame', 'mustard', 'coconut', 'safflower', 'sunflower'
+      if (!product) {
+        const oilTypes = ["groundnut", "sesame", "mustard", "coconut", "safflower", "sunflower"];
+        const matchedOil = oilTypes.find(oil => req.params.id.toLowerCase().includes(oil));
+        if (matchedOil) {
+          product = await Product.findOne({
+            name: { $regex: matchedOil, $options: "i" }
+          }).populate("category").populate("tags").lean();
+        }
+      }
+    }
 
     if (!product) {
       return res.status(404).json({

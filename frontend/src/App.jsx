@@ -1,5 +1,5 @@
 import React, { Suspense, lazy } from 'react';
-import { Route, Routes, useLocation } from 'react-router-dom';
+import { Route, Routes, useLocation, Navigate, useParams } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import SignUp from './pages/SignUp';
 import Signin from './pages/Signin';
@@ -59,6 +59,35 @@ export const serverUrl = (() => {
   const url = (import.meta.env.VITE_API_URL || "http://localhost:10000").replace(/\/+$/, "");
   return url.startsWith("//") ? `https:${url}` : url;
 })();
+
+
+// Legacy Backlink Redirect Helpers
+const LegacyCategoryRedirect = () => {
+  const { slug } = useParams();
+  return <Navigate to={`/category/${slug}`} replace />;
+};
+
+const LegacyRouteFallback = () => {
+  const location = useLocation();
+  const rawPath = location.pathname.replace(/^\/+|\/+$/g, '');
+
+  if (rawPath && !rawPath.includes('/')) {
+    const categorySlugs = ['groundnut-oil', 'safflower-oil', 'sesame-oil', 'mustard-oil', 'coconut-oil', 'sunflower-oil'];
+    if (categorySlugs.includes(rawPath)) {
+      return <Navigate to={`/category/${rawPath}`} replace />;
+    }
+    if (rawPath === 'about' || rawPath === 'about-2' || rawPath === 'about-us') {
+      return <Navigate to="/whyownfresh" replace />;
+    }
+    if (rawPath === 'blog' || rawPath === 'blogs') {
+      return <Navigate to="/oilinsights" replace />;
+    }
+    // Forward unknown single-slug paths to /blog/:slug (supports legacy WordPress backlinks)
+    return <Navigate to={`/blog/${rawPath}`} replace />;
+  }
+
+  return <Home />;
+};
 
 const LoadingFallback = () => (
   <div className="min-h-[70vh] flex flex-col items-center justify-center bg-gray-50">
@@ -209,7 +238,14 @@ const App = () => {
           <Route path="/refund-policy" element={<RefundPolicy />} />
           <Route path="/shipping-policy" element={<ShippingPolicy />} />
           {/* Catch-all route to prevent blank screens on unmatched paths */}
-          <Route path="*" element={<Home />} />
+                    {/* Legacy & Alternative Backlink Routes */}
+          <Route path="/product-category/:slug" element={<LegacyCategoryRedirect />} />
+          <Route path="/about" element={<Navigate to="/whyownfresh" replace />} />
+          <Route path="/about-2" element={<Navigate to="/whyownfresh" replace />} />
+          <Route path="/blog" element={<Navigate to="/oilinsights" replace />} />
+
+          {/* Catch-all smart fallback route */}
+          <Route path="*" element={<LegacyRouteFallback />} />
         </Routes>
       </Suspense>
 

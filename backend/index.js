@@ -137,6 +137,17 @@ app.use("/wp-content/uploads", (req, res, next) => {
     });
 });
 
+// --- LEGACY BACKLINK 301 REDIRECTS ---
+app.get("/product-category/:slug", (req, res) => {
+    return res.redirect(301, `/category/${req.params.slug}`);
+});
+app.get(["/about", "/about-2", "/about-us"], (req, res) => {
+    return res.redirect(301, "/whyownfresh");
+});
+app.get("/blog", (req, res) => {
+    return res.redirect(301, "/oilinsights");
+});
+
 // --- STATIC FILES & SPA ROUTING FIX ---
 const __frontendDir = path.join(__dirname, "../frontend/dist");
 const __indexPath = path.join(__frontendDir, "index.html");
