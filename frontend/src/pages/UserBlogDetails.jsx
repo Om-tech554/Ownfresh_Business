@@ -53,21 +53,17 @@ const UserBlogDetails = () => {
 
   const goToTop = () => window.scrollTo({ top: 0, behavior: "smooth" });
 
-  const fetchBlog = async (retryCount = 0) => {
+  const fetchBlog = async () => {
     try {
       const API_BASE_URL = (import.meta.env.VITE_API_URL || "http://localhost:10000").replace(/\/+$/, "");
       const res = await axios.get(`${API_BASE_URL}/api/blog/${id}`);
-      setBlog(res.data.blog);
-    } catch (error) {
-      if (retryCount < 2) {
-        setTimeout(() => fetchBlog(retryCount + 1), 600);
-        return;
+      if (res.data?.blog) {
+        setBlog(res.data.blog);
       }
+    } catch (error) {
       console.log("Error loading blog:", error);
     } finally {
-      if (retryCount >= 2 || blog) {
-        setLoading(false);
-      }
+      setLoading(false);
     }
   };
 
@@ -75,8 +71,8 @@ const UserBlogDetails = () => {
     try {
       const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:10000";
       const [blogRes, productRes] = await Promise.all([
-        axios.get(`${API_BASE_URL}/api/blog/all?limit=1000`),
-        axios.get(`${API_BASE_URL}/api/product/all?limit=10`)
+        axios.get(`${API_BASE_URL}/api/blog/all?limit=6`),
+        axios.get(`${API_BASE_URL}/api/product/all?limit=6`)
       ]);
 
       const allBlogs = blogRes.data.blogs || [];
@@ -198,8 +194,7 @@ const UserBlogDetails = () => {
     return (
       <>
         <SEO
-          title="Article Not Found | OwnFresh"
-          noindex={true}
+          title="Article | OwnFresh"
           url={`/blog/${id}`}
           canonicalUrl={`https://myownfresh.com/blog/${id}`}
         />
