@@ -1,6 +1,8 @@
 import React from 'react';
 import { Helmet } from 'react-helmet-async';
 
+const BASE_URL = "https://myownfresh.com";
+
 const SEO = ({ 
   title, 
   description, 
@@ -12,35 +14,31 @@ const SEO = ({
   canonicalUrl = null,
   schemaMarkup = null
 }) => {
-  const siteName = "MyOwnFresh";
-  const defaultTitle = "MyOwnFresh | Pure Stone Pressed Edible Oils";
-  const fullTitle = title ? `${title} | ${siteName}` : defaultTitle;
-  const defaultDescription = "MyOwnFresh offers authentic, chemical-free stone pressed edible cooking oils (Groundnut, Sesame, Mustard, Coconut, Safflower, Sunflower). Free delivery on eligible orders.";
+  const brandName = "OwnFresh";
+  const defaultTitle = "OwnFresh | Premium Quality Stone Pressed Cooking Oils";
+  
+  // Cleanly format title without redundant duplicate brand names
+  let fullTitle = defaultTitle;
+  if (title) {
+    if (title.toLowerCase().includes("ownfresh") || title.toLowerCase().includes("myownfresh")) {
+      fullTitle = title;
+    } else {
+      fullTitle = `${title} | ${brandName}`;
+    }
+  }
+
+  const defaultDescription = "Buy authentic stone pressed cooking oils online in India. Unrefined Groundnut, Sesame, Mustard, Coconut, Safflower & Sunflower oils churned below 45°C without chemicals. Free delivery ₹999+.";
   const metaDescription = description || defaultDescription;
   
   const metaImage = image || "https://res.cloudinary.com/dkhq2wlwg/image/upload/v1774962822/ownfresh_media/ndxvmcpisomjzsghrfjs.png";
-  const cleanPath = url ? (url.startsWith('/') ? url : `/${url}`) : "";
-  const finalUrl = canonicalUrl || `https://myownfresh.com${cleanPath}`;
-
-  // Base Organization Schema for Google Knowledge Graph
-  const organizationSchema = {
-    "@context": "https://schema.org",
-    "@type": "Organization",
-    "name": "MyOwnFresh",
-    "url": "https://myownfresh.com",
-    "logo": metaImage,
-    "contactPoint": {
-      "@type": "ContactPoint",
-      "email": "contact@myownfresh.com",
-      "contactType": "Customer Service",
-      "areaServed": "IN",
-      "availableLanguage": ["English", "Hindi", "Marathi"]
-    },
-    "sameAs": [
-      "https://www.instagram.com/myownfresh",
-      "https://www.facebook.com/myownfresh"
-    ]
-  };
+  
+  // Normalize canonical URL (strict non-trailing-slash policy except for root)
+  let cleanPath = url ? (url.startsWith('/') ? url : `/${url}`) : "";
+  cleanPath = cleanPath.split("?")[0].split("#")[0];
+  if (cleanPath.length > 1 && cleanPath.endsWith("/")) {
+    cleanPath = cleanPath.slice(0, -1);
+  }
+  const finalUrl = canonicalUrl || (cleanPath ? `${BASE_URL}${cleanPath}` : `${BASE_URL}/`);
 
   return (
     <Helmet>
@@ -48,7 +46,10 @@ const SEO = ({
       <title>{fullTitle}</title>
       <meta name="description" content={metaDescription} />
       {keywords && <meta name="keywords" content={keywords} />}
-      <meta name="robots" content={noindex ? "noindex, nofollow" : "index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1"} />
+      <meta 
+        name="robots" 
+        content={noindex ? "noindex, nofollow" : "index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1"} 
+      />
       
       {/* Canonical URL for Search Engines */}
       <link rel="canonical" href={finalUrl} />
@@ -59,21 +60,17 @@ const SEO = ({
       <meta property="og:title" content={fullTitle} />
       <meta property="og:description" content={metaDescription} />
       <meta property="og:image" content={metaImage} />
-      <meta property="og:site_name" content={siteName} />
+      <meta property="og:site_name" content={brandName} />
       <meta property="og:locale" content="en_IN" />
 
-      {/* Twitter Card */}
+      {/* Twitter Cards */}
       <meta name="twitter:card" content="summary_large_image" />
       <meta name="twitter:title" content={fullTitle} />
       <meta name="twitter:description" content={metaDescription} />
       <meta name="twitter:image" content={metaImage} />
+      <meta name="twitter:url" content={finalUrl} />
 
-      {/* Global Organization Structured Data */}
-      <script type="application/ld+json">
-        {JSON.stringify(organizationSchema)}
-      </script>
-
-      {/* Page Specific Structured Data (JSON-LD) */}
+      {/* Page-Specific Structured Data Only (No Duplicate Organization Schema) */}
       {schemaMarkup && (
         <script type="application/ld+json">
           {JSON.stringify(schemaMarkup)}

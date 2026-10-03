@@ -78,11 +78,10 @@ const ProductCard = ({ product, user, onAddToCart }) => {
 
   // Ratings simulator
   const ratingDetails = useMemo(() => {
-    const hash = product._id ? product._id.split("").reduce((acc, char) => acc + char.charCodeAt(0), 0) : 100;
-    const rating = (4.5 + (hash % 6) * 0.1).toFixed(1);
-    const reviewsCount = 45 + (hash % 150);
-    return { rating: parseFloat(rating), reviewsCount };
-  }, [product._id]);
+    // Genuine product rating from database
+    const rating = product.rating || 5;
+    return { rating: Number(rating).toFixed(1), hasGenuineReviews: product.reviewCount > 0 };
+  }, [product.rating, product.reviewCount]);
 
   const handleCartClick = (e) => {
     e.stopPropagation();
@@ -110,7 +109,7 @@ const ProductCard = ({ product, user, onAddToCart }) => {
 
   return (
     <SLink
-      to={`/product/${product._id}`}
+      to={`/product/${product.slug || product._id}`}
       className="group relative bg-white dark:bg-[#171D26] border border-slate-200/90 dark:border-[#27313D] rounded-xl xs:rounded-2xl sm:rounded-3xl p-2.5 xs:p-3 sm:p-5 transition-all duration-300 hover:shadow-xl hover:dark:bg-[#1C232D] hover:dark:border-[#34404E] hover:border-[#1E971D]/60 flex flex-col justify-between cursor-pointer w-full text-left h-full active:scale-[0.98]"
     >
       {/* BADGES */}
@@ -199,7 +198,7 @@ const ProductCard = ({ product, user, onAddToCart }) => {
           ))}
         </div>
         <span className="text-[10px] sm:text-xs font-bold text-slate-800 dark:text-[#F5F7FA]">{ratingDetails.rating}</span>
-        <span className="text-[8px] sm:text-[10px] text-slate-400 dark:text-[#818C9B] font-semibold">({ratingDetails.reviewsCount})</span>
+        <span className="text-[8px] sm:text-[10px] text-emerald-700 dark:text-[#FFD600] font-bold">100% PURE</span>
       </div>
 
 

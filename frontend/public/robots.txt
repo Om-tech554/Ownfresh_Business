@@ -1,8 +1,36 @@
+# MyOwnFresh Robots.txt
+# Technical SEO Crawl Rules for Googlebot, Bingbot, & Search Crawlers
+
 User-agent: *
 Allow: /
+Allow: /shop
+Allow: /product/
+Allow: /blog/
+Allow: /groundnut-oil
+Allow: /mustard-oil
+Allow: /sesame-oil
+Allow: /coconut-oil
+Allow: /safflower-oil
+Allow: /sunflower-oil
+Allow: /whyownfresh
+Allow: /contact
+Allow: /oilinsights
+Allow: /gallery
+Allow: /membership
 
+# Disallow Private, Auth & Transactional Routes
 Disallow: /admin
+Disallow: /admin/
+Disallow: /cart
 Disallow: /checkout
+Disallow: /order-success
 Disallow: /my-orders
+Disallow: /order-details/
+Disallow: /signin
+Disallow: /signup
+Disallow: /forgot-password
+Disallow: /referral
+Disallow: /api/
 
+# Authoritative XML Sitemap Location
 Sitemap: https://myownfresh.com/sitemap.xml

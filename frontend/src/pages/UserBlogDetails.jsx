@@ -24,6 +24,7 @@ import Navbar from "../components/Navbar";
 import SLink from "../components/SLink";
 import SEO from "../components/SEO";
 import BlogImageSlider from "../components/BlogImageSlider";
+import Breadcrumbs from "../components/Breadcrumbs";
 
 /* ─── tiny helper: strip HTML tags ─── */
 const stripHtml = (html = "") => html.replace(/<[^>]+>/g, "");
@@ -249,6 +250,13 @@ const UserBlogDetails = () => {
 
         {/* Top navigation row */}
         <div className="max-w-7xl mx-auto px-4 md:px-8 lg:px-12 pt-6 pb-4">
+          <Breadcrumbs
+            items={[
+              { label: "Oil Insights", path: "/oilinsights" },
+              { label: cleanTitle }
+            ]}
+            className="mb-4 text-emerald-400 font-medium"
+          />
           <button
             onClick={() => navigate(-1)}
             className="inline-flex items-center gap-2 text-white/70 hover:text-white transition-colors text-xs font-black uppercase tracking-widest cursor-pointer bg-white/10 px-4 py-2 rounded-full border border-white/10"

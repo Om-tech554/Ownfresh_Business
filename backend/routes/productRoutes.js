@@ -9,6 +9,16 @@ import { generateProductContent } from "../services/ai/articleAiService.js";
 
 const router = express.Router();
 
+function toSlug(str) {
+  return (str || "")
+    .toString()
+    .toLowerCase()
+    .trim()
+    .replace(/[^\w\s-]/g, "")
+    .replace(/[\s_-]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
 /* -------------------------------------------
    ADD PRODUCT
 ------------------------------------------- */
@@ -105,8 +115,17 @@ router.post(
         parsedCerts = certificationImages;
       }
 
+      let finalSlug = req.body.slug ? toSlug(req.body.slug) : toSlug(name);
+      if (finalSlug) {
+        const existingSlug = await Product.findOne({ slug: finalSlug });
+        if (existingSlug) {
+          finalSlug = `${finalSlug}-${Date.now().toString().slice(-4)}`;
+        }
+      }
+
       const product = await Product.create({
         name,
+        slug: finalSlug || undefined,
         shortDesc,
         description: description || "",
         sku: sku || "",
@@ -236,13 +255,19 @@ router.get("/all", async (req, res) => {
 ------------------------------------------- */
 router.get("/:id", async (req, res) => {
   try {
-    let product;
-    if (mongoose.Types.ObjectId.isValid(req.params.id)) {
+    let product = await Product.findOne({ slug: req.params.id })
+      .populate("category")
+      .populate("tags")
+      .lean();
+
+    if (!product && mongoose.Types.ObjectId.isValid(req.params.id)) {
       product = await Product.findById(req.params.id)
         .populate("category")
         .populate("tags")
         .lean();
-    } else {
+    }
+
+    if (!product) {
       // Slug or name search (e.g. from legacy backlinks)
       const cleanSlug = decodeURIComponent(req.params.id).replace(/[-_]/g, " ").trim();
       product = await Product.findOne({
@@ -331,6 +356,15 @@ router.put(
 
       const updateData = {};
       if (name) updateData.name = name;
+      if (req.body.slug) {
+        const candidate = toSlug(req.body.slug);
+        if (candidate) {
+          const existing = await Product.findOne({ slug: candidate, _id: { $ne: req.params.id } });
+          if (!existing) {
+            updateData.slug = candidate;
+          }
+        }
+      }
       if (shortDesc !== undefined) updateData.shortDesc = shortDesc;
       if (description !== undefined) updateData.description = description;
       if (sku !== undefined) updateData.sku = sku;

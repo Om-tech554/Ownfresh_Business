@@ -305,11 +305,23 @@ async function restoreCompleteLiveDatabase() {
       .trim();
 
     // Raw Base Price
-    const rawPrice = parseInt(p.prices?.price || "0", 10);
-    const basePrice = rawPrice > 1000 ? Math.round(rawPrice / 100) : rawPrice || 499;
+    const baseSlug = prodName
+      .toLowerCase()
+      .replace(/^ownfresh\s*/i, "")
+      .replace(/kacchi\s*ghani/gi, "")
+      .replace(/(\d+)\s*liters?\b/gi, "$1-litre")
+      .replace(/(\d+)\s*litres?\b/gi, "$1-litre")
+      .replace(/(\d+)\s*l\b/gi, "$1-litre")
+      .replace(/(\d+)\s*ml\b/gi, "$1ml")
+      .replace(/[+&]/g, " and ")
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "")
+      .replace(/--+/g, "-");
+    const prodSlug = (baseSlug.startsWith("stone-pressed") ? baseSlug : "stone-pressed-" + baseSlug) + (idx > 0 && [11, 12].includes(idx) ? `-${idx}` : "");
 
     const productDoc = await Product.create({
       name: prodName,
+      slug: prodSlug,
       sku: p.sku || `OF-${catName.slice(0, 3).toUpperCase()}-${idx + 1}`,
       image: mainImage,
       rating: 5,

@@ -3,6 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import axios from 'axios';
 import Navbar from '../components/Navbar';
 import SEO from '../components/SEO';
+import Breadcrumbs from '../components/Breadcrumbs';
 import ProductCard from '../components/ProductCard';
 import { Sparkles, ShieldCheck, Heart, Award, ArrowRight, HelpCircle, ChevronDown, ChevronUp, Droplets, CheckCircle2 } from 'lucide-react';
 import { trackViewItemList } from '../utils/analytics';
@@ -227,13 +228,13 @@ const CategoryLandingPage = ({ defaultCategory = null }) => {
     "@type": "CollectionPage",
     "name": `${categoryInfo.name} | MyOwnFresh`,
     "description": categoryInfo.intro,
-    "url": `https://myownfresh.com/category/${currentSlug}`,
+    "url": `https://myownfresh.com/${currentSlug}`,
     "mainEntity": {
       "@type": "ItemList",
       "itemListElement": filteredProducts.map((p, idx) => ({
         "@type": "ListItem",
         "position": idx + 1,
-        "url": `https://myownfresh.com/product/${p._id}`,
+        "url": `https://myownfresh.com/product/${p.slug || p._id}`,
         "name": p.name
       }))
     }
@@ -258,7 +259,7 @@ const CategoryLandingPage = ({ defaultCategory = null }) => {
         title={categoryInfo.name}
         description={categoryInfo.intro.slice(0, 160)}
         keywords={`${categoryInfo.name}, stone pressed ${categoryInfo.categoryKey || "oil"}, authentic stone pressed oil, traditional stone ghani oil, pure unrefined cooking oil, wood stone pressed oil, OwnFresh stone pressed oil`}
-        url={`/category/${currentSlug}`}
+        url={`/${currentSlug}`}
         image={categoryInfo.heroImage}
         schemaMarkup={schemaMarkup}
       />
@@ -266,14 +267,12 @@ const CategoryLandingPage = ({ defaultCategory = null }) => {
       <Navbar />
 
       <main className="pt-28 pb-20 max-w-7xl mx-auto px-4 sm:px-6">
-        {/* Breadcrumb Navigation */}
-        <nav className="flex items-center gap-2 text-xs font-bold text-slate-500 mb-6 uppercase tracking-wider" aria-label="Breadcrumb">
-          <Link to="/" className="hover:text-[#1E971D] transition-colors">Home</Link>
-          <span>/</span>
-          <Link to="/shop" className="hover:text-[#1E971D] transition-colors">Shop</Link>
-          <span>/</span>
-          <span className="text-slate-900">{categoryInfo.name}</span>
-        </nav>
+        {/* Visible & Semantic UI Breadcrumb Navigation */}
+        <Breadcrumbs items={[
+          { label: 'Home', path: '/' },
+          { label: 'Stone Pressed Oils', path: '/shop' },
+          { label: categoryInfo.name }
+        ]} />
 
         {/* Hero Section with Perfect Matching Product Bottle Picture */}
         <div className="bg-gradient-to-br from-[#1E971D] via-[#167415] to-[#125511] rounded-3xl p-6 sm:p-10 lg:p-12 text-white shadow-xl relative overflow-hidden mb-12">
@@ -344,7 +343,7 @@ const CategoryLandingPage = ({ defaultCategory = null }) => {
           {Object.entries(CATEGORY_DATA).map(([slugKey, cat]) => (
             <Link
               key={slugKey}
-              to={`/category/${slugKey}`}
+              to={`/${slugKey}`}
               className={`px-5 py-2.5 rounded-2xl text-xs font-extrabold whitespace-nowrap transition-all ${
                 currentSlug === slugKey
                   ? 'bg-[#1E971D] text-white shadow-md'

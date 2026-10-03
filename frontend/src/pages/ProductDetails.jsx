@@ -43,6 +43,7 @@ import { cleanProductName, getDynamicName } from "../utils/productUtils";
 import { isUserActivePrime, calculateItemPricing } from "../utils/primeUtils";
 import SLink from "../components/SLink";
 import SEO from "../components/SEO";
+import Breadcrumbs from "../components/Breadcrumbs";
 import ProductReviews from "../components/ProductReviews";
 import { motion, AnimatePresence } from "framer-motion";
 import { trackViewItem, trackAddToCart } from "../utils/analytics";
@@ -566,7 +567,7 @@ const ProductDetails = () => {
             "priceCurrency": "INR",
             "price": finalPrice,
             "availability": inStock ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
-            "url": `https://myownfresh.com/product/${product._id}`,
+            "url": `https://myownfresh.com/product/${product.slug || product._id}`,
             "itemCondition": "https://schema.org/NewCondition"
           }
         },
@@ -575,7 +576,7 @@ const ProductDetails = () => {
           "itemListElement": [
             { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://myownfresh.com/" },
             { "@type": "ListItem", "position": 2, "name": "Shop", "item": "https://myownfresh.com/shop" },
-            { "@type": "ListItem", "position": 3, "name": displayName || cleanProductName(product.name), "item": `https://myownfresh.com/product/${product._id}` }
+            { "@type": "ListItem", "position": 3, "name": displayName || cleanProductName(product.name), "item": `https://myownfresh.com/product/${product.slug || product._id}` }
           ]
         }
       ]
@@ -701,7 +702,7 @@ const ProductDetails = () => {
         title={displayName || cleanProductName(product.name)}
         description={product.shortDesc || oilInfo.intro}
         image={activeImage || product.image}
-        url={`/product/${product._id}`}
+        url={`/product/${product.slug || product._id}`}
         type="product"
         schemaMarkup={productSchema}
       />

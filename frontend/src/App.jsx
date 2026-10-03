@@ -52,6 +52,7 @@ const RefundPolicy = lazyRetry(() => import('./pages/RefundPolicy'));
 const ShippingPolicy = lazyRetry(() => import('./pages/ShippingPolicy'));
 const MembershipPage = lazyRetry(() => import('./pages/MembershipPage'));
 const CategoryLandingPage = lazyRetry(() => import('./pages/CategoryLandingPage'));
+const NotFound = lazyRetry(() => import('./pages/NotFound'));
 
 import { initGA, trackPageView } from './utils/analytics';
 
@@ -64,7 +65,7 @@ export const serverUrl = (() => {
 // Legacy Backlink Redirect Helpers
 const LegacyCategoryRedirect = () => {
   const { slug } = useParams();
-  return <Navigate to={`/category/${slug}`} replace />;
+  return <Navigate to={`/${slug}`} replace />;
 };
 
 const LegacyRouteFallback = () => {
@@ -74,7 +75,7 @@ const LegacyRouteFallback = () => {
   if (rawPath && !rawPath.includes('/')) {
     const categorySlugs = ['groundnut-oil', 'safflower-oil', 'sesame-oil', 'mustard-oil', 'coconut-oil', 'sunflower-oil'];
     if (categorySlugs.includes(rawPath)) {
-      return <Navigate to={`/category/${rawPath}`} replace />;
+      return <Navigate to={`/${rawPath}`} replace />;
     }
     if (rawPath === 'about' || rawPath === 'about-2' || rawPath === 'about-us') {
       return <Navigate to="/whyownfresh" replace />;
@@ -83,10 +84,14 @@ const LegacyRouteFallback = () => {
       return <Navigate to="/oilinsights" replace />;
     }
     // Forward unknown single-slug paths to /blog/:slug (supports legacy WordPress backlinks)
-    return <Navigate to={`/blog/${rawPath}`} replace />;
+    // If it matches WordPress blog slug pattern, try forwarding, otherwise 404
+    if (rawPath.startsWith("blog-") || rawPath.includes("oil") || rawPath.includes("health") || rawPath.includes("cooking")) {
+      return <Navigate to={`/blog/${rawPath}`} replace />;
+    }
+    return <NotFound />;
   }
 
-  return <Home />;
+  return <NotFound />;
 };
 
 const LoadingFallback = () => (
@@ -216,7 +221,7 @@ const App = () => {
           
           {/* SEO Category Landing Routes */}
           <Route path="/oils" element={<CategoryLandingPage />} />
-          <Route path="/category/:slug" element={<CategoryLandingPage />} />
+          <Route path="/category/:slug" element={<LegacyCategoryRedirect />} />
           <Route path="/groundnut-oil" element={<CategoryLandingPage defaultCategory="Groundnut Oil" />} />
           <Route path="/safflower-oil" element={<CategoryLandingPage defaultCategory="Safflower Oil" />} />
           <Route path="/sesame-oil" element={<CategoryLandingPage defaultCategory="Sesame Oil" />} />

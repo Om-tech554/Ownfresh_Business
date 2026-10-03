@@ -18,6 +18,7 @@ import mongoose from "mongoose";
 const productSchema = new mongoose.Schema(
   {
     name: { type: String, required: true },
+    slug: { type: String, unique: true, sparse: true, index: true, lowercase: true, trim: true },
     sku: { type: String, default: "" }, // Optional SKU for the parent product
     image: { type: String, required: true }, // Main display image
     images: [{ type: String }], // Multi-image gallery for product

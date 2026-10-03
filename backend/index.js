@@ -38,6 +38,7 @@ import analyticsRoutes from "./routes/analyticsRoutes.js";
 import feedRoutes from "./routes/feedRoutes.js";
 
 import { deactivateAllExistingMembers } from "./controllers/membershipController.js";
+import { seoMiddleware } from "./middleware/seoMiddleware.js";
 
 
 const __filename = fileURLToPath(import.meta.url);
@@ -138,23 +139,27 @@ app.use("/wp-content/uploads", (req, res, next) => {
 });
 
 // --- LEGACY BACKLINK 301 REDIRECTS ---
-app.get("/product-category/:slug", (req, res) => {
-    return res.redirect(301, `/category/${req.params.slug}`);
+app.get(["/category/:slug", "/product-category/:slug"], (req, res) => {
+    return res.redirect(301, `/${req.params.slug}`);
 });
 app.get(["/about", "/about-2", "/about-us"], (req, res) => {
     return res.redirect(301, "/whyownfresh");
 });
-app.get("/blog", (req, res) => {
+app.get(["/blog", "/blogs"], (req, res) => {
     return res.redirect(301, "/oilinsights");
 });
 
-// --- STATIC FILES & SPA ROUTING FIX ---
+// --- STATIC ASSETS SERVING (Assets, Images, Scripts, Styles) ---
 const __frontendDir = path.join(__dirname, "../frontend/dist");
 const __indexPath = path.join(__frontendDir, "index.html");
 
 if (fs.existsSync(__frontendDir)) {
-    app.use(express.static(__frontendDir));
+    // Serve static build assets directly with caching
+    app.use(express.static(__frontendDir, { index: false }));
 }
+
+// --- PRODUCTION-GRADE SEO PRERENDER, CANONICAL REDIRECTS & 404 ENGINE ---
+app.use(seoMiddleware);
 
 // Catch-all middleware for client routing & API health status
 app.use((req, res) => {
@@ -162,11 +167,11 @@ app.use((req, res) => {
     if (req.url.startsWith("/api/")) {
         return res.status(404).json({ message: "API route not found" });
     }
-    // If frontend build exists, serve it
+    // Fallback if frontend build exists
     if (fs.existsSync(__indexPath)) {
         return res.sendFile(__indexPath);
     }
-    // Fallback if backend is hosted as standalone API service on Render
+    // Fallback if backend is hosted as standalone API service on Railway/Render
     return res.status(200).json({
         success: true,
         message: "OwnFresh Backend API is live and running",

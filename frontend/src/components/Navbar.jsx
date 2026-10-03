@@ -103,7 +103,7 @@ const Navbar = () => {
                     searchTitle: p.name,
                     searchDescription: p.shortDesc || '',
                     searchImage: p.image,
-                    searchUrl: `/product/${p._id}`
+                    searchUrl: `/product/${p.slug || p._id}`
                 }));
                 combinedResults = [...combinedResults, ...formattedProducts];
             } catch (error) {
@@ -211,7 +211,7 @@ const Navbar = () => {
                 image: cat.image
             })) : null
         },
-        { name: "Blog", path: "/Oilinsights" },
+        { name: "Blog", path: "/oilinsights" },
         { name: "Prime 1%", path: "/membership" },
         { name: "Contact", path: "/contact" },
         ...(userData ? [{ name: "Refer & Earn", path: "/referral", special: true }] : [])
