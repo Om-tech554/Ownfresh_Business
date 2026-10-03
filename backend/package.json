@@ -36,7 +36,7 @@
     "nodemailer": "^9.0.3",
     "nodemon": "^3.1.11",
     "ownfresh": "file:..",
-    "pdf-parse": "^2.4.5",
+    "pdf-parse": "^1.1.1",
     "pdfkit": "^0.19.1",
     "tesseract.js": "^7.0.0"
   },

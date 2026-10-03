@@ -2,8 +2,6 @@ import { createWorker } from "tesseract.js";
 import axios from "axios";
 import { createRequire } from "module";
 const require = createRequire(import.meta.url);
-const pdfParse = require("pdf-parse");
-
 /**
  * Perform OCR on images using Tesseract.js
  */
@@ -27,6 +25,7 @@ export const runImageOcr = async (imageUrl) => {
 export const runPdfTextExtraction = async (pdfUrl) => {
   console.log(`[OCR SERVICE] Running PDF text extraction for URL: ${pdfUrl}`);
   try {
+    const pdfParse = require("pdf-parse");
     const response = await axios.get(pdfUrl, { responseType: "arraybuffer" });
     const buffer = Buffer.from(response.data);
     const data = await pdfParse(buffer);
