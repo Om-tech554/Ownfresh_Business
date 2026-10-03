@@ -11,6 +11,7 @@
     "build": "cd backend && npm install --include=dev && cd ../frontend && npm install --include=dev && npm run build"
   },
   "dependencies": {
+    "express": "^4.21.2",
     "express-mongo-sanitize": "^2.2.0"
   }
 }
