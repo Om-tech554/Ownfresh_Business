@@ -39,5 +39,11 @@
     "pdf-parse": "^2.4.5",
     "pdfkit": "^0.19.1",
     "tesseract.js": "^7.0.0"
+  },
+  "overrides": {
+    "jwks-rsa": {
+      "jose": "4.15.9"
+    },
+    "jose": "4.15.9"
   }
 }

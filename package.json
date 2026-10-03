@@ -13,5 +13,11 @@
   "dependencies": {
     "express": "^4.21.2",
     "express-mongo-sanitize": "^2.2.0"
+  },
+  "overrides": {
+    "jwks-rsa": {
+      "jose": "4.15.9"
+    },
+    "jose": "4.15.9"
   }
 }
