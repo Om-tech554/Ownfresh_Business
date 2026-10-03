@@ -1,3 +1,7 @@
+import { webcrypto } from "node:crypto";
+if (!globalThis.crypto) {
+  globalThis.crypto = webcrypto;
+}
 import dotenv from "dotenv"
 dotenv.config() // Load env vars FIRST before anything else
 import express from "express"
@@ -156,8 +160,8 @@ const __frontendDir = path.join(__dirname, "../frontend/dist");
 const __indexPath = path.join(__frontendDir, "index.html");
 
 if (fs.existsSync(__frontendDir)) {
-    // Serve static build assets directly with caching
-    app.use(express.static(__frontendDir, { index: false }));
+    // Serve static build assets directly with caching (prevent automatic directory redirect)
+    app.use(express.static(__frontendDir, { index: false, redirect: false }));
 }
 
 // --- PRODUCTION-GRADE SEO PRERENDER, CANONICAL REDIRECTS & 404 ENGINE ---

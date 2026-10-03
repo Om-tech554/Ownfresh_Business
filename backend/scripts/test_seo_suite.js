@@ -28,7 +28,7 @@ async function runTestSuite() {
 
   const frontendDist = path.join(__dirname, '../../frontend/dist');
   if (fs.existsSync(frontendDist)) {
-    app.use(express.static(frontendDist, { index: false }));
+    app.use(express.static(frontendDist, { index: false, redirect: false }));
   }
 
   app.use(seoMiddleware);
