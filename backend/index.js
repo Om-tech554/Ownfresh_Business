@@ -77,6 +77,8 @@ app.use(cors({
             return callback(null, true);
         }
         if (
+            cleanOrigin.startsWith("http://localhost:") ||
+            cleanOrigin.startsWith("http://127.0.0.1:") ||
             cleanOrigin.endsWith("myownfresh.com") ||
             cleanOrigin.endsWith(".onrender.com") ||
             cleanOrigin.endsWith(".railway.app") ||
