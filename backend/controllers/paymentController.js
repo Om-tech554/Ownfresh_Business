@@ -131,6 +131,17 @@ export const initiatePhonePePayment = async (req, res) => {
     }
     const redirectUrl = `${frontendHost}/order-success?orderId=${order._id}`;
 
+    // If order total is 0 (due to 100% coupon discount, coins, or wallet), complete immediately without calling gateway
+    if (order.totalAmount <= 0 || order.paymentStatus === "completed") {
+      order.paymentStatus = "completed";
+      await order.save();
+      return res.status(200).json({
+        success: true,
+        redirectUrl,
+        msg: "Order paid completely via discount/wallet"
+      });
+    }
+
     const rawMobile = order.deliveryAddress?.phone || order.user?.mobile || "";
     const digitsOnly = rawMobile.replace(/\D/g, "");
     const cleanMobile = (digitsOnly.length >= 10) ? digitsOnly.slice(-10) : "9999999999";

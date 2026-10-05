@@ -248,7 +248,7 @@ const OrderReview = () => {
     if (!user) return toast.error("Please login to place an order");
     if (!cartItems || cartItems.length === 0) return toast.error("Your cart is empty");
 
-    if (paymentMethod === "online") {
+    if (paymentMethod === "online" && finalAmount > 0) {
       await initiatePhonePePayment();
     } else {
       setIsProcessing(true);
@@ -305,7 +305,7 @@ const OrderReview = () => {
       });
 
       if (data.success) {
-        if (paymentMethod === "cod") {
+        if (paymentMethod === "cod" || finalAmount <= 0) {
           toast.success("Order placed successfully!");
           dispatch(clearCart());
           navigate("/order-success", { state: { orderId: data.order?._id || Date.now() } });
