@@ -377,7 +377,13 @@ export const phonepeCallback = async (req, res) => {
         // Increment Coupon usedCount if applicable
         if (order.couponCode) {
           const coupon = await Coupon.findOne({ code: order.couponCode.toUpperCase() });
-          if (coupon) { coupon.usedCount += 1; await coupon.save(); }
+          if (coupon) { 
+            coupon.usedCount += 1; 
+            if (coupon.usageLimit && coupon.usedCount >= coupon.usageLimit) {
+              coupon.isActive = false;
+            }
+            await coupon.save(); 
+          }
         }
 
         // Award Commission Coins

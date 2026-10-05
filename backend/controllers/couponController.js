@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import jwt from "jsonwebtoken";
 import Coupon from "../models/couponModel.js";
 import Order from "../models/ordermodel.js";
 import User from "../models/usermodel.js";
@@ -109,7 +110,8 @@ export const createCoupon = async (req, res) => {
       startDate, 
       expiryDate, 
       applicableUsers, 
-      selectedUsersList 
+      selectedUsersList,
+      isSpecialCoupon: rawIsSpecial
     } = req.body;
 
     if (!code) {
@@ -121,8 +123,10 @@ export const createCoupon = async (req, res) => {
       return res.status(400).json({ message: "Promo code already exists" });
     }
 
+    const isSpecial = Boolean(applicableUsers === "SPECIAL_MEMBER" || rawIsSpecial);
+
     let resolvedUsers = [];
-    if (applicableUsers === "SELECTED_USERS") {
+    if (applicableUsers === "SELECTED_USERS" && !isSpecial) {
       resolvedUsers = await resolveSelectedUsers(selectedUsersList);
       if (selectedUsersList && (Array.isArray(selectedUsersList) ? selectedUsersList.length > 0 : String(selectedUsersList).trim().length > 0) && resolvedUsers.length === 0) {
         return res.status(400).json({
@@ -131,9 +135,13 @@ export const createCoupon = async (req, res) => {
       }
     }
 
-    const requiresDeliveryCharge = req.body.requiresDeliveryCharge !== undefined 
+    const requiresDeliveryCharge = isSpecial || (req.body.requiresDeliveryCharge !== undefined 
       ? Boolean(req.body.requiresDeliveryCharge)
-      : (applicableUsers === "SELECTED_USERS");
+      : (applicableUsers === "SELECTED_USERS"));
+
+    const finalUsageLimit = isSpecial ? 1 : (usageLimit ? Number(usageLimit) : null);
+    const finalPerUserLimit = isSpecial ? 1 : (Number(perUserLimit) || 1);
+    const finalApplicableUsers = isSpecial ? "SPECIAL_MEMBER" : (applicableUsers || "ALL_USERS");
 
     const newCoupon = await Coupon.create({
       code: code.toUpperCase(),
@@ -141,12 +149,13 @@ export const createCoupon = async (req, res) => {
       discountValue: Number(discountValue),
       minimumOrderAmount: Number(minimumOrderAmount) || 0,
       maximumDiscountAmount: maximumDiscountAmount ? Number(maximumDiscountAmount) : null,
-      usageLimit: usageLimit ? Number(usageLimit) : null,
-      perUserLimit: Number(perUserLimit) || 1,
+      usageLimit: finalUsageLimit,
+      perUserLimit: finalPerUserLimit,
       startDate: startDate ? new Date(startDate) : new Date(),
       expiryDate: new Date(expiryDate),
-      applicableUsers: applicableUsers || "ALL_USERS",
-      selectedUsersList: resolvedUsers,
+      applicableUsers: finalApplicableUsers,
+      isSpecialCoupon: isSpecial,
+      selectedUsersList: isSpecial ? [] : resolvedUsers,
       requiresDeliveryCharge
     });
 
@@ -212,8 +221,16 @@ export const deleteCoupon = async (req, res) => {
 // VALIDATE & APPLY COUPON (User)
 export const validateCoupon = async (req, res) => {
   try {
-    const { code, amount, userId: bodyUserId } = req.body;
-    const userId = bodyUserId || req.userId;
+    const { code, amount, shippingCost = 0, userId: bodyUserId } = req.body;
+    let userId = bodyUserId || req.userId;
+
+    // If userId not explicitly provided, attempt to decode from auth cookie if present
+    if (!userId && req.cookies?.token) {
+      try {
+        const decoded = jwt.verify(req.cookies.token, process.env.JWT_SECRET);
+        if (decoded?.userId) userId = decoded.userId;
+      } catch (e) {}
+    }
 
     if (!code || !amount) {
       return res.status(400).json({ message: "Code and amount are required" });
@@ -239,6 +256,24 @@ export const validateCoupon = async (req, res) => {
       return res.status(400).json({ message: "Promo code has expired" });
     }
 
+    // Check total usage limit (especially critical for single-use / special family member coupons)
+    if (coupon.usageLimit && coupon.usedCount >= coupon.usageLimit) {
+      return res.status(400).json({ 
+        message: (coupon.applicableUsers === "SPECIAL_MEMBER" || coupon.isSpecialCoupon || coupon.usageLimit === 1)
+          ? "This special one-time promo code has already been redeemed and is no longer valid."
+          : "Promo code usage limit has been reached" 
+      });
+    }
+
+    // MANDATORY SIGN-IN ENFORCEMENT: Customer MUST be logged in to redeem special family member promo codes
+    if (coupon.applicableUsers === "SPECIAL_MEMBER" || coupon.isSpecialCoupon) {
+      if (!userId) {
+        return res.status(401).json({ 
+          message: "Please sign in or create an account to apply this special promo code." 
+        });
+      }
+    }
+
     // Check per-user limit
     if (userId && coupon.perUserLimit) {
       const userUsageCount = await Order.countDocuments({
@@ -247,7 +282,11 @@ export const validateCoupon = async (req, res) => {
         status: { $ne: "cancelled" }
       });
       if (userUsageCount >= coupon.perUserLimit) {
-        return res.status(400).json({ message: `You have reached your limit of ${coupon.perUserLimit} uses for this code` });
+        return res.status(400).json({ 
+          message: (coupon.applicableUsers === "SPECIAL_MEMBER" || coupon.isSpecialCoupon || coupon.perUserLimit === 1)
+            ? "You have already redeemed this promo code on your account."
+            : `You have reached your limit of ${coupon.perUserLimit} uses for this code` 
+        });
       }
     }
 
@@ -271,6 +310,7 @@ export const validateCoupon = async (req, res) => {
           return res.status(400).json({ message: "You are not eligible to apply this coupon" });
         }
       }
+      // If SPECIAL_MEMBER: Anyone holding the code can redeem it once!
     }
 
     // Calculate discount amount
@@ -286,9 +326,11 @@ export const validateCoupon = async (req, res) => {
 
     // Ensure discount is not greater than the order amount itself
     discountAmount = Math.min(discountAmount, amount);
-    const finalAmount = amount - discountAmount;
+    const finalAmount = Math.max(0, amount - discountAmount);
 
+    const isSpecialCoupon = Boolean(coupon.applicableUsers === "SPECIAL_MEMBER" || coupon.isSpecialCoupon);
     const requiresDeliveryCharge = Boolean(
+      isSpecialCoupon ||
       coupon.applicableUsers === "SELECTED_USERS" || 
       coupon.requiresDeliveryCharge === true || 
       (Array.isArray(coupon.selectedUsersList) && coupon.selectedUsersList.length > 0)
@@ -299,10 +341,16 @@ export const validateCoupon = async (req, res) => {
       discountAmount,
       finalAmount,
       couponCode: coupon.code,
+      discountType: coupon.discountType,
+      discountValue: coupon.discountValue,
+      maximumDiscountAmount: coupon.maximumDiscountAmount,
       applicableUsers: coupon.applicableUsers,
+      isSpecialCoupon,
       requiresDeliveryCharge,
-      message: requiresDeliveryCharge 
-        ? `Exclusive coupon ${coupon.code} applied! Standard delivery charges apply.` 
+      message: isSpecialCoupon
+        ? `🌟 Special one-time promo ${coupon.code} applied! Saved ₹${discountAmount}. (Standard delivery charges apply)`
+        : requiresDeliveryCharge 
+        ? `Exclusive promo ${coupon.code} applied! Saved ₹${discountAmount}. (Standard delivery charges apply)` 
         : `Coupon ${coupon.code} applied! Saved ₹${discountAmount}.`
     });
   } catch (error) {
@@ -315,12 +363,14 @@ export const validateCoupon = async (req, res) => {
 export const getPublicCoupons = async (req, res) => {
   try {
     const now = new Date();
-    // Return active, non-expired coupons that are for all users or new users
+    // Return active, non-expired coupons that are for all users or new users (excluding special/secret coupons)
     const coupons = await Coupon.find({
       isActive: true,
       startDate: { $lte: now },
       expiryDate: { $gte: now },
       applicableUsers: { $in: ["ALL_USERS", "NEW_USERS"] },
+      isSpecialCoupon: { $ne: true },
+      usageLimit: { $ne: 1 },
       affiliateId: null // Exclude custom affiliate coupons
     }).sort({ createdAt: -1 });
 

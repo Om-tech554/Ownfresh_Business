@@ -349,7 +349,8 @@ export const calculateDeliveryCharge = ({
   totalWeightKg: explicitWeight = null,
   subtotal = 0,
   destination = null,
-  deliveryMethodId = "standard"
+  deliveryMethodId = "standard",
+  disableFreeDelivery = false
 }) => {
   const safeSubtotal = Math.max(0, Number(subtotal) || 0);
   const effectiveItems = (items && items.length > 0) ? items : (cartItems || []);
@@ -374,8 +375,9 @@ export const calculateDeliveryCharge = ({
   const normalizedDest = normalizeDestination(destination);
   const region = determineDeliveryRegion(normalizedDest);
 
-    // 3. Free Delivery Eligibility Rule: Invoice Amount over Rs. 1,500/- OR Order Volume 2 Kg & above
-  const isFreeDelivery = (safeSubtotal > FREE_DELIVERY_THRESHOLD) || (totalWeightKg >= FREE_DELIVERY_WEIGHT_THRESHOLD);
+    // 3. Free Delivery Eligibility Rule: Invoice Amount over Rs. 1,500/- OR Order Volume 2 Kg & above (unless disableFreeDelivery is set)
+  const qualifiesForFreeDelivery = (safeSubtotal > FREE_DELIVERY_THRESHOLD) || (totalWeightKg >= FREE_DELIVERY_WEIGHT_THRESHOLD);
+  const isFreeDelivery = !disableFreeDelivery && qualifiesForFreeDelivery;
   const amountNeeded = isFreeDelivery ? 0 : Math.max(0, (FREE_DELIVERY_THRESHOLD + 1) - safeSubtotal);
   const weightNeeded = isFreeDelivery ? 0 : Math.max(0, normalizeWeight(FREE_DELIVERY_WEIGHT_THRESHOLD - totalWeightKg));
   const subtotalProgress = Math.min(100, Math.round((safeSubtotal / FREE_DELIVERY_THRESHOLD) * 100));
@@ -441,9 +443,11 @@ export const calculateDeliveryCharge = ({
     deliveryCost = standardDeliveryCost + 300;
   }
 
-  const freeDeliveryMessage = isFreeDelivery
-    ? "🎉 Free Delivery Unlocked"
-    : `Add ₹${amountNeeded.toLocaleString('en-IN')} more (or use Prime 1% for FREE delivery)`;
+  const freeDeliveryMessage = disableFreeDelivery
+    ? "Standard delivery charges apply with this exclusive promo code"
+    : (isFreeDelivery
+      ? "🎉 Free Delivery Unlocked"
+      : `Add ₹${amountNeeded.toLocaleString('en-IN')} more (or use Prime 1% for FREE delivery)`);
 
   return {
     region,

@@ -13,9 +13,12 @@ const OrderSummary = () => {
   const isSpecialCoupon = Boolean(
     couponDetails?.isApplied && (
       couponDetails.requiresDeliveryCharge || 
-      couponDetails.applicableUsers === 'SELECTED_USERS'
+      couponDetails.isSpecialCoupon ||
+      couponDetails.applicableUsers === 'SELECTED_USERS' ||
+      couponDetails.applicableUsers === 'SPECIAL_MEMBER'
     )
   );
+
   const shippingQuote = calculateClientShipping({
     cartItems,
     subtotal,

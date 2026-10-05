@@ -92,9 +92,12 @@ const OrderReview = () => {
   const isSpecialCoupon = Boolean(
     couponDetails?.isApplied && (
       couponDetails.requiresDeliveryCharge || 
-      couponDetails.applicableUsers === 'SELECTED_USERS'
+      couponDetails.isSpecialCoupon ||
+      couponDetails.applicableUsers === 'SELECTED_USERS' ||
+      couponDetails.applicableUsers === 'SPECIAL_MEMBER'
     )
   );
+
   const shippingQuote = calculateClientShipping({
     cartItems,
     subtotal,
@@ -104,6 +107,7 @@ const OrderReview = () => {
   });
   const shippingCost = shippingQuote.deliveryCost;
   const discount = couponDetails?.discount || 0;
+
   const coinDiscount = (useCommissionCoins && canRedeemCoins) ? Math.min(subtotal, commissionCoinsBalance) : 0;
   const netSubtotal = Math.max(0, subtotal - discount - coinDiscount);
   // Prices are inclusive of 5% GST (2.5% CGST + 2.5% SGST)
@@ -115,24 +119,36 @@ const OrderReview = () => {
 
   const handleApplyCoupon = async () => {
     if (!couponInput.trim()) return toast.error("Enter coupon code");
+    if (!user?._id) {
+      toast.error("Please sign in or create an account to use promo codes", { icon: "🔐" });
+      navigate('/signin?redirect=/checkout');
+      return;
+    }
     setValidatingCoupon(true);
     try {
       const { data } = await axios.post(`${serverUrl}/api/coupon/validate`, {
         code: couponInput.trim(),
-        amount: subtotal
+        amount: subtotal,
+        userId: user._id
       }, { withCredentials: true });
 
       if (data.success) {
-        const reqDeliv = Boolean(data.requiresDeliveryCharge || data.applicableUsers === "SELECTED_USERS");
+        const reqDeliv = Boolean(
+          data.requiresDeliveryCharge || 
+          data.isSpecialCoupon || 
+          data.applicableUsers === "SELECTED_USERS" ||
+          data.applicableUsers === "SPECIAL_MEMBER"
+        );
         setCouponDetails({
           code: couponInput.trim().toUpperCase(),
           discount: data.discountAmount,
           isApplied: true,
           requiresDeliveryCharge: reqDeliv,
+          isSpecialCoupon: Boolean(data.isSpecialCoupon || data.applicableUsers === "SPECIAL_MEMBER"),
           applicableUsers: data.applicableUsers
         });
         if (reqDeliv) {
-          toast.success(`Exclusive promo ${couponInput.trim().toUpperCase()} applied! Saved ₹${data.discountAmount}. (Standard delivery charges apply)`);
+          toast.success(data.message || `Exclusive promo ${couponInput.trim().toUpperCase()} applied! Saved ₹${data.discountAmount}. (Standard delivery charges apply)`);
         } else {
           toast.success(`Coupon applied! ₹${data.discountAmount} saved.`);
         }
@@ -145,7 +161,7 @@ const OrderReview = () => {
     }
   };
 
-  const removeCoupon = () => {
+    const removeCoupon = () => {
     setCouponInput("");
     setCouponDetails({ code: '', discount: 0, isApplied: false });
     toast.success("Coupon removed");
@@ -678,8 +694,9 @@ const OrderReview = () => {
                     <span className="font-mono">-₹{discount.toLocaleString('en-IN')}</span>
                   </div>
                   {isSpecialCoupon && (
-                    <div className="p-2 rounded-lg bg-amber-500/10 border border-amber-400/30 text-[10px] text-amber-300 font-bold flex items-center gap-1.5">
-                      <span>🚚 Standard delivery charges apply for this exclusive coupon</span>
+                    <div className="p-2.5 rounded-xl bg-amber-500/10 border border-amber-400/30 text-[11px] text-amber-300 font-bold flex items-center gap-2">
+                      <span>🚚</span>
+                      <span>Note: Standard delivery charges (₹{shippingCost.toFixed(2)}) apply with exclusive code "{couponDetails?.code}".</span>
                     </div>
                   )}
                 </>
@@ -704,7 +721,7 @@ const OrderReview = () => {
                     {shippingQuote.deliveryMethodName}
                   </span>
                 </div>
-                <span className="text-white dark:text-[#F5F7FA] font-mono">
+                <span className="text-white dark:text-[#F5F7FA] font-mono font-bold">
                   {shippingCost === 0 ? <strong className="text-emerald-400">FREE</strong> : `₹${shippingCost.toFixed(2)}`}
                 </span>
               </div>

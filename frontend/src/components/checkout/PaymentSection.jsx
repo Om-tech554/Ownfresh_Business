@@ -45,42 +45,47 @@ const PaymentSection = () => {
       initial={{ opacity: 0, x: 20 }}
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: -20 }}
-      className="bg-white dark:bg-[#171D26] rounded-2xl shadow-sm border border-gray-100 dark:border-[#27313D] p-6 md:p-8 transition-colors duration-200"
+      className="bg-white dark:bg-[#171D26] rounded-2xl shadow-sm border border-gray-100 dark:border-[#27313D] p-4 sm:p-6 md:p-8 transition-colors duration-200"
     >
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-2xl font-black text-gray-900 dark:text-[#F7F9FC]">Payment Method</h2>
-        <div className="flex items-center gap-2 text-green-600 dark:text-emerald-400 bg-green-50 dark:bg-emerald-950/40 px-3 py-1 rounded-full text-xs font-bold border border-green-200 dark:border-emerald-800/50">
-          <FaLock /> SSL Secure Gateway
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5 sm:mb-6">
+        <div>
+          <h2 className="text-xl sm:text-2xl font-black text-gray-900 dark:text-[#F7F9FC] tracking-tight">Payment Method</h2>
+          <p className="text-xs sm:text-sm text-gray-500 dark:text-[#8B98A5] mt-0.5">Select how you want to pay</p>
+        </div>
+        <div className="self-start sm:self-auto flex items-center gap-2 text-green-700 dark:text-emerald-400 bg-green-50 dark:bg-emerald-950/40 px-3 py-1.5 rounded-full text-xs font-bold border border-green-200 dark:border-emerald-800/50 shadow-xs">
+          <FaLock className="text-xs" /> SSL Secure Gateway
         </div>
       </div>
       
-      <div className="space-y-4">
+      <div className="space-y-3 sm:space-y-4">
         {paymentOptions.map((option) => {
           const isSelected = paymentMethod === option.id;
           return (
             <div 
               key={option.id}
               onClick={() => handleSelectPayment(option.id)}
-              className={`relative flex flex-col sm:flex-row items-start sm:items-center p-5 rounded-2xl border-2 cursor-pointer transition-all duration-200 ${
+              className={`relative flex items-center gap-3.5 sm:gap-4 p-3.5 sm:p-5 rounded-2xl border-2 cursor-pointer transition-all duration-200 ${
                 isSelected 
-                  ? 'border-[#FFD600] bg-yellow-50/80 dark:bg-[#1D2530] shadow-md dark:border-[#FFD600]' 
-                  : 'border-gray-200 dark:border-[#27313D] hover:border-yellow-300 dark:hover:border-[#34404E] hover:bg-gray-50 dark:hover:bg-[#1C232D]'
+                  ? 'border-[#FFD600] bg-yellow-50/80 dark:bg-[#1D2530] shadow-sm dark:border-[#FFD600]' 
+                  : 'border-gray-200 dark:border-[#27313D] hover:border-yellow-300 dark:hover:border-[#34404E] hover:bg-gray-50/80 dark:hover:bg-[#1C232D]'
               }`}
             >
-              <div className={`flex items-center justify-center w-12 h-12 rounded-full mb-4 sm:mb-0 sm:mr-5 transition-colors ${
-                isSelected ? 'bg-[#FFD600] text-[#111318] shadow-md' : 'bg-gray-100 dark:bg-[#151B23] text-gray-500 dark:text-[#818C9B]'
+              <div className={`flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl shrink-0 transition-colors ${
+                isSelected ? 'bg-[#FFD600] text-[#111318] shadow-sm' : 'bg-gray-100 dark:bg-[#151B23] text-gray-500 dark:text-[#818C9B]'
               }`}>
                 {option.icon}
               </div>
               
-              <div className="flex-1">
-                <h3 className="font-bold text-gray-900 dark:text-[#F7F9FC] text-lg">{option.name}</h3>
-                <p className="text-sm text-gray-600 dark:text-[#B7C1CE] mt-1">{option.description}</p>
+              <div className="flex-1 min-w-0 pr-2">
+                <h3 className="font-bold text-gray-900 dark:text-[#F7F9FC] text-sm sm:text-base md:text-lg leading-snug">{option.name}</h3>
+                <p className="text-xs sm:text-sm text-gray-600 dark:text-[#B7C1CE] mt-0.5 line-clamp-2">{option.description}</p>
               </div>
 
               {/* Custom Radio Button Indicator */}
-              <div className="absolute top-5 right-5 sm:static sm:ml-4 w-6 h-6 rounded-full border-2 border-gray-300 dark:border-[#2A3440] flex items-center justify-center flex-shrink-0">
-                {isSelected && <div className="w-3 h-3 rounded-full bg-[#FFD600]"></div>}
+              <div className={`w-5 h-5 sm:w-6 sm:h-6 rounded-full border-2 flex items-center justify-center shrink-0 transition-all ${
+                isSelected ? 'border-[#FFD600] bg-[#FFD600]/20' : 'border-gray-300 dark:border-[#2A3440]'
+              }`}>
+                {isSelected && <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-[#FFD600]"></div>}
               </div>
             </div>
           );

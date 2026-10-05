@@ -53,6 +53,7 @@ const CouponManager = () => {
     startDate: "",
     expiryDate: "",
     applicableUsers: "ALL_USERS",
+    isSpecialCoupon: false,
     selectedUsersListText: "" // user emails/IDs comma separated to parse
   });
 
@@ -106,9 +107,11 @@ const CouponManager = () => {
     e.preventDefault();
     setLoading(true);
     try {
+      const isSpecial = formData.applicableUsers === "SPECIAL_MEMBER" || formData.isSpecialCoupon;
+
       // Parse and sanitize selected users (strips any brackets, quotes, whitespace)
       let selectedUsersList = [];
-      if (formData.selectedUsersListText) {
+      if (!isSpecial && formData.selectedUsersListText) {
         const cleanReg = new RegExp("[\[\]'\"`]", "g");
         const raw = formData.selectedUsersListText.replace(cleanReg, " ").trim();
         selectedUsersList = raw
@@ -123,16 +126,18 @@ const CouponManager = () => {
         discountValue: Number(formData.discountValue),
         minimumOrderAmount: Number(formData.minimumOrderAmount) || 0,
         maximumDiscountAmount: formData.maximumDiscountAmount ? Number(formData.maximumDiscountAmount) : null,
-        usageLimit: formData.usageLimit ? Number(formData.usageLimit) : null,
-        perUserLimit: Number(formData.perUserLimit) || 1,
+        usageLimit: isSpecial ? 1 : (formData.usageLimit ? Number(formData.usageLimit) : null),
+        perUserLimit: isSpecial ? 1 : (Number(formData.perUserLimit) || 1),
         startDate: formData.startDate ? new Date(formData.startDate) : new Date(),
         expiryDate: new Date(formData.expiryDate),
-        applicableUsers: formData.applicableUsers,
-        selectedUsersList
+        applicableUsers: isSpecial ? "SPECIAL_MEMBER" : formData.applicableUsers,
+        isSpecialCoupon: isSpecial,
+        selectedUsersList: isSpecial ? [] : selectedUsersList,
+        requiresDeliveryCharge: isSpecial ? true : undefined
       };
 
       await axios.post(`${serverUrl}/api/coupon/create`, body, { withCredentials: true });
-      toast.success("Promo code created successfully");
+      toast.success(isSpecial ? "Special single-use promo code created!" : "Promo code created successfully");
       setShowAddModal(false);
       
       // Reset form
@@ -147,6 +152,7 @@ const CouponManager = () => {
         startDate: "",
         expiryDate: "",
         applicableUsers: "ALL_USERS",
+        isSpecialCoupon: false,
         selectedUsersListText: ""
       });
       setSelectedCustomerChips([]);
@@ -237,7 +243,16 @@ const CouponManager = () => {
               {coupon.affiliateId && (
                 <span className="bg-purple-100 text-purple-700 px-2 py-0.5 rounded text-[8px] font-black uppercase">Affiliate</span>
               )}
-              {(coupon.applicableUsers === "SELECTED_USERS" || coupon.requiresDeliveryCharge) && (
+              {(coupon.applicableUsers === "SPECIAL_MEMBER" || coupon.isSpecialCoupon) ? (
+                <div className="flex flex-col items-end gap-1">
+                  <span className="bg-purple-100 text-purple-900 border border-purple-200 px-2 py-0.5 rounded text-[8px] font-black uppercase flex items-center gap-1">
+                    ⭐ Special Single-Use
+                  </span>
+                  <span className="bg-orange-100 text-orange-900 border border-orange-200/60 px-1.5 py-0.5 rounded text-[7px] font-black uppercase">
+                    🚚 Delivery Charges Apply
+                  </span>
+                </div>
+              ) : (coupon.applicableUsers === "SELECTED_USERS" || coupon.requiresDeliveryCharge) ? (
                 <div className="flex flex-col items-end gap-1">
                   <span className="bg-amber-100 text-amber-800 px-2 py-0.5 rounded text-[8px] font-black uppercase">
                     🎯 {coupon.selectedUsersList?.length || 0} Customers
@@ -246,7 +261,7 @@ const CouponManager = () => {
                     🚚 Delivery Charges Apply
                   </span>
                 </div>
-              )}
+              ) : null}
             </div>
             
             <p className="text-sm font-bold text-[#24672E] mb-4">
@@ -271,15 +286,22 @@ const CouponManager = () => {
                 </div>
               )}
               <div className="flex items-center gap-2">
-                <CheckCircle2 size={14} className="text-slate-400" />
-                <span>Used: {coupon.usedCount} {coupon.usageLimit ? `/ ${coupon.usageLimit}` : '(Unlimited)'}</span>
+                <CheckCircle2 size={14} className={(coupon.applicableUsers === "SPECIAL_MEMBER" || coupon.isSpecialCoupon) && coupon.usedCount >= 1 ? "text-rose-500" : "text-slate-400"} />
+                <span className={(coupon.applicableUsers === "SPECIAL_MEMBER" || coupon.isSpecialCoupon) && coupon.usedCount >= 1 ? "font-bold text-rose-600" : ""}>
+                  Used: {coupon.usedCount} {coupon.usageLimit ? `/ ${coupon.usageLimit}` : '(Unlimited)'}
+                  {(coupon.applicableUsers === "SPECIAL_MEMBER" || coupon.isSpecialCoupon) && coupon.usedCount >= 1 && " (REDEEMED)"}
+                </span>
               </div>
               <div className="flex items-center gap-2">
                 <Users size={14} className="text-slate-400" />
                 <span>User Cap: {coupon.perUserLimit} per user</span>
               </div>
-              <div className="text-[10px] bg-slate-100 px-2 py-1 rounded-md text-slate-500 font-bold uppercase inline-block mt-2">
-                Eligible: {coupon.applicableUsers}
+              <div className={`text-[10px] px-2 py-1 rounded-md font-bold uppercase inline-block mt-2 ${
+                coupon.applicableUsers === "SPECIAL_MEMBER" || coupon.isSpecialCoupon
+                  ? "bg-purple-100 text-purple-800 border border-purple-200"
+                  : "bg-slate-100 text-slate-500"
+              }`}>
+                Eligible: {coupon.applicableUsers === "SPECIAL_MEMBER" || coupon.isSpecialCoupon ? "⭐ Special Member (Single-Use)" : coupon.applicableUsers}
               </div>
             </div>
 
@@ -344,19 +366,89 @@ const CouponManager = () => {
                   <select 
                     className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-[#24672E] font-bold"
                     value={formData.applicableUsers}
-                    onChange={(e) => setFormData({...formData, applicableUsers: e.target.value})}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setFormData({
+                        ...formData,
+                        applicableUsers: val,
+                        isSpecialCoupon: val === "SPECIAL_MEMBER",
+                        usageLimit: val === "SPECIAL_MEMBER" ? "1" : formData.usageLimit,
+                        perUserLimit: val === "SPECIAL_MEMBER" ? "1" : formData.perUserLimit
+                      });
+                    }}
                   >
-                    <option value="ALL_USERS">All Customers</option>
-                    <option value="NEW_USERS">New Customers Only</option>
-                    <option value="SELECTED_USERS">Selected Users List</option>
+                    <option value="ALL_USERS">All Customers (Public / Standard)</option>
+                    <option value="NEW_USERS">New Customers Only (First Order)</option>
+                    <option value="SELECTED_USERS">Selected Users List (By Email / ID)</option>
+                    <option value="SPECIAL_MEMBER">⭐ Special Member / Family (Single-Use Only)</option>
                   </select>
                 </div>
               </div>
 
+              {formData.applicableUsers === "SPECIAL_MEMBER" && (
+                <div className="space-y-3 p-4 sm:p-5 bg-amber-500/10 dark:bg-[#111720] border-2 border-amber-400 dark:border-[#FFD600] rounded-2xl shadow-sm">
+                  <div className="flex items-start gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-amber-400/20 dark:bg-[#FFD600]/20 border border-amber-400/40 dark:border-[#FFD600]/40 flex items-center justify-center shrink-0">
+                      <span className="text-xl">⭐</span>
+                    </div>
+                    <div className="space-y-2 flex-1 min-w-0">
+                      <div className="flex items-center justify-between gap-2 flex-wrap">
+                        <h4 className="text-sm font-black text-slate-900 dark:text-[#FFD600] uppercase tracking-wider">
+                          Special Member / Family Promo Code
+                        </h4>
+                        <span className="text-[10px] bg-purple-600 text-white font-black px-2.5 py-0.5 rounded-full uppercase shadow-xs">
+                          VIP 1-TIME
+                        </span>
+                      </div>
+                      <ul className="space-y-1.5 text-xs text-slate-700 dark:text-[#E2E8F0] leading-relaxed">
+                        <li className="flex items-start gap-2">
+                          <span className="text-amber-600 dark:text-[#FFD600] font-black text-sm leading-none">•</span>
+                          <span>
+                            <strong className="text-slate-900 dark:text-white font-extrabold">Login Strictly Mandatory:</strong> The customer MUST sign in or register an account to apply this coupon. Unauthenticated / guest users cannot use it.
+                          </span>
+                        </li>
+                        <li className="flex items-start gap-2">
+                          <span className="text-amber-600 dark:text-[#FFD600] font-black text-sm leading-none">•</span>
+                          <span>
+                            <strong className="text-slate-900 dark:text-white font-extrabold">Any Account Allowed:</strong> Once they log in (even on a brand new account), the secret code will work without needing their email registered beforehand.
+                          </span>
+                        </li>
+                        <li className="flex items-start gap-2">
+                          <span className="text-amber-600 dark:text-[#FFD600] font-black text-sm leading-none">•</span>
+                          <span>
+                            <strong className="text-slate-900 dark:text-white font-extrabold">Single-Use Only:</strong> Can only be redeemed <strong className="text-amber-700 dark:text-[#FFD600] underline font-extrabold">1 time total</strong> across the entire store. As soon as the order is placed, it expires permanently.
+                          </span>
+                        </li>
+                        <li className="flex items-start gap-2">
+                          <span className="text-amber-600 dark:text-[#FFD600] font-black text-sm leading-none">•</span>
+                          <span>
+                            <strong className="text-slate-900 dark:text-white font-extrabold">Delivery Charges Apply:</strong> Standard delivery fees are charged transparently (same as selected users) to avoid shipping losses on big discounts.
+                          </span>
+                        </li>
+                        <li className="flex items-start gap-2">
+                          <span className="text-amber-600 dark:text-[#FFD600] font-black text-sm leading-none">•</span>
+                          <span>
+                            <strong className="text-slate-900 dark:text-white font-extrabold">Private & Secret:</strong> Never shown in public website banners or promo code popups.
+                          </span>
+                        </li>
+                      </ul>
+                    </div>
+                  </div>
+                  <div className="p-3 bg-amber-100/90 dark:bg-[#1D2530] border border-amber-300 dark:border-[#384556] rounded-xl flex items-center justify-between gap-2">
+                    <span className="text-xs font-bold text-slate-900 dark:text-[#F1F5F9] flex items-center gap-1.5">
+                      <span>🔒</span> Usage limits automatically locked to <strong>1 order total & 1 per user</strong>
+                    </span>
+                    <span className="text-[10px] bg-[#FFD600] text-slate-950 px-2.5 py-1 rounded-full font-black uppercase tracking-wide shadow-xs shrink-0">
+                      1-TIME LOCK
+                    </span>
+                  </div>
+                </div>
+              )}
+
               {formData.applicableUsers === "SELECTED_USERS" && (
-                <div className="space-y-3 p-4 bg-emerald-50/50 border border-emerald-200 rounded-2xl">
+                <div className="space-y-3 p-4 bg-emerald-50/50 dark:bg-[#111720] border border-emerald-200 dark:border-[#27313D] rounded-2xl">
                   {/* Delivery Charges Notice */}
-                  <div className="p-2.5 bg-amber-50 border border-amber-200 rounded-xl text-[11px] text-amber-900 font-bold flex items-center gap-2">
+                  <div className="p-2.5 bg-amber-50 dark:bg-[#1D2530] border border-amber-200 dark:border-[#384556] rounded-xl text-[11px] text-amber-900 dark:text-[#F1F5F9] font-bold flex items-center gap-2">
                     <span className="text-sm">🚚</span>
                     <span>
                       Standard Delivery Charges Apply: Target customers using this personalized promo code will pay standard delivery charges regardless of cart value.
@@ -539,21 +631,29 @@ const CouponManager = () => {
                   <label className="block text-xs font-black text-slate-600 uppercase mb-1">Total Usage Limit</label>
                   <input 
                     type="number"
-                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-[#24672E] font-bold"
-                    placeholder="e.g. 500 (No Limit)"
-                    value={formData.usageLimit}
+                    className="w-full px-4 py-3 bg-slate-50 dark:bg-[#151B23] border border-slate-200 dark:border-[#27313D] rounded-xl outline-none focus:border-[#24672E] font-bold disabled:bg-slate-100 dark:disabled:bg-[#1A222D] disabled:text-slate-900 dark:disabled:text-[#FFD600] disabled:border-amber-300 dark:disabled:border-amber-500/50"
+                    placeholder={formData.applicableUsers === "SPECIAL_MEMBER" ? "1 (Single Use)" : "e.g. 500 (No Limit)"}
+                    disabled={formData.applicableUsers === "SPECIAL_MEMBER"}
+                    value={formData.applicableUsers === "SPECIAL_MEMBER" ? "1" : formData.usageLimit}
                     onChange={(e) => setFormData({...formData, usageLimit: e.target.value})}
                   />
+                  {formData.applicableUsers === "SPECIAL_MEMBER" && (
+                    <span className="text-[11px] text-amber-700 dark:text-[#FFD600] font-black mt-1 block">🔒 Locked to 1 total use</span>
+                  )}
                 </div>
                 <div>
-                  <label className="block text-xs font-black text-slate-600 uppercase mb-1">Uses Per User Limit</label>
+                  <label className="block text-xs font-black text-slate-600 dark:text-slate-300 uppercase mb-1">Uses Per User Limit</label>
                   <input 
                     type="number"
-                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-[#24672E] font-bold"
+                    className="w-full px-4 py-3 bg-slate-50 dark:bg-[#151B23] border border-slate-200 dark:border-[#27313D] rounded-xl outline-none focus:border-[#24672E] font-bold disabled:bg-slate-100 dark:disabled:bg-[#1A222D] disabled:text-slate-900 dark:disabled:text-[#FFD600] disabled:border-amber-300 dark:disabled:border-amber-500/50"
                     placeholder="1"
-                    value={formData.perUserLimit}
+                    disabled={formData.applicableUsers === "SPECIAL_MEMBER"}
+                    value={formData.applicableUsers === "SPECIAL_MEMBER" ? "1" : formData.perUserLimit}
                     onChange={(e) => setFormData({...formData, perUserLimit: e.target.value})}
                   />
+                  {formData.applicableUsers === "SPECIAL_MEMBER" && (
+                    <span className="text-[11px] text-amber-700 dark:text-[#FFD600] font-black mt-1 block">🔒 Locked to 1 per user</span>
+                  )}
                 </div>
               </div>
 

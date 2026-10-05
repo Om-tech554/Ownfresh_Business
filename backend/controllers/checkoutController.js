@@ -12,7 +12,7 @@ import crypto from "crypto";
 import { sendOrderConfirmationMail } from "../utils/mail.js";
 import { sendOrderConfirmationSms } from "../utils/sms.js";
 import { sendOrderConfirmationWhatsApp } from "../utils/whatsapp.js";
-import { awardOrderCommissionCoins, processCoinExpirations } from "./membershipController.js";
+import { awardOrderCommissionCoins, processCoinExpirations, isUserActivePrimeMember } from "./membershipController.js";
 import CommissionLog from "../models/commissionLogModel.js";
 import { calculateShipping, inferVariantWeightKg } from "../services/shippingService.js";
 
@@ -57,7 +57,8 @@ export const createOrder = async (req, res) => {
       sgst,
       taxAmount,
       phonePeTransactionId,
-      deliveryMethodId
+      deliveryMethodId,
+      primeDiscountAmount
     } = req.body;
 
     const targetUserId = req.userId || userId;
@@ -82,6 +83,10 @@ export const createOrder = async (req, res) => {
     // 2) Check User Exists
     const user = await User.findById(targetUserId);
     if (!user) return res.status(404).json({ msg: "User not found" });
+
+    // Check Prime membership status & prime discount
+    const isPrimeMember = Boolean(isUserActivePrimeMember(user));
+    const calculatedPrimeDiscount = Number(primeDiscountAmount) || 0;
 
     // Validate Referral Code if provided
     let referralCodeRecord = null;
@@ -187,9 +192,23 @@ export const createOrder = async (req, res) => {
       });
     }
 
-    // 2) Recalculate true coupon discount
+    // 2) Destination & Consignment Shipping setup
+    const destination = {
+      address: deliveryAddress?.text || deliveryAddress?.street || deliveryAddress?.address || "",
+      city: deliveryAddress?.city || deliveryAddress?.areaName || "",
+      district: deliveryAddress?.district || deliveryAddress?.landmark || "",
+      state: deliveryAddress?.state || "",
+      pincode: deliveryAddress?.pincode || deliveryAddress?.zipCode || deliveryAddress?.pinCode || "",
+      latitude: deliveryAddress?.latitude !== undefined && deliveryAddress?.latitude !== null ? Number(deliveryAddress.latitude) : null,
+      longitude: deliveryAddress?.longitude !== undefined && deliveryAddress?.longitude !== null ? Number(deliveryAddress.longitude) : null,
+      placeId: deliveryAddress?.placeId || ""
+    };
+
+    // 3) Recalculate true coupon discount & behind-the-scenes delivery charge absorption
     let calculatedDiscount = 0;
     let couponRecord = null;
+    let isSpecialDeliveryCoupon = false;
+
     if (couponCode && String(couponCode).trim() !== "") {
       const cleanCouponCode = String(couponCode).trim().toUpperCase();
       const coupon = await Coupon.findOne({ code: cleanCouponCode });
@@ -207,7 +226,11 @@ export const createOrder = async (req, res) => {
           return res.status(400).json({ msg: "Promo code has expired" });
         }
         if (coupon.usageLimit && coupon.usedCount >= coupon.usageLimit) {
-          return res.status(400).json({ msg: "Promo code usage limit has been reached" });
+          return res.status(400).json({ 
+            msg: (coupon.applicableUsers === "SPECIAL_MEMBER" || coupon.isSpecialCoupon || coupon.usageLimit === 1)
+              ? "This special one-time promo code has already been redeemed and is no longer valid."
+              : "Promo code usage limit has been reached" 
+          });
         }
         if (targetUserId) {
           const userUsageCount = await Order.countDocuments({
@@ -236,52 +259,43 @@ export const createOrder = async (req, res) => {
           }
         }
 
-        // Calculate true discount amount
-        if (coupon.discountType === "PERCENTAGE" || coupon.discountType === "percentage") {
-          calculatedDiscount = (calculatedSubtotal * coupon.discountValue) / 100;
-          if (coupon.maximumDiscountAmount) {
-            calculatedDiscount = Math.min(calculatedDiscount, coupon.maximumDiscountAmount);
-          }
-        } else {
-          calculatedDiscount = coupon.discountValue;
-        }
-        calculatedDiscount = Math.min(calculatedDiscount, calculatedSubtotal);
         couponRecord = coupon;
+        isSpecialDeliveryCoupon = Boolean(
+          coupon.applicableUsers === "SELECTED_USERS" ||
+          coupon.applicableUsers === "SPECIAL_MEMBER" ||
+          coupon.isSpecialCoupon === true ||
+          coupon.requiresDeliveryCharge === true ||
+          (Array.isArray(coupon.selectedUsersList) && coupon.selectedUsersList.length > 0)
+        );
       } else {
         return res.status(404).json({ msg: "Promo code does not exist" });
       }
     }
 
-    // 3) Authoritative destination-based shipping calculation & ₹1,000 free-delivery rule
-    const destination = {
-      address: deliveryAddress?.text || deliveryAddress?.street || deliveryAddress?.address || "",
-      city: deliveryAddress?.city || deliveryAddress?.areaName || "",
-      district: deliveryAddress?.district || deliveryAddress?.landmark || "",
-      state: deliveryAddress?.state || "",
-      pincode: deliveryAddress?.pincode || deliveryAddress?.zipCode || deliveryAddress?.pinCode || "",
-      latitude: deliveryAddress?.latitude !== undefined && deliveryAddress?.latitude !== null ? Number(deliveryAddress.latitude) : null,
-      longitude: deliveryAddress?.longitude !== undefined && deliveryAddress?.longitude !== null ? Number(deliveryAddress.longitude) : null,
-      placeId: deliveryAddress?.placeId || ""
-    };
-
-    const requiresDeliveryCharge = Boolean(
-      couponRecord && (
-        couponRecord.applicableUsers === "SELECTED_USERS" ||
-        couponRecord.requiresDeliveryCharge === true ||
-        (Array.isArray(couponRecord.selectedUsersList) && couponRecord.selectedUsersList.length > 0)
-      )
-    );
-
+    // Authoritative destination-based shipping calculation
     const shippingResult = calculateShipping({
       items: validatedItems,
       subtotal: calculatedSubtotal,
       destination,
       deliveryMethodId: deliveryMethodId || "standard",
-      disableFreeDelivery: requiresDeliveryCharge
+      disableFreeDelivery: isSpecialDeliveryCoupon
     });
     const shippingCost = shippingResult.deliveryCharge;
     const totalOrderWeight = shippingResult.totalWeightKg;
     const resolvedDeliveryMethod = shippingResult.deliveryMethodName;
+
+    // Calculate true coupon discount
+    if (couponRecord) {
+      if (couponRecord.discountType === "PERCENTAGE" || couponRecord.discountType === "percentage") {
+        calculatedDiscount = (calculatedSubtotal * couponRecord.discountValue) / 100;
+        if (couponRecord.maximumDiscountAmount) {
+          calculatedDiscount = Math.min(calculatedDiscount, couponRecord.maximumDiscountAmount);
+        }
+      } else {
+        calculatedDiscount = couponRecord.discountValue;
+      }
+      calculatedDiscount = Math.min(calculatedDiscount, calculatedSubtotal);
+    }
 
     // 4) Calculate commission coins deduction
     if (useCommissionCoins) {
@@ -371,6 +385,9 @@ export const createOrder = async (req, res) => {
     if (couponRecord) {
       if (isInstantOrder || finalPayableAmount <= 0) {
         couponRecord.usedCount += 1;
+        if (couponRecord.usageLimit && couponRecord.usedCount >= couponRecord.usageLimit) {
+          couponRecord.isActive = false;
+        }
         await couponRecord.save();
       }
     }

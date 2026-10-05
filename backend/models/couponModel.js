@@ -53,8 +53,12 @@ const couponSchema = new mongoose.Schema(
     },
     applicableUsers: {
       type: String,
-      enum: ["ALL_USERS", "NEW_USERS", "SELECTED_USERS"],
+      enum: ["ALL_USERS", "NEW_USERS", "SELECTED_USERS", "SPECIAL_MEMBER"],
       default: "ALL_USERS"
+    },
+    isSpecialCoupon: {
+      type: Boolean,
+      default: false
     },
     selectedUsersList: [
       {
@@ -77,9 +81,25 @@ const couponSchema = new mongoose.Schema(
 
 // Pre-validate safeguard to sanitize any dirty/bracketed/stringified inputs in selectedUsersList
 couponSchema.pre("validate", function () {
-  if (this.applicableUsers === "SELECTED_USERS" || (Array.isArray(this.selectedUsersList) && this.selectedUsersList.length > 0)) {
+  // If special coupon or selected users, delivery charges are mandatory (transparent rate-card)
+  if (
+    this.applicableUsers === "SELECTED_USERS" || 
+    this.applicableUsers === "SPECIAL_MEMBER" || 
+    this.isSpecialCoupon === true ||
+    (Array.isArray(this.selectedUsersList) && this.selectedUsersList.length > 0)
+  ) {
     this.requiresDeliveryCharge = true;
   }
+
+  // If special member coupon, automatically enforce single-use limit and mark isSpecialCoupon
+  if (this.applicableUsers === "SPECIAL_MEMBER" || this.isSpecialCoupon === true) {
+    this.isSpecialCoupon = true;
+    if (!this.usageLimit || this.usageLimit < 1) {
+      this.usageLimit = 1;
+    }
+    this.perUserLimit = 1;
+  }
+
   if (this.selectedUsersList && Array.isArray(this.selectedUsersList)) {
     this.selectedUsersList = this.selectedUsersList
       .map(item => {
