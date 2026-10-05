@@ -22,7 +22,14 @@ axios.interceptors.request.use((config) => {
   return Promise.reject(error);
 });
 
-// Custom Error Boundary to display runtime errors on screen
+// Auto-recover from stale deployment chunks (Vite dynamic import failures)
+window.addEventListener('vite:preloadError', (event) => {
+  console.warn("Vite preload error detected (stale deployment chunk). Auto-reloading page to fetch latest assets...");
+  event.preventDefault();
+  window.location.reload();
+});
+
+// Custom Error Boundary with automatic stale deployment chunk recovery
 class ErrorBoundary extends React.Component {
   constructor(props) {
     super(props);
@@ -35,10 +42,54 @@ class ErrorBoundary extends React.Component {
 
   componentDidCatch(error, errorInfo) {
     console.error("ErrorBoundary caught an error:", error, errorInfo);
+    const msg = error?.message || error?.toString() || "";
+    // If a deployment occurred while the user had an old tab open, old chunks return 404
+    if (
+      msg.includes("Failed to fetch dynamically imported module") ||
+      msg.includes("Importing a module script failed") ||
+      msg.includes("error loading dynamically imported module")
+    ) {
+      const lockKey = "stale_chunk_reload_lock";
+      if (!sessionStorage.getItem(lockKey)) {
+        sessionStorage.setItem(lockKey, Date.now().toString());
+        console.warn("Stale bundle chunk detected. Auto-reloading page to load newest build...");
+        window.location.reload();
+        return;
+      }
+    }
   }
 
   render() {
     if (this.state.hasError) {
+      const msg = this.state.error?.message || this.state.error?.toString() || "";
+      const isChunkError = 
+        msg.includes("Failed to fetch dynamically imported module") ||
+        msg.includes("Importing a module script failed") ||
+        msg.includes("error loading dynamically imported module");
+
+      if (isChunkError) {
+        return (
+          <div style={{ padding: "30px", background: "#0B0F14", color: "#F7F9FC", fontFamily: "sans-serif", minHeight: "100vh", display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", textAlign: "center" }}>
+            <div style={{ maxWidth: "480px", width: "100%", background: "#171D26", border: "1px solid #27313D", borderRadius: "20px", padding: "36px", boxShadow: "0 20px 25px -5px rgba(0,0,0,0.5)" }}>
+              <div style={{ fontSize: "40px", marginBottom: "16px" }}>🔄</div>
+              <h2 style={{ color: "#FFD600", fontSize: "22px", margin: "0 0 10px 0", fontWeight: "900" }}>New Version Available</h2>
+              <p style={{ fontSize: "14px", color: "#B7C1CE", margin: "0 0 24px 0", lineHeight: "1.6" }}>
+                A new version of OwnFresh has just been deployed. Please reload the page to load the latest update.
+              </p>
+              <button
+                onClick={() => {
+                  sessionStorage.removeItem("stale_chunk_reload_lock");
+                  window.location.reload();
+                }}
+                style={{ width: "100%", padding: "14px", background: "#FFD600", color: "#111318", border: "none", borderRadius: "12px", fontWeight: "900", cursor: "pointer", fontSize: "14px", textTransform: "uppercase", letterSpacing: "1px" }}
+              >
+                Reload & Update Now
+              </button>
+            </div>
+          </div>
+        );
+      }
+
       return (
         <div style={{ padding: "30px", background: "#ffffff", color: "#333333", fontFamily: "monospace", minHeight: "100vh", display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", textAlign: "center" }}>
           <div style={{ maxWidth: "600px", width: "100%", background: "#fff5f5", border: "1px solid #feb2b2", borderRadius: "12px", padding: "30px", boxShadow: "0 4px 6px -1px rgba(0,0,0,0.1)" }}>

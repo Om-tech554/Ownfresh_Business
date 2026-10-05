@@ -15,14 +15,19 @@ import MobileBottomNav from './components/MobileBottomNav';
 import AOS from 'aos';
 import 'aos/dist/aos.css';
 
-// Resilient lazy loader with auto-retry for dynamic imports
+// Resilient lazy loader with auto-retry and auto-recovery for stale chunks
 const lazyRetry = (componentImport) =>
   lazy(async () => {
     try {
       return await componentImport();
     } catch (error) {
-      console.warn("Dynamic import failed, retrying once...", error);
-      // If module failed to load due to stale cache/HMR, retry loading
+      console.warn("Dynamic import failed:", error);
+      const lockKey = "lazy_chunk_reload_lock";
+      if (!sessionStorage.getItem(lockKey)) {
+        sessionStorage.setItem(lockKey, Date.now().toString());
+        window.location.reload();
+        return new Promise(() => {});
+      }
       return await componentImport();
     }
   });
