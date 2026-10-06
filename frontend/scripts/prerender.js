@@ -534,16 +534,27 @@ async function runPrerender() {
   console.log("\n📰 2. Fetching & Prerendering Blog Articles from API...");
   let blogs = [];
   try {
-    const blogRes = await fetch(`${API_URL}/api/blog/all?limit=200`);
+    const blogRes = await fetch(`${API_URL}/api/blog/all?limit=200`, { signal: AbortSignal.timeout(6000) });
     if (blogRes.ok) {
       const blogData = await blogRes.json();
       blogs = blogData.blogs || [];
-      console.log(`  Found ${blogs.length} published blog articles.`);
+      if (blogs.length > 0) {
+        fs.writeFileSync(path.join(__dirname, "blogs_cache.json"), JSON.stringify(blogs, null, 2), "utf-8");
+        console.log(`  Found and cached ${blogs.length} published blog articles from API.`);
+      }
     } else {
       console.warn("  ⚠️ Blog API returned status:", blogRes.status);
     }
   } catch (err) {
     console.warn("  ⚠️ Could not fetch blogs from API:", err.message);
+  }
+
+  if (blogs.length === 0) {
+    const cachePath = path.join(__dirname, "blogs_cache.json");
+    if (fs.existsSync(cachePath)) {
+      blogs = JSON.parse(fs.readFileSync(cachePath, "utf-8"));
+      console.log(`  📦 Loaded ${blogs.length} published blog articles from bundled cache.`);
+    }
   }
 
   if (blogs.length > 0) {
@@ -704,16 +715,27 @@ async function runPrerender() {
   console.log("\n🧴 3. Fetching & Prerendering Products from API...");
   let products = [];
   try {
-    const prodRes = await fetch(`${API_URL}/api/product/all?limit=200`);
+    const prodRes = await fetch(`${API_URL}/api/product/all?limit=200`, { signal: AbortSignal.timeout(6000) });
     if (prodRes.ok) {
       const prodData = await prodRes.json();
       products = prodData.products || [];
-      console.log(`  Found ${products.length} products.`);
+      if (products.length > 0) {
+        fs.writeFileSync(path.join(__dirname, "products_cache.json"), JSON.stringify(products, null, 2), "utf-8");
+        console.log(`  Found and cached ${products.length} products from API.`);
+      }
     } else {
       console.warn("  ⚠️ Product API returned status:", prodRes.status);
     }
   } catch (err) {
     console.warn("  ⚠️ Could not fetch products from API:", err.message);
+  }
+
+  if (products.length === 0) {
+    const cachePath = path.join(__dirname, "products_cache.json");
+    if (fs.existsSync(cachePath)) {
+      products = JSON.parse(fs.readFileSync(cachePath, "utf-8"));
+      console.log(`  📦 Loaded ${products.length} products from bundled cache.`);
+    }
   }
 
   if (products.length > 0) {

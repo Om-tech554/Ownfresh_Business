@@ -34,16 +34,7 @@
     }
     redir @trailing_slash /{re.notroot.1} 301
 
-    # 4. Check for physically existing prerendered files: exact file, .html, or folder/index.html
-    @existing_file file {
-        try_files {path} {path}.html {path}/index.html
-    }
-    handle @existing_file {
-        try_files {path} {path}.html {path}/index.html
-        file_server
-    }
-
-    # 5. Dedicated SPA fallback for private client routes ONLY (with noindex header)
+    # 4. Dedicated SPA fallback for private client routes ONLY (with noindex header)
     @client_routes path /cart* /checkout* /admin* /my-orders* /order-details* /signin* /signup* /forgot-password* /referral*
     handle @client_routes {
         header X-Robots-Tag "noindex, nofollow"
@@ -51,11 +42,11 @@
         file_server
     }
 
-    # 6. Any unmatched route (including non-existent /blog/* or /product/*) -> Return true HTTP 404!
-    handle {
-        error "Page Not Found" 404
-    }
+    # 5. Public pages: Try exact file, then .html, then folder/index.html, otherwise 404
+    try_files {path} {path}.html {path}/index.html =404
+    file_server
 
+    # 6. Return true HTTP 404 with custom 404 page for missing pages
     handle_errors {
         header X-Robots-Tag "noindex, nofollow"
         rewrite * /404.html

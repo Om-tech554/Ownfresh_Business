@@ -1,2 +1,5 @@
+[phases.setup]
+nixPkgs = ["caddy"]
+
 [start]
-cmd = "node frontend/server.js"
+cmd = "caddy run --config Caddyfile --adapter caddyfile"
