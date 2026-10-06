@@ -1,5 +1,10 @@
+providers = ["node"]
+
 [phases.setup]
-nixPkgs = ["caddy"]
+nixPkgs = ["nodejs"]
+
+[phases.build]
+cmds = ["npm --prefix frontend run build"]
 
 [start]
-cmd = "caddy run --config Caddyfile --adapter caddyfile"
+cmd = "node frontend/server.js"
