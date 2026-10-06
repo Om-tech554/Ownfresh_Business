@@ -45,6 +45,16 @@ app.get(["/blog", "/blogs"], (req, res) => {
   return res.redirect(301, "/oilinsights");
 });
 
+// Redirect root-level blog slugs to /blog/:slug if blog exists
+app.get("/:slug", (req, res, next) => {
+  const slug = req.params.slug;
+  const blogDir = path.join(distDir, "blog", slug, "index.html");
+  if (fs.existsSync(blogDir)) {
+    return res.redirect(301, `/blog/${slug}`);
+  }
+  next();
+});
+
 // 4. Serve static assets (JS, CSS, images, etc.) with caching
 app.use(express.static(distDir, {
   index: false,

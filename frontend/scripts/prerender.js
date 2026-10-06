@@ -482,7 +482,15 @@ function transformHtml(baseHtml, page) {
           <a href="/coconut-oil" style="color: #166534; text-decoration: none;">Coconut Oil</a> •
           <a href="/safflower-oil" style="color: #166534; text-decoration: none;">Safflower Oil</a> •
           <a href="/sunflower-oil" style="color: #166534; text-decoration: none;">Sunflower Oil</a> •
-          <a href="/oilinsights" style="color: #166534; text-decoration: none;">Oil Insights</a>
+          <a href="/oilinsights" style="color: #166534; text-decoration: none; font-weight: 700;">Oil Insights</a>
+        </div>
+        <div style="margin-top: 14px; font-size: 13px; color: #64748b; line-height: 1.8;">
+          <strong style="color: #0f172a;">Essential Insights:</strong>
+          <a href="/blog/what-is-kachi-ghani-oil" style="color: #166534; text-decoration: none; margin-left: 6px;">What is Kachi Ghani Oil</a> •
+          <a href="/blog/traditional-kachi-ghani-oils" style="color: #166534; text-decoration: none; margin-left: 6px;">Traditional Kachi Ghani Oils</a> •
+          <a href="/blog/choosing-the-right-cooking-oil-matters-child-health" style="color: #166534; text-decoration: none; margin-left: 6px;">Oil for Child Health</a> •
+          <a href="/blog/smart-indian-cooking-oils-blood-sugar-control" style="color: #166534; text-decoration: none; margin-left: 6px;">Cooking Oils & Blood Sugar</a> •
+          <a href="/oilinsights" style="color: #166534; text-decoration: none; margin-left: 6px; font-weight: 600;">All 38 Articles &rarr;</a>
         </div>
       </footer>
     </div>
@@ -511,27 +519,8 @@ async function runPrerender() {
   const baseHtml = fs.readFileSync(baseIndexPath, "utf-8");
   let totalGenerated = 0;
 
-  // 1. Generate Static Core & Category Pages
-  console.log("📦 1. Prerendering Static Core & Category Pages...");
-  for (const page of STATIC_PAGES) {
-    const html = transformHtml(baseHtml, page);
-    if (page.path === "/") {
-      fs.writeFileSync(baseIndexPath, html, "utf-8");
-      console.log(`  ✅ Generated: / -> dist/index.html`);
-    } else {
-      const cleanPath = page.path.replace(/^\//, "");
-      const pageDir = path.join(distDir, cleanPath);
-      fs.mkdirSync(pageDir, { recursive: true });
-      // Write both folder index.html and direct .html for universal server compatibility
-      fs.writeFileSync(path.join(pageDir, "index.html"), html, "utf-8");
-      fs.writeFileSync(path.join(distDir, `${cleanPath}.html`), html, "utf-8");
-      console.log(`  ✅ Generated: ${page.path} -> dist/${cleanPath}/index.html & dist/${cleanPath}.html`);
-    }
-    totalGenerated++;
-  }
-
-  // 2. Fetch and Prerender Dynamic Blog Articles
-  console.log("\n📰 2. Fetching & Prerendering Blog Articles from API...");
+  // 1. Fetch Blogs and Products FIRST for full internal site linking
+  console.log("📰 1. Fetching Blog Articles from API for site linking...");
   let blogs = [];
   try {
     const blogRes = await fetch(`${API_URL}/api/blog/all?limit=200`, { signal: AbortSignal.timeout(6000) });
@@ -556,6 +545,96 @@ async function runPrerender() {
       console.log(`  📦 Loaded ${blogs.length} published blog articles from bundled cache.`);
     }
   }
+
+  // Build rich HTML listing for /oilinsights
+  const oilInsightsPage = STATIC_PAGES.find(p => p.path === "/oilinsights");
+  if (oilInsightsPage && blogs.length > 0) {
+    oilInsightsPage.customRootHtml = `
+      <div style="font-family: 'Poppins', sans-serif; max-width: 1200px; margin: 0 auto; padding: 24px; color: #1e293b;">
+        <header style="margin-bottom: 32px; border-bottom: 1px solid #e2e8f0; padding-bottom: 24px;">
+          <nav style="display: flex; gap: 8px; font-size: 13px; color: #64748b; margin-bottom: 16px;">
+            <a href="/" style="color: #166534; text-decoration: none; font-weight: 500;">Home</a> &gt;
+            <span style="color: #0f172a; font-weight: 600;">Oil Insights</span>
+          </nav>
+          <h1 style="font-size: 34px; font-weight: 800; color: #0f172a; margin: 0 0 12px 0;">
+            Oil Insights & Edible Oil Health Science
+          </h1>
+          <p style="font-size: 16px; color: #475569; margin: 0;">
+            Evidence-based guides on cooking oils, smoke points, cholesterol, traditional ghani processing, and natural cold pressed nutrition from OwnFresh experts.
+          </p>
+        </header>
+        <main>
+          <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 24px;">
+            ${blogs.map(b => `
+              <article style="border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; background: #ffffff; display: flex; flex-direction: column; box-shadow: 0 2px 8px rgba(0,0,0,0.04);">
+                ${b.image ? `<a href="/blog/${b.slug || b._id}"><img src="${b.image}" alt="${escapeHtml(b.title)}" style="width: 100%; height: 200px; object-fit: cover;" loading="lazy" /></a>` : ""}
+                <div style="padding: 20px; display: flex; flex-direction: column; flex-grow: 1;">
+                  <h2 style="font-size: 18px; font-weight: 700; margin: 0 0 10px 0; line-height: 1.4;">
+                    <a href="/blog/${b.slug || b._id}" style="color: #0f172a; text-decoration: none;">${escapeHtml(b.title)}</a>
+                  </h2>
+                  <p style="font-size: 14px; color: #64748b; line-height: 1.6; margin: 0 0 16px 0; flex-grow: 1;">
+                    ${escapeHtml(stripHtml(b.searchDescription || b.description || "").slice(0, 140))}...
+                  </p>
+                  <a href="/blog/${b.slug || b._id}" style="color: #166534; font-weight: 700; text-decoration: none; font-size: 14px;">
+                    Read Complete Guide &rarr;
+                  </a>
+                </div>
+              </article>
+            `).join("\n")}
+          </div>
+        </main>
+      </div>
+    `;
+  }
+
+  // Inject Latest Blog Insights into Homepage /
+  const homePage = STATIC_PAGES.find(p => p.path === "/");
+  if (homePage && blogs.length > 0) {
+    homePage.bodyHtml = (homePage.bodyHtml || "") + `
+      <section style="margin-top: 48px; padding-top: 32px; border-top: 1px solid #e2e8f0;">
+        <h2 style="font-size: 26px; font-weight: 800; color: #0f172a; margin-bottom: 20px;">
+          Latest Oil Insights & Health Research
+        </h2>
+        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px;">
+          ${blogs.slice(0, 6).map(b => `
+            <div style="border: 1px solid #e2e8f0; padding: 16px; border-radius: 8px; background: #ffffff;">
+              <h3 style="font-size: 16px; font-weight: 700; margin: 0 0 8px 0;">
+                <a href="/blog/${b.slug || b._id}" style="color: #166534; text-decoration: none;">${escapeHtml(b.title)}</a>
+              </h3>
+              <p style="font-size: 13px; color: #64748b; margin: 0 0 8px 0;">
+                ${escapeHtml(stripHtml(b.description || "").slice(0, 100))}...
+              </p>
+              <a href="/blog/${b.slug || b._id}" style="font-size: 13px; font-weight: 600; color: #166534; text-decoration: none;">Read More &rarr;</a>
+            </div>
+          `).join("\n")}
+        </div>
+        <div style="margin-top: 20px; text-align: center;">
+          <a href="/oilinsights" style="color: #166534; font-weight: 700; text-decoration: none; font-size: 15px;">View All 38 Oil Insights Articles &rarr;</a>
+        </div>
+      </section>
+    `;
+  }
+
+  // 2. Generate Static Core & Category Pages (now fully linked to blogs!)
+  console.log("📦 2. Prerendering Static Core & Category Pages...");
+  for (const page of STATIC_PAGES) {
+    const html = transformHtml(baseHtml, page);
+    if (page.path === "/") {
+      fs.writeFileSync(baseIndexPath, html, "utf-8");
+      console.log(`  ✅ Generated: / -> dist/index.html`);
+    } else {
+      const cleanPath = page.path.replace(/^\//, "");
+      const pageDir = path.join(distDir, cleanPath);
+      fs.mkdirSync(pageDir, { recursive: true });
+      fs.writeFileSync(path.join(pageDir, "index.html"), html, "utf-8");
+      fs.writeFileSync(path.join(distDir, `${cleanPath}.html`), html, "utf-8");
+      console.log(`  ✅ Generated: ${page.path} -> dist/${cleanPath}/index.html & dist/${cleanPath}.html`);
+    }
+    totalGenerated++;
+  }
+
+  // 3. Prerender Dynamic Blog Articles
+  console.log("\n📰 3. Prerendering Blog Articles from API...");
 
   if (blogs.length > 0) {
     for (const b of blogs) {
