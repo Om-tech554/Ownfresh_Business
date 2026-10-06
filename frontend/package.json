@@ -8,7 +8,8 @@
     "build": "vite build && node scripts/prerender.js",
     "lint": "eslint .",
     "preview": "vite preview",
-    "start": "node server.js"
+    "start": "node server.js",
+    "test:blog-seo": "node scripts/test_blog_seo_integrity.js"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.4.0",

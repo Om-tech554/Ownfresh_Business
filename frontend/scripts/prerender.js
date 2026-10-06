@@ -6,7 +6,8 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const BASE_URL = "https://myownfresh.com";
-const API_URL = process.env.VITE_API_URL || "https://api.myownfresh.com";
+// Always default to production API so build gets genuine live database content
+const API_URL = process.env.PRERENDER_API_URL || "https://api.myownfresh.com";
 const distDir = path.join(__dirname, "../dist");
 const baseIndexPath = path.join(distDir, "index.html");
 
@@ -84,7 +85,7 @@ const LOCAL_BUSINESS_ENTITY = {
   "url": BASE_URL
 };
 
-// Static Pages Catalog
+// Static Core Public Pages Catalog
 const STATIC_PAGES = [
   {
     path: "/",
@@ -414,7 +415,7 @@ function transformHtml(baseHtml, page) {
     html = html.replace("</head>", `  <meta name="description" content="${safeDesc}" />\n</head>`);
   }
 
-  // 3. Ensure Canonical Tag
+  // 3. Ensure Exact Canonical Tag
   if (html.includes('rel="canonical"')) {
     html = html.replace(
       /<link\s+rel=["']canonical["'][^>]*>/i,
@@ -434,8 +435,14 @@ function transformHtml(baseHtml, page) {
   if (html.includes('property="og:url"')) {
     html = html.replace(/<meta\s+property=["']og:url["'][^>]*>/i, `<meta property="og:url" content="${page.canonical}" />`);
   }
+  if (page.image && html.includes('property="og:image"')) {
+    html = html.replace(/<meta\s+property=["']og:image["'][^>]*>/i, `<meta property="og:image" content="${page.image}" />`);
+  }
+  if (page.type && html.includes('property="og:type"')) {
+    html = html.replace(/<meta\s+property=["']og:type["'][^>]*>/i, `<meta property="og:type" content="${page.type}" />`);
+  }
 
-  // 5. Inject Structured Data
+  // 5. Inject Structured Data (JSON-LD)
   if (page.schema) {
     const jsonLdString = JSON.stringify(page.schema, null, 2);
     const schemaTag = `<script type="application/ld+json">\n${jsonLdString}\n  </script>`;
@@ -446,11 +453,11 @@ function transformHtml(baseHtml, page) {
     }
   }
 
-  // 6. Inject Semantic Prerendered HTML inside <div id="root">
-  const semanticContent = `
+  // 6. Build Rich Semantic Prerendered HTML Content
+  const semanticContent = page.customRootHtml || `
     <div style="font-family: 'Poppins', sans-serif; max-width: 1200px; margin: 0 auto; padding: 24px; color: #1e293b;">
       <header style="margin-bottom: 24px;">
-        <nav style="display: flex; gap: 8px; font-size: 13px; color: #64748b; margin-bottom: 16px;">
+        <nav style="display: flex; flex-wrap: wrap; gap: 8px; font-size: 13px; color: #64748b; margin-bottom: 16px;">
           <a href="/" style="color: #166534; text-decoration: none;">Home</a> &gt;
           <a href="/shop" style="color: #166534; text-decoration: none;">Shop</a>
           ${page.breadcrumbsLabel ? ` &gt; <span style="color: #0f172a; font-weight: 600;">${escapeHtml(page.breadcrumbsLabel)}</span>` : ""}
@@ -467,14 +474,25 @@ function transformHtml(baseHtml, page) {
       </main>
       <footer style="margin-top: 48px; padding-top: 24px; border-top: 1px solid #e2e8f0; font-size: 13px; color: #64748b;">
         <p>OwnFresh Agro Industries — Traditional Granite Stone Pressed Cooking Oils, Pune, Maharashtra.</p>
+        <div style="display: flex; flex-wrap: wrap; gap: 12px; margin-top: 12px;">
+          <a href="/shop" style="color: #166534; text-decoration: none;">Shop All Oils</a> •
+          <a href="/groundnut-oil" style="color: #166534; text-decoration: none;">Groundnut Oil</a> •
+          <a href="/mustard-oil" style="color: #166534; text-decoration: none;">Mustard Oil</a> •
+          <a href="/sesame-oil" style="color: #166534; text-decoration: none;">Sesame Oil</a> •
+          <a href="/coconut-oil" style="color: #166534; text-decoration: none;">Coconut Oil</a> •
+          <a href="/safflower-oil" style="color: #166534; text-decoration: none;">Safflower Oil</a> •
+          <a href="/sunflower-oil" style="color: #166534; text-decoration: none;">Sunflower Oil</a> •
+          <a href="/oilinsights" style="color: #166534; text-decoration: none;">Oil Insights</a>
+        </div>
       </footer>
     </div>
   `;
 
-  const rootStart = html.indexOf('<div id="root">');
-  const scriptStart = html.indexOf('<script', rootStart);
-  if (rootStart !== -1 && scriptStart !== -1) {
-    html = html.slice(0, rootStart) + `<div id="root">${semanticContent}</div>\n  ` + html.slice(scriptStart);
+  // 7. Inject Semantic Content inside <div id="root">
+  const rootIndex = html.indexOf('<div id="root">');
+  const bodyCloseIndex = html.lastIndexOf('</body>');
+  if (rootIndex !== -1 && bodyCloseIndex !== -1) {
+    html = html.slice(0, rootIndex) + `<div id="root">\n${semanticContent}\n  </div>\n` + html.slice(bodyCloseIndex);
   }
 
   return html;
@@ -497,87 +515,30 @@ async function runPrerender() {
   console.log("📦 1. Prerendering Static Core & Category Pages...");
   for (const page of STATIC_PAGES) {
     const html = transformHtml(baseHtml, page);
-    let targetFile;
     if (page.path === "/") {
-      targetFile = baseIndexPath;
+      fs.writeFileSync(baseIndexPath, html, "utf-8");
+      console.log(`  ✅ Generated: / -> dist/index.html`);
     } else {
-      const pageDir = path.join(distDir, page.path.replace(/^\//, ""));
+      const cleanPath = page.path.replace(/^\//, "");
+      const pageDir = path.join(distDir, cleanPath);
       fs.mkdirSync(pageDir, { recursive: true });
-      targetFile = path.join(pageDir, "index.html");
+      // Write both folder index.html and direct .html for universal server compatibility
+      fs.writeFileSync(path.join(pageDir, "index.html"), html, "utf-8");
+      fs.writeFileSync(path.join(distDir, `${cleanPath}.html`), html, "utf-8");
+      console.log(`  ✅ Generated: ${page.path} -> dist/${cleanPath}/index.html & dist/${cleanPath}.html`);
     }
-    fs.writeFileSync(targetFile, html, "utf-8");
-    console.log(`  ✅ Generated: ${page.path} -> ${targetFile}`);
     totalGenerated++;
   }
 
   // 2. Fetch and Prerender Dynamic Blog Articles
   console.log("\n📰 2. Fetching & Prerendering Blog Articles from API...");
+  let blogs = [];
   try {
     const blogRes = await fetch(`${API_URL}/api/blog/all?limit=200`);
     if (blogRes.ok) {
       const blogData = await blogRes.json();
-      const blogs = blogData.blogs || [];
+      blogs = blogData.blogs || [];
       console.log(`  Found ${blogs.length} published blog articles.`);
-
-      for (const b of blogs) {
-        const slug = b.slug || b._id;
-        if (!slug) continue;
-
-        const cleanDesc = stripHtml(b.searchDescription || b.description || b.title).slice(0, 160);
-        const cleanTitle = `${b.title} | OwnFresh Insights`;
-        const canonicalUrl = `${BASE_URL}/blog/${slug}`;
-
-        const articleSchema = {
-          "@context": "https://schema.org",
-          "@graph": [
-            {
-              "@type": "BreadcrumbList",
-              "itemListElement": [
-                { "@type": "ListItem", "position": 1, "name": "Home", "item": BASE_URL },
-                { "@type": "ListItem", "position": 2, "name": "Oil Insights", "item": `${BASE_URL}/oilinsights` },
-                { "@type": "ListItem", "position": 3, "name": b.title, "item": canonicalUrl }
-              ]
-            },
-            {
-              "@type": "Article",
-              "headline": b.title,
-              "description": cleanDesc,
-              "image": b.image ? [b.image] : [],
-              "datePublished": b.publishedAt || b.createdAt || "2026-01-01",
-              "dateModified": b.updatedAt || b.createdAt || "2026-01-01",
-              "author": { "@type": "Person", "name": b.author || "OwnFresh Research Team" },
-              "publisher": { "@id": `${BASE_URL}/#organization` }
-            }
-          ]
-        };
-
-        const pageObj = {
-          path: `/blog/${slug}`,
-          title: cleanTitle,
-          description: cleanDesc,
-          canonical: canonicalUrl,
-          h1: b.title,
-          intro: `Written by ${b.author || "OwnFresh Research Team"} • Stone Pressed Cooking Oil Health Insights`,
-          breadcrumbsLabel: b.title,
-          type: "article",
-          schema: articleSchema,
-          bodyHtml: `
-            <article style="line-height: 1.8; font-size: 16px; color: #334155; margin-top: 24px;">
-              ${b.image ? `<img src="${b.image}" alt="${escapeHtml(b.title)}" style="max-width: 100%; height: auto; border-radius: 16px; margin-bottom: 24px;" />` : ""}
-              <div style="font-size: 16px; line-height: 1.8; color: #334155;">
-                ${b.description || `<p>${escapeHtml(cleanDesc)}</p>`}
-              </div>
-            </article>
-          `
-        };
-
-        const blogDir = path.join(distDir, "blog", slug);
-        fs.mkdirSync(blogDir, { recursive: true });
-        const blogFile = path.join(blogDir, "index.html");
-        fs.writeFileSync(blogFile, transformHtml(baseHtml, pageObj), "utf-8");
-        totalGenerated++;
-      }
-      console.log(`  ✅ Successfully prerendered ${blogs.length} blog pages.`);
     } else {
       console.warn("  ⚠️ Blog API returned status:", blogRes.status);
     }
@@ -585,92 +546,253 @@ async function runPrerender() {
     console.warn("  ⚠️ Could not fetch blogs from API:", err.message);
   }
 
+  if (blogs.length > 0) {
+    for (const b of blogs) {
+      const slug = b.slug || b._id;
+      if (!slug) continue;
+
+      const cleanDesc = stripHtml(b.searchDescription || b.description || b.title).slice(0, 160);
+      const cleanTitle = `${b.title} | OwnFresh Insights`;
+      const canonicalUrl = `${BASE_URL}/blog/${slug}`;
+      const pubDate = b.publishedAt || b.createdAt || "2026-09-01T00:00:00+05:30";
+      const modDate = b.updatedAt || pubDate;
+      const formattedDate = new Date(pubDate).toLocaleDateString("en-IN", { year: "numeric", month: "long", day: "numeric" });
+      const updatedFormatted = new Date(modDate).toLocaleDateString("en-IN", { year: "numeric", month: "long", day: "numeric" });
+      const authorName = b.author || "OwnFresh Editorial & Health Research Team";
+      const wordCount = stripHtml(b.description || "").split(/\s+/).filter(Boolean).length;
+      const readTime = Math.max(2, Math.ceil(wordCount / 200)) + " min read";
+
+      // Pick 3 other published blogs for relevant internal linking
+      const relatedBlogs = blogs.filter(other => (other.slug || other._id) !== slug).slice(0, 3);
+      const relatedBlogsHtml = relatedBlogs.map(rb => `
+        <li style="margin-bottom: 16px; padding-bottom: 16px; border-bottom: 1px solid #f1f5f9;">
+          <a href="/blog/${rb.slug || rb._id}" style="color: #166534; font-weight: 700; text-decoration: none; font-size: 16px; display: block; margin-bottom: 4px;">
+            ${escapeHtml(rb.title)}
+          </a>
+          <p style="margin: 0; font-size: 13px; color: #64748b; line-height: 1.5;">
+            ${escapeHtml(stripHtml(rb.searchDescription || rb.description || "").slice(0, 120))}...
+          </p>
+        </li>
+      `).join("");
+
+      const blogArticleHtml = `
+        <div style="font-family: 'Poppins', sans-serif; max-width: 900px; margin: 0 auto; padding: 24px; color: #1e293b;">
+          <header style="margin-bottom: 32px; border-bottom: 1px solid #e2e8f0; padding-bottom: 24px;">
+            <nav style="display: flex; flex-wrap: wrap; gap: 8px; font-size: 13px; color: #64748b; margin-bottom: 16px;">
+              <a href="/" style="color: #166534; text-decoration: none; font-weight: 500;">Home</a> &gt;
+              <a href="/oilinsights" style="color: #166534; text-decoration: none; font-weight: 500;">Oil Insights</a> &gt;
+              <span style="color: #0f172a; font-weight: 600;">${escapeHtml(b.title)}</span>
+            </nav>
+            <h1 style="font-size: 34px; font-weight: 800; color: #0f172a; line-height: 1.3; margin: 0 0 16px 0;">
+              ${escapeHtml(b.title)}
+            </h1>
+            <div style="display: flex; flex-wrap: wrap; gap: 16px; font-size: 14px; color: #64748b; align-items: center;">
+              <span>By <strong>${escapeHtml(authorName)}</strong></span>
+              <span>•</span>
+              <span>Published: <time datetime="${pubDate}">${formattedDate}</time></span>
+              ${b.updatedAt ? `<span>•</span><span>Updated: <time datetime="${modDate}">${updatedFormatted}</time></span>` : ""}
+              <span>•</span>
+              <span>${readTime}</span>
+            </div>
+          </header>
+
+          ${b.image ? `
+          <div style="margin-bottom: 32px;">
+            <img src="${b.image}" alt="${escapeHtml(b.title)} - OwnFresh Stone Pressed Cooking Oils" style="width: 100%; max-height: 500px; object-fit: cover; border-radius: 16px; box-shadow: 0 4px 16px rgba(0,0,0,0.06);" />
+          </div>` : ""}
+
+          <main class="article-body" style="font-size: 16px; line-height: 1.85; color: #334155;">
+            ${b.description || `<p>${escapeHtml(cleanDesc)}</p>`}
+          </main>
+
+          <!-- Relevant Internal Product & Category Links -->
+          <section style="margin-top: 48px; padding: 28px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 16px;">
+            <h3 style="font-size: 20px; font-weight: 800; color: #0f172a; margin: 0 0 12px 0;">
+              Experience Authentic Stone Pressed Oils by OwnFresh
+            </h3>
+            <p style="font-size: 14px; color: #475569; margin: 0 0 20px 0; line-height: 1.6;">
+              OwnFresh oils are cold-churned slowly in natural granite stones below 45°C. Unrefined, unbleached, and 100% free of chemical solvents, mineral oils, and preservatives.
+            </p>
+            <div style="display: flex; flex-wrap: wrap; gap: 10px; font-size: 13px;">
+              <a href="/groundnut-oil" style="background: #ffffff; color: #166534; padding: 8px 16px; border: 1px solid #cbd5e1; border-radius: 8px; text-decoration: none; font-weight: 600;">Groundnut Oil</a>
+              <a href="/mustard-oil" style="background: #ffffff; color: #166534; padding: 8px 16px; border: 1px solid #cbd5e1; border-radius: 8px; text-decoration: none; font-weight: 600;">Mustard Oil</a>
+              <a href="/sesame-oil" style="background: #ffffff; color: #166534; padding: 8px 16px; border: 1px solid #cbd5e1; border-radius: 8px; text-decoration: none; font-weight: 600;">Sesame Oil</a>
+              <a href="/coconut-oil" style="background: #ffffff; color: #166534; padding: 8px 16px; border: 1px solid #cbd5e1; border-radius: 8px; text-decoration: none; font-weight: 600;">Coconut Oil</a>
+              <a href="/safflower-oil" style="background: #ffffff; color: #166534; padding: 8px 16px; border: 1px solid #cbd5e1; border-radius: 8px; text-decoration: none; font-weight: 600;">Safflower Oil</a>
+              <a href="/sunflower-oil" style="background: #ffffff; color: #166534; padding: 8px 16px; border: 1px solid #cbd5e1; border-radius: 8px; text-decoration: none; font-weight: 600;">Sunflower Oil</a>
+              <a href="/shop" style="background: #166534; color: #ffffff; padding: 8px 16px; border-radius: 8px; text-decoration: none; font-weight: 600;">Shop All Oils</a>
+            </div>
+          </section>
+
+          <!-- Related Health Insights & Articles -->
+          ${relatedBlogs.length > 0 ? `
+          <section style="margin-top: 36px; padding: 28px; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px;">
+            <h3 style="font-size: 20px; font-weight: 800; color: #0f172a; margin: 0 0 20px 0;">
+              Related Health Insights & Culinary Guides
+            </h3>
+            <ul style="list-style: none; padding: 0; margin: 0;">
+              ${relatedBlogsHtml}
+            </ul>
+          </section>` : ""}
+
+          <footer style="margin-top: 48px; padding-top: 24px; border-top: 1px solid #e2e8f0; font-size: 13px; color: #64748b; text-align: center;">
+            <p>OwnFresh Agro Industries — Traditional Granite Stone Pressed Cooking Oils, Pune, Maharashtra.</p>
+          </footer>
+        </div>
+      `;
+
+      const articleSchema = {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "BreadcrumbList",
+            "itemListElement": [
+              { "@type": "ListItem", "position": 1, "name": "Home", "item": BASE_URL },
+              { "@type": "ListItem", "position": 2, "name": "Oil Insights", "item": `${BASE_URL}/oilinsights` },
+              { "@type": "ListItem", "position": 3, "name": b.title, "item": canonicalUrl }
+            ]
+          },
+          {
+            "@type": "BlogPosting",
+            "@id": `${canonicalUrl}#article`,
+            "mainEntityOfPage": {
+              "@type": "WebPage",
+              "@id": canonicalUrl
+            },
+            "headline": b.title,
+            "description": cleanDesc,
+            "image": b.image ? [b.image] : [],
+            "datePublished": pubDate,
+            "dateModified": modDate,
+            "author": {
+              "@type": "Person",
+              "name": authorName
+            },
+            "publisher": { "@id": `${BASE_URL}/#organization` },
+            "inLanguage": "en-IN"
+          }
+        ]
+      };
+
+      const pageObj = {
+        path: `/blog/${slug}`,
+        title: cleanTitle,
+        description: cleanDesc,
+        canonical: canonicalUrl,
+        h1: b.title,
+        intro: `Written by ${authorName} • Stone Pressed Cooking Oil Health Insights`,
+        breadcrumbsLabel: b.title,
+        type: "article",
+        image: b.image || undefined,
+        schema: articleSchema,
+        customRootHtml: blogArticleHtml
+      };
+
+      const transformedHtml = transformHtml(baseHtml, pageObj);
+
+      // Write folder/index.html AND direct .html
+      const blogDir = path.join(distDir, "blog", slug);
+      fs.mkdirSync(blogDir, { recursive: true });
+      fs.writeFileSync(path.join(blogDir, "index.html"), transformedHtml, "utf-8");
+      fs.writeFileSync(path.join(distDir, "blog", `${slug}.html`), transformedHtml, "utf-8");
+      totalGenerated++;
+    }
+    console.log(`  ✅ Successfully prerendered ${blogs.length} blog pages (dual folder & .html).`);
+  }
+
   // 3. Fetch and Prerender Dynamic Products
   console.log("\n🧴 3. Fetching & Prerendering Products from API...");
+  let products = [];
   try {
     const prodRes = await fetch(`${API_URL}/api/product/all?limit=200`);
     if (prodRes.ok) {
       const prodData = await prodRes.json();
-      const products = prodData.products || [];
+      products = prodData.products || [];
       console.log(`  Found ${products.length} products.`);
-
-      for (const p of products) {
-        const slug = p.slug || p._id;
-        if (!slug) continue;
-
-        const cleanDesc = stripHtml(p.shortDesc || p.description || p.name).slice(0, 160);
-        const cleanTitle = `${p.name} | Granite Churned | OwnFresh`;
-        const canonicalUrl = `${BASE_URL}/product/${slug}`;
-        const price = p.price || (p.variants && p.variants[0] && p.variants[0].price) || 565;
-
-        const productSchema = {
-          "@context": "https://schema.org",
-          "@graph": [
-            {
-              "@type": "BreadcrumbList",
-              "itemListElement": [
-                { "@type": "ListItem", "position": 1, "name": "Home", "item": BASE_URL },
-                { "@type": "ListItem", "position": 2, "name": "Shop", "item": `${BASE_URL}/shop` },
-                { "@type": "ListItem", "position": 3, "name": p.name, "item": canonicalUrl }
-              ]
-            },
-            {
-              "@type": "Product",
-              "@id": `${canonicalUrl}#product`,
-              "name": p.name,
-              "image": [p.image],
-              "description": cleanDesc,
-              "sku": p.sku || `OF-${String(slug).slice(0, 8).toUpperCase()}`,
-              "brand": { "@type": "Brand", "name": "OwnFresh" },
-              "offers": {
-                "@type": "Offer",
-                "url": canonicalUrl,
-                "priceCurrency": "INR",
-                "price": price,
-                "itemCondition": "https://schema.org/NewCondition",
-                "availability": "https://schema.org/InStock",
-                "seller": { "@type": "Organization", "name": "OwnFresh" }
-              }
-            }
-          ]
-        };
-
-        const pageObj = {
-          path: `/product/${slug}`,
-          title: cleanTitle,
-          description: cleanDesc,
-          canonical: canonicalUrl,
-          h1: p.name,
-          intro: cleanDesc,
-          breadcrumbsLabel: p.name,
-          type: "product",
-          schema: productSchema,
-          bodyHtml: `
-            <div style="display: flex; flex-wrap: wrap; gap: 32px; margin-top: 24px;">
-              ${p.image ? `<img src="${p.image}" alt="${escapeHtml(p.name)}" style="max-width: 400px; width: 100%; border-radius: 16px; object-fit: cover;" />` : ""}
-              <div style="flex: 1; min-width: 280px;">
-                <p style="font-size: 24px; font-weight: 800; color: #166534; margin: 0 0 16px 0;">₹${price}</p>
-                <p style="font-size: 15px; color: #475569; line-height: 1.6;">${escapeHtml(p.shortDesc || "")}</p>
-                <div style="margin-top: 24px;">
-                  <a href="/shop" style="display: inline-block; background: #166534; color: #fff; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 700;">Order on OwnFresh</a>
-                </div>
-              </div>
-            </div>
-          `
-        };
-
-        const prodDir = path.join(distDir, "product", slug);
-        fs.mkdirSync(prodDir, { recursive: true });
-        const prodFile = path.join(prodDir, "index.html");
-        fs.writeFileSync(prodFile, transformHtml(baseHtml, pageObj), "utf-8");
-        totalGenerated++;
-      }
-      console.log(`  ✅ Successfully prerendered ${products.length} product pages.`);
     } else {
       console.warn("  ⚠️ Product API returned status:", prodRes.status);
     }
   } catch (err) {
     console.warn("  ⚠️ Could not fetch products from API:", err.message);
+  }
+
+  if (products.length > 0) {
+    for (const p of products) {
+      const slug = p.slug || p._id;
+      if (!slug) continue;
+
+      const cleanDesc = stripHtml(p.shortDesc || p.description || p.name).slice(0, 160);
+      const cleanTitle = `${p.name} | Granite Churned | OwnFresh`;
+      const canonicalUrl = `${BASE_URL}/product/${slug}`;
+      const price = p.price || (p.variants && p.variants[0] && p.variants[0].price) || 565;
+
+      const productSchema = {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "BreadcrumbList",
+            "itemListElement": [
+              { "@type": "ListItem", "position": 1, "name": "Home", "item": BASE_URL },
+              { "@type": "ListItem", "position": 2, "name": "Shop", "item": `${BASE_URL}/shop` },
+              { "@type": "ListItem", "position": 3, "name": p.name, "item": canonicalUrl }
+            ]
+          },
+          {
+            "@type": "Product",
+            "@id": `${canonicalUrl}#product`,
+            "name": p.name,
+            "image": [p.image],
+            "description": cleanDesc,
+            "sku": p.sku || `OF-${String(slug).slice(0, 8).toUpperCase()}`,
+            "brand": { "@type": "Brand", "name": "OwnFresh" },
+            "offers": {
+              "@type": "Offer",
+              "url": canonicalUrl,
+              "priceCurrency": "INR",
+              "price": price,
+              "itemCondition": "https://schema.org/NewCondition",
+              "availability": "https://schema.org/InStock",
+              "seller": { "@type": "Organization", "name": "OwnFresh" }
+            }
+          }
+        ]
+      };
+
+      const pageObj = {
+        path: `/product/${slug}`,
+        title: cleanTitle,
+        description: cleanDesc,
+        canonical: canonicalUrl,
+        h1: p.name,
+        intro: cleanDesc,
+        breadcrumbsLabel: p.name,
+        type: "product",
+        image: p.image || undefined,
+        schema: productSchema,
+        bodyHtml: `
+          <div style="display: flex; flex-wrap: wrap; gap: 32px; margin-top: 24px;">
+            ${p.image ? `<img src="${p.image}" alt="${escapeHtml(p.name)}" style="max-width: 400px; width: 100%; border-radius: 16px; object-fit: cover;" />` : ""}
+            <div style="flex: 1; min-width: 280px;">
+              <p style="font-size: 24px; font-weight: 800; color: #166534; margin: 0 0 16px 0;">₹${price}</p>
+              <p style="font-size: 15px; color: #475569; line-height: 1.6;">${escapeHtml(p.shortDesc || "")}</p>
+              <div style="margin-top: 24px;">
+                <a href="/shop" style="display: inline-block; background: #166534; color: #fff; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 700;">Order on OwnFresh</a>
+              </div>
+            </div>
+          </div>
+        `
+      };
+
+      const transformedHtml = transformHtml(baseHtml, pageObj);
+
+      // Write folder/index.html AND direct .html
+      const prodDir = path.join(distDir, "product", slug);
+      fs.mkdirSync(prodDir, { recursive: true });
+      fs.writeFileSync(path.join(prodDir, "index.html"), transformedHtml, "utf-8");
+      fs.writeFileSync(path.join(distDir, "product", `${slug}.html`), transformedHtml, "utf-8");
+      totalGenerated++;
+    }
+    console.log(`  ✅ Successfully prerendered ${products.length} product pages.`);
   }
 
   // 4. Generate Branded 404 Page (dist/404.html)
@@ -703,7 +825,7 @@ async function runPrerender() {
   <div class="card">
     <h1>404</h1>
     <h2>Looking for Pure Stone Pressed Oils?</h2>
-    <p>We could not find the page you requested. It may have been moved, renamed, or is temporarily unavailable.</p>
+    <p>We could not find the page you requested. It may have been moved, renamed, or does not exist.</p>
     <div class="links">
       <a href="/" class="btn btn-primary">Return to Homepage</a>
       <a href="/shop" class="btn btn-secondary">Shop All Cooking Oils</a>
@@ -725,8 +847,41 @@ async function runPrerender() {
   fs.writeFileSync(path.join(distDir, "404.html"), notFoundHtml, "utf-8");
   console.log("  ✅ Generated: dist/404.html");
 
+  // 5. Generate Dynamic Authoritative Sitemap XML
+  console.log("\n🗺️ 5. Generating Dynamic Authoritative XML Sitemap...");
+  const sitemapUrls = [];
+
+  // Static Pages
+  for (const page of STATIC_PAGES) {
+    const loc = page.path === "/" ? `${BASE_URL}/` : `${BASE_URL}${page.path}`;
+    const priority = page.path === "/" ? "1.0" : (page.type === "collection" ? "0.9" : "0.8");
+    const changefreq = page.path === "/" ? "daily" : "weekly";
+    sitemapUrls.push(`  <url>\n    <loc>${loc}</loc>\n    <lastmod>2026-10-06</lastmod>\n    <changefreq>${changefreq}</changefreq>\n    <priority>${priority}</priority>\n  </url>`);
+  }
+
+  // Published Blogs (All verified live blogs)
+  for (const b of blogs) {
+    const slug = b.slug || b._id;
+    if (!slug) continue;
+    const lastmod = (b.updatedAt || b.publishedAt || b.createdAt || "2026-10-06").slice(0, 10);
+    sitemapUrls.push(`  <url>\n    <loc>${BASE_URL}/blog/${slug}</loc>\n    <lastmod>${lastmod}</lastmod>\n    <changefreq>weekly</changefreq>\n    <priority>0.85</priority>\n  </url>`);
+  }
+
+  // Published Products
+  for (const p of products) {
+    const slug = p.slug || p._id;
+    if (!slug) continue;
+    const lastmod = (p.updatedAt || p.createdAt || "2026-10-06").slice(0, 10);
+    sitemapUrls.push(`  <url>\n    <loc>${BASE_URL}/product/${slug}</loc>\n    <lastmod>${lastmod}</lastmod>\n    <changefreq>weekly</changefreq>\n    <priority>0.95</priority>\n  </url>`);
+  }
+
+  const sitemapXml = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${sitemapUrls.join("\n")}\n</urlset>\n`;
+  fs.writeFileSync(path.join(distDir, "sitemap.xml"), sitemapXml, "utf-8");
+  fs.writeFileSync(path.join(__dirname, "../public/sitemap.xml"), sitemapXml, "utf-8");
+  console.log(`  ✅ Generated: dist/sitemap.xml & public/sitemap.xml with ${sitemapUrls.length} verified URLs`);
+
   console.log("\n=================================================");
-  console.log(`🎉 PRERENDER COMPLETE! Generated ${totalGenerated} Static HTML Pages`);
+  console.log(`🎉 PRERENDER COMPLETE! Generated ${totalGenerated} Static HTML Pages + Dynamic Sitemap`);
   console.log("=================================================\n");
 }
 

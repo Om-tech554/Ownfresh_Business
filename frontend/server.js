@@ -41,6 +41,10 @@ app.get(["/category/:slug", "/product-category/:slug"], (req, res) => {
   return res.redirect(301, `/${req.params.slug}`);
 });
 
+app.get(["/blog", "/blogs"], (req, res) => {
+  return res.redirect(301, "/oilinsights");
+});
+
 // 4. Serve static assets (JS, CSS, images, etc.) with caching
 app.use(express.static(distDir, {
   index: false,

@@ -1,0 +1,64 @@
+:{$PORT:3000} {
+    root * dist
+    encode zstd gzip
+
+    # 1. Authoritative Robots and Sitemap
+    handle /robots.txt {
+        file_server
+    }
+    handle /sitemap.xml {
+        file_server
+    }
+
+    # 2. Redirect legacy duplicate category paths to canonical root categories (301)
+    redir /category/groundnut-oil /groundnut-oil 301
+    redir /category/mustard-oil /mustard-oil 301
+    redir /category/sesame-oil /sesame-oil 301
+    redir /category/coconut-oil /coconut-oil 301
+    redir /category/safflower-oil /safflower-oil 301
+    redir /category/sunflower-oil /sunflower-oil 301
+
+    redir /product-category/groundnut-oil /groundnut-oil 301
+    redir /product-category/mustard-oil /mustard-oil 301
+    redir /product-category/sesame-oil /sesame-oil 301
+    redir /product-category/coconut-oil /coconut-oil 301
+    redir /product-category/safflower-oil /safflower-oil 301
+    redir /product-category/sunflower-oil /sunflower-oil 301
+
+    redir /blog /oilinsights 301
+    redir /blogs /oilinsights 301
+
+    # 3. Trailing slash normalization: redirect /blog/slug/ to /blog/slug (except root /)
+    @trailing_slash {
+        path_regexp notroot ^/(.+)/$
+    }
+    redir @trailing_slash /{re.notroot.1} 301
+
+    # 4. Check for physically existing prerendered files: exact file, .html, or folder/index.html
+    @existing_file file {
+        try_files {path} {path}.html {path}/index.html
+    }
+    handle @existing_file {
+        try_files {path} {path}.html {path}/index.html
+        file_server
+    }
+
+    # 5. Dedicated SPA fallback for private client routes ONLY (with noindex header)
+    @client_routes path /cart* /checkout* /admin* /my-orders* /order-details* /signin* /signup* /forgot-password* /referral*
+    handle @client_routes {
+        header X-Robots-Tag "noindex, nofollow"
+        rewrite * /index.html
+        file_server
+    }
+
+    # 6. Any unmatched route (including non-existent /blog/* or /product/*) -> Return true HTTP 404!
+    handle {
+        error "Page Not Found" 404
+    }
+
+    handle_errors {
+        header X-Robots-Tag "noindex, nofollow"
+        rewrite * /404.html
+        file_server
+    }
+}
