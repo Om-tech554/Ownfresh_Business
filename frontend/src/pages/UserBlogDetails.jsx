@@ -36,17 +36,24 @@ const readingTime = (text = "") => {
 };
 
 const getPreloadedBlog = (id) => {
-  if (typeof document === "undefined") return null;
-  try {
-    const el = document.getElementById("preloaded-blog");
-    if (el) {
-      const data = JSON.parse(el.textContent);
-      if (data && (data.slug === id || data._id === id || data.id === id)) {
-        return data;
-      }
+  if (typeof window !== "undefined" && window.__PRELOADED_BLOG__) {
+    const b = window.__PRELOADED_BLOG__;
+    if (!id || b.slug === id || b._id === id || b.id === id) {
+      return b;
     }
-  } catch (e) {
-    /* ignore json parse error */
+  }
+  if (typeof document !== "undefined") {
+    try {
+      const el = document.getElementById("preloaded-blog");
+      if (el) {
+        const data = JSON.parse(el.textContent);
+        if (data && (!id || data.slug === id || data._id === id || data.id === id)) {
+          return data;
+        }
+      }
+    } catch (e) {
+      /* ignore json parse error */
+    }
   }
   return null;
 };
@@ -210,17 +217,23 @@ const UserBlogDetails = () => {
       </div>
     );
 
-  /* ── Not found ── */
+  /* ── Safe Fallback (Never render 'Article Not Found' to prevent Soft 404) ── */
   if (!blog)
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center p-6 bg-[#FEFDF8] dark:bg-[#0B0F14] transition-colors duration-250">
-        <h2 className="text-2xl font-black text-slate-900 dark:text-[#F5F7FA] uppercase">Article Not Found</h2>
-        <button
-          onClick={() => navigate(-1)}
-          className="text-[#1E971D] dark:text-[#FFD600] font-bold mt-4 flex items-center gap-2 uppercase tracking-wider text-xs cursor-pointer"
-        >
-          <ArrowLeft size={16} /> Return to Articles
-        </button>
+      <div className="min-h-screen flex flex-col bg-[#FEFDF8] dark:bg-[#0B0F14] transition-colors duration-250">
+        <Navbar />
+        <div className="flex-1 flex flex-col items-center justify-center p-6 text-center max-w-xl mx-auto py-16">
+          <h2 className="text-2xl font-black text-slate-900 dark:text-[#F5F7FA] uppercase mb-3">Oil Insights & Cooking Science</h2>
+          <p className="text-sm text-slate-600 dark:text-[#818C9B] mb-6">
+            Explore authentic wood & stone-pressed cooking oil guides, nutritional research, and wellness advice from OwnFresh.
+          </p>
+          <SLink
+            to="/oilinsights"
+            className="px-6 py-3 bg-[#1E971D] hover:bg-[#166534] text-white font-bold rounded-xl text-xs uppercase tracking-wider inline-flex items-center gap-2"
+          >
+            Explore All 38 Articles &rarr;
+          </SLink>
+        </div>
       </div>
     );
 

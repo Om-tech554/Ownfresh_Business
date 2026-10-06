@@ -289,13 +289,36 @@ const OIL_KNOWLEDGE_BASE = {
   }
 };
 
+const getPreloadedProduct = (id) => {
+  if (typeof window !== "undefined" && window.__PRELOADED_PRODUCT__) {
+    const p = window.__PRELOADED_PRODUCT__;
+    if (!id || p.slug === id || p._id === id || p.id === id) {
+      return p;
+    }
+  }
+  if (typeof document !== "undefined") {
+    try {
+      const el = document.getElementById("preloaded-product");
+      if (el) {
+        const data = JSON.parse(el.textContent);
+        if (data && (!id || data.slug === id || data._id === id || data.id === id)) {
+          return data;
+        }
+      }
+    } catch (e) {
+      /* ignore json parse error */
+    }
+  }
+  return null;
+};
+
 const ProductDetails = () => {
   const { id } = useParams();
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const user = useSelector((state) => state.user.userData);
 
-  const [product, setProduct] = useState(null);
+  const [product, setProduct] = useState(() => getPreloadedProduct(id));
   const [recentProducts, setRecentProducts] = useState([]);
   const [allProductsList, setAllProductsList] = useState([]);
   const [recentlyViewed, setRecentlyViewed] = useState([]);

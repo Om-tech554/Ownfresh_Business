@@ -453,6 +453,13 @@ function transformHtml(baseHtml, page) {
     }
   }
 
+  // 5b. Inject Preloaded Data into <head> (survives React createRoot hydration on #root)
+  if (page.preloadedData) {
+    const jsonString = JSON.stringify(page.preloadedData.data).replace(/</g, "\\u003c");
+    const preloadedScript = `  <script>window.${page.preloadedData.key} = ${jsonString};</script>\n  <script id="${page.preloadedData.id}" type="application/json">${jsonString}</script>`;
+    html = html.replace("</head>", `${preloadedScript}\n</head>`);
+  }
+
   // 6. Build Rich Semantic Prerendered HTML Content
   const semanticContent = page.customRootHtml || `
     <div style="font-family: 'Poppins', sans-serif; max-width: 1200px; margin: 0 auto; padding: 24px; color: #1e293b;">
@@ -775,7 +782,12 @@ async function runPrerender() {
         type: "article",
         image: b.image || undefined,
         schema: articleSchema,
-        customRootHtml: blogArticleHtml + `\n  <script id="preloaded-blog" type="application/json">${JSON.stringify(b).replace(/</g, "\\u003c")}</script>`
+        preloadedData: {
+          key: "__PRELOADED_BLOG__",
+          id: "preloaded-blog",
+          data: b
+        },
+        customRootHtml: blogArticleHtml
       };
 
       const transformedHtml = transformHtml(baseHtml, pageObj);
@@ -870,6 +882,11 @@ async function runPrerender() {
         type: "product",
         image: p.image || undefined,
         schema: productSchema,
+        preloadedData: {
+          key: "__PRELOADED_PRODUCT__",
+          id: "preloaded-product",
+          data: p
+        },
         bodyHtml: `
           <div style="display: flex; flex-wrap: wrap; gap: 32px; margin-top: 24px;">
             ${p.image ? `<img src="${p.image}" alt="${escapeHtml(p.name)}" style="max-width: 400px; width: 100%; border-radius: 16px; object-fit: cover;" />` : ""}
