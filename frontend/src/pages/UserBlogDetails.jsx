@@ -35,11 +35,27 @@ const readingTime = (text = "") => {
   return Math.max(1, Math.round(words / 200));
 };
 
+const getPreloadedBlog = (id) => {
+  if (typeof document === "undefined") return null;
+  try {
+    const el = document.getElementById("preloaded-blog");
+    if (el) {
+      const data = JSON.parse(el.textContent);
+      if (data && (data.slug === id || data._id === id || data.id === id)) {
+        return data;
+      }
+    }
+  } catch (e) {
+    /* ignore json parse error */
+  }
+  return null;
+};
+
 const UserBlogDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const [blog, setBlog] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [blog, setBlog] = useState(() => getPreloadedBlog(id));
+  const [loading, setLoading] = useState(() => !getPreloadedBlog(id));
   const [showTopBtn, setShowTopBtn] = useState(false);
   const [recommendations, setRecommendations] = useState([]);
   const [featuredProduct, setFeaturedProduct] = useState(null);
@@ -56,7 +72,10 @@ const UserBlogDetails = () => {
 
   const fetchBlog = async () => {
     try {
-      const API_BASE_URL = (import.meta.env.VITE_API_URL || "http://localhost:10000").replace(/\/+$/, "");
+      const API_BASE_URL = (
+        import.meta.env.VITE_API_URL ||
+        (import.meta.env.PROD ? "https://api.myownfresh.com" : "http://localhost:10000")
+      ).replace(/\/+$/, "");
       const res = await axios.get(`${API_BASE_URL}/api/blog/${id}`);
       if (res.data?.blog) {
         setBlog(res.data.blog);
@@ -70,7 +89,10 @@ const UserBlogDetails = () => {
 
   const fetchRecommendationsAndProducts = async () => {
     try {
-      const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:10000";
+      const API_BASE_URL = (
+        import.meta.env.VITE_API_URL ||
+        (import.meta.env.PROD ? "https://api.myownfresh.com" : "http://localhost:10000")
+      ).replace(/\/+$/, "");
       const [blogRes, productRes] = await Promise.all([
         axios.get(`${API_BASE_URL}/api/blog/all?limit=6`),
         axios.get(`${API_BASE_URL}/api/product/all?limit=6`)
@@ -159,7 +181,10 @@ const UserBlogDetails = () => {
     }
     try {
       setSubscribing(true);
-      const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:10000";
+      const API_BASE_URL = (
+        import.meta.env.VITE_API_URL ||
+        (import.meta.env.PROD ? "https://api.myownfresh.com" : "http://localhost:10000")
+      ).replace(/\/+$/, "");
       const res = await axios.post(`${API_BASE_URL}/api/newsletter/subscribe`, {
         email: newsletterEmail
       });

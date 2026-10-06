@@ -696,7 +696,7 @@ async function runPrerender() {
         type: "article",
         image: b.image || undefined,
         schema: articleSchema,
-        customRootHtml: blogArticleHtml
+        customRootHtml: blogArticleHtml + `\n  <script id="preloaded-blog" type="application/json">${JSON.stringify(b).replace(/</g, "\\u003c")}</script>`
       };
 
       const transformedHtml = transformHtml(baseHtml, pageObj);
