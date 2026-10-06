@@ -13,6 +13,7 @@ import cors from "cors"
 import userRouter from "./routes/userroutes.js"
 import productRoutes from "./routes/productRoutes.js";
 import blogRoutes from "./routes/blogRoutes.js";
+import adminBlogRoutes from "./routes/adminBlogRoutes.js";
 import orderRoutes from "./routes/orderRoutes.js";
 import newsletterRoutes from "./routes/newsletterRoutes.js";
 import contactRoutes from "./routes/contactRoutes.js";
@@ -94,7 +95,7 @@ app.use(cors({
     },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'X-Firebase-AppCheck']
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Firebase-AppCheck', 'x-api-key', 'X-Api-Key', 'x-api-token']
 }))
 app.use(express.json())
 app.use(cookieParser())
@@ -108,6 +109,8 @@ app.use("/api/auth", authRouter);
 app.use("/api/user", userRouter)
 app.use("/api/product", productRoutes);
 app.use("/api/blog", blogRoutes);
+app.use("/api/admin/blogs", adminBlogRoutes);
+app.use("/api/posts", adminBlogRoutes);
 app.use("/api/order", orderRoutes);
 app.use("/api/newsletter", newsletterRoutes);
 app.use("/api/contact", contactRoutes);
@@ -201,4 +204,4 @@ app.listen(port, async () => {
     }, 9 * 60 * 1000); // Self-ping every 9 minutes
 
     console.log(`🚀 Server running on port ${port} (AI Engine: Gemini / Multi-Provider Active)`);
-});
+});

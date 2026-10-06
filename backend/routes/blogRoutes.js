@@ -1,6 +1,8 @@
 import express from "express";
 import upload from "../middleware/multer.js";
 import isAuth, { isAdmin } from "../middleware/isAuth.js";
+import { verifyBlogApiKey } from "../middleware/apiKeyAuth.js";
+import { publishAdminBlog, getAdminBlogs } from "../controllers/adminBlogController.js";
 
 import {
   addBlog,
@@ -24,6 +26,10 @@ import {
 } from "../controllers/blog.controller.js";
 
 const router = express.Router();
+
+// SECURED ADMIN BLOG CREATION VIA API KEY (Automated publishing pipeline)
+router.post("/admin/blogs", verifyBlogApiKey, publishAdminBlog);
+router.get("/admin/blogs", verifyBlogApiKey, getAdminBlogs);
 
 // UPLOAD BLOG INLINE IMAGE (Dedicated for blog content, isolated from gallery)
 router.post("/upload-image", isAuth, isAdmin, upload.single("image"), uploadBlogImage);

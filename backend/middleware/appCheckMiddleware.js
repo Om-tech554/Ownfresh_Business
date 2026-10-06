@@ -2,8 +2,13 @@ import adminApp from "../config/firebaseAdmin.js";
 import { getAppCheck } from "firebase-admin/app-check";
 
 export const verifyAppCheck = async (req, res, next) => {
-    // Allow PhonePe callback webhook to bypass App Check
-    if (req.originalUrl && req.originalUrl.includes("/phonepe-callback")) {
+    // Allow PhonePe callback webhook and blog API key routes to bypass App Check
+    if (
+        (req.originalUrl && req.originalUrl.includes("/phonepe-callback")) ||
+        (req.originalUrl && (req.originalUrl.includes("/admin/blogs") || req.originalUrl.includes("/posts"))) ||
+        req.headers["x-api-key"] ||
+        req.header("x-api-key")
+    ) {
         return next();
     }
 
