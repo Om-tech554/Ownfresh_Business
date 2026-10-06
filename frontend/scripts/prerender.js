@@ -900,7 +900,13 @@ async function runPrerender() {
   const sitemapXml = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${sitemapUrls.join("\n")}\n</urlset>\n`;
   fs.writeFileSync(path.join(distDir, "sitemap.xml"), sitemapXml, "utf-8");
   fs.writeFileSync(path.join(__dirname, "../public/sitemap.xml"), sitemapXml, "utf-8");
-  console.log(`  ✅ Generated: dist/sitemap.xml & public/sitemap.xml with ${sitemapUrls.length} verified URLs`);
+  const rootDist = path.join(__dirname, "../../dist");
+  try {
+    fs.cpSync(distDir, rootDist, { recursive: true });
+    console.log(`  ✅ Synced all files to root dist: ${rootDist}`);
+  } catch (e) {
+    // ignore
+  }
 
   console.log("\n=================================================");
   console.log(`🎉 PRERENDER COMPLETE! Generated ${totalGenerated} Static HTML Pages + Dynamic Sitemap`);
