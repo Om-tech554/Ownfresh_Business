@@ -672,16 +672,9 @@ const ProductDetails = () => {
 
   if (!product) {
     return (
-      <>
-        <SEO
-          title="Loading Product | OwnFresh"
-          url={`/product/${id}`}
-          canonicalUrl={`https://myownfresh.com/product/${id}`}
-        />
-        <div className="min-h-screen flex items-center justify-center bg-[#fafafa] dark:bg-[#0B0F14]">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#1E971D] dark:border-[#FFD600]"></div>
-        </div>
-      </>
+      <div className="min-h-screen flex items-center justify-center bg-[#fafafa] dark:bg-[#0B0F14]">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#1E971D] dark:border-[#FFD600]"></div>
+      </div>
     );
   }
 

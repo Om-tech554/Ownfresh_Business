@@ -126,7 +126,9 @@ const UserBlogDetails = () => {
   };
 
   useEffect(() => {
-    setLoading(true);
+    if (!blog) {
+      setLoading(true);
+    }
     fetchBlog();
     fetchRecommendationsAndProducts();
   }, [id]);
@@ -198,42 +200,28 @@ const UserBlogDetails = () => {
   };
 
   /* ── Loading ── */
-  if (loading)
+  if (loading && !blog)
     return (
-      <>
-        <SEO
-          title="Loading Article | OwnFresh"
-          url={`/blog/${id}`}
-          canonicalUrl={`https://myownfresh.com/blog/${id}`}
-        />
-        <div className="min-h-screen flex flex-col items-center justify-center bg-[#FEFDF8] dark:bg-[#0B0F14] transition-colors duration-250">
-          <Loader2 className="w-12 h-12 animate-spin text-[#1E971D] dark:text-[#FFD600]" />
-          <p className="mt-4 text-slate-600 dark:text-[#818C9B] font-bold uppercase tracking-wider text-xs">
-            Loading Insights & Science…
-          </p>
-        </div>
-      </>
+      <div className="min-h-screen flex flex-col items-center justify-center bg-[#FEFDF8] dark:bg-[#0B0F14] transition-colors duration-250">
+        <Loader2 className="w-12 h-12 animate-spin text-[#1E971D] dark:text-[#FFD600]" />
+        <p className="mt-4 text-slate-600 dark:text-[#818C9B] font-bold uppercase tracking-wider text-xs">
+          Loading Insights & Science…
+        </p>
+      </div>
     );
 
   /* ── Not found ── */
   if (!blog)
     return (
-      <>
-        <SEO
-          title="Article | OwnFresh"
-          url={`/blog/${id}`}
-          canonicalUrl={`https://myownfresh.com/blog/${id}`}
-        />
-        <div className="min-h-screen flex flex-col items-center justify-center p-6 bg-[#FEFDF8] dark:bg-[#0B0F14] transition-colors duration-250">
-          <h2 className="text-2xl font-black text-slate-900 dark:text-[#F5F7FA] uppercase">Article Not Found</h2>
-          <button
-            onClick={() => navigate(-1)}
-            className="text-[#1E971D] dark:text-[#FFD600] font-bold mt-4 flex items-center gap-2 uppercase tracking-wider text-xs cursor-pointer"
-          >
-            <ArrowLeft size={16} /> Return to Articles
-          </button>
-        </div>
-      </>
+      <div className="min-h-screen flex flex-col items-center justify-center p-6 bg-[#FEFDF8] dark:bg-[#0B0F14] transition-colors duration-250">
+        <h2 className="text-2xl font-black text-slate-900 dark:text-[#F5F7FA] uppercase">Article Not Found</h2>
+        <button
+          onClick={() => navigate(-1)}
+          className="text-[#1E971D] dark:text-[#FFD600] font-bold mt-4 flex items-center gap-2 uppercase tracking-wider text-xs cursor-pointer"
+        >
+          <ArrowLeft size={16} /> Return to Articles
+        </button>
+      </div>
     );
 
   /* ── Meta helpers ── */
