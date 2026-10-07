@@ -262,39 +262,100 @@ const OilInsights = () => {
                     </article>
                   ))}
 
-                {/* PAGINATION */}
-                {displayedBlogs.length > blogsPerPage && (
-                  <div className="flex items-center justify-center gap-6 mt-4 pt-6 border-t border-slate-200 dark:border-[#202731]">
-                    <button
-                      disabled={currentPage === 1}
-                      onClick={() => {
-                        setCurrentPage((prev) => prev - 1);
-                        window.scrollTo({ top: 0, behavior: "smooth" });
-                      }}
-                      className="p-3.5 rounded-2xl bg-white dark:bg-[#171D26] border border-slate-200 dark:border-[#27313D] text-slate-800 dark:text-[#F5F7FA] disabled:opacity-30 shadow-xs hover:shadow-md hover:bg-[#1E971D] dark:hover:bg-[#FFD600] dark:hover:text-[#111318] hover:text-white hover:border-[#1E971D] dark:hover:border-[#FFD600] transition-all cursor-pointer"
-                      title="Previous Page"
-                    >
-                      <ChevronLeft className="w-5 h-5" />
-                    </button>
+                {/* NUMBERED PAGINATION */}
+                {displayedBlogs.length > blogsPerPage && (() => {
+                  const totalPages = Math.ceil(displayedBlogs.length / blogsPerPage);
+                  const getPageNumbers = () => {
+                    if (totalPages <= 7) {
+                      return Array.from({ length: totalPages }, (_, i) => i + 1);
+                    }
+                    if (currentPage <= 4) {
+                      return [1, 2, 3, 4, 5, "...", totalPages];
+                    }
+                    if (currentPage >= totalPages - 3) {
+                      return [1, "...", totalPages - 4, totalPages - 3, totalPages - 2, totalPages - 1, totalPages];
+                    }
+                    return [1, "...", currentPage - 1, currentPage, currentPage + 1, "...", totalPages];
+                  };
+                  const pageNumbers = getPageNumbers();
 
-                    <span className="text-xs font-bold text-slate-600 dark:text-[#AEB9C8] uppercase tracking-widest">
-                      Page <span className="text-slate-900 dark:text-[#F5F7FA] font-black text-sm">{currentPage}</span> of{" "}
-                      {Math.ceil(displayedBlogs.length / blogsPerPage)}
-                    </span>
+                  return (
+                    <div className="mt-8 pt-6 border-t border-slate-200 dark:border-[#202731]">
+                      {/* Responsive Number Bar */}
+                      <nav 
+                        aria-label="Blog pagination"
+                        className="flex flex-wrap items-center justify-center gap-1.5 sm:gap-2 select-none"
+                      >
+                        {/* Prev Button */}
+                        <button
+                          disabled={currentPage === 1}
+                          onClick={() => {
+                            setCurrentPage((prev) => Math.max(1, prev - 1));
+                            window.scrollTo({ top: 0, behavior: "smooth" });
+                          }}
+                          className="h-10 min-w-10 px-2.5 sm:px-3.5 rounded-xl bg-white dark:bg-[#171D26] border border-slate-200 dark:border-[#27313D] text-slate-700 dark:text-[#AEB9C8] disabled:opacity-30 disabled:cursor-not-allowed hover:bg-[#1E971D] dark:hover:bg-[#FFD600] hover:text-white dark:hover:text-[#111318] hover:border-[#1E971D] dark:hover:border-[#FFD600] transition-all flex items-center justify-center gap-1 text-xs font-bold shadow-xs cursor-pointer"
+                          aria-label="Previous Page"
+                        >
+                          <ChevronLeft className="w-4 h-4" />
+                          <span className="hidden sm:inline">Prev</span>
+                        </button>
 
-                    <button
-                      disabled={currentPage * blogsPerPage >= displayedBlogs.length}
-                      onClick={() => {
-                        setCurrentPage((prev) => prev + 1);
-                        window.scrollTo({ top: 0, behavior: "smooth" });
-                      }}
-                      className="p-3.5 rounded-2xl bg-white dark:bg-[#171D26] border border-slate-200 dark:border-[#27313D] text-slate-800 dark:text-[#F5F7FA] disabled:opacity-30 shadow-xs hover:shadow-md hover:bg-[#1E971D] dark:hover:bg-[#FFD600] dark:hover:text-[#111318] hover:text-white hover:border-[#1E971D] dark:hover:border-[#FFD600] transition-all cursor-pointer"
-                      title="Next Page"
-                    >
-                      <ChevronRight className="w-5 h-5" />
-                    </button>
-                  </div>
-                )}
+                        {/* Numbered Buttons */}
+                        {pageNumbers.map((p, idx) => {
+                          if (p === "...") {
+                            return (
+                              <span
+                                key={`ellipsis-${idx}`}
+                                className="h-10 min-w-8 flex items-center justify-center text-slate-400 dark:text-slate-600 font-black text-xs select-none"
+                              >
+                                &hellip;
+                              </span>
+                            );
+                          }
+
+                          const isActive = p === currentPage;
+                          return (
+                            <button
+                              key={`page-${p}`}
+                              onClick={() => {
+                                setCurrentPage(p);
+                                window.scrollTo({ top: 0, behavior: "smooth" });
+                              }}
+                              className={`h-10 min-w-10 px-3 rounded-xl text-xs sm:text-sm font-black transition-all flex items-center justify-center cursor-pointer shadow-xs ${
+                                isActive
+                                  ? "bg-[#1E971D] dark:bg-[#FFD600] text-white dark:text-[#111318] border-2 border-[#1E971D] dark:border-[#FFD600] shadow-md scale-105"
+                                  : "bg-white dark:bg-[#171D26] border border-slate-200 dark:border-[#27313D] text-slate-700 dark:text-[#AEB9C8] hover:bg-emerald-50 dark:hover:bg-[#1D2530] hover:text-[#1E971D] dark:hover:text-[#FFD600] hover:border-[#1E971D]/40"
+                              }`}
+                              aria-current={isActive ? "page" : undefined}
+                              aria-label={`Go to page ${p}`}
+                            >
+                              {p}
+                            </button>
+                          );
+                        })}
+
+                        {/* Next Button */}
+                        <button
+                          disabled={currentPage >= totalPages}
+                          onClick={() => {
+                            setCurrentPage((prev) => Math.min(totalPages, prev + 1));
+                            window.scrollTo({ top: 0, behavior: "smooth" });
+                          }}
+                          className="h-10 min-w-10 px-2.5 sm:px-3.5 rounded-xl bg-white dark:bg-[#171D26] border border-slate-200 dark:border-[#27313D] text-slate-700 dark:text-[#AEB9C8] disabled:opacity-30 disabled:cursor-not-allowed hover:bg-[#1E971D] dark:hover:bg-[#FFD600] hover:text-white dark:hover:text-[#111318] hover:border-[#1E971D] dark:hover:border-[#FFD600] transition-all flex items-center justify-center gap-1 text-xs font-bold shadow-xs cursor-pointer"
+                          aria-label="Next Page"
+                        >
+                          <span className="hidden sm:inline">Next</span>
+                          <ChevronRight className="w-4 h-4" />
+                        </button>
+                      </nav>
+
+                      {/* Small mobile helper caption */}
+                      <p className="text-center text-[11px] font-semibold text-slate-400 dark:text-slate-500 mt-3 sm:hidden">
+                        Page {currentPage} of {totalPages}
+                      </p>
+                    </div>
+                  );
+                })()}
               </>
             )}
 

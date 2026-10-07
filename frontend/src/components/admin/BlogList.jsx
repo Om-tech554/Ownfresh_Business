@@ -440,28 +440,94 @@ const BlogList = () => {
         ))}
       </div>
 
-      {/* PAGINATION (RESTORED) */}
-      <div className="max-w-7xl mx-auto mt-16 flex items-center justify-center gap-8">
-        <button
-          disabled={page <= 1}
-          onClick={() => setPage(page - 1)}
-          className="p-3 rounded-full bg-white border text-slate-600 disabled:opacity-30 hover:bg-[#24672E] hover:text-white transition-all"
-        >
-          <ChevronLeft className="w-5 h-5" />
-        </button>
+      {/* NUMBERED PAGINATION */}
+      {totalPages > 1 && (() => {
+        const getPageNumbers = () => {
+          if (totalPages <= 7) {
+            return Array.from({ length: totalPages }, (_, i) => i + 1);
+          }
+          if (page <= 4) {
+            return [1, 2, 3, 4, 5, "...", totalPages];
+          }
+          if (page >= totalPages - 3) {
+            return [1, "...", totalPages - 4, totalPages - 3, totalPages - 2, totalPages - 1, totalPages];
+          }
+          return [1, "...", page - 1, page, page + 1, "...", totalPages];
+        };
+        const pageNumbers = getPageNumbers();
 
-        <span className="text-slate-500 font-medium">
-          Page <span className="text-slate-900 font-bold">{page}</span> of {totalPages}
-        </span>
+        return (
+          <div className="max-w-7xl mx-auto mt-16 pt-6 border-t border-slate-200">
+            <nav 
+              aria-label="Admin blogs pagination"
+              className="flex flex-wrap items-center justify-center gap-1.5 sm:gap-2 select-none"
+            >
+              <button
+                disabled={page <= 1}
+                onClick={() => {
+                  setPage((prev) => Math.max(1, prev - 1));
+                  window.scrollTo({ top: 0, behavior: "smooth" });
+                }}
+                className="h-10 min-w-10 px-2.5 sm:px-3.5 rounded-xl bg-white border border-slate-200 text-slate-700 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-[#24672E] hover:text-white hover:border-[#24672E] transition-all flex items-center justify-center gap-1 text-xs font-bold shadow-xs cursor-pointer"
+                aria-label="Previous Page"
+              >
+                <ChevronLeft className="w-4 h-4" />
+                <span className="hidden sm:inline">Prev</span>
+              </button>
 
-        <button
-          disabled={page >= totalPages}
-          onClick={() => setPage(page + 1)}
-          className="p-3 rounded-full bg-white border text-slate-600 disabled:opacity-30 hover:bg-[#24672E] hover:text-white transition-all"
-        >
-          <ChevronRight className="w-5 h-5" />
-        </button>
-      </div>
+              {pageNumbers.map((p, idx) => {
+                if (p === "...") {
+                  return (
+                    <span
+                      key={`ellipsis-${idx}`}
+                      className="h-10 min-w-8 flex items-center justify-center text-slate-400 font-black text-xs select-none"
+                    >
+                      &hellip;
+                    </span>
+                  );
+                }
+
+                const isActive = p === page;
+                return (
+                  <button
+                    key={`page-${p}`}
+                    onClick={() => {
+                      setPage(p);
+                      window.scrollTo({ top: 0, behavior: "smooth" });
+                    }}
+                    className={`h-10 min-w-10 px-3 rounded-xl text-xs sm:text-sm font-black transition-all flex items-center justify-center cursor-pointer shadow-xs ${
+                      isActive
+                        ? "bg-[#24672E] text-white border-2 border-[#24672E] shadow-md scale-105"
+                        : "bg-white border border-slate-200 text-slate-700 hover:bg-emerald-50 hover:text-[#24672E] hover:border-[#24672E]/40"
+                    }`}
+                    aria-current={isActive ? "page" : undefined}
+                    aria-label={`Go to page ${p}`}
+                  >
+                    {p}
+                  </button>
+                );
+              })}
+
+              <button
+                disabled={page >= totalPages}
+                onClick={() => {
+                  setPage((prev) => Math.min(totalPages, prev + 1));
+                  window.scrollTo({ top: 0, behavior: "smooth" });
+                }}
+                className="h-10 min-w-10 px-2.5 sm:px-3.5 rounded-xl bg-white border border-slate-200 text-slate-700 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-[#24672E] hover:text-white hover:border-[#24672E] transition-all flex items-center justify-center gap-1 text-xs font-bold shadow-xs cursor-pointer"
+                aria-label="Next Page"
+              >
+                <span className="hidden sm:inline">Next</span>
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            </nav>
+
+            <p className="text-center text-[11px] font-semibold text-slate-400 mt-3 sm:hidden">
+              Page {page} of {totalPages}
+            </p>
+          </div>
+        );
+      })()}
     </div>
   );
 };
