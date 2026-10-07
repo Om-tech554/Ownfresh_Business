@@ -229,34 +229,43 @@ const RankMathSEOSidebar = ({
 
   const hasTOC = useMemo(() => {
     if (!description) return false;
+    if (Array.isArray(blocks) && blocks.some(b => b.type === "toc" || b.type === "table_of_contents")) {
+      return true;
+    }
     const lower = description.toLowerCase();
-    return lower.includes("toc-container") || lower.includes("table-of-contents") || lower.includes("table of contents") || lower.includes("blog-toc");
-  }, [description]);
+    return (
+      lower.includes("toc-container") ||
+      lower.includes('class="blog-toc"') ||
+      lower.includes('id="toc"') ||
+      (lower.includes("table of contents") && lower.includes("<ul") && lower.includes("<a href=\"#"))
+    );
+  }, [description, blocks]);
 
   const hasImageCaption = useMemo(() => {
-    if (!description) return false;
+    if (!description || imageAltCheck.total === 0) return false;
     const lower = description.toLowerCase();
     return lower.includes("<figcaption") || lower.includes("<figure") || lower.includes("figcaption");
-  }, [description]);
+  }, [description, imageAltCheck.total]);
 
   // SEO Audit Score Calculations
   const auditRules = useMemo(() => {
     const kw = (focusKeyword || "").toLowerCase().trim();
-    const titleLower = (title || "").toLowerCase();
-    const descLower = (searchDescription || "").toLowerCase();
-    const slugLower = (slug || "").toLowerCase();
-    const bodyLower = plainTextContent.toLowerCase();
+    const titleLower = (title || "").toLowerCase().trim();
+    const descLower = (searchDescription || "").toLowerCase().trim();
+    const slugLower = (slug || "").toLowerCase().trim();
+    const bodyLower = plainTextContent.toLowerCase().trim();
+    const hasBodyContent = wordCount >= 20;
     const first10Percent = bodyLower.slice(0, Math.max(200, Math.floor(bodyLower.length * 0.1)));
 
     const secKws = secondaryKeywords.split(",").map(k => k.trim().toLowerCase()).filter(Boolean);
-    const secKwsPassed = secKws.length > 0 ? secKws.every(k => bodyLower.includes(k)) : true;
+    const secKwsPassed = secKws.length > 0 && hasBodyContent ? secKws.every(k => bodyLower.includes(k)) : false;
 
     return [
       {
         id: "kwInTitle",
         category: "basic",
         label: "Focus Keyword in SEO Title",
-        passed: Boolean(kw && titleLower.includes(kw)),
+        passed: Boolean(kw && titleLower && titleLower.includes(kw)),
         score: 15,
         tip: "Include your primary keyword in the Title.",
       },
@@ -264,7 +273,7 @@ const RankMathSEOSidebar = ({
         id: "kwTitleStart",
         category: "titleReadability",
         label: "Focus Keyword at start of Title",
-        passed: Boolean(kw && titleLower.indexOf(kw) !== -1 && titleLower.indexOf(kw) < 25),
+        passed: Boolean(kw && titleLower && titleLower.indexOf(kw) !== -1 && titleLower.indexOf(kw) < 25),
         score: 5,
         tip: "Move keyword closer to the start of Title.",
       },
@@ -272,15 +281,15 @@ const RankMathSEOSidebar = ({
         id: "kwInMeta",
         category: "basic",
         label: "Focus Keyword in Meta Description",
-        passed: Boolean(kw && descLower.includes(kw)),
-        score: 15,
+        passed: Boolean(kw && descLower && descLower.includes(kw)),
+        score: 10,
         tip: "Mention primary focus keyword in Meta description.",
       },
       {
         id: "kwInSlug",
         category: "basic",
         label: "Focus Keyword in URL Slug",
-        passed: Boolean(kw && slugLower.includes(kw.replace(/\s+/g, "-"))),
+        passed: Boolean(kw && slugLower && slugLower.includes(kw.replace(/\s+/g, "-"))),
         score: 10,
         tip: "Incorporate focus keyword into URL slug.",
       },
@@ -288,7 +297,7 @@ const RankMathSEOSidebar = ({
         id: "kwInIntro",
         category: "basic",
         label: "Focus Keyword in intro paragraph",
-        passed: Boolean(kw && first10Percent.includes(kw)),
+        passed: Boolean(kw && hasBodyContent && first10Percent.includes(kw)),
         score: 10,
         tip: "Mention focus keyword in introductory 10% content.",
       },
@@ -296,7 +305,7 @@ const RankMathSEOSidebar = ({
         id: "kwInBody",
         category: "basic",
         label: "Focus Keyword in body text",
-        passed: Boolean(kw && bodyLower.includes(kw)),
+        passed: Boolean(kw && hasBodyContent && bodyLower.includes(kw)),
         score: 10,
         tip: "Spread the focus keyword naturally in the body.",
       },
@@ -305,14 +314,14 @@ const RankMathSEOSidebar = ({
         category: "basic",
         label: "Word Count >= 600 words",
         passed: wordCount >= 600,
-        score: wordCount >= 1000 ? 15 : wordCount >= 600 ? 10 : 0,
+        score: wordCount >= 1000 ? 15 : wordCount >= 600 ? 10 : wordCount >= 300 ? 5 : 0,
         tip: `Currently: ${wordCount} words. Write 600+ words.`,
       },
       {
         id: "kwInHeading",
         category: "additional",
         label: "Focus Keyword in Subheading (H2/H3)",
-        passed: headingCheck,
+        passed: Boolean(kw && hasBodyContent && headingCheck),
         score: 5,
         tip: "Include keyword in at least one subheading (H2, H3).",
       },
@@ -320,15 +329,15 @@ const RankMathSEOSidebar = ({
         id: "kwInAlt",
         category: "additional",
         label: "Focus Keyword in Image Alt tag",
-        passed: imageAltCheck.withKeyphraseAlt > 0,
+        passed: Boolean(imageAltCheck.total > 0 && imageAltCheck.withKeyphraseAlt > 0),
         score: 5,
-        tip: "Add focus keyword to Alt tag of block images.",
+        tip: imageAltCheck.total === 0 ? "Add at least one image with focus keyword in its Alt tag." : "Add focus keyword to Alt tag of block images.",
       },
       {
         id: "tableOfContents",
         category: "additional",
         label: "Table of Contents Block",
-        passed: hasTOC,
+        passed: Boolean(hasBodyContent && hasTOC),
         score: 5,
         tip: "Place a Table of Contents block in the article.",
       },
@@ -336,15 +345,15 @@ const RankMathSEOSidebar = ({
         id: "imagesWithCaptions",
         category: "additional",
         label: "Image Captions",
-        passed: hasImageCaption,
+        passed: Boolean(imageAltCheck.total > 0 && hasImageCaption),
         score: 5,
-        tip: "Write a descriptive caption for your images.",
+        tip: imageAltCheck.total === 0 ? "Add images with captions to enhance engagement." : "Write a descriptive caption for your images.",
       },
       {
         id: "internalLinks",
         category: "additional",
         label: "Includes Internal Links (>= 1)",
-        passed: linkAnalysis.internal >= 1,
+        passed: Boolean(hasBodyContent && linkAnalysis.internal >= 1),
         score: 5,
         tip: "Include a link to internal products or pages.",
       },
@@ -352,7 +361,7 @@ const RankMathSEOSidebar = ({
         id: "externalLinks",
         category: "additional",
         label: "Includes External Links (>= 1)",
-        passed: linkAnalysis.external >= 1,
+        passed: Boolean(hasBodyContent && linkAnalysis.external >= 1),
         score: 5,
         tip: "Reference external articles or resources.",
       },
@@ -362,7 +371,7 @@ const RankMathSEOSidebar = ({
         label: "Secondary Keywords Present",
         passed: secKwsPassed,
         score: 5,
-        tip: "Ensure secondary keywords exist in body content.",
+        tip: secKws.length === 0 ? "Add secondary keywords above to expand semantic reach." : "Ensure secondary keywords exist in body content.",
       }
     ];
   }, [
@@ -381,9 +390,22 @@ const RankMathSEOSidebar = ({
   ]);
 
   const seoScore = useMemo(() => {
-    const total = auditRules.reduce((acc, curr) => acc + (curr.passed ? curr.score : 0), 0);
-    return Math.min(100, Math.max(0, total));
-  }, [auditRules]);
+    // If admin has not set a focus keyword, title, or body content, score is 0%
+    if (!focusKeyword || !focusKeyword.trim() || wordCount < 20 || !title || !title.trim()) {
+      return 0;
+    }
+    const earned = auditRules.reduce((acc, curr) => acc + (curr.passed ? curr.score : 0), 0);
+    const rawScore = Math.min(100, Math.max(0, earned));
+
+    // CRITICAL FIX: 100% can ONLY be shown if ALL audits pass!
+    // If any audit fails (red X), maximum achievable score is 95%.
+    const anyFailed = auditRules.some(r => !r.passed);
+    if (anyFailed && rawScore >= 100) {
+      return 95;
+    }
+
+    return rawScore;
+  }, [auditRules, focusKeyword, wordCount, title]);
 
   // AI Operation triggers
   const executeAiGeneration = async () => {
@@ -496,8 +518,8 @@ const RankMathSEOSidebar = ({
         <div className="space-y-4">
           <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
             <div className="flex items-center gap-4">
-              <div className={`w-14 h-14 rounded-2xl flex items-center justify-center text-xl font-black text-white shadow ${
-                seoScore >= 90 ? "bg-[#24672E]" : seoScore >= 60 ? "bg-amber-500" : "bg-rose-500"
+              <div className={`w-14 h-14 rounded-2xl flex items-center justify-center text-xl font-black text-white shadow transition-colors ${
+                seoScore === 0 ? "bg-slate-400" : seoScore >= 90 ? "bg-[#24672E]" : seoScore >= 60 ? "bg-amber-500" : "bg-rose-500"
               }`}>
                 {seoScore}%
               </div>
@@ -506,11 +528,18 @@ const RankMathSEOSidebar = ({
                 <div className="w-full bg-slate-100 rounded-full h-2 mt-1.5 overflow-hidden">
                   <div
                     className={`h-full transition-all duration-500 ${
-                      seoScore >= 90 ? "bg-[#24672E]" : seoScore >= 60 ? "bg-amber-500" : "bg-rose-500"
+                      seoScore === 0 ? "bg-slate-300" : seoScore >= 90 ? "bg-[#24672E]" : seoScore >= 60 ? "bg-amber-500" : "bg-rose-500"
                     }`}
                     style={{ width: `${seoScore}%` }}
                   />
                 </div>
+                <span className="text-[10px] font-bold text-slate-500 mt-1 block">
+                  {!focusKeyword?.trim() 
+                    ? "⚠️ Enter Focus Keyword to begin audit" 
+                    : wordCount < 20 
+                    ? "⚠️ Write content (min 20 words)" 
+                    : `${auditRules.filter(r => r.passed).length} of ${auditRules.length} Audits Passed`}
+                </span>
               </div>
             </div>
 

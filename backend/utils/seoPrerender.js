@@ -492,11 +492,19 @@ export async function resolvePageSEO(reqPath) {
 
     try {
       const Blog = mongoose.models.Blog || mongoose.model("Blog");
-      let blog = await Blog.findOne({ slug: identifier }).lean();
+      const decodedIdentifier = decodeURIComponent(identifier).trim();
+      let blog = await Blog.findOne({
+        $or: [
+          { slug: identifier },
+          { slug: decodedIdentifier },
+          { slug: identifier.toLowerCase() },
+          { slug: decodedIdentifier.toLowerCase() }
+        ]
+      }).lean();
       let wasObjectId = false;
 
-      if (!blog && mongoose.Types.ObjectId.isValid(identifier)) {
-        blog = await Blog.findById(identifier).lean();
+      if (!blog && mongoose.Types.ObjectId.isValid(decodedIdentifier)) {
+        blog = await Blog.findById(decodedIdentifier).lean();
         wasObjectId = true;
       }
 
