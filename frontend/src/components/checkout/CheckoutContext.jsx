@@ -135,6 +135,7 @@ export const CheckoutProvider = ({ children }) => {
   const [useCommissionCoins, setUseCommissionCoins] = useState(false);
   const [commissionCoinsBalance, setCommissionCoinsBalance] = useState(0);
   const [canRedeemCoins, setCanRedeemCoins] = useState(false);
+  const [membershipInfo, setMembershipInfo] = useState(null);
 
   const nextStep = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -173,7 +174,9 @@ export const CheckoutProvider = ({ children }) => {
     commissionCoinsBalance,
     setCommissionCoinsBalance,
     canRedeemCoins,
-    setCanRedeemCoins
+    setCanRedeemCoins,
+    membershipInfo,
+    setMembershipInfo
   };
 
   return (

@@ -57,7 +57,7 @@ const OrderSummary = () => {
 
   if (cartItems.length === 0) {
     return (
-      <div className="bg-gray-50 dark:bg-[#171D26] border border-gray-200 dark:border-[#27313D] p-6 rounded-2xl sticky top-24 transition-colors duration-200">
+      <div className="bg-gray-50 dark:bg-[#171D26] border border-gray-200 dark:border-[#27313D] p-5 sm:p-6 rounded-2xl transition-colors duration-200">
         <h2 className="text-xl font-bold mb-4 text-gray-900 dark:text-[#F7F9FC]">Order Summary</h2>
         <p className="text-gray-500 dark:text-[#818C9B]">Your cart is empty.</p>
       </div>
@@ -65,7 +65,7 @@ const OrderSummary = () => {
   }
 
   return (
-    <div className="bg-gray-50 dark:bg-[#171D26] border border-gray-200 dark:border-[#27313D] p-6 rounded-2xl sticky top-24 shadow-sm transition-colors duration-200">
+    <div className="bg-gray-50 dark:bg-[#171D26] border border-gray-200 dark:border-[#27313D] p-5 sm:p-6 rounded-2xl shadow-sm transition-colors duration-200">
       <h2 className="text-xl font-black text-gray-900 dark:text-[#F7F9FC] mb-6 uppercase tracking-wider">Order Summary</h2>
       
       <div className="space-y-4 max-h-64 overflow-y-auto pr-2 custom-scrollbar">

@@ -14,6 +14,7 @@ import SmokyOilSpillBackground from '../components/cart/SmokyOilSpillBackground'
 import CartLocationModal from '../components/cart/CartLocationModal';
 import { calculateClientShipping } from '../utils/shippingCalculator';
 import { trackViewCart, trackRemoveFromCart, trackBeginCheckout } from '../utils/analytics';
+import ReviewUpsellCarousel from '../components/checkout/ReviewUpsellCarousel';
 
 const serverUrl = import.meta.env.VITE_API_URL || "http://localhost:10000";
 
@@ -510,6 +511,15 @@ const CartPage = () => {
                     </div>
                   </div>
                 ))}
+
+                {/* ── ADD MORE TO YOUR ORDER UPSELL CAROUSEL ── */}
+                <div className="pt-2">
+                  <ReviewUpsellCarousel
+                    cartItems={cartItems}
+                    couponDetails={couponDetails}
+                    theme="dark"
+                  />
+                </div>
               </div>
 
               {/* ── STICKY SUMMARY SIDEBOX (OPTIMIZED OBSIDIAN GLASS) ── */}
@@ -681,7 +691,7 @@ const CartPage = () => {
                   
                   <button
                     onClick={handleProceedToCheckout}
-                    className="w-full relative z-10 bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-500 hover:from-amber-300 hover:to-yellow-300 text-slate-950 py-3.5 sm:py-4 rounded-2xl font-black text-xs uppercase tracking-widest block text-center overflow-hidden border-0 cursor-pointer shadow-lg shadow-amber-500/20 active:scale-98 transition-transform touch-manipulation"
+                    className="hidden lg:flex w-full relative z-10 bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-500 hover:from-amber-300 hover:to-yellow-300 text-slate-950 py-3.5 sm:py-4 rounded-2xl font-black text-xs uppercase tracking-widest text-center overflow-hidden border-0 cursor-pointer shadow-lg shadow-amber-500/20 active:scale-98 transition-transform touch-manipulation items-center justify-center gap-2"
                   >
                     <span className="relative z-10 flex items-center justify-center gap-2">
                       Proceed to Checkout <ArrowLeft className="rotate-180 w-4 h-4" />

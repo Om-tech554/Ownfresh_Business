@@ -9,9 +9,11 @@ import { trackAddToCart } from '../../utils/analytics';
 
 const serverUrl = import.meta.env.VITE_API_URL || "http://localhost:10000";
 
-const ReviewUpsellCarousel = ({ cartItems = [], couponDetails = null }) => {
+const ReviewUpsellCarousel = ({ cartItems = [], couponDetails = null, theme = "auto" }) => {
   const dispatch = useDispatch();
   const scrollRef = useRef(null);
+
+  const isDark = theme === "dark";
 
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -135,13 +137,21 @@ const ReviewUpsellCarousel = ({ cartItems = [], couponDetails = null }) => {
   }
 
   return (
-    <div className="bg-white dark:bg-[#171D26] rounded-2xl p-4 sm:p-5 border border-slate-200/90 dark:border-[#27313D] shadow-xs space-y-3.5 transition-colors duration-200">
+    <div className={`rounded-2xl p-4 sm:p-5 shadow-xs space-y-3.5 transition-colors duration-200 ${
+      isDark 
+        ? "bg-[#0f141d]/90 border border-white/10 shadow-xl" 
+        : "bg-white dark:bg-[#171D26] border border-slate-200/90 dark:border-[#27313D]"
+    }`}>
       {/* ── HEADER WITH COUPON HIGHLIGHT ── */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pb-2.5 border-b border-slate-100 dark:border-[#27313D]">
+      <div className={`flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pb-2.5 border-b ${
+        isDark ? "border-white/10" : "border-slate-100 dark:border-[#27313D]"
+      }`}>
         <div>
           <div className="flex items-center gap-2">
             <Sparkles size={16} className="text-[#FFD600] shrink-0" />
-            <h3 className="font-extrabold text-xs sm:text-sm text-slate-900 dark:text-[#F7F9FC] uppercase tracking-wider">
+            <h3 className={`font-extrabold text-xs sm:text-sm uppercase tracking-wider ${
+              isDark ? "text-white" : "text-slate-900 dark:text-[#F7F9FC]"
+            }`}>
               Add More To Your Order
             </h3>
             <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-amber-100 dark:bg-amber-950/60 text-amber-900 dark:text-[#FFD600] border border-amber-300/40">
@@ -150,14 +160,16 @@ const ReviewUpsellCarousel = ({ cartItems = [], couponDetails = null }) => {
           </div>
           
           {couponPercentage > 0 ? (
-            <p className="text-[11px] text-emerald-600 dark:text-emerald-400 font-bold mt-1 flex items-center gap-1.5">
+            <p className="text-[11px] text-emerald-400 font-bold mt-1 flex items-center gap-1.5">
               <Tag size={12} className="shrink-0" />
               <span>
                 Promo <strong>{couponDetails.code}</strong> active! Extra <strong>{couponPercentage}% OFF</strong> applies automatically to any item added below!
               </span>
             </p>
           ) : (
-            <p className="text-[11px] text-slate-500 dark:text-[#818C9B] font-medium mt-0.5">
+            <p className={`text-[11px] font-medium mt-0.5 ${
+              isDark ? "text-slate-400" : "text-slate-500 dark:text-[#818C9B]"
+            }`}>
               Pure stone-pressed oils directly from our Kolhu. Free shipping on orders 2 Kg+
             </p>
           )}
@@ -169,7 +181,11 @@ const ReviewUpsellCarousel = ({ cartItems = [], couponDetails = null }) => {
             type="button"
             onClick={() => handleScroll('left')}
             disabled={!canScrollLeft}
-            className="w-8 h-8 rounded-xl flex items-center justify-center bg-slate-50 dark:bg-[#151B23] border border-slate-200 dark:border-[#27313D] text-slate-700 dark:text-[#B7C1CE] hover:text-black dark:hover:text-[#F5F7FA] hover:bg-slate-100 dark:hover:bg-[#1E2632] disabled:opacity-30 disabled:cursor-not-allowed transition-all cursor-pointer active:scale-95 shadow-2xs"
+            className={`w-8 h-8 rounded-xl flex items-center justify-center border disabled:opacity-30 disabled:cursor-not-allowed transition-all cursor-pointer active:scale-95 shadow-2xs ${
+              isDark 
+                ? "bg-white/10 border-white/10 text-slate-300 hover:text-white hover:bg-white/15" 
+                : "bg-slate-50 dark:bg-[#151B23] border-slate-200 dark:border-[#27313D] text-slate-700 dark:text-[#B7C1CE] hover:text-black dark:hover:text-[#F5F7FA] hover:bg-slate-100 dark:hover:bg-[#1E2632]"
+            }`}
             title="Previous"
           >
             <ChevronLeft size={16} />
@@ -178,7 +194,11 @@ const ReviewUpsellCarousel = ({ cartItems = [], couponDetails = null }) => {
             type="button"
             onClick={() => handleScroll('right')}
             disabled={!canScrollRight}
-            className="w-8 h-8 rounded-xl flex items-center justify-center bg-slate-50 dark:bg-[#151B23] border border-slate-200 dark:border-[#27313D] text-slate-700 dark:text-[#B7C1CE] hover:text-black dark:hover:text-[#F5F7FA] hover:bg-slate-100 dark:hover:bg-[#1E2632] disabled:opacity-30 disabled:cursor-not-allowed transition-all cursor-pointer active:scale-95 shadow-2xs"
+            className={`w-8 h-8 rounded-xl flex items-center justify-center border disabled:opacity-30 disabled:cursor-not-allowed transition-all cursor-pointer active:scale-95 shadow-2xs ${
+              isDark 
+                ? "bg-white/10 border-white/10 text-slate-300 hover:text-white hover:bg-white/15" 
+                : "bg-slate-50 dark:bg-[#151B23] border-slate-200 dark:border-[#27313D] text-slate-700 dark:text-[#B7C1CE] hover:text-black dark:hover:text-[#F5F7FA] hover:bg-slate-100 dark:hover:bg-[#1E2632]"
+            }`}
             title="Next"
           >
             <ChevronRight size={16} />
@@ -196,12 +216,14 @@ const ReviewUpsellCarousel = ({ cartItems = [], couponDetails = null }) => {
           Array.from({ length: 4 }).map((_, i) => (
             <div
               key={i}
-              className="w-[200px] sm:w-[220px] shrink-0 bg-slate-50 dark:bg-[#151B23] border border-slate-200/80 dark:border-[#27313D] rounded-2xl p-3 animate-pulse space-y-3"
+              className={`w-[200px] sm:w-[220px] shrink-0 border rounded-2xl p-3 animate-pulse space-y-3 ${
+                isDark ? "bg-[#141b24] border-white/10" : "bg-slate-50 dark:bg-[#151B23] border-slate-200/80 dark:border-[#27313D]"
+              }`}
             >
-              <div className="w-full h-28 bg-slate-200 dark:bg-[#202936] rounded-xl" />
-              <div className="h-3.5 bg-slate-200 dark:bg-[#202936] rounded w-3/4" />
-              <div className="h-3 bg-slate-200 dark:bg-[#202936] rounded w-1/2" />
-              <div className="h-8 bg-slate-200 dark:bg-[#202936] rounded-xl" />
+              <div className={`w-full h-28 rounded-xl ${isDark ? "bg-white/5" : "bg-slate-200 dark:bg-[#202936]"}`} />
+              <div className={`h-3.5 rounded w-3/4 ${isDark ? "bg-white/5" : "bg-slate-200 dark:bg-[#202936]"}`} />
+              <div className={`h-3 rounded w-1/2 ${isDark ? "bg-white/5" : "bg-slate-200 dark:bg-[#202936]"}`} />
+              <div className={`h-8 rounded-xl ${isDark ? "bg-white/5" : "bg-slate-200 dark:bg-[#202936]"}`} />
             </div>
           ))
         ) : (
@@ -229,15 +251,25 @@ const ReviewUpsellCarousel = ({ cartItems = [], couponDetails = null }) => {
             return (
               <div
                 key={product._id}
-                className="w-[200px] sm:w-[220px] shrink-0 snap-start bg-slate-50 dark:bg-[#151B23] border border-slate-200/80 dark:border-[#27313D] rounded-2xl p-3 flex flex-col justify-between hover:border-amber-400/50 dark:hover:border-amber-400/40 transition-all duration-200 shadow-2xs group"
+                className={`w-[200px] sm:w-[220px] shrink-0 snap-start border rounded-2xl p-3 flex flex-col justify-between transition-all duration-200 shadow-2xs group ${
+                  isDark
+                    ? "bg-[#141b24] border-white/10 hover:border-amber-400/50"
+                    : "bg-slate-50 dark:bg-[#151B23] border-slate-200/80 dark:border-[#27313D] hover:border-amber-400/50 dark:hover:border-amber-400/40"
+                }`}
               >
                 <div>
                   {/* Product Image */}
-                  <div className="relative w-full h-24 sm:h-28 bg-white dark:bg-[#1A222D] rounded-xl border border-slate-100 dark:border-[#27313D] p-2 flex items-center justify-center overflow-hidden mb-2.5">
+                  <div className={`relative w-full h-24 sm:h-28 rounded-xl border p-2 flex items-center justify-center overflow-hidden mb-2.5 ${
+                    isDark
+                      ? "bg-[#1c2430] border-white/10"
+                      : "bg-white dark:bg-[#1A222D] border-slate-100 dark:border-[#27313D]"
+                  }`}>
                     <img
                       src={productImage}
                       alt={displayName}
-                      className="w-full h-full object-contain mix-blend-multiply dark:mix-blend-normal transition-transform duration-300 group-hover:scale-105"
+                      className={`w-full h-full object-contain ${
+                        isDark ? 'mix-blend-normal' : 'mix-blend-multiply dark:mix-blend-normal'
+                      } transition-transform duration-300 group-hover:scale-105`}
                       loading="lazy"
                     />
                     {couponPercentage > 0 && (
@@ -248,7 +280,9 @@ const ReviewUpsellCarousel = ({ cartItems = [], couponDetails = null }) => {
                   </div>
 
                   {/* Product Title */}
-                  <h4 className="font-extrabold text-xs text-slate-900 dark:text-[#F5F7FA] line-clamp-2 leading-snug tracking-tight mb-2">
+                  <h4 className={`font-extrabold text-xs line-clamp-2 leading-snug tracking-tight mb-2 ${
+                    isDark ? "text-white" : "text-slate-900 dark:text-[#F5F7FA]"
+                  }`}>
                     {displayName}
                   </h4>
 
@@ -264,7 +298,9 @@ const ReviewUpsellCarousel = ({ cartItems = [], couponDetails = null }) => {
                             onClick={() => handleSelectVariant(product._id, v)}
                             className={`text-[9px] font-bold px-2 py-0.5 rounded-lg border transition-all cursor-pointer ${
                               isSelected
-                                ? 'bg-amber-400/20 text-amber-700 dark:text-[#FFD600] border-amber-400/50 dark:border-[#FFD600]/50'
+                                ? 'bg-amber-400/20 text-amber-300 dark:text-[#FFD600] border-amber-400/50 dark:border-[#FFD600]/50'
+                                : isDark
+                                ? 'bg-white/5 text-slate-300 border-white/10 hover:text-white'
                                 : 'bg-white dark:bg-[#1D2530] text-slate-500 dark:text-[#818C9B] border-slate-200 dark:border-[#2A3440] hover:text-slate-900 dark:hover:text-white'
                             }`}
                           >
@@ -277,25 +313,29 @@ const ReviewUpsellCarousel = ({ cartItems = [], couponDetails = null }) => {
                 </div>
 
                 {/* Pricing & Add to Cart Section */}
-                <div className="pt-2 border-t border-slate-200/60 dark:border-[#27313D] mt-2 space-y-2">
+                <div className={`pt-2 border-t mt-2 space-y-2 ${
+                  isDark ? "border-white/10" : "border-slate-200/60 dark:border-[#27313D]"
+                }`}>
                   <div>
                     {couponPercentage > 0 ? (
                       <div className="space-y-0.5">
                         <div className="flex items-baseline gap-1.5">
-                          <span className="text-sm sm:text-base font-black text-amber-600 dark:text-[#FFD600] font-mono leading-none">
+                          <span className="text-sm sm:text-base font-black text-amber-400 font-mono leading-none">
                             ₹{effectivePrice.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
                           </span>
                           <span className="text-[10px] text-slate-400 line-through font-mono">
                             ₹{originalPrice.toLocaleString('en-IN')}
                           </span>
                         </div>
-                        <p className="text-[9px] text-emerald-600 dark:text-emerald-400 font-bold flex items-center gap-0.5">
+                        <p className="text-[9px] text-emerald-400 font-bold flex items-center gap-0.5">
                           <span>Save ₹{couponSavings.toLocaleString('en-IN', { minimumFractionDigits: 2 })} with {couponDetails.code}</span>
                         </p>
                       </div>
                     ) : (
                       <div className="flex items-baseline gap-1.5">
-                        <span className="text-sm sm:text-base font-black text-slate-900 dark:text-[#F5F7FA] font-mono">
+                        <span className={`text-sm sm:text-base font-black font-mono ${
+                          isDark ? "text-amber-400" : "text-slate-900 dark:text-[#F5F7FA]"
+                        }`}>
                           ₹{originalPrice.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
                         </span>
                         {selectedVariant?.listingPrice && selectedVariant.listingPrice > originalPrice && (
@@ -309,7 +349,7 @@ const ReviewUpsellCarousel = ({ cartItems = [], couponDetails = null }) => {
 
                   {/* Button / Stepper */}
                   {itemInCart ? (
-                    <div className="flex items-center justify-between border border-amber-400/40 dark:border-[#FFD600]/40 rounded-xl bg-amber-500/10 p-1">
+                    <div className="flex items-center justify-between border border-amber-400/40 rounded-xl bg-amber-500/10 p-1">
                       <button
                         type="button"
                         onClick={() => {
@@ -320,18 +360,26 @@ const ReviewUpsellCarousel = ({ cartItems = [], couponDetails = null }) => {
                             dispatch(updateQuantity({ id: itemInCart._id, quantity: itemInCart.quantity - 1 }));
                           }
                         }}
-                        className="w-7 h-7 rounded-lg flex items-center justify-center bg-white dark:bg-[#171D26] text-slate-700 dark:text-[#B7C1CE] hover:text-black dark:hover:text-[#F5F7FA] transition cursor-pointer active:scale-95 shadow-xs"
+                        className={`w-7 h-7 rounded-lg flex items-center justify-center transition cursor-pointer active:scale-95 shadow-xs ${
+                          isDark
+                            ? "bg-white/10 text-slate-200 hover:text-white"
+                            : "bg-white dark:bg-[#171D26] text-slate-700 dark:text-[#B7C1CE] hover:text-black dark:hover:text-[#F5F7FA]"
+                        }`}
                         title="Reduce quantity"
                       >
                         <Minus size={11} />
                       </button>
-                      <span className="text-xs font-black text-slate-900 dark:text-[#FFD600] font-mono px-2">
+                      <span className="text-xs font-black text-amber-300 font-mono px-2">
                         {itemInCart.quantity} in order
                       </span>
                       <button
                         type="button"
                         onClick={() => dispatch(updateQuantity({ id: itemInCart._id, quantity: itemInCart.quantity + 1 }))}
-                        className="w-7 h-7 rounded-lg flex items-center justify-center bg-white dark:bg-[#171D26] text-slate-700 dark:text-[#B7C1CE] hover:text-black dark:hover:text-[#F5F7FA] transition cursor-pointer active:scale-95 shadow-xs"
+                        className={`w-7 h-7 rounded-lg flex items-center justify-center transition cursor-pointer active:scale-95 shadow-xs ${
+                          isDark
+                            ? "bg-white/10 text-slate-200 hover:text-white"
+                            : "bg-white dark:bg-[#171D26] text-slate-700 dark:text-[#B7C1CE] hover:text-black dark:hover:text-[#F5F7FA]"
+                        }`}
                         title="Add one more"
                       >
                         <Plus size={11} />

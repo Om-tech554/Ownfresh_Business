@@ -14,6 +14,7 @@ import { calculateClientShipping } from '../../utils/shippingCalculator';
 import { isUserActivePrime, calculateItemPricing, calculateCartPrimeTotals } from '../../utils/primeUtils';
 import { Crown } from 'lucide-react';
 import ReviewUpsellCarousel from './ReviewUpsellCarousel';
+import CommissionCoinsWidget from './CommissionCoinsWidget';
 
 const serverUrl = import.meta.env.VITE_API_URL || "http://localhost:10000";
 
@@ -644,6 +645,9 @@ const OrderReview = () => {
               </div>
             </div>
           </div>
+
+          {/* COMMISSION CREDIT COINS REDEMPTION WIDGET */}
+          <CommissionCoinsWidget />
 
           {/* PRICING BREAKDOWN CARD */}
           <div className="bg-slate-900 dark:bg-[#171D26] text-white rounded-2xl p-5 sm:p-6 shadow-xl relative overflow-hidden border border-transparent dark:border-[#27313D] transition-colors duration-200">

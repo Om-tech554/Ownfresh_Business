@@ -231,6 +231,8 @@ export const initiatePhonePePayment = async (req, res) => {
     }
 
     if (v2Success && redirectUrlFromPhonePe) {
+      order.phonePeMerchantTransactionId = merchantTransactionId;
+      await order.save();
       return res.status(200).json({
         success: true,
         redirectUrl: redirectUrlFromPhonePe,

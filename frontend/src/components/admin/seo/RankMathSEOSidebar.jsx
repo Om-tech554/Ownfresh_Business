@@ -97,23 +97,80 @@ const RankMathSEOSidebar = ({
     return trimmed ? trimmed.split(/\s+/).length : 0;
   }, [plainTextContent]);
 
-  // Scanned Links from Content
+  // Helper: Checks if a URL is an internal link to another OwnFresh page (NOT in-page hash jumps)
+  const isInternalUrl = (href) => {
+    if (!href || typeof href !== "string") return false;
+    const trimmed = href.trim();
+    // Exclude hash jumps, empty, javascript, mailto, tel
+    if (!trimmed || trimmed === "#" || trimmed.startsWith("#") || trimmed.startsWith("javascript:") || trimmed.startsWith("mailto:") || trimmed.startsWith("tel:")) {
+      return false;
+    }
+    // Relative link pointing to another path (e.g. /shop, /products/xyz, /blog/xyz)
+    if (trimmed.startsWith("/") && trimmed.length > 1 && !trimmed.startsWith("/#")) {
+      return true;
+    }
+    // Absolute URL matching ownfresh or local dev
+    try {
+      const parsed = new URL(trimmed, window.location.origin);
+      const isOwnHost = parsed.hostname === window.location.hostname ||
+        parsed.hostname.includes("ownfresh") ||
+        parsed.hostname.includes("localhost");
+      return isOwnHost && parsed.pathname && parsed.pathname !== "" && parsed.pathname !== "/" && !trimmed.startsWith("/#");
+    } catch {
+      return trimmed.includes("ownfresh") && !trimmed.includes("#");
+    }
+  };
+
+  // Helper: Checks if a URL is an external link to a third-party website
+  const isExternalUrl = (href) => {
+    if (!href || typeof href !== "string") return false;
+    const trimmed = href.trim();
+    if (!trimmed.startsWith("http://") && !trimmed.startsWith("https://")) return false;
+    try {
+      const parsed = new URL(trimmed);
+      const isInternalHost = parsed.hostname === window.location.hostname ||
+        parsed.hostname.includes("ownfresh") ||
+        parsed.hostname.includes("localhost");
+      return !isInternalHost;
+    } catch {
+      return false;
+    }
+  };
+
+  // Scanned Editorial Links from Content (Excludes Table of Contents and in-page #anchor jumps)
   const linksInArticle = useMemo(() => {
     if (!description) return [];
     const div = document.createElement("div");
     div.innerHTML = description;
+
+    // Exclude Table of Contents containers from link counting
+    const tocBlocks = div.querySelectorAll(".blog-toc, .toc-container, [data-block-type='toc'], nav.toc, .toc");
+    tocBlocks.forEach(el => el.remove());
+
     const anchors = Array.from(div.querySelectorAll("a"));
-    return anchors.map((a) => {
-      const href = a.getAttribute("href") || "";
-      const text = a.textContent || "";
-      const isInternal = href.startsWith("/") || href.includes("ownfresh") || href.startsWith("#");
-      return { url: href, text, isInternal };
-    });
+    return anchors
+      .map((a) => {
+        const href = (a.getAttribute("href") || "").trim();
+        const text = (a.textContent || "").trim();
+        // Skip in-page hash jumps, empty, or javascript hrefs
+        if (!href || href === "#" || href.startsWith("#") || href.startsWith("javascript:")) {
+          return null;
+        }
+
+        const isInternal = isInternalUrl(href);
+        const isExternal = isExternalUrl(href);
+
+        // Only include recognized internal or external links
+        if (!isInternal && !isExternal) return null;
+
+        return { url: href, text, isInternal, isExternal };
+      })
+      .filter(Boolean);
   }, [description]);
 
   const linkAnalysis = useMemo(() => {
     const internal = linksInArticle.filter(l => l.isInternal).length;
-    const external = linksInArticle.length - internal;
+    const external = linksInArticle.filter(l => l.isExternal).length;
     return { internal, external, total: linksInArticle.length };
   }, [linksInArticle]);
 

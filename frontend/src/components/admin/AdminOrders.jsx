@@ -11,6 +11,7 @@ import toast from "react-hot-toast";
 import { AnimatePresence, motion } from "framer-motion";
 import { useConfirm } from "../../hooks/ConfirmContext.jsx";
 import CreateManualOrderModal from "./CreateManualOrderModal.jsx";
+import { OWN_FRESH_PAYMENT_QR_BASE64 } from "../../assets/qrDataUri.js";
 
 export const isPuneOrder = (order) => {
     if (!order) return false;
@@ -1090,40 +1091,50 @@ const AdminOrders = () => {
                 <div class="bottom-section" style="grid-template-columns: ${isCOD ? '1fr 1fr' : '1fr'};">
 
                     ${isCOD ? `
-                    <div class="bank-box">
-                        <div class="bank-title">🏦 Bank Details — Please Pay on Delivery</div>
-                        <div style="display:flex;gap:14px;align-items:flex-start;">
-                            <div style="flex:1;">
-                                <div class="bank-row">
-                                    <span class="bank-key">Beneficiary</span>
-                                    <span class="bank-val">M/s. OWNFRESH AGRO INDUSTRIES</span>
-                                </div>
-                                <div class="bank-row">
-                                    <span class="bank-key">Bank</span>
-                                    <span class="bank-val">Bank of Maharashtra</span>
-                                </div>
-                                <div class="bank-row">
-                                    <span class="bank-key">Branch</span>
-                                    <span class="bank-val">Pune Mayur Colony</span>
-                                </div>
-                                <div class="bank-row">
-                                    <span class="bank-key">Account No.</span>
-                                    <span class="bank-val">603398389380</span>
-                                </div>
-                                <div class="bank-row">
-                                    <span class="bank-key">IFSC Code</span>
-                                    <span class="bank-val">MAHB0000852</span>
-                                </div>
+                    <div class="bank-box" style="border: 2px solid #16a34a; background: #f0fdf4; border-radius: 8px; padding: 12px 14px;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom: 1.5px solid #bbf7d0; padding-bottom: 6px; margin-bottom: 10px;">
+                            <div style="font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; color: #15803d; display:flex; align-items:center; gap:6px;">
+                                <span>📦 CASH ON DELIVERY (COD)</span>
                             </div>
-                            <div style="display:flex;flex-direction:column;align-items:center;flex-shrink:0;">
+                            <div style="background:#15803d; color:#fff; font-size:11px; font-weight:800; padding:3px 10px; border-radius:6px; letter-spacing:0.5px;">
+                                COLLECT: ₹${total.toLocaleString('en-IN')}
+                            </div>
+                        </div>
+                        <div style="display:flex; gap:16px; align-items:center;">
+                            <div style="display:flex; flex-direction:column; align-items:center; flex-shrink:0; background:#fff; padding:6px; border:2px solid #16a34a; border-radius:8px; box-shadow: 0 1px 3px rgba(0,0,0,0.06);">
                                 <img
-                                    src="https://api.qrserver.com/v1/create-qr-code/?size=110x110&ecc=M&data=Account%3A%20M%2Fs.%20OWNFRESH%20AGRO%20INDUSTRIES%20%7C%20Bank%3A%20Bank%20of%20Maharashtra%20%7C%20Branch%3A%20Pune%20Mayur%20Colony%20%7C%20AC%20No%3A%20603398389380%20%7C%20IFSC%3A%20MAHB0000852"
-                                    alt="Bank QR Code"
-                                    width="110"
-                                    height="110"
-                                    style="border:3px solid #1d4ed8;border-radius:6px;display:block;"
+                                    src="${OWN_FRESH_PAYMENT_QR_BASE64}"
+                                    alt="OwnFresh Official UPI QR Code"
+                                    width="120"
+                                    height="120"
+                                    style="display:block; object-fit:contain;"
                                 />
-                                <div style="font-size:8px;color:#6b7280;margin-top:4px;text-align:center;font-weight:600;letter-spacing:0.5px;">SCAN TO PAY</div>
+                                <div style="font-size:9px; color:#15803d; margin-top:4px; text-align:center; font-weight:800; letter-spacing:0.5px;">SCAN &amp; PAY NOW</div>
+                                <div style="font-size:7.5px; color:#6b7280; margin-top:1px; text-align:center;">GPay • PhonePe • Paytm • UPI</div>
+                            </div>
+                            <div style="flex:1;">
+                                <div style="font-size:10px; font-weight:700; color:#166534; margin-bottom:6px; text-transform:uppercase; letter-spacing:0.5px;">
+                                    Direct UPI / Bank Transfer
+                                </div>
+                                <div class="bank-row" style="border-bottom-color:#bbf7d0;">
+                                    <span class="bank-key">Payee</span>
+                                    <span class="bank-val" style="color:#14532d;">M/s. OWNFRESH AGRO INDUSTRIES</span>
+                                </div>
+                                <div class="bank-row" style="border-bottom-color:#bbf7d0;">
+                                    <span class="bank-key">Bank</span>
+                                    <span class="bank-val" style="color:#14532d;">Bank of Maharashtra</span>
+                                </div>
+                                <div class="bank-row" style="border-bottom-color:#bbf7d0;">
+                                    <span class="bank-key">Account No.</span>
+                                    <span class="bank-val" style="color:#14532d; font-family:monospace; font-size:11px;">603398389380</span>
+                                </div>
+                                <div class="bank-row" style="border-bottom-color:#bbf7d0;">
+                                    <span class="bank-key">IFSC Code</span>
+                                    <span class="bank-val" style="color:#14532d; font-family:monospace; font-size:11px;">MAHB0000852</span>
+                                </div>
+                                <div style="font-size:9px; color:#4b5563; margin-top:6px; line-height:1.4;">
+                                    <strong>Delivery Executive / Customer:</strong> Scan this QR code using any UPI app to pay upon box delivery.
+                                </div>
                             </div>
                         </div>
                     </div>

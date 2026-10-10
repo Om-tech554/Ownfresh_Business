@@ -6,6 +6,7 @@ import { Truck, Zap, Rocket } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { calculateClientShipping } from '../../utils/shippingCalculator';
 import SLink from '../SLink';
+import CommissionCoinsWidget from './CommissionCoinsWidget';
 
 const DeliveryMethod = () => {
   const { deliveryMethod, setDeliveryMethod, nextStep, prevStep, shippingDetails } = useCheckout();
@@ -148,6 +149,11 @@ const DeliveryMethod = () => {
             </div>
           );
         })}
+      </div>
+
+      {/* ── COMMISSION CREDIT COINS REDEMPTION SECTION ── */}
+      <div className="mt-5 sm:mt-6">
+        <CommissionCoinsWidget />
       </div>
 
       <div className="pt-6 sm:pt-8 flex flex-col-reverse sm:flex-row gap-3 sm:gap-4 justify-between items-stretch sm:items-center mt-4 sm:mt-6 border-t border-gray-100 dark:border-[#27313D]">

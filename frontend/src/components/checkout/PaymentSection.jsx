@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { BsCreditCard2FrontFill } from 'react-icons/bs';
 import { FaWallet, FaShieldAlt, FaLock } from 'react-icons/fa';
 import toast from 'react-hot-toast';
+import CommissionCoinsWidget from './CommissionCoinsWidget';
 
 const paymentOptions = [
   {
@@ -100,6 +101,11 @@ const PaymentSection = () => {
             We employ 256-bit encryption and PCI-DSS compliant gateways to ensure your transactions are 100% protected.
           </p>
         </div>
+      </div>
+
+      {/* ── COMMISSION CREDIT COINS REDEMPTION SECTION ── */}
+      <div className="mt-6">
+        <CommissionCoinsWidget />
       </div>
 
       <div className="pt-8 flex flex-col-reverse sm:flex-row justify-between items-stretch sm:items-center gap-4 mt-4 border-t border-gray-100 dark:border-[#27313D]">
