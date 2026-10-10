@@ -486,6 +486,7 @@ table,
 
 /* Mobile input zoom prevention (iOS zooms in if font-size < 16px) */
 @media screen and (max-width: 768px) {
+
   input,
   select,
   textarea {
@@ -523,6 +524,7 @@ table,
 .no-scrollbar::-webkit-scrollbar {
   display: none;
 }
+
 .no-scrollbar {
   -ms-overflow-style: none;
   scrollbar-width: none;
@@ -605,7 +607,7 @@ html.dark .admin-panel .border-gray-200 {
   border-color: #27313D !important;
 }
 
-html.dark .admin-panel .divide-slate-100 > :not([hidden]) ~ :not([hidden]),
-html.dark .admin-panel .divide-gray-100 > :not([hidden]) ~ :not([hidden]) {
+html.dark .admin-panel .divide-slate-100> :not([hidden])~ :not([hidden]),
+html.dark .admin-panel .divide-gray-100> :not([hidden])~ :not([hidden]) {
   border-color: #27313D !important;
 }

@@ -1,4 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { ArrowLeft } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -49,6 +51,7 @@ const MapRefUpdater = ({ lat, lon }) => {
 };
 
 const ShippingForm = () => {
+  const navigate = useNavigate();
   const { shippingDetails, setShippingDetails, nextStep } = useCheckout();
   
   const [lat, setLat] = useState(shippingDetails.latitude || 19.076);
@@ -328,7 +331,17 @@ const ShippingForm = () => {
       exit={{ opacity: 0, x: -20 }}
       className="bg-white dark:bg-[#171D26] rounded-2xl shadow-sm border border-gray-100 dark:border-[#27313D] p-6 md:p-8 transition-colors duration-200"
     >
-      <h2 className="text-2xl font-black text-gray-900 dark:text-[#F7F9FC] mb-6">Shipping Details</h2>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6 pb-3 border-b border-gray-100 dark:border-[#27313D]">
+        <h2 className="text-xl sm:text-2xl font-black text-gray-900 dark:text-[#F7F9FC]">Shipping Details</h2>
+        <button
+          type="button"
+          onClick={() => navigate('/cart')}
+          className="self-start sm:self-auto inline-flex items-center gap-2 px-3.5 py-2 text-xs sm:text-sm font-bold text-gray-700 dark:text-[#B7C1CE] hover:text-black dark:hover:text-[#F5F7FA] bg-gray-50 dark:bg-[#151B23] hover:bg-gray-100 dark:hover:bg-[#1D2530] border border-gray-200 dark:border-[#303B48] rounded-xl transition-all cursor-pointer active:scale-95 shadow-xs"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          <span>Back to Cart</span>
+        </button>
+      </div>
       
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -493,13 +506,21 @@ const ShippingForm = () => {
           </div>
         </div>
 
-        <div className="pt-4 flex justify-end">
+        <div className="pt-6 sm:pt-8 flex flex-col-reverse sm:flex-row gap-3 sm:gap-4 justify-between items-stretch sm:items-center mt-4 sm:mt-6 border-t border-gray-100 dark:border-[#27313D]">
+          <button
+            type="button"
+            onClick={() => navigate('/cart')}
+            className="w-full sm:w-auto px-5 sm:px-6 py-3 sm:py-3.5 text-gray-700 dark:text-[#B7C1CE] font-bold hover:text-black dark:hover:text-[#F5F7FA] transition-colors border border-gray-200 dark:border-[#303B48] rounded-xl hover:bg-gray-50 dark:hover:bg-[#1D2530] text-center cursor-pointer text-sm sm:text-base active:scale-95 flex items-center justify-center gap-2"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            <span>Back to Cart</span>
+          </button>
           <button
             type="submit"
-            className="w-full sm:w-auto px-10 py-4 bg-gradient-to-r from-amber-500 via-[#FFDD00] to-amber-600 text-[#111318] rounded-xl font-black text-sm uppercase tracking-wider hover:from-yellow-400 hover:to-amber-500 transition-all shadow-lg hover:shadow-yellow-500/30 flex items-center justify-center gap-3 active:scale-95 cursor-pointer"
+            className="w-full sm:w-auto px-6 sm:px-10 py-3.5 sm:py-4 bg-gradient-to-r from-amber-500 via-[#FFDD00] to-amber-600 text-[#111318] rounded-xl font-black text-xs sm:text-sm uppercase tracking-wider hover:from-yellow-400 hover:to-amber-500 transition-all shadow-md sm:shadow-lg hover:shadow-yellow-500/30 flex items-center justify-center gap-3 active:scale-95 cursor-pointer"
           >
             <span>Continue to Delivery</span>
-            <span className="text-lg">🪔</span>
+            <span className="text-base sm:text-lg">🪔</span>
           </button>
         </div>
       </form>

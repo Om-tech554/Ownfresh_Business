@@ -97,13 +97,36 @@ export const CheckoutProvider = ({ children }) => {
     estimatedTime: '5-7 Business Days'
   });
   const [paymentMethod, setPaymentMethod] = useState('online');
-  const [couponDetails, setCouponDetails] = useState({
-    code: '',
-    discount: 0,
-    isApplied: false,
-    requiresDeliveryCharge: false,
-    applicableUsers: 'ALL_USERS'
+  const [couponDetails, setCouponDetailsState] = useState(() => {
+    try {
+      const saved = localStorage.getItem("oil_applied_coupon");
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed && parsed.isApplied) return parsed;
+      }
+    } catch (e) {}
+    return {
+      code: '',
+      discount: 0,
+      isApplied: false,
+      requiresDeliveryCharge: false,
+      applicableUsers: 'ALL_USERS'
+    };
   });
+
+  const setCouponDetails = (newDetails) => {
+    setCouponDetailsState((prev) => {
+      const updated = typeof newDetails === 'function' ? newDetails(prev) : newDetails;
+      try {
+        if (updated && updated.isApplied) {
+          localStorage.setItem("oil_applied_coupon", JSON.stringify(updated));
+        } else {
+          localStorage.removeItem("oil_applied_coupon");
+        }
+      } catch (e) {}
+      return updated;
+    });
+  };
   const [useWallet, setUseWallet] = useState(false);
   const [referralCode, setReferralCode] = useState('');
   const [referralApplied, setReferralApplied] = useState(false);

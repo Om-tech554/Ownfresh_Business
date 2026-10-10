@@ -160,9 +160,8 @@ const Testimonials = () => {
                     <button
                       key={idx}
                       onClick={() => setActiveIndex(idx)}
-                      className={`h-2 rounded-full transition-all cursor-pointer ${
-                        activeIndex === idx ? "w-6 bg-[#FFD600]" : "w-2 bg-[#27313D]"
-                      }`}
+                      className={`h-2 rounded-full transition-all cursor-pointer ${activeIndex === idx ? "w-6 bg-[#FFD600]" : "w-2 bg-[#27313D]"
+                        }`}
                       aria-label={`Go to slide ${idx + 1}`}
                     />
                   ))}

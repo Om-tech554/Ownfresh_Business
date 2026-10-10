@@ -187,7 +187,7 @@ const CheckoutFlow = () => {
                   <div className="bg-purple-50 dark:bg-purple-950/40 p-4 rounded-xl border border-purple-200 dark:border-purple-800/60 flex items-center gap-2">
                     <span className="text-purple-700 dark:text-purple-400">✓</span>
                     <span className="text-xs font-bold text-purple-900 dark:text-purple-200">
-                      Applied wallet points to save ₹{Math.min(walletBalance, (cartItems.reduce((acc, item) => acc + (item.price * item.quantity), 0) - (couponDetails?.discount || 0) - ((useCommissionCoins && canRedeemCoins) ? Math.min(cartItems.reduce((acc, item) => acc + (item.price * item.quantity), 0), commissionCoinsBalance) : 0)) * 1.05 + (deliveryMethod?.cost || 0)).toFixed(2)}
+                      Applied wallet balance of ₹{walletBalance.toFixed(2)} to this order
                     </span>
                   </div>
                 ) : (

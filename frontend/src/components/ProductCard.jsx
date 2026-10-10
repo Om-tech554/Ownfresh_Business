@@ -132,8 +132,8 @@ const ProductCard = ({ product, user, onAddToCart }) => {
               key={idx}
               style={{ backgroundColor: tagBg, color: tagColor }}
               className={`inline-flex items-center justify-center font-black shadow-xs ${tagName
-                  ? "gap-1 text-[8px] sm:text-[9px] px-2 py-0.5 rounded-full uppercase tracking-wider"
-                  : "w-5 h-5 sm:w-6 sm:h-6 rounded-full p-0 aspect-square shrink-0"
+                ? "gap-1 text-[8px] sm:text-[9px] px-2 py-0.5 rounded-full uppercase tracking-wider"
+                : "w-5 h-5 sm:w-6 sm:h-6 rounded-full p-0 aspect-square shrink-0"
                 }`}
             >
               {tagImage ? (
@@ -191,8 +191,8 @@ const ProductCard = ({ product, user, onAddToCart }) => {
             <Star
               key={i}
               className={`w-3 h-3 sm:w-3.5 sm:h-3.5 ${i < Math.floor(ratingDetails.rating)
-                  ? "fill-amber-500 stroke-amber-500"
-                  : "stroke-slate-300 dark:stroke-slate-600"
+                ? "fill-amber-500 stroke-amber-500"
+                : "stroke-slate-300 dark:stroke-slate-600"
                 }`}
             />
           ))}
@@ -234,10 +234,10 @@ const ProductCard = ({ product, user, onAddToCart }) => {
               onClick={handleCartClick}
               disabled={isAdded || selectedVariant?.stockQuantity <= 0}
               className={`p-1.5 xs:p-2 sm:p-3 rounded-lg xs:rounded-xl sm:rounded-2xl flex items-center justify-center transition-all duration-300 cursor-pointer shrink-0 ${isAdded
-                  ? "bg-green-600 dark:bg-[#19C37D] text-white"
-                  : selectedVariant?.stockQuantity <= 0
-                    ? "bg-slate-100 dark:bg-[#1D2530] text-slate-400 dark:text-[#5E6875] cursor-not-allowed"
-                    : "bg-slate-900 dark:bg-[#FFD600] text-white dark:text-[#111318] hover:bg-[#1E971D] dark:hover:bg-[#FFE45C] hover:text-white active:scale-95 shadow-sm hover:shadow-md"
+                ? "bg-green-600 dark:bg-[#19C37D] text-white"
+                : selectedVariant?.stockQuantity <= 0
+                  ? "bg-slate-100 dark:bg-[#1D2530] text-slate-400 dark:text-[#5E6875] cursor-not-allowed"
+                  : "bg-slate-900 dark:bg-[#FFD600] text-white dark:text-[#111318] hover:bg-[#1E971D] dark:hover:bg-[#FFE45C] hover:text-white active:scale-95 shadow-sm hover:shadow-md"
                 }`}
               title={selectedVariant?.stockQuantity <= 0 ? "Out of Stock" : "Add to Cart"}
             >

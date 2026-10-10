@@ -68,7 +68,7 @@ const HeroSection = () => {
                     />
                     {/* Light Mode Overlay */}
                     <div className="absolute inset-0 bg-gradient-to-r from-white/95 via-white/80 to-transparent dark:hidden pointer-events-none" />
-                    
+
                     {/* Dark Mode Overlay: Preserves product photo vibrancy on right, darkens left for text legibility */}
                     <div
                       className="absolute inset-0 hidden dark:block pointer-events-none"

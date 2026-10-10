@@ -314,9 +314,11 @@ export const validateCoupon = async (req, res) => {
     }
 
     // Calculate discount amount
+    // Calculate discount amount based on total including delivery
+    const baseTotal = Number(amount || 0) + Number(shippingCost || 0);
     let discountAmount = 0;
     if (coupon.discountType === "PERCENTAGE" || coupon.discountType === "percentage") {
-      discountAmount = (amount * coupon.discountValue) / 100;
+      discountAmount = (baseTotal * coupon.discountValue) / 100;
       if (coupon.maximumDiscountAmount) {
         discountAmount = Math.min(discountAmount, coupon.maximumDiscountAmount);
       }
@@ -325,8 +327,8 @@ export const validateCoupon = async (req, res) => {
     }
 
     // Ensure discount is not greater than the order amount itself
-    discountAmount = Math.min(discountAmount, amount);
-    const finalAmount = Math.max(0, amount - discountAmount);
+    discountAmount = Math.round(Math.min(discountAmount, baseTotal) * 100) / 100;
+    const finalAmount = Math.round(Math.max(0, baseTotal - discountAmount) * 100) / 100;
 
     const isSpecialCoupon = Boolean(coupon.applicableUsers === "SPECIAL_MEMBER" || coupon.isSpecialCoupon);
     const requiresDeliveryCharge = Boolean(

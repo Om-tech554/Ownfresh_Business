@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useCheckout } from './CheckoutContext';
 import { useSelector, useDispatch } from 'react-redux';
 import { motion } from 'framer-motion';
@@ -13,6 +13,7 @@ import { getToken } from 'firebase/app-check';
 import { calculateClientShipping } from '../../utils/shippingCalculator';
 import { isUserActivePrime, calculateItemPricing, calculateCartPrimeTotals } from '../../utils/primeUtils';
 import { Crown } from 'lucide-react';
+import ReviewUpsellCarousel from './ReviewUpsellCarousel';
 
 const serverUrl = import.meta.env.VITE_API_URL || "http://localhost:10000";
 
@@ -39,8 +40,6 @@ const OrderReview = () => {
     canRedeemCoins
   } = useCheckout();
 
-  const [couponInput, setCouponInput] = useState(couponDetails?.code || '');
-  const [validatingCoupon, setValidatingCoupon] = useState(false);
   const [referralInput, setReferralInput] = useState(referralCode || '');
   const [validatingReferral, setValidatingReferral] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -106,66 +105,39 @@ const OrderReview = () => {
     disableFreeDelivery: isSpecialCoupon
   });
   const shippingCost = shippingQuote.deliveryCost;
-  const discount = couponDetails?.discount || 0;
+  const totalBeforeDiscount = subtotal + Number(shippingCost || 0);
 
-  const coinDiscount = (useCommissionCoins && canRedeemCoins) ? Math.min(subtotal, commissionCoinsBalance) : 0;
-  const netSubtotal = Math.max(0, subtotal - discount - coinDiscount);
-  // Prices are inclusive of 5% GST (2.5% CGST + 2.5% SGST)
-  const taxableAmount = Math.round((netSubtotal / 1.05) * 100) / 100;
+  // Authoritative discount calculation on total including delivery
+  let discount = 0;
+  if (couponDetails?.isApplied) {
+    if (couponDetails.discountType === 'PERCENTAGE' || couponDetails.discountType === 'percentage') {
+      let calcDisc = (totalBeforeDiscount * Number(couponDetails.discountValue || 0)) / 100;
+      if (couponDetails.maximumDiscountAmount) {
+        calcDisc = Math.min(calcDisc, couponDetails.maximumDiscountAmount);
+      }
+      discount = Math.min(calcDisc, totalBeforeDiscount);
+    } else {
+      discount = Math.min(Number(couponDetails.discountValue || couponDetails.discount || 0), totalBeforeDiscount);
+    }
+  }
+
+  const maxCoinDiscount = Math.max(0, totalBeforeDiscount - discount);
+  const coinDiscount = (useCommissionCoins && canRedeemCoins) ? Math.min(maxCoinDiscount, commissionCoinsBalance) : 0;
+  const finalAmount = Math.max(0, totalBeforeDiscount - discount - coinDiscount);
+  const netGoods = Math.max(0, finalAmount - Number(shippingCost || 0));
+
+  // Prices are inclusive of 5% GST (2.5% CGST + 2.5% SGST) on goods
+  const taxableAmount = Math.round((netGoods / 1.05) * 100) / 100;
   const cgst = Math.round(taxableAmount * 0.025 * 100) / 100;
   const sgst = Math.round(taxableAmount * 0.025 * 100) / 100;
   const totalTax = cgst + sgst;
-  const finalAmount = Math.max(0, netSubtotal + shippingCost);
 
-  const handleApplyCoupon = async () => {
-    if (!couponInput.trim()) return toast.error("Enter coupon code");
-    if (!user?._id) {
-      toast.error("Please sign in or create an account to use promo codes", { icon: "🔐" });
-      navigate('/signin?redirect=/checkout');
-      return;
+  // Synchronize recalculated discount with CheckoutContext and localStorage
+  useEffect(() => {
+    if (couponDetails?.isApplied && Math.abs((couponDetails.discount || 0) - discount) > 0.01) {
+      setCouponDetails(prev => ({ ...prev, discount }));
     }
-    setValidatingCoupon(true);
-    try {
-      const { data } = await axios.post(`${serverUrl}/api/coupon/validate`, {
-        code: couponInput.trim(),
-        amount: subtotal,
-        userId: user._id
-      }, { withCredentials: true });
-
-      if (data.success) {
-        const reqDeliv = Boolean(
-          data.requiresDeliveryCharge || 
-          data.isSpecialCoupon || 
-          data.applicableUsers === "SELECTED_USERS" ||
-          data.applicableUsers === "SPECIAL_MEMBER"
-        );
-        setCouponDetails({
-          code: couponInput.trim().toUpperCase(),
-          discount: data.discountAmount,
-          isApplied: true,
-          requiresDeliveryCharge: reqDeliv,
-          isSpecialCoupon: Boolean(data.isSpecialCoupon || data.applicableUsers === "SPECIAL_MEMBER"),
-          applicableUsers: data.applicableUsers
-        });
-        if (reqDeliv) {
-          toast.success(data.message || `Exclusive promo ${couponInput.trim().toUpperCase()} applied! Saved ₹${data.discountAmount}. (Standard delivery charges apply)`);
-        } else {
-          toast.success(`Coupon applied! ₹${data.discountAmount} saved.`);
-        }
-      }
-    } catch (error) {
-      toast.error(error.response?.data?.message || "Invalid coupon");
-      setCouponDetails({ code: '', discount: 0, isApplied: false });
-    } finally {
-      setValidatingCoupon(false);
-    }
-  };
-
-    const removeCoupon = () => {
-    setCouponInput("");
-    setCouponDetails({ code: '', discount: 0, isApplied: false });
-    toast.success("Coupon removed");
-  };
+  }, [discount, couponDetails?.isApplied, couponDetails?.discount, setCouponDetails]);
 
   const handleApplyReferral = async () => {
     if (!referralInput.trim()) return toast.error("Enter referral code");
@@ -598,45 +570,46 @@ const OrderReview = () => {
             </div>
           </div>
 
+          {/* 4. UPSELL RECOMMENDATIONS CAROUSEL (DIRECT ADD WITH REAL-TIME COUPON DEDUCTION) */}
+          <ReviewUpsellCarousel
+            cartItems={cartItems}
+            couponDetails={couponDetails}
+          />
+
         </div>
 
         {/* ── RIGHT COLUMN: Billing & Coupons ── */}
         <div className="lg:col-span-5 lg:sticky lg:top-24 space-y-5">
           
-          {/* COUPON & REFERRAL WIDGET */}
+          {/* COUPON STATUS & REFERRAL WIDGET */}
           <div className="bg-white dark:bg-[#171D26] rounded-2xl p-4 sm:p-5 border border-slate-200/90 dark:border-[#27313D] shadow-xs space-y-4 transition-colors duration-200">
-            {/* Promo Code */}
-            <div>
-              <h4 className="font-black text-xs text-slate-800 dark:text-[#F7F9FC] uppercase tracking-wider mb-2 flex items-center gap-1.5">
-                <Tag size={13} className="text-[#FFD600]" /> Promo / Coupon Code
-              </h4>
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  placeholder="ENTER CODE"
-                  className="flex-1 min-w-0 px-3.5 py-2.5 bg-slate-50 dark:bg-[#151B23] border border-slate-200 dark:border-[#29333F] text-slate-900 dark:text-[#F5F7FA] rounded-xl outline-none focus:border-[#FFD600] uppercase font-bold text-xs tracking-wider placeholder-slate-400 dark:placeholder-[#778393]"
-                  value={couponInput}
-                  onChange={(e) => setCouponInput(e.target.value.toUpperCase())}
-                  disabled={couponDetails?.isApplied}
-                />
-                {couponDetails?.isApplied ? (
-                  <button
-                    onClick={removeCoupon}
-                    className="px-4 py-2.5 bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-[#FF5C6C] border border-rose-200 dark:border-rose-900/40 rounded-xl font-bold text-xs hover:bg-rose-100 transition-colors uppercase tracking-wider shrink-0 cursor-pointer"
-                  >
-                    Remove
-                  </button>
-                ) : (
-                  <button
-                    onClick={handleApplyCoupon}
-                    disabled={validatingCoupon}
-                    className="px-5 py-2.5 bg-slate-900 dark:bg-[#1D2530] text-white dark:text-[#F5F7FA] border border-transparent dark:border-[#303B48] rounded-xl font-black text-xs hover:bg-[#FFD600] hover:text-[#111318] dark:hover:bg-[#FFD600] dark:hover:text-[#111318] transition-colors uppercase tracking-wider shrink-0 disabled:opacity-50 cursor-pointer"
-                  >
-                    {validatingCoupon ? "..." : "Apply"}
-                  </button>
-                )}
+            {couponDetails?.isApplied ? (
+              <div className="p-3 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/40 rounded-xl flex items-center justify-between text-xs">
+                <div className="flex items-center gap-2.5">
+                  <Tag size={15} className="text-emerald-600 dark:text-emerald-400 shrink-0" />
+                  <div>
+                    <div className="flex items-center gap-1.5">
+                      <span className="font-mono font-black text-slate-900 dark:text-[#F5F7FA]">
+                        {couponDetails.code}
+                      </span>
+                      <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-900/60 text-emerald-800 dark:text-emerald-200">
+                        Applied in Cart
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-emerald-700 dark:text-emerald-300 font-bold mt-0.5">
+                      Discount: -₹{discount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    </p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => navigate('/cart')}
+                  className="text-[11px] font-black text-amber-600 dark:text-[#FFD600] hover:underline uppercase tracking-wider cursor-pointer shrink-0"
+                >
+                  Edit in Cart
+                </button>
               </div>
-            </div>
+            ) : null}
 
             {/* Referral Code */}
             <div className="pt-3 border-t border-slate-100 dark:border-[#27313D]">
@@ -683,31 +656,9 @@ const OrderReview = () => {
 
             <div className="space-y-3 font-semibold text-xs text-slate-300 dark:text-[#B7C1CE]">
               <div className="flex justify-between items-center">
-                <span>Items Subtotal</span>
-                <span className="text-white dark:text-[#F5F7FA] font-mono">₹{subtotal.toLocaleString('en-IN')}</span>
+                <span>Items Subtotal (Incl. GST)</span>
+                <span className="text-white dark:text-[#F5F7FA] font-mono">₹{subtotal.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
               </div>
-
-              {discount > 0 && (
-                <>
-                  <div className="flex justify-between items-center text-emerald-400">
-                    <span>Coupon Discount ({couponDetails?.code})</span>
-                    <span className="font-mono">-₹{discount.toLocaleString('en-IN')}</span>
-                  </div>
-                  {isSpecialCoupon && (
-                    <div className="p-2.5 rounded-xl bg-amber-500/10 border border-amber-400/30 text-[11px] text-amber-300 font-bold flex items-center gap-2">
-                      <span>🚚</span>
-                      <span>Note: Standard delivery charges (₹{shippingCost.toFixed(2)}) apply with exclusive code "{couponDetails?.code}".</span>
-                    </div>
-                  )}
-                </>
-              )}
-
-              {coinDiscount > 0 && (
-                <div className="flex justify-between items-center text-[#FFD600]">
-                  <span>Commission Coins Applied</span>
-                  <span className="font-mono">-₹{coinDiscount.toLocaleString('en-IN')}</span>
-                </div>
-              )}
 
               <div className="flex justify-between items-center">
                 <div>
@@ -725,6 +676,34 @@ const OrderReview = () => {
                   {shippingCost === 0 ? <strong className="text-emerald-400">FREE</strong> : `₹${shippingCost.toFixed(2)}`}
                 </span>
               </div>
+
+              {/* Total including delivery charges before coupon/coins */}
+              <div className="flex justify-between items-center text-xs py-1.5 px-3 rounded-xl bg-white/[0.06] border border-white/10 my-0.5">
+                <span className="text-slate-200 font-semibold">Total (Items + Delivery)</span>
+                <span className="font-mono text-white font-bold text-sm">₹{totalBeforeDiscount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+              </div>
+
+              {discount > 0 && (
+                <>
+                  <div className="flex justify-between items-center text-emerald-400">
+                    <span>Coupon Discount ({couponDetails?.code})</span>
+                    <span className="font-mono">-₹{discount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                  </div>
+                  {isSpecialCoupon && (
+                    <div className="p-2.5 rounded-xl bg-amber-500/10 border border-amber-400/30 text-[11px] text-amber-300 font-bold flex items-center gap-2">
+                      <span>🚚</span>
+                      <span>Note: Standard delivery charges (₹{shippingCost.toFixed(2)}) apply with exclusive code "{couponDetails?.code}".</span>
+                    </div>
+                  )}
+                </>
+              )}
+
+              {coinDiscount > 0 && (
+                <div className="flex justify-between items-center text-[#FFD600]">
+                  <span>Commission Coins Applied</span>
+                  <span className="font-mono">-₹{coinDiscount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                </div>
+              )}
 
               {/* Tax Breakdowns */}
               <div className="pt-2 border-t border-white/10 dark:border-[#27313D] space-y-1.5 text-[11px] text-slate-400 dark:text-[#818C9B] font-medium">

@@ -87,21 +87,19 @@ const StonePressProcessTimeline = () => {
           <div className="w-full sm:w-auto bg-slate-100 dark:bg-[#171D26] p-1.5 rounded-2xl flex items-center gap-1.5 sm:gap-2 self-stretch sm:self-auto border border-slate-200 dark:border-[#27313D] shadow-xs shrink-0">
             <button
               onClick={() => setActiveView("process")}
-              className={`flex-1 sm:flex-none px-4 sm:px-5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all cursor-pointer text-center whitespace-nowrap ${
-                activeView === "process"
+              className={`flex-1 sm:flex-none px-4 sm:px-5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all cursor-pointer text-center whitespace-nowrap ${activeView === "process"
                   ? "bg-[#1E971D] text-white shadow-sm"
                   : "text-slate-600 dark:text-[#B7C1CE] hover:text-slate-900 dark:hover:text-[#F5F7FA] hover:bg-slate-200/50 dark:hover:bg-[#1D2530]"
-              }`}
+                }`}
             >
               5-Step Process
             </button>
             <button
               onClick={() => setActiveView("comparison")}
-              className={`flex-1 sm:flex-none px-4 sm:px-5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all cursor-pointer text-center whitespace-nowrap ${
-                activeView === "comparison"
+              className={`flex-1 sm:flex-none px-4 sm:px-5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all cursor-pointer text-center whitespace-nowrap ${activeView === "comparison"
                   ? "bg-[#1E971D] text-white shadow-sm"
                   : "text-slate-600 dark:text-[#B7C1CE] hover:text-slate-900 dark:hover:text-[#F5F7FA] hover:bg-slate-200/50 dark:hover:bg-[#1D2530]"
-              }`}
+                }`}
             >
               Stone-Pressed vs Refined
             </button>

@@ -27,18 +27,33 @@ const OrderSummary = () => {
     disableFreeDelivery: isSpecialCoupon
   });
   const shippingCost = shippingQuote.deliveryCost;
-  const discount = couponDetails?.discount || 0;
-  
-  const coinDiscount = (useCommissionCoins && canRedeemCoins) ? Math.min(subtotal, commissionCoinsBalance) : 0;
+  const totalBeforeDiscount = subtotal + Number(shippingCost || 0);
 
-  const netSubtotal = Math.max(0, subtotal - discount - coinDiscount);
-  // Prices are inclusive of 5% GST (2.5% CGST + 2.5% SGST)
-  const taxableAmount = Math.round((netSubtotal / 1.05) * 100) / 100;
+  // Authoritative discount calculation on total including delivery
+  let discount = 0;
+  if (couponDetails?.isApplied) {
+    if (couponDetails.discountType === 'PERCENTAGE' || couponDetails.discountType === 'percentage') {
+      let calcDisc = (totalBeforeDiscount * Number(couponDetails.discountValue || 0)) / 100;
+      if (couponDetails.maximumDiscountAmount) {
+        calcDisc = Math.min(calcDisc, couponDetails.maximumDiscountAmount);
+      }
+      discount = Math.min(calcDisc, totalBeforeDiscount);
+    } else {
+      discount = Math.min(Number(couponDetails.discountValue || couponDetails.discount || 0), totalBeforeDiscount);
+    }
+  }
+  
+  const maxCoinDiscount = Math.max(0, totalBeforeDiscount - discount);
+  const coinDiscount = (useCommissionCoins && canRedeemCoins) ? Math.min(maxCoinDiscount, commissionCoinsBalance) : 0;
+
+  const total = Math.max(0, totalBeforeDiscount - discount - coinDiscount);
+  const netGoods = Math.max(0, total - Number(shippingCost || 0));
+
+  // Prices are inclusive of 5% GST (2.5% CGST + 2.5% SGST) on goods
+  const taxableAmount = Math.round((netGoods / 1.05) * 100) / 100;
   const cgst = Math.round(taxableAmount * 0.025 * 100) / 100;
   const sgst = Math.round(taxableAmount * 0.025 * 100) / 100;
   const totalTax = cgst + sgst;
-  
-  const total = Math.max(0, netSubtotal + shippingCost);
 
   if (cartItems.length === 0) {
     return (
@@ -139,10 +154,16 @@ const OrderSummary = () => {
           </div>
         )}
 
+        {/* Total including delivery charges before discounts */}
+        <div className="flex justify-between text-xs py-1.5 px-3 rounded-xl bg-gray-100 dark:bg-white/[0.04] border border-gray-200/60 dark:border-white/5 my-0.5 font-semibold text-gray-700 dark:text-slate-200">
+          <span>Total (Items + Delivery)</span>
+          <span className="font-mono text-gray-900 dark:text-white font-bold">₹{totalBeforeDiscount.toFixed(2)}</span>
+        </div>
+
         {discount > 0 && (
           <div className="flex justify-between text-green-600 dark:text-emerald-400 text-sm font-medium">
-            <span>Coupon Discount</span>
-            <span className="font-bold">-₹{discount.toFixed(2)}</span>
+            <span>Coupon Discount {couponDetails?.code ? `(${couponDetails.code})` : ''}</span>
+            <span className="font-bold font-mono">-₹{discount.toFixed(2)}</span>
           </div>
         )}
 

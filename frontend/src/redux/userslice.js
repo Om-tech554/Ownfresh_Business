@@ -158,6 +158,7 @@ const userSlice = createSlice({
       state.cartItems = [];
       localStorage.removeItem("oil_user");
       localStorage.removeItem("oil_cart");
+      localStorage.removeItem("oil_applied_coupon");
     },
 
     // CITY
@@ -229,6 +230,7 @@ const userSlice = createSlice({
     clearCart: (state) => {
       state.cartItems = [];
       localStorage.removeItem("oil_cart");
+      localStorage.removeItem("oil_applied_coupon");
     }
   },
 });

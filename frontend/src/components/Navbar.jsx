@@ -291,11 +291,10 @@ const Navbar = () => {
                                 >
                                     <SLink
                                         to={link.path}
-                                        className={`text-[12px] xl:text-[13px] font-bold uppercase tracking-widest hover:underline underline-offset-8 decoration-2 transition-all whitespace-nowrap ${
-                                            link.special
+                                        className={`text-[12px] xl:text-[13px] font-bold uppercase tracking-widest hover:underline underline-offset-8 decoration-2 transition-all whitespace-nowrap ${link.special
                                                 ? 'text-[#101318] bg-[#FFD600] px-3.5 py-1.5 rounded-full hover:no-underline hover:scale-105 shadow-sm font-black'
                                                 : 'text-[#1E971D] dark:text-[#B9C3D0] hover:text-[#24672E] dark:hover:text-white'
-                                        }`}
+                                            }`}
                                     >
                                         {link.name}
                                     </SLink>

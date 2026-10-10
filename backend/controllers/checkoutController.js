@@ -284,28 +284,29 @@ export const createOrder = async (req, res) => {
     const totalOrderWeight = shippingResult.totalWeightKg;
     const resolvedDeliveryMethod = shippingResult.deliveryMethodName;
 
-    // Calculate true coupon discount
+    // Calculate true coupon discount on total including delivery
+    const totalOrderBeforeDiscount = calculatedSubtotal + Number(shippingCost || 0);
     if (couponRecord) {
       if (couponRecord.discountType === "PERCENTAGE" || couponRecord.discountType === "percentage") {
-        calculatedDiscount = (calculatedSubtotal * couponRecord.discountValue) / 100;
+        calculatedDiscount = (totalOrderBeforeDiscount * couponRecord.discountValue) / 100;
         if (couponRecord.maximumDiscountAmount) {
           calculatedDiscount = Math.min(calculatedDiscount, couponRecord.maximumDiscountAmount);
         }
       } else {
         calculatedDiscount = couponRecord.discountValue;
       }
-      calculatedDiscount = Math.min(calculatedDiscount, calculatedSubtotal);
+      calculatedDiscount = Math.round(Math.min(calculatedDiscount, totalOrderBeforeDiscount) * 100) / 100;
     }
 
     // 4) Calculate commission coins deduction
     if (useCommissionCoins) {
       const activeCoins = await processCoinExpirations(targetUserId);
       if (activeCoins >= 150) {
-        const maxCoinDiscount = Math.max(0, calculatedSubtotal - calculatedDiscount);
+        const maxCoinDiscount = Math.max(0, totalOrderBeforeDiscount - calculatedDiscount);
         coinsDeducted = Math.min(activeCoins, Math.floor(maxCoinDiscount));
 
         // Perform instant deduction if COD or total becomes 0
-        if (isInstantOrder || (calculatedSubtotal - calculatedDiscount - coinsDeducted <= 0)) {
+        if (isInstantOrder || (totalOrderBeforeDiscount - calculatedDiscount - coinsDeducted <= 0)) {
           let remainingToDeduct = coinsDeducted;
           const activeBatches = await CommissionLog.find({
             userId: targetUserId,
@@ -342,15 +343,13 @@ export const createOrder = async (req, res) => {
       }
     }
 
-    // 5) Calculate taxes as inclusive in net subtotal (5% GST: 2.5% CGST + 2.5% SGST)
-    const netSubtotal = Math.max(0, calculatedSubtotal - calculatedDiscount - coinsDeducted);
-    const taxableAmount = Math.round((netSubtotal / 1.05) * 100) / 100;
+    // 5) Calculate taxes as inclusive in net goods value (5% GST: 2.5% CGST + 2.5% SGST)
+    let finalPayableAmount = Math.max(0, totalOrderBeforeDiscount - calculatedDiscount - coinsDeducted);
+    const netGoods = Math.max(0, finalPayableAmount - Number(shippingCost || 0));
+    const taxableAmount = Math.round((netGoods / 1.05) * 100) / 100;
     const cgstRecalculated = Math.round(taxableAmount * 0.025 * 100) / 100;
     const sgstRecalculated = Math.round(taxableAmount * 0.025 * 100) / 100;
     const taxRecalculated = cgstRecalculated + sgstRecalculated;
-
-    // Net Subtotal (already inclusive of GST) + Shipping before wallet is applied
-    let finalPayableAmount = netSubtotal + shippingCost;
 
     // 6) Calculate wallet deduction
     if (useWallet) {
