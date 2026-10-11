@@ -5,9 +5,13 @@ export const verifyAppCheck = async (req, res, next) => {
     // Allow PhonePe callback webhook and blog API key routes to bypass App Check
     if (
         (req.originalUrl && req.originalUrl.includes("/phonepe-callback")) ||
-        (req.originalUrl && (req.originalUrl.includes("/admin/blogs") || req.originalUrl.includes("/posts"))) ||
+        (req.originalUrl && (req.originalUrl.includes("/admin/blogs") || req.originalUrl.includes("/posts") || req.originalUrl.includes("/blogs"))) ||
         req.headers["x-api-key"] ||
-        req.header("x-api-key")
+        req.header("x-api-key") ||
+        req.headers["api-key"] ||
+        req.header("api-key") ||
+        req.headers["authorization"] ||
+        req.header("authorization")
     ) {
         return next();
     }

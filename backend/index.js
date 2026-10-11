@@ -95,7 +95,7 @@ app.use(cors({
     },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'X-Firebase-AppCheck', 'x-api-key', 'X-Api-Key', 'x-api-token']
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Firebase-AppCheck', 'x-api-key', 'X-Api-Key', 'x-api-token', 'api-key', 'Api-Key']
 }))
 app.use(express.json())
 app.use(cookieParser())
@@ -109,6 +109,7 @@ app.use("/api/auth", authRouter);
 app.use("/api/user", userRouter)
 app.use("/api/product", productRoutes);
 app.use("/api/blog", blogRoutes);
+app.use("/api/blogs", adminBlogRoutes);
 app.use("/api/admin/blogs", adminBlogRoutes);
 app.use("/api/posts", adminBlogRoutes);
 app.use("/api/order", orderRoutes);

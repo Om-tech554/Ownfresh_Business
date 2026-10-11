@@ -12,7 +12,8 @@ export const verifyBlogApiKey = (req, res, next) => {
     dotenv.config();
   }
 
-  const configuredKey = process.env.BLOG_API_KEY;
+  const rawConfiguredKey = process.env.BLOG_API_KEY;
+  const configuredKey = rawConfiguredKey ? String(rawConfiguredKey).trim().replace(/^["']|["']$/g, "") : "";
 
   if (!configuredKey) {
     console.error("❌ [Auth Error] BLOG_API_KEY is not defined in server environment variables or .env file.");
@@ -22,8 +23,28 @@ export const verifyBlogApiKey = (req, res, next) => {
     });
   }
 
-  // Check header first (Express normalizes headers to lowercase), with query param fallback for browser testing
-  const clientKey = req.headers["x-api-key"] || req.header("x-api-key") || req.query.api_key || req.query.apiKey;
+  // Check header first (Express normalizes headers to lowercase)
+  // Supports: x-api-key, api-key, x-api-token, Authorization: Bearer <key>, query params ?api_key= / ?apiKey=
+  let authBearer = "";
+  const authHeader = req.headers["authorization"] || req.header("authorization") || "";
+  if (authHeader && authHeader.toLowerCase().startsWith("bearer ")) {
+    authBearer = authHeader.slice(7).trim();
+  }
+
+  const rawClientKey = (
+    req.headers["x-api-key"] ||
+    req.header("x-api-key") ||
+    req.headers["api-key"] ||
+    req.header("api-key") ||
+    req.headers["x-api-token"] ||
+    req.header("x-api-token") ||
+    authBearer ||
+    req.query.api_key ||
+    req.query.apiKey ||
+    ""
+  );
+
+  const clientKey = String(rawClientKey).trim().replace(/^["']|["']$/g, "");
 
   if (!clientKey) {
     return res.status(401).json({
@@ -33,8 +54,8 @@ export const verifyBlogApiKey = (req, res, next) => {
   }
 
   // Timing-safe comparison to prevent timing attacks
-  const clientBuf = Buffer.from(String(clientKey));
-  const serverBuf = Buffer.from(String(configuredKey));
+  const clientBuf = Buffer.from(clientKey);
+  const serverBuf = Buffer.from(configuredKey);
 
   if (clientBuf.length !== serverBuf.length || !crypto.timingSafeEqual(clientBuf, serverBuf)) {
     return res.status(401).json({
