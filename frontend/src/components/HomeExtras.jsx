@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import SLink from './SLink';
+import { optimizeCloudinaryUrl } from '../utils/imageOptimizer';
 
 /* --- OUR STORY (HOMEPAGE SNIPPET) --- */
 export const OurStorySnippet = () => {
@@ -10,7 +11,15 @@ export const OurStorySnippet = () => {
             <div className="max-w-7xl mx-auto flex flex-col lg:flex-row items-center gap-12 lg:gap-20">
                 <div className="w-full lg:w-1/2 flex justify-center">
                     <div className="relative w-full aspect-[4/3] bg-gray-100 dark:bg-[#151B23] shadow-[15px_15px_0_#FFDD00] dark:shadow-[15px_15px_0_#FFD600] border border-gray-200 dark:border-[#27313D] rounded-2xl overflow-hidden">
-                        <img className="w-full h-full object-cover dark:mix-blend-normal" src="https://res.cloudinary.com/dkhq2wlwg/image/upload/v1775112913/ownfresh_media/lo3psirlwzaqc5bsyfbx.png" alt="Botanic Purity" />
+                        <img 
+                            className="w-full h-full object-cover dark:mix-blend-normal" 
+                            src={optimizeCloudinaryUrl("https://res.cloudinary.com/dkhq2wlwg/image/upload/v1775112913/ownfresh_media/lo3psirlwzaqc5bsyfbx.png", 800)} 
+                            alt="Botanic Purity" 
+                            width="600"
+                            height="450"
+                            loading="lazy"
+                            decoding="async"
+                        />
                     </div>
                 </div>
                 <div className="w-full lg:w-1/2 flex flex-col items-start text-left">
@@ -35,10 +44,10 @@ export const OurStorySnippet = () => {
 export const Gallery = () => {
     const navigate = useNavigate();
 
-    // ✏️ Product image URLs
-    const featuredImage = "https://res.cloudinary.com/dkhq2wlwg/image/upload/v1782888671/ownfresh_media/jc2gqhappjvdyfvrg6s4.png";
-    const sideImage1 = "https://res.cloudinary.com/dkhq2wlwg/image/upload/v1782889051/ownfresh_media/jvpavxuq3hgbuxatjru0.png";
-    const sideImage2 = "https://res.cloudinary.com/dkhq2wlwg/image/upload/v1782888819/ownfresh_media/ugty6jehznfi7mzqxlyz.png";
+    // ✏️ Product image URLs (optimized with Cloudinary transformations)
+    const featuredImage = optimizeCloudinaryUrl("https://res.cloudinary.com/dkhq2wlwg/image/upload/v1782888671/ownfresh_media/jc2gqhappjvdyfvrg6s4.png", 700);
+    const sideImage1 = optimizeCloudinaryUrl("https://res.cloudinary.com/dkhq2wlwg/image/upload/v1782889051/ownfresh_media/jvpavxuq3hgbuxatjru0.png", 500);
+    const sideImage2 = optimizeCloudinaryUrl("https://res.cloudinary.com/dkhq2wlwg/image/upload/v1782888819/ownfresh_media/ugty6jehznfi7mzqxlyz.png", 500);
 
     const highlights = [
         { label: "Our Manufacturing Process", desc: "From raw seeds to the final golden drop." },
@@ -104,6 +113,10 @@ export const Gallery = () => {
                                 <img
                                     src={featuredImage}
                                     alt="Featured Gallery"
+                                    width="500"
+                                    height="450"
+                                    loading="lazy"
+                                    decoding="async"
                                     className="w-full h-full object-contain object-right transition-transform duration-500 group-hover:scale-105"
                                 />
                             </SLink>
@@ -116,6 +129,10 @@ export const Gallery = () => {
                                 <img
                                     src={sideImage1}
                                     alt="Gallery Side 1"
+                                    width="350"
+                                    height="220"
+                                    loading="lazy"
+                                    decoding="async"
                                     className="w-full h-full object-contain object-left transition-transform duration-500 group-hover:scale-105"
                                 />
                             </SLink>
@@ -127,6 +144,10 @@ export const Gallery = () => {
                                 <img
                                     src={sideImage2}
                                     alt="Gallery Side 2"
+                                    width="350"
+                                    height="220"
+                                    loading="lazy"
+                                    decoding="async"
                                     className="w-full h-full object-contain object-left transition-transform duration-500 group-hover:scale-105"
                                 />
                             </SLink>

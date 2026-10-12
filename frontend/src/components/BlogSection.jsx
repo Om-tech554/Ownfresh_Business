@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { ArrowRight, BookOpen } from "lucide-react";
 import SLink from "../components/SLink";
+import { optimizeCloudinaryUrl } from "../utils/imageOptimizer";
 
 const BlogSection = ({ limit = null }) => {
   const [blogs, setBlogs] = useState([]);
@@ -59,11 +60,15 @@ const BlogSection = ({ limit = null }) => {
                 {/* Image */}
                 <div className="relative w-full h-56 bg-gray-100 dark:bg-[#151B23] overflow-hidden">
                   <img
-                    src={blog.image}
+                    src={optimizeCloudinaryUrl(blog.image, 600)}
                     alt={blog.title}
+                    width="400"
+                    height="224"
+                    loading="lazy"
+                    decoding="async"
                     onError={(e) => {
                       e.target.onerror = null;
-                      e.target.src = "https://res.cloudinary.com/dkhq2wlwg/image/upload/v1786009742/products/banner.png";
+                      e.target.src = "https://res.cloudinary.com/dkhq2wlwg/image/upload/f_auto,q_auto,w_600/v1786009742/products/banner.png";
                     }}
                     className="w-full h-full object-contain p-2 transition-transform duration-500 group-hover:scale-105 dark:mix-blend-normal"
                   />

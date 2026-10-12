@@ -2,13 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import SLink from './SLink';
+import { optimizeCloudinaryUrl } from '../utils/imageOptimizer';
 
 const slides = [
   {
     id: 1,
     layout: "split",
     bgColor: "bg-gray-50 dark:bg-[#0B0F14]",
-    image: "https://res.cloudinary.com/dkhq2wlwg/image/upload/v1774199707/ownfresh_media/caqc2ep5nmgdf9cnknlu.png",
+    image: optimizeCloudinaryUrl("https://res.cloudinary.com/dkhq2wlwg/image/upload/v1774199707/ownfresh_media/caqc2ep5nmgdf9cnknlu.png", 1000),
     subtitle: "By Ancient Method",
     title: "STONE PRESSED <br/> <span class='text-[#24672E] dark:text-[#FFD600]'>WHOLE NUT</span> OIL",
     description: "We produce the integral part of cooking, the Oils'<br/>These Oils are Natural, Real, and of Premium Grade Pure Oil Botanic Purity obtained from the first pressing<br/>We strive to remain loyal to your Tastes and to your Health<br/>After all, Food is Culture, Creation and Craving.",
@@ -64,6 +65,10 @@ const HeroSection = () => {
                     <img
                       src={slide.image}
                       alt="Banner Background"
+                      width="1400"
+                      height="700"
+                      loading="lazy"
+                      decoding="async"
                       className={`w-full h-full object-cover object-center transition-transform duration-[10000ms] ${isActive ? 'scale-105' : 'scale-100'}`}
                     />
                     {/* Light Mode Overlay */}
@@ -134,6 +139,11 @@ const HeroSection = () => {
                     <img
                       src={slide.image}
                       alt="Product Showcase"
+                      width="800"
+                      height="500"
+                      fetchPriority={index === 0 ? "high" : "low"}
+                      loading={index === 0 ? "eager" : "lazy"}
+                      decoding="async"
                       className="w-full h-full max-h-full object-contain object-center drop-shadow-6xl dark:mix-blend-normal"
                     />
                   </div>

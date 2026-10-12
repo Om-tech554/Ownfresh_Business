@@ -6,6 +6,7 @@ import { isUserActivePrime, calculateItemPricing } from "../utils/primeUtils";
 import SLink from "./SLink";
 import { cleanProductName, getDynamicName } from "../utils/productUtils";
 import { trackAddToCart } from "../utils/analytics";
+import { optimizeCloudinaryUrl } from "../utils/imageOptimizer";
 
 const ProductCard = ({ product, user, onAddToCart }) => {
   const reduxUser = useSelector((state) => state.user?.userData);
@@ -44,13 +45,13 @@ const ProductCard = ({ product, user, onAddToCart }) => {
 
   // Compute dynamic image based on selected bottle size
   const displayImage = useMemo(() => {
+    let raw = product.image || "https://res.cloudinary.com/dkhq2wlwg/image/upload/v1786009742/products/banner.png";
     if (selectedVariant && selectedVariant.image) {
-      return selectedVariant.image;
+      raw = selectedVariant.image;
+    } else if (selectedVariant && selectedVariant.images && selectedVariant.images.length > 0) {
+      raw = selectedVariant.images[0];
     }
-    if (selectedVariant && selectedVariant.images && selectedVariant.images.length > 0) {
-      return selectedVariant.images[0];
-    }
-    return product.image || "https://res.cloudinary.com/dkhq2wlwg/image/upload/v1786009742/products/banner.png";
+    return optimizeCloudinaryUrl(raw, 400);
   }, [selectedVariant, product.image]);
 
   // Compute dynamic name based on selected variant size
@@ -157,9 +158,13 @@ const ProductCard = ({ product, user, onAddToCart }) => {
           key={displayImage}
           src={displayImage}
           alt={displayName}
+          width="240"
+          height="240"
+          loading="lazy"
+          decoding="async"
           onError={(e) => {
             e.target.onerror = null;
-            e.target.src = "https://res.cloudinary.com/dkhq2wlwg/image/upload/v1786009742/products/banner.png";
+            e.target.src = "https://res.cloudinary.com/dkhq2wlwg/image/upload/f_auto,q_auto,w_400/v1786009742/products/banner.png";
           }}
           className="h-full w-auto object-contain transition-transform duration-500 group-hover:scale-105 mix-blend-multiply dark:mix-blend-normal"
         />

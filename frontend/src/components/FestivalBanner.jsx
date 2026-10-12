@@ -5,6 +5,7 @@ import { Tag, Clock, ChevronRight, ChevronLeft, Copy, Check } from "lucide-react
 import { AnimatePresence, motion } from "framer-motion";
 import toast from "react-hot-toast";
 import { serverUrl } from "../App";
+import { optimizeCloudinaryUrl } from "../utils/imageOptimizer";
 
 // Typewriter effect that reveals description word by word
 const TypewriterText = ({ text }) => {
@@ -215,8 +216,12 @@ const FestivalBanner = () => {
               className="w-full h-auto flex items-center justify-center"
             >
               <img
-                src={currentImage}
+                src={optimizeCloudinaryUrl(currentImage, 1000)}
                 alt={`${currentCampaign.festivalName} Promo Flyer`}
+                width="1200"
+                height="500"
+                loading="lazy"
+                decoding="async"
                 className="w-full h-auto object-contain max-h-[220px] sm:max-h-[360px] md:max-h-[500px] dark:mix-blend-normal"
               />
             </motion.div>
