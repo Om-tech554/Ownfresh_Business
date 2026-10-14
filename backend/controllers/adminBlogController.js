@@ -39,6 +39,10 @@ export const publishAdminBlog = async (req, res) => {
       meta,
       status,
       image,
+      image1,
+      image2,
+      image3,
+      image4,
       author
     } = req.body;
 
@@ -100,7 +104,17 @@ export const publishAdminBlog = async (req, res) => {
     const resolvedCategory = (category && typeof category === "string" ? category.trim() : "OTHER");
     const resolvedStatus = (status && typeof status === "string" ? status.trim().toLowerCase() : "published");
 
-    // 7. Check if blog already exists with this slug (idempotent upsert support)
+    // 7. Resolve image slots 1-4 (explicit or auto-extracted from markdown or HTML content)
+    const markdownImages = [...content.matchAll(/!\[.*?\]\((https?:\/\/[^\s\)]+)\)/g)].map(m => m[1]);
+    const htmlImages = [...content.matchAll(/<img[^>]+src=["'](https?:\/\/[^"'>\s]+)["']/gi)].map(m => m[1]);
+    const inlineImageMatches = Array.from(new Set([...markdownImages, ...htmlImages]));
+    const resolvedImage = image || (inlineImageMatches.length > 0 ? inlineImageMatches[0] : "https://res.cloudinary.com/dkhq2wlwg/image/upload/v1774962822/ownfresh_media/ndxvmcpisomjzsghrfjs.png");
+    const resolvedImage1 = image1 || inlineImageMatches[0] || undefined;
+    const resolvedImage2 = image2 || inlineImageMatches[1] || undefined;
+    const resolvedImage3 = image3 || inlineImageMatches[2] || undefined;
+    const resolvedImage4 = image4 || inlineImageMatches[3] || undefined;
+
+    // 8. Check if blog already exists with this slug (idempotent upsert support)
     let blog = await Blog.findOne({ slug: finalSlug });
 
     if (blog) {
@@ -117,7 +131,11 @@ export const publishAdminBlog = async (req, res) => {
       blog.meta = resolvedMeta;
       blog.status = resolvedStatus;
       blog.sections = [{ content: htmlContent }];
-      if (image) blog.image = image;
+      if (image || resolvedImage) blog.image = image || resolvedImage;
+      if (resolvedImage1) blog.image1 = resolvedImage1;
+      if (resolvedImage2) blog.image2 = resolvedImage2;
+      if (resolvedImage3) blog.image3 = resolvedImage3;
+      if (resolvedImage4) blog.image4 = resolvedImage4;
       if (author) blog.author = author;
 
       await blog.save();
@@ -156,7 +174,11 @@ export const publishAdminBlog = async (req, res) => {
       meta: resolvedMeta,
       status: resolvedStatus,
       sections: [{ content: htmlContent }],
-      image: image || "https://res.cloudinary.com/dkhq2wlwg/image/upload/v1774962822/ownfresh_media/ndxvmcpisomjzsghrfjs.png",
+      image: resolvedImage,
+      image1: resolvedImage1,
+      image2: resolvedImage2,
+      image3: resolvedImage3,
+      image4: resolvedImage4,
       author: author || "OwnFresh Editorial",
     });
 
