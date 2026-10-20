@@ -1,0 +1,8 @@
+{
+  "appId": "com.ownfresh.app",
+  "appName": "OwnFresh",
+  "webDir": "dist",
+  "server": {
+    "androidScheme": "https"
+  }
+}
