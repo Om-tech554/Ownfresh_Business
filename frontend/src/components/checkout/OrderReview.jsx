@@ -15,8 +15,7 @@ import { isUserActivePrime, calculateItemPricing, calculateCartPrimeTotals } fro
 import { Crown } from 'lucide-react';
 import ReviewUpsellCarousel from './ReviewUpsellCarousel';
 import CommissionCoinsWidget from './CommissionCoinsWidget';
-
-const serverUrl = import.meta.env.VITE_API_URL || "http://localhost:10000";
+import { serverUrl } from '../../App';
 
 const OrderReview = () => {
   const dispatch = useDispatch();
@@ -190,7 +189,11 @@ const OrderReview = () => {
           console.error("AppCheck Token Error:", err);
         }
       }
-      const headers = appCheckToken ? { 'X-Firebase-AppCheck': appCheckToken } : {};
+      const token = localStorage.getItem("oil_token");
+      const headers = {
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        ...(appCheckToken ? { 'X-Firebase-AppCheck': appCheckToken } : {})
+      };
 
       const { data } = await axios.post(`${serverUrl}/api/payment/phonepe-initiate`, {
         orderId: order._id
@@ -240,10 +243,14 @@ const OrderReview = () => {
           console.error("AppCheck Token Error:", err);
         }
       }
-      const headers = appCheckToken ? { 'X-Firebase-AppCheck': appCheckToken } : {};
+      const token = localStorage.getItem("oil_token");
+      const headers = {
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        ...(appCheckToken ? { 'X-Firebase-AppCheck': appCheckToken } : {})
+      };
 
       const payload = {
-        userId: user._id,
+        userId: user?._id,
         items: cartItems,
         paymentMethod,
         deliveryAddress: {
@@ -255,7 +262,7 @@ const OrderReview = () => {
           zipCode: shippingDetails?.zipCode,
           country: shippingDetails?.country || "India",
           text: `${shippingDetails?.flatNo ? shippingDetails.flatNo + ', ' : ''}${shippingDetails?.address || ''}, ${shippingDetails?.landmark ? 'Near ' + shippingDetails.landmark + ', ' : ''}${shippingDetails?.city || ''}, ${shippingDetails?.state || ''}, ${shippingDetails?.country || 'India'} - ${shippingDetails?.zipCode || ''}`,
-          phone: shippingDetails?.phone || user.mobile || "",
+          phone: shippingDetails?.phone || user?.mobile || "",
           latitude: shippingDetails?.latitude,
           longitude: shippingDetails?.longitude,
         },
@@ -286,7 +293,7 @@ const OrderReview = () => {
         return data.order;
       }
     } catch (error) {
-      console.error(`Order placement error (attempt ${retryCount + 1}):`, error);
+      console.error(`Order placement error (attempt ${retryCount + 1}):`, error.response?.status, error.response?.data || error);
       
       const isNetworkErr = error.code === 'ECONNABORTED' || error.message.includes('timeout') || error.message.includes('Network Error') || !error.response;
       
@@ -297,7 +304,14 @@ const OrderReview = () => {
         return await processOrderToDB(retryCount + 1);
       }
 
-      toast.error(error.response?.data?.msg || error.message || "Order placement failed");
+      const serverMsg = error.response?.data?.msg || error.response?.data?.message;
+      if (error.response?.status === 404 && serverMsg === "User not found") {
+        toast.error("Your session expired. Please sign in again.", { duration: 5000 });
+        navigate("/signin?redirect=/checkout");
+        return null;
+      }
+
+      toast.error(serverMsg || error.message || "Order placement failed");
       return null;
     } finally {
       if (paymentMethod !== "online") {
