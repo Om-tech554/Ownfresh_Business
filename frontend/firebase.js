@@ -1,20 +1,20 @@
 // Import the functions you need from the SDKs you need
-import { initializeApp } from "firebase/app";
-import { getAuth, RecaptchaVerifier, signInWithPhoneNumber, GoogleAuthProvider, signInWithPopup } from "firebase/auth";
+import { initializeApp, getApps, getApp } from "firebase/app";
+import { getAuth, RecaptchaVerifier, signInWithPhoneNumber, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, browserPopupRedirectResolver } from "firebase/auth";
 import { initializeAppCheck, ReCaptchaV3Provider } from "firebase/app-check";
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_APIKEY || "AIzaSyDUiB88CyOD9dDGKY4j0SmJzQY5IFgW7fw",
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || "myownfresh-169f0.firebaseapp.com",
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || "myownfresh-169f0",
-  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || "myownfresh-169f0.firebasestorage.app",
-  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || "149379070666",
-  appId: import.meta.env.VITE_FIREBASE_APP_ID || "1:149379070666:web:d371c78669a599801dd233"
+  apiKey: import.meta.env.VITE_FIREBASE_APIKEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID
 };
 
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
+// Initialize Firebase (safely singleton)
+const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 const auth = getAuth(app);
 
 // Initialize App Check
@@ -59,4 +59,4 @@ export const setUpRecaptcha = (containerId = "recaptcha-container") => {
   return window.recaptchaVerifier;
 };
 
-export { app, auth, appCheck, signInWithPhoneNumber, GoogleAuthProvider, signInWithPopup };
+export { app, auth, appCheck, signInWithPhoneNumber, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, browserPopupRedirectResolver };

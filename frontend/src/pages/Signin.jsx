@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useDispatch } from "react-redux";
@@ -19,7 +19,10 @@ import {
   auth,
   appCheck,
   GoogleAuthProvider,
-  signInWithPopup
+  signInWithPopup,
+  signInWithRedirect,
+  getRedirectResult,
+  browserPopupRedirectResolver
 } from "../../firebase";
 import { getToken } from "firebase/app-check";
 import toast from "react-hot-toast";
@@ -82,62 +85,93 @@ const SignIn = () => {
   };
 
   // -----------------------------------------
-  // 2. GOOGLE 1-CLICK LOGIN (PRESERVED)
+  // 2. GOOGLE 1-CLICK LOGIN (POPUP + REDIRECT FALLBACK)
   // -----------------------------------------
+  const processGoogleLogin = async (idToken, redirectPath = "/") => {
+    let appCheckToken = "";
+    if (appCheck) {
+      try {
+        const tokenResponse = await getToken(appCheck, false);
+        appCheckToken = tokenResponse.token;
+      } catch (e) {
+        console.warn("App Check token fetch failed", e);
+      }
+    }
+
+    const { data } = await axios.post(
+      `${serverUrl}/api/auth/google-auth`,
+      { idToken },
+      {
+        withCredentials: true,
+        headers: appCheckToken ? { "X-Firebase-AppCheck": appCheckToken } : {}
+      }
+    );
+
+    dispatch(setUserData(data));
+    localStorage.setItem("oil_user", JSON.stringify(data));
+    if (data?.token) {
+      localStorage.setItem("oil_token", data.token);
+    }
+
+    window.history.replaceState({}, document.title, window.location.pathname);
+    toast.success("Signed in with Google successfully!");
+    if (data?.role === "admin") {
+      navigate("/admin");
+    } else {
+      navigate(redirectPath);
+    }
+  };
+
+  useEffect(() => {
+    let isMounted = true;
+    const checkRedirect = async () => {
+      try {
+        const result = await getRedirectResult(auth);
+        if (result && result.user && isMounted) {
+          setGoogleLoading(true);
+          const idToken = await result.user.getIdToken();
+          const searchParams = new URLSearchParams(window.location.search);
+          const redirectPath = searchParams.get("redirect") || "/";
+          await processGoogleLogin(idToken, redirectPath);
+        }
+      } catch (err) {
+        console.error("Google redirect signin error:", err);
+      } finally {
+        if (isMounted) setGoogleLoading(false);
+      }
+    };
+    checkRedirect();
+    return () => { isMounted = false; };
+  }, []);
+
   const handleGoogleAuth = async () => {
     const searchParams = new URLSearchParams(window.location.search);
     const redirectPath = searchParams.get("redirect") || "/";
     const provider = new GoogleAuthProvider();
+    provider.setCustomParameters({ prompt: "select_account" });
 
     try {
       setGoogleLoading(true);
       const googleUser = await signInWithPopup(auth, provider);
       const idToken = await googleUser.user.getIdToken();
-
-      let appCheckToken = "";
-      if (appCheck) {
-        try {
-          const tokenResponse = await getToken(appCheck, false);
-          appCheckToken = tokenResponse.token;
-        } catch (e) {
-          console.warn("App Check token fetch failed", e);
-        }
-      }
-
-      const { data } = await axios.post(
-        `${serverUrl}/api/auth/google-auth`,
-        { idToken },
-        {
-          withCredentials: true,
-          headers: appCheckToken ? { "X-Firebase-AppCheck": appCheckToken } : {}
-        }
-      );
-
-      dispatch(setUserData(data));
-      localStorage.setItem("oil_user", JSON.stringify(data));
-      if (data?.token) {
-        localStorage.setItem("oil_token", data.token);
-      }
-
-      window.history.replaceState({}, document.title, window.location.pathname);
-      toast.success("Signed in with Google successfully!");
-      if (data?.role === "admin") {
-        navigate("/admin");
-      } else {
-        navigate(redirectPath);
-      }
+      await processGoogleLogin(idToken, redirectPath);
     } catch (error) {
       console.error("Google Sign-In Error:", error);
       const errMsg = error.response?.data?.message || error.message || "Google Sign-In failed";
+      if (
+        error.code === "auth/popup-closed-by-user" ||
+        error.code === "auth/popup-blocked" ||
+        errMsg.includes("popup-closed-by-user")
+      ) {
+        toast("Connecting via secure Google redirect...", { icon: "🔄" });
+        await signInWithRedirect(auth, provider);
+        return;
+      }
       if (errMsg.includes("unauthorized-domain") || errMsg.includes("unauthorized domain")) {
         toast.error(
           `Domain "${window.location.hostname}" not authorized in Firebase! Add "${window.location.hostname}" to Firebase Console -> Authentication -> Settings -> Authorized Domains.`,
           { duration: 6000 }
         );
-      } else if (errMsg.includes("popup-closed-by-user")) {
-        toast.error("Sign-in popup was closed before completing.");
-      } else if (errMsg.includes("popup-blocked")) {
-        toast.error(`Popup was blocked by browser. Please allow popups for ${window.location.hostname}.`);
       } else {
         toast.error(errMsg);
       }

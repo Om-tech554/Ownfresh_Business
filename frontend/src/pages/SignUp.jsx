@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import {
@@ -20,7 +20,10 @@ import {
   auth,
   appCheck,
   GoogleAuthProvider,
-  signInWithPopup
+  signInWithPopup,
+  signInWithRedirect,
+  getRedirectResult,
+  browserPopupRedirectResolver
 } from "../../firebase";
 import { getToken } from "firebase/app-check";
 import toast from "react-hot-toast";
@@ -144,56 +147,85 @@ const SignUp = () => {
   };
 
   // -----------------------------------------
-  // 3. GOOGLE 1-CLICK SIGNUP (PRESERVED)
+  // 3. GOOGLE 1-CLICK SIGNUP (POPUP + REDIRECT FALLBACK)
   // -----------------------------------------
+  const processGoogleSignup = async (idToken) => {
+    let appCheckToken = "";
+    if (appCheck) {
+      try {
+        const tokenRes = await getToken(appCheck, false);
+        appCheckToken = tokenRes.token;
+      } catch (e) {
+        console.warn("App Check token omitted", e);
+      }
+    }
+
+    const { data } = await axios.post(
+      `${serverUrl}/api/auth/google-auth`,
+      { idToken },
+      {
+        withCredentials: true,
+        headers: appCheckToken ? { "X-Firebase-AppCheck": appCheckToken } : {}
+      }
+    );
+
+    dispatch(setUserData(data));
+    dispatch(clearCart());
+    localStorage.setItem("oil_user", JSON.stringify(data));
+    if (data?.token) {
+      localStorage.setItem("oil_token", data.token);
+    }
+
+    toast.success("Google signup successful! Welcome to OwnFresh.");
+    setTimeout(() => navigate("/"), 1000);
+  };
+
+  useEffect(() => {
+    let isMounted = true;
+    const checkRedirect = async () => {
+      try {
+        const result = await getRedirectResult(auth);
+        if (result && result.user && isMounted) {
+          setGoogleLoading(true);
+          const idToken = await result.user.getIdToken();
+          await processGoogleSignup(idToken);
+        }
+      } catch (err) {
+        console.error("Google redirect signup error:", err);
+      } finally {
+        if (isMounted) setGoogleLoading(false);
+      }
+    };
+    checkRedirect();
+    return () => { isMounted = false; };
+  }, []);
+
   const handleGoogleAuth = async () => {
     const provider = new GoogleAuthProvider();
+    provider.setCustomParameters({ prompt: "select_account" });
 
     try {
       setGoogleLoading(true);
       const googleUser = await signInWithPopup(auth, provider);
       const idToken = await googleUser.user.getIdToken();
-
-      let appCheckToken = "";
-      if (appCheck) {
-        try {
-          const tokenRes = await getToken(appCheck, false);
-          appCheckToken = tokenRes.token;
-        } catch (e) {
-          console.warn("App Check token omitted", e);
-        }
-      }
-
-      const { data } = await axios.post(
-        `${serverUrl}/api/auth/google-auth`,
-        { idToken },
-        {
-          withCredentials: true,
-          headers: appCheckToken ? { "X-Firebase-AppCheck": appCheckToken } : {}
-        }
-      );
-
-      dispatch(setUserData(data));
-      dispatch(clearCart());
-      localStorage.setItem("oil_user", JSON.stringify(data));
-      if (data?.token) {
-        localStorage.setItem("oil_token", data.token);
-      }
-
-      toast.success("Google signup successful! Welcome to OwnFresh.");
-      setTimeout(() => navigate("/"), 1000);
+      await processGoogleSignup(idToken);
     } catch (error) {
       console.error("Google Signup Error:", error);
       const errMsg = error.response?.data?.message || error.message || "Google Sign-In failed";
+      if (
+        error.code === "auth/popup-closed-by-user" ||
+        error.code === "auth/popup-blocked" ||
+        errMsg.includes("popup-closed-by-user")
+      ) {
+        toast("Connecting via secure Google redirect...", { icon: "🔄" });
+        await signInWithRedirect(auth, provider);
+        return;
+      }
       if (errMsg.includes("unauthorized-domain") || errMsg.includes("unauthorized domain")) {
         toast.error(
           `Domain "${window.location.hostname}" not authorized in Firebase! Add "${window.location.hostname}" to Firebase Console -> Authentication -> Settings -> Authorized Domains.`,
           { duration: 6000 }
         );
-      } else if (errMsg.includes("popup-closed-by-user")) {
-        toast.error("Sign-in popup was closed before completing.");
-      } else if (errMsg.includes("popup-blocked")) {
-        toast.error(`Popup was blocked by browser. Please allow popups for ${window.location.hostname}.`);
       } else {
         toast.error(errMsg);
       }
