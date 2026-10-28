@@ -538,13 +538,8 @@ const Navbar = () => {
                             {userData?.role !== "admin" && (
                                 <div
                                     onClick={() => {
-                                        if (!userData) {
-                                            toast.error("Please Sign In to view your cart");
-                                            setShowMobileNav(false);
-                                        } else {
-                                            navigate("/cart");
-                                            setShowMobileNav(false);
-                                        }
+                                        navigate("/cart");
+                                        setShowMobileNav(false);
                                     }}
                                     className="flex items-center justify-between bg-gray-50 dark:bg-[#171D26] border border-transparent dark:border-[#27313D] p-4 rounded-xl cursor-pointer"
                                 >

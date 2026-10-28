@@ -389,7 +389,11 @@ const SignIn = () => {
               <button
                 type="button"
                 className="font-black cursor-pointer text-[#1E971D] dark:text-[#FFD600] hover:underline ml-1"
-                onClick={() => navigate("/signup")}
+                onClick={() => {
+                  const searchParams = new URLSearchParams(window.location.search);
+                  const redirectPath = searchParams.get("redirect");
+                  navigate(redirectPath ? `/signup?redirect=${encodeURIComponent(redirectPath)}` : "/signup");
+                }}
               >
                 Create an account
               </button>

@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo, useRef } from 'react';
 import Navbar from './Navbar';
 import axios from 'axios';
 import {
@@ -15,7 +15,9 @@ import {
   Utensils,
   Flame,
   Heart,
-  Eye
+  Eye,
+  ArrowUpDown,
+  ChevronDown
 } from "lucide-react";
 import toast from "react-hot-toast";
 import { useDispatch, useSelector } from "react-redux";
@@ -23,7 +25,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { addToCart } from "../redux/userslice";
 import SLink from "./SLink";
 import SEO from "./SEO";
-import { cleanProductName, getDynamicName } from "../utils/productUtils";
+import { cleanProductName, getDynamicName, getProductEffectivePrice } from "../utils/productUtils";
 import ProductCard from "./ProductCard";
 import { trackViewItemList, trackSearch } from "../utils/analytics";
 
@@ -57,6 +59,8 @@ const Shop = () => {
   const [selectedSize, setSelectedSize] = useState("All");
   const [stockOnly, setStockOnly] = useState(false);
   const [sortBy, setSortBy] = useState("newest");
+  const [isSortOpen, setIsSortOpen] = useState(false);
+  const sortRef = useRef(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [visibleCount, setVisibleCount] = useState(12);
   const [priceRange, setPriceRange] = useState(15000);
@@ -69,6 +73,17 @@ const Shop = () => {
   const user = useSelector((state) => state.user.userData);
 
   const API_BASE_URL = (import.meta.env.VITE_API_URL || "http://localhost:10000").replace(/\/+$/, "");
+
+  // Close custom sort dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (sortRef.current && !sortRef.current.contains(e.target)) {
+        setIsSortOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   useEffect(() => {
     let isMounted = true;
@@ -151,14 +166,14 @@ const Shop = () => {
       });
     }
 
-    // 6. Price Filter
-    result = result.filter(p => Number(p.price) <= priceRange);
+    // 6. Price Filter (uses exact displayed price of the selected size / variant)
+    result = result.filter(p => getProductEffectivePrice(p, selectedSize) <= priceRange);
 
-    // 7. Sorting
+    // 7. Authoritative Sorting by Displayed Price & Attributes
     if (sortBy === "price_asc") {
-      result.sort((a, b) => Number(a.price) - Number(b.price));
+      result.sort((a, b) => getProductEffectivePrice(a, selectedSize) - getProductEffectivePrice(b, selectedSize));
     } else if (sortBy === "price_desc") {
-      result.sort((a, b) => Number(b.price) - Number(a.price));
+      result.sort((a, b) => getProductEffectivePrice(b, selectedSize) - getProductEffectivePrice(a, selectedSize));
     } else if (sortBy === "bestseller") {
       result.sort((a, b) => {
         const aHasBadge = a.badges?.includes("Best Seller") ? 1 : 0;
@@ -211,12 +226,8 @@ const Shop = () => {
     }
   }, [products]);
 
+  // Guest Add to Cart: anyone can add items to cart!
   const handleAddToCart = (product, selectedVariant) => {
-    if (!user) {
-      toast.error("Please sign in to add to cart", { duration: 1500 });
-      setTimeout(() => navigate("/signin"), 500);
-      return;
-    }
     if (!selectedVariant) {
       toast.error("This product is currently out of stock");
       return;
@@ -254,6 +265,8 @@ const Shop = () => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
+  const currentSortOption = SORT_OPTIONS.find((o) => o.value === sortBy) || SORT_OPTIONS[0];
+
   const sidebarContent = (
     <div className="flex flex-col gap-6">
       
@@ -276,6 +289,35 @@ const Shop = () => {
             onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full text-xs font-medium outline-none bg-transparent text-slate-800 dark:text-[#F5F7FA] placeholder:text-slate-400 dark:placeholder:text-[#778393]"
           />
+        </div>
+      </div>
+
+      {/* SORT BY (In Mobile Sidebar as well) */}
+      <div className="lg:hidden bg-white dark:bg-[#171D26] p-5 rounded-2xl border border-slate-200/80 dark:border-[#27313D] shadow-xs">
+        <h3 className="text-xs font-black text-slate-900 dark:text-[#F7F9FC] uppercase tracking-widest mb-3 flex items-center gap-2">
+          <ArrowUpDown size={14} className="text-[#1E971D] dark:text-[#FFD600]" /> Sort Oils
+        </h3>
+        <div className="grid grid-cols-1 gap-1.5">
+          {SORT_OPTIONS.map((opt) => {
+            const isSelected = sortBy === opt.value;
+            return (
+              <button
+                key={opt.value}
+                onClick={() => {
+                  setSortBy(opt.value);
+                  setShowMobileFilters(false);
+                }}
+                className={`flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider border transition-all cursor-pointer ${
+                  isSelected
+                    ? "bg-[#1E971D] dark:bg-[#FFD600] border-[#1E971D] dark:border-[#FFD600] text-white dark:text-[#111318] shadow-sm"
+                    : "bg-slate-50 dark:bg-[#151B23] border-slate-200 dark:border-[#27313D] text-slate-700 dark:text-[#B7C1CE] hover:bg-slate-100 dark:hover:bg-[#1D2530]"
+                }`}
+              >
+                <span>{opt.label}</span>
+                {isSelected && <Check size={14} className="stroke-[3]" />}
+              </button>
+            );
+          })}
         </div>
       </div>
 
@@ -433,7 +475,7 @@ const Shop = () => {
       <div className="w-full bg-[#fafafa] dark:bg-[#0B0F14] min-h-screen py-10 pb-28 lg:pb-16 px-3 sm:px-8 md:px-12 lg:px-20 font-sans transition-colors duration-250">
 
         {/* HEADER SECTION */}
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row md:items-end justify-between mb-10 pb-8 border-b border-slate-200 dark:border-[#27313D] gap-4">
+        <div className="max-w-7xl mx-auto flex flex-col md:flex-row md:items-end justify-between mb-8 pb-6 border-b border-slate-200 dark:border-[#27313D] gap-4">
           <div>
             <span className="text-[10px] font-black text-[#1E971D] dark:text-[#19C37D] uppercase tracking-widest bg-emerald-50 dark:bg-[#17221F] border border-emerald-100 dark:border-[#26333A] px-3 py-1 rounded-full inline-block mb-2">
               Authentic Wood / Stone Churned
@@ -446,18 +488,66 @@ const Shop = () => {
             </p>
           </div>
 
-          {/* SORTING CONTROLS */}
-          <div className="flex items-center gap-3">
-            <span className="text-xs font-bold text-slate-400 dark:text-[#818C9B] uppercase tracking-wider hidden sm:inline">Sort By:</span>
-            <select
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value)}
-              className="p-3 bg-white dark:bg-[#151B23] border border-slate-200 dark:border-[#29333F] text-slate-800 dark:text-[#F5F7FA] rounded-xl text-xs font-bold outline-none focus:border-[#1E971D] dark:focus:border-[#FFD600] cursor-pointer shadow-xs"
-            >
-              {SORT_OPTIONS.map((opt) => (
-                <option key={opt.value} value={opt.value} className="dark:bg-[#151B23]">{opt.label}</option>
-              ))}
-            </select>
+          {/* POLISHED INTERACTIVE SORTING CONTROLS */}
+          <div className="relative" ref={sortRef}>
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-black text-slate-500 dark:text-[#818C9B] uppercase tracking-wider hidden sm:inline">
+                Sort By:
+              </span>
+              
+              <button
+                type="button"
+                onClick={() => setIsSortOpen((prev) => !prev)}
+                className="flex items-center gap-2.5 px-4 py-2.5 bg-white dark:bg-[#151B23] border-2 border-slate-200 dark:border-[#29333F] hover:border-[#1E971D] dark:hover:border-[#FFD600] text-slate-900 dark:text-[#F5F7FA] rounded-xl text-xs font-black uppercase tracking-wider transition-all shadow-xs cursor-pointer focus:outline-none"
+                aria-haspopup="listbox"
+                aria-expanded={isSortOpen}
+              >
+                <ArrowUpDown size={14} className="text-[#1E971D] dark:text-[#FFD600] shrink-0" />
+                <span>{currentSortOption.label}</span>
+                <ChevronDown
+                  size={14}
+                  className={`text-slate-400 dark:text-[#818C9B] transition-transform duration-200 shrink-0 ${
+                    isSortOpen ? "rotate-180" : ""
+                  }`}
+                />
+              </button>
+            </div>
+
+            {/* Custom Dropdown Menu with High Visibility Active Indicator */}
+            {isSortOpen && (
+              <div className="absolute right-0 mt-2 w-64 bg-white dark:bg-[#171D26] border border-slate-200 dark:border-[#27313D] rounded-2xl shadow-2xl py-2 z-50 animate-in fade-in slide-in-from-top-2 duration-150">
+                <div className="px-3 py-1.5 border-b border-slate-100 dark:border-[#222B37] mb-1">
+                  <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-[#818C9B]">
+                    Select Sort Order
+                  </span>
+                </div>
+                {SORT_OPTIONS.map((opt) => {
+                  const isSelected = sortBy === opt.value;
+                  return (
+                    <button
+                      key={opt.value}
+                      type="button"
+                      onClick={() => {
+                        setSortBy(opt.value);
+                        setIsSortOpen(false);
+                      }}
+                      className={`w-full flex items-center justify-between px-3.5 py-2.5 text-xs font-black uppercase tracking-wider transition-colors cursor-pointer text-left ${
+                        isSelected
+                          ? "bg-emerald-50 dark:bg-[#FFD600]/15 text-[#1E971D] dark:text-[#FFD600] font-black"
+                          : "text-slate-700 dark:text-[#B7C1CE] hover:bg-slate-50 dark:hover:bg-[#1D2530]"
+                      }`}
+                    >
+                      <span className="flex items-center gap-2">
+                        {opt.label}
+                      </span>
+                      {isSelected && (
+                        <Check size={14} className="text-[#1E971D] dark:text-[#FFD600] stroke-[3]" />
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
           </div>
         </div>
 
@@ -500,7 +590,7 @@ const Shop = () => {
           >
             <span className="flex items-center gap-2">
               <SlidersHorizontal size={14} className="text-[#1E971D] dark:text-[#FFD600]" />
-              {showMobileFilters ? "Hide Filters" : `Filters (${displayedProducts.length} Oils)`}
+              {showMobileFilters ? "Hide Filters" : `Filters & Sort (${displayedProducts.length} Oils)`}
             </span>
             <span className="text-xs">{showMobileFilters ? "▲" : "▼"}</span>
           </button>
@@ -523,9 +613,15 @@ const Shop = () => {
           {/* PRODUCTS GRID */}
           <div className="lg:col-span-3">
             
-            {/* Active Filters Summary Bar */}
-            <div className="flex items-center justify-between mb-6 bg-white dark:bg-[#171D26] p-4 rounded-2xl border border-slate-200/80 dark:border-[#27313D] text-xs font-bold text-slate-500 dark:text-[#818C9B]">
-              <span>Showing <strong className="text-slate-900 dark:text-[#F5F7FA] font-black">{displayedProducts.length}</strong> matching oil products</span>
+            {/* Active Filters & Sort Summary Bar */}
+            <div className="flex flex-wrap items-center justify-between gap-3 mb-6 bg-white dark:bg-[#171D26] p-4 rounded-2xl border border-slate-200/80 dark:border-[#27313D] text-xs font-bold text-slate-500 dark:text-[#818C9B]">
+              <div className="flex flex-wrap items-center gap-2">
+                <span>Showing <strong className="text-slate-900 dark:text-[#F5F7FA] font-black">{displayedProducts.length}</strong> matching oil products</span>
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-[#151B23] border border-slate-200 dark:border-[#29333F] text-[10px] font-black text-slate-700 dark:text-[#FFD600] uppercase tracking-wider">
+                  <ArrowUpDown size={11} className="text-[#1E971D] dark:text-[#FFD600]" />
+                  {currentSortOption.label}
+                </span>
+              </div>
               {(activeCategory !== "All" || selectedPurpose !== "all" || selectedSize !== "All" || stockOnly || searchQuery) && (
                 <button
                   onClick={clearAllFilters}
@@ -543,10 +639,10 @@ const Shop = () => {
             ) : displayedProducts.length === 0 ? (
               <div className="bg-white dark:bg-[#171D26] p-16 rounded-3xl border border-slate-200 dark:border-[#27313D] text-center text-slate-400 dark:text-[#818C9B] font-bold uppercase tracking-widest">
                 <Package className="w-12 h-12 text-slate-300 dark:text-[#34404E] mx-auto mb-3" />
-                <p>No products match your current filters.</p>
+                <p className="text-sm">No stone-pressed oils match your selected filters</p>
                 <button
                   onClick={clearAllFilters}
-                  className="mt-4 px-6 py-2.5 bg-[#1E971D] dark:bg-[#FFD600] text-white dark:text-[#111318] rounded-xl text-xs font-bold uppercase tracking-wider cursor-pointer"
+                  className="mt-4 px-6 py-2.5 bg-[#1E971D] dark:bg-[#FFD600] text-white dark:text-[#111318] text-xs font-black uppercase tracking-wider rounded-xl cursor-pointer hover:opacity-90 transition-opacity"
                 >
                   Reset Filters
                 </button>

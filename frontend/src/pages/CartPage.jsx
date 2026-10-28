@@ -274,8 +274,13 @@ const CartPage = () => {
 
   const handleProceedToCheckout = useCallback(() => {
     trackBeginCheckout(cartItems, finalTotal);
+    if (!user) {
+      toast("Please sign in to proceed to checkout", { icon: "🔐" });
+      navigate('/signin?redirect=/checkout');
+      return;
+    }
     navigate('/checkout');
-  }, [cartItems, finalTotal, navigate]);
+  }, [cartItems, finalTotal, navigate, user]);
 
   const handleApplyCoupon = useCallback(async (code) => {
     try {

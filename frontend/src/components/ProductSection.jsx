@@ -91,11 +91,6 @@ const ProductSection = ({ limit = null }) => {
   };
 
   const handleAddToCart = (product, selectedVariant) => {
-    if (!user) {
-      toast.error("Please sign in to add to cart", { duration: 1500 });
-      setTimeout(() => navigate("/signin"), 500);
-      return;
-    }
     if (!selectedVariant) {
       toast.error("This product is currently out of stock");
       return;

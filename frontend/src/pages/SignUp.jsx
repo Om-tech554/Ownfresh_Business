@@ -99,14 +99,15 @@ const SignUp = () => {
         setShowEmailOtpModal(true);
       } else {
         dispatch(setUserData(data));
-        dispatch(clearCart());
         localStorage.setItem("oil_user", JSON.stringify(data));
         if (data?.token) {
           localStorage.setItem("oil_token", data.token);
         }
 
+        const searchParams = new URLSearchParams(window.location.search);
+        const redirectPath = searchParams.get("redirect") || "/";
         toast.success("Account created successfully! Welcome to OwnFresh.");
-        setTimeout(() => navigate("/"), 1000);
+        setTimeout(() => navigate(redirectPath), 1000);
       }
     } catch (error) {
       toast.error(error.response?.data?.message || "Signup failed. Please try again.");
@@ -133,12 +134,13 @@ const SignUp = () => {
       );
 
       dispatch(setUserData(data));
-      dispatch(clearCart());
       localStorage.setItem("oil_user", JSON.stringify(data));
 
+      const searchParams = new URLSearchParams(window.location.search);
+      const redirectPath = searchParams.get("redirect") || "/";
       toast.success("Account verified successfully! Welcome to OwnFresh.");
       setShowEmailOtpModal(false);
-      setTimeout(() => navigate("/"), 1000);
+      setTimeout(() => navigate(redirectPath), 1000);
     } catch (error) {
       toast.error(error.response?.data?.message || "Verification failed. Please check the code.");
     } finally {
@@ -170,14 +172,15 @@ const SignUp = () => {
     );
 
     dispatch(setUserData(data));
-    dispatch(clearCart());
     localStorage.setItem("oil_user", JSON.stringify(data));
     if (data?.token) {
       localStorage.setItem("oil_token", data.token);
     }
 
+    const searchParams = new URLSearchParams(window.location.search);
+    const redirectPath = searchParams.get("redirect") || "/";
     toast.success("Google signup successful! Welcome to OwnFresh.");
-    setTimeout(() => navigate("/"), 1000);
+    setTimeout(() => navigate(redirectPath), 1000);
   };
 
   useEffect(() => {
@@ -486,7 +489,11 @@ const SignUp = () => {
               <button
                 type="button"
                 className="font-black cursor-pointer text-[#1E971D] dark:text-[#FFD600] hover:underline ml-1"
-                onClick={() => navigate("/signin")}
+                onClick={() => {
+                  const searchParams = new URLSearchParams(window.location.search);
+                  const redirectPath = searchParams.get("redirect");
+                  navigate(redirectPath ? `/signin?redirect=${encodeURIComponent(redirectPath)}` : "/signin");
+                }}
               >
                 Sign in
               </button>

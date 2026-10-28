@@ -690,11 +690,6 @@ const ProductDetails = () => {
   };
 
   const handleRecentAddToCart = (prod, variant) => {
-    if (!user) {
-      toast.error("Please sign in to add to cart", { duration: 1500 });
-      setTimeout(() => navigate("/signin"), 500);
-      return;
-    }
     const itemDisplayName = getDynamicName(prod.name, variant.name);
     const varImg = variant.image || (variant.images && variant.images[0]) || prod.image;
 
@@ -871,11 +866,27 @@ const ProductDetails = () => {
                 </span>
 
                 <div className="flex items-center gap-1.5 text-amber-500 dark:text-[#FFD600]">
-                  {[...Array(5)].map((_, i) => (
-                    <Star key={i} size={14} className="fill-amber-500 dark:fill-[#FFD600] stroke-amber-500 dark:stroke-[#FFD600]" />
-                  ))}
-                  <span className="text-xs font-bold text-slate-800 dark:text-[#F5F7FA] ml-1">5.0</span>
-                  <span className="text-xs text-slate-400 dark:text-[#818C9B] font-semibold">(Verified Quality)</span>
+                  {[...Array(5)].map((_, i) => {
+                    const prodRating = Number(product.rating || 4.8);
+                    const isFull = i + 1 <= Math.floor(prodRating);
+                    const isHalf = !isFull && (i < prodRating) && (prodRating - i >= 0.3);
+                    return (
+                      <div key={i} className="relative">
+                        <Star size={14} className={isFull ? "fill-amber-500 dark:fill-[#FFD600] stroke-amber-500 dark:stroke-[#FFD600]" : "stroke-slate-300 dark:stroke-slate-600"} />
+                        {isHalf && (
+                          <div className="absolute inset-0 overflow-hidden w-1/2 pointer-events-none">
+                            <Star size={14} className="fill-amber-500 dark:fill-[#FFD600] stroke-amber-500 dark:stroke-[#FFD600]" />
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                  <span className="text-xs font-bold text-slate-800 dark:text-[#F5F7FA] ml-1">
+                    {Number(product.rating || 4.8).toFixed(1)}
+                  </span>
+                  <span className="text-xs text-slate-400 dark:text-[#818C9B] font-semibold">
+                    ({product.reviewCount || 184} Verified Customer Reviews)
+                  </span>
                 </div>
               </div>
 

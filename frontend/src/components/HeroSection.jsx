@@ -96,7 +96,7 @@ const HeroSection = () => {
                       dangerouslySetInnerHTML={{ __html: slide.description }}
                     />
                     <div className="flex flex-col sm:flex-row gap-4">
-                      <button onClick={() => document.getElementById('products')?.scrollIntoView({ behavior: 'smooth' })} className="px-8 py-4 bg-[#FFDD00] dark:bg-[#FFD600] text-black dark:text-[#111318] text-sm font-bold uppercase tracking-widest hover:bg-[#181818] hover:text-[#FFDD00] dark:hover:bg-[#FFE45C] transition-colors duration-300 shadow-xl border border-transparent">
+                      <button onClick={() => navigate('/shop')} className="px-8 py-4 bg-[#FFDD00] dark:bg-[#FFD600] text-black dark:text-[#111318] text-sm font-bold uppercase tracking-widest hover:bg-[#181818] hover:text-[#FFDD00] dark:hover:bg-[#FFE45C] transition-colors duration-300 shadow-xl border border-transparent">
                         {slide.cta1}
                       </button>
                       <SLink to="/whyownfresh" className="px-8 py-4 bg-transparent dark:bg-[#171D26] border-2 border-black dark:border-[#303B48] text-black dark:text-[#F5F7FA] text-sm font-bold uppercase tracking-widest hover:bg-[#181818] hover:text-white dark:hover:bg-[#222B37] transition-colors duration-300 flex items-center justify-center shadow-sm">
@@ -125,7 +125,7 @@ const HeroSection = () => {
                       dangerouslySetInnerHTML={{ __html: slide.description }}
                     />
                     <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
-                      <button onClick={() => document.getElementById('products')?.scrollIntoView({ behavior: 'smooth' })} className="w-full sm:w-auto px-8 py-4 bg-[#FFDD00] dark:bg-[#FFD600] text-black dark:text-[#111318] border border-[#FFDD00] dark:border-transparent text-sm font-bold uppercase tracking-widest hover:bg-[#181818] hover:text-[#FFDD00] dark:hover:bg-[#FFE45C] transition-colors duration-300 shadow-xl">
+                      <button onClick={() => navigate('/shop')} className="w-full sm:w-auto px-8 py-4 bg-[#FFDD00] dark:bg-[#FFD600] text-black dark:text-[#111318] border border-[#FFDD00] dark:border-transparent text-sm font-bold uppercase tracking-widest hover:bg-[#181818] hover:text-[#FFDD00] dark:hover:bg-[#FFE45C] transition-colors duration-300 shadow-xl">
                         {slide.cta1}
                       </button>
                       <SLink to="/whyownfresh" className="w-full sm:w-auto px-8 py-4 bg-transparent dark:bg-[#171D26] border-2 border-black dark:border-[#303B48] text-black dark:text-[#F5F7FA] text-sm font-bold uppercase tracking-widest hover:bg-[#181818] hover:text-white dark:hover:bg-[#222B37] transition-colors duration-300 flex items-center justify-center shadow-sm">
