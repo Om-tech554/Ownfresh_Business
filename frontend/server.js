@@ -15,26 +15,32 @@ const notFoundHtml = path.join(distDir, "404.html");
 const API_URL = (process.env.VITE_API_URL || process.env.API_URL || "https://api.myownfresh.com").replace(/\/+$/, "");
 
 // 1. Serve robots.txt and sitemap.xml directly from dist or public
-app.get("/robots.txt", (req, res) => {
+app.get(["/robots.txt", "//robots.txt"], (req, res) => {
   const robotsPath = path.join(distDir, "robots.txt");
   if (fs.existsSync(robotsPath)) return res.type("text/plain").sendFile(robotsPath);
   res.type("text/plain").send("User-agent: *\nAllow: /\nDisallow: /admin\nDisallow: /cart\nDisallow: /checkout\nSitemap: https://myownfresh.com/sitemap.xml\n");
 });
 
-app.get("/sitemap.xml", async (req, res) => {
+app.get(["/sitemap.xml", "//sitemap.xml"], async (req, res) => {
+  const sitemapPath = path.join(distDir, "sitemap.xml");
+
+  // If static sitemap exists, check if dynamic backend has updates with 2.5s timeout; otherwise fallback immediately
   try {
-    const apiRes = await fetch(`${API_URL}/sitemap.xml`);
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 2500);
+    const apiRes = await fetch(`${API_URL}/sitemap.xml`, { signal: controller.signal });
+    clearTimeout(timeoutId);
     if (apiRes.ok) {
       const xml = await apiRes.text();
-      res.type("application/xml").send(xml);
-      return;
+      return res.type("application/xml").send(xml);
     }
   } catch (err) {
-    // If backend is unreachable, fallback to static dist/sitemap.xml
+    // Backend sleeping or cold start: instantly fallback to static dist/sitemap.xml
   }
 
-  const sitemapPath = path.join(distDir, "sitemap.xml");
-  if (fs.existsSync(sitemapPath)) return res.type("application/xml").sendFile(sitemapPath);
+  if (fs.existsSync(sitemapPath)) {
+    return res.type("application/xml").sendFile(sitemapPath);
+  }
   res.status(404).send("Sitemap not found");
 });
 

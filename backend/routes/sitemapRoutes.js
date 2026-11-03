@@ -10,7 +10,7 @@ const router = express.Router();
  * - No ObjectId product URLs (uses keyword-rich slugs)
  * - No private/transactional URLs (cart, checkout, admin, auth)
  */
-router.get("/sitemap.xml", async (req, res) => {
+router.get(["/sitemap.xml", "//sitemap.xml"], async (req, res) => {
   try {
     const baseUrl = "https://myownfresh.com";
 
