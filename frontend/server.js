@@ -44,6 +44,19 @@ app.get(["/sitemap.xml", "//sitemap.xml"], async (req, res) => {
   res.status(404).send("Sitemap not found");
 });
 
+// 1b. Serve Official Brochure with correct inline headers
+app.get(["/OwnFresh-Official-Brochure.pdf", "/ownfresh_product_brochure.pdf", "/brochure"], (req, res) => {
+  const brochureDist = path.join(distDir, "OwnFresh-Official-Brochure.pdf");
+  const brochurePublic = path.join(__dirname, "public", "OwnFresh-Official-Brochure.pdf");
+  const targetPath = fs.existsSync(brochureDist) ? brochureDist : brochurePublic;
+  if (fs.existsSync(targetPath)) {
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader("Content-Disposition", 'inline; filename="OwnFresh-Official-Brochure.pdf"');
+    return res.sendFile(targetPath);
+  }
+  res.status(404).send("Brochure not found");
+});
+
 // 2. Trailing slash normalization (301 Permanent Redirect)
 app.use((req, res, next) => {
   const rawPath = req.path;

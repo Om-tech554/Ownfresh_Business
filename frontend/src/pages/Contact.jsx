@@ -9,6 +9,7 @@ import toast from 'react-hot-toast';
 import SLink from '../components/SLink';
 import { serverUrl } from '../App';
 import { QRCodeSVG } from 'qrcode.react';
+import OfficialBrochure from '../components/OfficialBrochure';
 
 const vCardData = [
     "BEGIN:VCARD",
@@ -233,6 +234,9 @@ const Contact = () => {
                     </div>
                 </div>
             </section>
+
+            {/* 3b. OFFICIAL BROCHURE SECTION */}
+            <OfficialBrochure />
 
             {/* 4. 50/50 SPLIT: FORM & MAP */}
             <section className="w-full max-w-7xl mx-auto py-14 sm:py-20 md:py-24 px-4 sm:px-6 md:px-12">
