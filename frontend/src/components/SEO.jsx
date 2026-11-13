@@ -1,7 +1,7 @@
 import React from 'react';
 import { Helmet } from 'react-helmet-async';
 
-const BASE_URL = "https://myownfresh.com";
+const BASE_URL = "https://www.myownfresh.com";
 
 const SEO = ({ 
   title, 

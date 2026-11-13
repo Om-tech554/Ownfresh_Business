@@ -183,7 +183,7 @@ const GalleryPage = () => {
     "@context": "https://schema.org",
     "@type": "Organization",
     "name": "Own Fresh",
-    "url": "https://myownfresh.com",
+    "url": "https://www.myownfresh.com",
     "logo": "https://res.cloudinary.com/dkhq2wlwg/image/upload/v1774962822/ownfresh_media/ndxvmcpisomjzsghrfjs.png",
     "hasCredential": [
       {

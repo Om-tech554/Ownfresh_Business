@@ -244,17 +244,34 @@ const UserBlogDetails = () => {
   const renderedHTML = blog.description || "";
   const images = [blog.image1, blog.image2, blog.image3, blog.image4].filter(Boolean);
 
+  const articleUrl = `https://www.myownfresh.com/blog/${blog.slug || id}`;
+  const schemaImages = images.length > 0 ? images : (blog.image ? [blog.image] : ["https://res.cloudinary.com/dkhq2wlwg/image/upload/v1774962822/ownfresh_media/ndxvmcpisomjzsghrfjs.png"]);
+
   const schemaMarkup = {
     "@context": "https://schema.org",
-    "@type": "Article",
+    "@type": "BlogPosting",
+    "mainEntityOfPage": {
+      "@type": "WebPage",
+      "@id": articleUrl
+    },
     "headline": cleanTitle,
-    "image": blog.image ? [blog.image] : [],
+    "description": cleanDescription,
+    "image": schemaImages,
     "datePublished": blog.publishedAt || blog.createdAt,
     "dateModified": blog.updatedAt || blog.createdAt,
-    "author": [{
+    "author": {
       "@type": "Person",
-      "name": blog.author || "OwnFresh Research Team",
-    }]
+      "name": blog.author || "OwnFresh Research Team"
+    },
+    "publisher": {
+      "@type": "Organization",
+      "name": "OwnFresh",
+      "url": "https://www.myownfresh.com",
+      "logo": {
+        "@type": "ImageObject",
+        "url": "https://res.cloudinary.com/dkhq2wlwg/image/upload/v1774962822/ownfresh_media/ndxvmcpisomjzsghrfjs.png"
+      }
+    }
   };
 
   return (

@@ -120,7 +120,7 @@ const RefundPolicy = () => {
               <p>Ground Floor, Shed No. 1, Vir Maruti Complex, 30/13 Dhayari, Vadgaon Budruk, Pune, Maharashtra – 411041, India</p>
               <p className="pt-2"><b className="dark:text-[#F5F7FA]">Phone:</b> +91 9689889191</p>
               <p><b className="dark:text-[#F5F7FA]">Email:</b> <a href="mailto:contact@myownfresh.com" className="text-yellow-600 dark:text-[#FFD600] hover:underline">contact@myownfresh.com</a></p>
-              <p><b className="dark:text-[#F5F7FA]">Website:</b> <a href="https://myownfresh.com/" className="text-yellow-600 dark:text-[#FFD600] hover:underline">https://myownfresh.com/</a></p>
+              <p><b className="dark:text-[#F5F7FA]">Website:</b> <a href="https://www.myownfresh.com/" className="text-yellow-600 dark:text-[#FFD600] hover:underline">https://www.myownfresh.com/</a></p>
             </div>
 
             <div className="mt-6 p-6 bg-amber-50 dark:bg-[#151B23] rounded-2xl border border-amber-100/50 dark:border-[#27313D] text-center flex flex-col items-center">

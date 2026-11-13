@@ -9,7 +9,7 @@ import { ChevronRight, Home } from "lucide-react";
 const Breadcrumbs = ({ items = [] }) => {
   if (!items || items.length === 0) return null;
 
-  const baseUrl = "https://myownfresh.com";
+  const baseUrl = "https://www.myownfresh.com";
 
   // Build matching BreadcrumbList Schema
   const schema = {

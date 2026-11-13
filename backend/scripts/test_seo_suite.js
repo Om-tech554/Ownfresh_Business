@@ -36,11 +36,11 @@ async function runTestSuite() {
   const testPort = 5055;
   const server = http.createServer(app);
   await new Promise((resolve) => server.listen(testPort, resolve));
-  const baseUrl = `http://localhost:${testPort}`;
-  console.log(`📡 Test server running at ${baseUrl}\n`);
+  const testServerBaseUrl = `http://localhost:${testPort}`;
+  console.log(`📡 Test server running at ${testServerBaseUrl}\n`);
 
   const client = axios.create({
-    baseURL: baseUrl,
+    baseURL: testServerBaseUrl,
     maxRedirects: 0,
     validateStatus: () => true
   });
@@ -214,3 +214,5 @@ async function runTestSuite() {
 }
 
 runTestSuite();
+
+export {};

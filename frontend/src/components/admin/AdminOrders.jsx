@@ -367,7 +367,7 @@ const AdminOrders = () => {
     const generateDeliveryEmailData = (order) => {
         const isPune = isPuneOrder(order);
         const customerName = order.user?.fullName || "Valued Customer";
-        const siteUrl = "https://myownfresh.com";
+        const siteUrl = "https://www.myownfresh.com";
         const orderId = order.customOrderId || (order._id ? order._id.toString().toUpperCase() : "ORDER");
         const deliveryAddress = order.deliveryAddress?.text || [
             order.deliveryAddress?.roomNumber,

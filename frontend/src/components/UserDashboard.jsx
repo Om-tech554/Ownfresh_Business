@@ -49,10 +49,10 @@ const UserDashboard = () => {
           "@context": "https://schema.org",
           "@type": "WebSite",
           "name": "OwnFresh",
-          "url": "https://myownfresh.com/",
+          "url": "https://www.myownfresh.com/",
           "potentialAction": {
             "@type": "SearchAction",
-            "target": "https://myownfresh.com/shop?search={search_term_string}",
+            "target": "https://www.myownfresh.com/shop?search={search_term_string}",
             "query-input": "required name=search_term_string"
           }
         }}

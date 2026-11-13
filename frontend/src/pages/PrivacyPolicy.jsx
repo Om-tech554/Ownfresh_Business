@@ -39,8 +39,8 @@ const PrivacyPolicy = () => {
         <div className="space-y-6 leading-relaxed">
           <p className="text-gray-600 dark:text-[#B7C1CE] font-medium">
             This Privacy Policy explains how OWNFRESH AGRO INDUSTRIES, operating under the trade name MyOwnFresh ("we", "our", or "us"), collects, uses, stores, and protects your personal information when you visit or make a purchase through{" "}
-            <a href="https://myownfresh.com/" className="text-yellow-600 dark:text-[#FFD600] hover:underline">
-              https://myownfresh.com/
+            <a href="https://www.myownfresh.com/" className="text-yellow-600 dark:text-[#FFD600] hover:underline">
+              https://www.myownfresh.com/
             </a>.
           </p>
 
@@ -54,7 +54,7 @@ const PrivacyPolicy = () => {
               </p>
               <p><b className="dark:text-[#F5F7FA]">Phone:</b> +91 9689889191</p>
               <p><b className="dark:text-[#F5F7FA]">Email:</b> <a href="mailto:contact@myownfresh.com" className="text-yellow-600 dark:text-[#FFD600] hover:underline">contact@myownfresh.com</a></p>
-              <p><b className="dark:text-[#F5F7FA]">Website:</b> <a href="https://myownfresh.com/" className="text-yellow-600 dark:text-[#FFD600] hover:underline">https://myownfresh.com/</a></p>
+              <p><b className="dark:text-[#F5F7FA]">Website:</b> <a href="https://www.myownfresh.com/" className="text-yellow-600 dark:text-[#FFD600] hover:underline">https://www.myownfresh.com/</a></p>
             </div>
           </section>
 
@@ -149,7 +149,7 @@ const PrivacyPolicy = () => {
               <p>Ground Floor, Shed No. 1, Vir Maruti Complex, 30/13 Dhayari, Vadgaon Budruk, Pune, Maharashtra – 411041, India</p>
               <p className="pt-2"><b className="dark:text-[#F5F7FA]">Phone:</b> +91 9689889191</p>
               <p><b className="dark:text-[#F5F7FA]">Email:</b> <a href="mailto:contact@myownfresh.com" className="text-yellow-600 dark:text-[#FFD600] hover:underline">contact@myownfresh.com</a></p>
-              <p><b className="dark:text-[#F5F7FA]">Website:</b> <a href="https://myownfresh.com/" className="text-yellow-600 dark:text-[#FFD600] hover:underline">https://myownfresh.com/</a></p>
+              <p><b className="dark:text-[#F5F7FA]">Website:</b> <a href="https://www.myownfresh.com/" className="text-yellow-600 dark:text-[#FFD600] hover:underline">https://www.myownfresh.com/</a></p>
             </div>
           </section>
         </div>

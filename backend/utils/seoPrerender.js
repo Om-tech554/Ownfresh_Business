@@ -11,7 +11,7 @@ import "../models/blogModel.js";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const BASE_URL = "https://myownfresh.com";
+const BASE_URL = process.env.CANONICAL_DOMAIN || "https://www.myownfresh.com";
 
 // In-memory cache of the base index.html template
 let cachedTemplate = null;

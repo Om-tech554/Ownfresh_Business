@@ -21,7 +21,7 @@ async function generate() {
   await mongoose.connect(mongoUri, { dbName: "OwnFresh" });
   console.log("Connected to MongoDB for sitemap generation");
 
-  const baseUrl = "https://myownfresh.com";
+  const scriptBaseUrl = process.env.CANONICAL_DOMAIN || "https://www.myownfresh.com";
 
   // 1. Static Pages
   const staticPages = [
@@ -50,7 +50,7 @@ async function generate() {
   ];
 
   const staticUrls = [...staticPages, ...categoryPages].map(p => `  <url>
-    <loc>${baseUrl}${p.path}</loc>
+    <loc>${scriptBaseUrl}${p.path}</loc>
     <changefreq>${p.changefreq}</changefreq>
     <priority>${p.priority}</priority>
   </url>`).join("\n");
@@ -64,7 +64,7 @@ async function generate() {
     const slug = b.slug || b._id;
     const lastMod = b.updatedAt ? new Date(b.updatedAt).toISOString().split("T")[0] : "2026-09-05";
     return `  <url>
-    <loc>${baseUrl}/blog/${slug}</loc>
+    <loc>${scriptBaseUrl}/blog/${slug}</loc>
     <lastmod>${lastMod}</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.85</priority>
@@ -80,7 +80,7 @@ async function generate() {
     const slug = p.slug || String(p._id);
     const lastMod = p.updatedAt ? new Date(p.updatedAt).toISOString().split("T")[0] : "2026-09-10";
     return `  <url>
-    <loc>${baseUrl}/product/${slug}</loc>
+    <loc>${scriptBaseUrl}/product/${slug}</loc>
     <lastmod>${lastMod}</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.95</priority>
@@ -105,3 +105,5 @@ generate().catch(err => {
   console.error("Sitemap generation error:", err);
   process.exit(1);
 });
+
+export {};

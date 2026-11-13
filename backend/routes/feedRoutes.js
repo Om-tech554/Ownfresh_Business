@@ -10,7 +10,7 @@ const router = express.Router();
  */
 router.get(["/google-merchant.xml", "/google-shopping.xml"], async (req, res) => {
   try {
-    const baseUrl = "https://myownfresh.com";
+    const merchantFeedBaseUrl = process.env.CANONICAL_DOMAIN || "https://www.myownfresh.com";
     const Product = mongoose.models.Product || mongoose.model("Product");
     const ProductVariant = mongoose.models.ProductVariant || mongoose.model("ProductVariant");
 
@@ -68,7 +68,7 @@ router.get(["/google-merchant.xml", "/google-shopping.xml"], async (req, res) =>
           const shippingWeight = variant.shippingWeight ? `${variant.shippingWeight} kg` : "1 kg";
           const rawTitle = `${prod.name} - ${variant.name || 'Standard'}`;
           const title = escapeXml(cleanBranding(rawTitle));
-          const link = escapeXml(`${baseUrl}/product/${prod._id}`);
+          const link = escapeXml(`${merchantFeedBaseUrl}/product/${prod._id}`);
 
           itemsXml.push(`
     <item>
@@ -99,7 +99,7 @@ router.get(["/google-merchant.xml", "/google-shopping.xml"], async (req, res) =>
         const availability = inStock ? "in_stock" : "out_of_stock";
         const rawTitle = prod.name || "Stone Pressed Oil";
         const title = escapeXml(cleanBranding(rawTitle));
-        const link = escapeXml(`${baseUrl}/product/${prod._id}`);
+        const link = escapeXml(`${merchantFeedBaseUrl}/product/${prod._id}`);
 
         itemsXml.push(`
     <item>
@@ -128,7 +128,7 @@ router.get(["/google-merchant.xml", "/google-shopping.xml"], async (req, res) =>
 <rss version="2.0" xmlns:g="http://base.google.com/ns/1.0">
   <channel>
     <title>MyOwnFresh - Stone Pressed Edible Oils</title>
-    <link>${baseUrl}</link>
+    <link>${merchantFeedBaseUrl}</link>
     <description>Official Google Merchant Center Product Feed for MyOwnFresh Stone Pressed Cooking Oils.</description>
 ${itemsXml.join("")}
   </channel>

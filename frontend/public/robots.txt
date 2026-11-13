@@ -33,4 +33,4 @@ Disallow: /referral
 Disallow: /api/
 
 # Authoritative XML Sitemap Location
-Sitemap: https://myownfresh.com/sitemap.xml
+Sitemap: https://www.myownfresh.com/sitemap.xml

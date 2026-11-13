@@ -12,7 +12,10 @@ const router = express.Router();
  */
 router.get(["/sitemap.xml", "//sitemap.xml"], async (req, res) => {
   try {
-    const baseUrl = "https://myownfresh.com";
+    const rawHost = (req.headers["x-forwarded-host"] || req.headers.host || "").toLowerCase().split(":")[0];
+    const sitemapBaseUrl = rawHost && rawHost.includes("myownfresh.com")
+      ? `https://${rawHost}`
+      : (process.env.CANONICAL_DOMAIN || "https://www.myownfresh.com");
 
     // 1. Core Static Public Pages
     const staticPages = [
@@ -41,7 +44,7 @@ router.get(["/sitemap.xml", "//sitemap.xml"], async (req, res) => {
     ];
 
     const staticUrls = [...staticPages, ...categoryPages].map(page => `  <url>
-    <loc>${baseUrl}${page.path}</loc>
+    <loc>${sitemapBaseUrl}${page.path}</loc>
     <changefreq>${page.changefreq}</changefreq>
     <priority>${page.priority}</priority>
   </url>`).join("\n");
@@ -58,7 +61,7 @@ router.get(["/sitemap.xml", "//sitemap.xml"], async (req, res) => {
         const slug = blog.slug || blog._id;
         const lastMod = blog.updatedAt ? new Date(blog.updatedAt).toISOString().split("T")[0] : "2026-09-05";
         return `  <url>
-    <loc>${baseUrl}/blog/${slug}</loc>
+    <loc>${sitemapBaseUrl}/blog/${slug}</loc>
     <lastmod>${lastMod}</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.85</priority>
@@ -80,7 +83,7 @@ router.get(["/sitemap.xml", "//sitemap.xml"], async (req, res) => {
         const slug = product.slug || String(product._id);
         const lastMod = product.updatedAt ? new Date(product.updatedAt).toISOString().split("T")[0] : "2026-09-10";
         return `  <url>
-    <loc>${baseUrl}/product/${slug}</loc>
+    <loc>${sitemapBaseUrl}/product/${slug}</loc>
     <lastmod>${lastMod}</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.95</priority>
@@ -145,7 +148,7 @@ Disallow: /referral
 Disallow: /api/
 
 # Authoritative XML Sitemap Location
-Sitemap: https://myownfresh.com/sitemap.xml
+Sitemap: https://www.myownfresh.com/sitemap.xml
 `;
 
   res.header("Content-Type", "text/plain; charset=utf-8");

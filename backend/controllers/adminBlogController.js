@@ -140,6 +140,12 @@ export const publishAdminBlog = async (req, res) => {
 
       await blog.save();
 
+      // Trigger automatic sitemap cache refresh on frontend (fire-and-forget)
+      try {
+        const frontendUrl = (process.env.FRONTEND_URL || "https://www.myownfresh.com").replace(/\/+$/, "");
+        fetch(`${frontendUrl}/api/sitemap/refresh`).catch(() => {});
+      } catch (err) {}
+
       return res.status(200).json({
         success: true,
         action: "updated",
@@ -181,6 +187,12 @@ export const publishAdminBlog = async (req, res) => {
       image4: resolvedImage4,
       author: author || "OwnFresh Editorial",
     });
+
+    // Trigger automatic sitemap cache refresh on frontend (fire-and-forget)
+    try {
+      const frontendUrl = (process.env.FRONTEND_URL || "https://www.myownfresh.com").replace(/\/+$/, "");
+      fetch(`${frontendUrl}/api/sitemap/refresh`).catch(() => {});
+    } catch (err) {}
 
     return res.status(201).json({
       success: true,

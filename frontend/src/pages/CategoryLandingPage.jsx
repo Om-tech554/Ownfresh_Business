@@ -224,24 +224,22 @@ const CategoryLandingPage = ({ defaultCategory = null }) => {
 
   // Structured Data (JSON-LD) for Category Landing Page & FAQs
   const schemaMarkup = {
-    "@context": "https://schema.org",
     "@type": "CollectionPage",
-    "name": `${categoryInfo.name} | MyOwnFresh`,
+    "name": `${categoryInfo.name} | OwnFresh`,
     "description": categoryInfo.intro,
-    "url": `https://myownfresh.com/${currentSlug}`,
+    "url": `https://www.myownfresh.com/${currentSlug}`,
     "mainEntity": {
       "@type": "ItemList",
       "itemListElement": filteredProducts.map((p, idx) => ({
         "@type": "ListItem",
         "position": idx + 1,
-        "url": `https://myownfresh.com/product/${p.slug || p._id}`,
+        "url": `https://www.myownfresh.com/product/${p.slug || p._id}`,
         "name": p.name
       }))
     }
   };
 
   const faqSchema = categoryInfo.faqs?.length ? {
-    "@context": "https://schema.org",
     "@type": "FAQPage",
     "mainEntity": categoryInfo.faqs.map(faq => ({
       "@type": "Question",
@@ -253,6 +251,14 @@ const CategoryLandingPage = ({ defaultCategory = null }) => {
     }))
   } : null;
 
+  const combinedSchema = {
+    "@context": "https://schema.org",
+    "@graph": [
+      schemaMarkup,
+      ...(faqSchema ? [faqSchema] : [])
+    ]
+  };
+
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 font-sans">
       <SEO
@@ -261,7 +267,7 @@ const CategoryLandingPage = ({ defaultCategory = null }) => {
         keywords={`${categoryInfo.name}, stone pressed ${categoryInfo.categoryKey || "oil"}, authentic stone pressed oil, traditional stone ghani oil, pure unrefined cooking oil, wood stone pressed oil, OwnFresh stone pressed oil`}
         url={`/${currentSlug}`}
         image={categoryInfo.heroImage}
-        schemaMarkup={schemaMarkup}
+        schemaMarkup={combinedSchema}
       />
 
       <Navbar />

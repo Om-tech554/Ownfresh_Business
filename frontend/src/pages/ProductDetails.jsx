@@ -576,7 +576,7 @@ const ProductDetails = () => {
       "@graph": [
         {
           "@type": "Product",
-          "@id": `https://myownfresh.com/product/${product.slug || product._id}#product`,
+          "@id": `https://www.myownfresh.com/product/${product.slug || product._id}#product`,
           "name": displayName || cleanProductName(product.name),
           "image": [activeImage || product.image],
           "description": product.shortDesc || product.description || oilInfo.intro,
@@ -613,16 +613,16 @@ const ProductDetails = () => {
             "priceCurrency": "INR",
             "price": finalPrice,
             "availability": inStock ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
-            "url": `https://myownfresh.com/product/${product.slug || product._id}`,
+            "url": `https://www.myownfresh.com/product/${product.slug || product._id}`,
             "itemCondition": "https://schema.org/NewCondition"
           }
         },
         {
           "@type": "BreadcrumbList",
           "itemListElement": [
-            { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://myownfresh.com/" },
-            { "@type": "ListItem", "position": 2, "name": "Shop", "item": "https://myownfresh.com/shop" },
-            { "@type": "ListItem", "position": 3, "name": displayName || cleanProductName(product.name), "item": `https://myownfresh.com/product/${product.slug || product._id}` }
+            { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://www.myownfresh.com/" },
+            { "@type": "ListItem", "position": 2, "name": "Shop", "item": "https://www.myownfresh.com/shop" },
+            { "@type": "ListItem", "position": 3, "name": displayName || cleanProductName(product.name), "item": `https://www.myownfresh.com/product/${product.slug || product._id}` }
           ]
         }
       ]

@@ -14,32 +14,118 @@ const notFoundHtml = path.join(distDir, "404.html");
 
 const API_URL = (process.env.VITE_API_URL || process.env.API_URL || "https://api.myownfresh.com").replace(/\/+$/, "");
 
-// 1. Serve robots.txt and sitemap.xml directly from dist or public
-app.get(["/robots.txt", "//robots.txt"], (req, res) => {
-  const robotsPath = path.join(distDir, "robots.txt");
-  if (fs.existsSync(robotsPath)) return res.type("text/plain").sendFile(robotsPath);
-  res.type("text/plain").send("User-agent: *\nAllow: /\nDisallow: /admin\nDisallow: /cart\nDisallow: /checkout\nSitemap: https://myownfresh.com/sitemap.xml\n");
-});
+// In-Memory Stale-While-Revalidate Sitemap Cache
+let sitemapCache = {
+  xml: null,
+  timestamp: 0,
+  isFetching: false,
+  lastFailureTime: 0
+};
 
-app.get(["/sitemap.xml", "//sitemap.xml"], async (req, res) => {
-  const sitemapPath = path.join(distDir, "sitemap.xml");
+// Seed sitemap cache from disk if available
+try {
+  const seedPath = path.join(distDir, "sitemap.xml");
+  const fallbackPath = path.join(__dirname, "public", "sitemap.xml");
+  const pathToRead = fs.existsSync(seedPath) ? seedPath : (fs.existsSync(fallbackPath) ? fallbackPath : null);
+  if (pathToRead) {
+    const diskContent = fs.readFileSync(pathToRead, "utf-8");
+    if (diskContent && diskContent.includes("<urlset") && diskContent.includes("</urlset>")) {
+      sitemapCache.xml = diskContent;
+      sitemapCache.timestamp = Date.now();
+    }
+  }
+} catch (e) {
+  console.warn("Sitemap seed note:", e.message);
+}
 
-  // If static sitemap exists, check if dynamic backend has updates with 2.5s timeout; otherwise fallback immediately
+// Background refresher for sitemap
+async function refreshSitemapInBackground() {
+  if (sitemapCache.isFetching) return;
+  // If recent fetch failed within the last 60 seconds, do not hammer backend
+  if (Date.now() - sitemapCache.lastFailureTime < 60000) return;
+
+  sitemapCache.isFetching = true;
   try {
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 2500);
+    const timeoutId = setTimeout(() => controller.abort(), 15000);
     const apiRes = await fetch(`${API_URL}/sitemap.xml`, { signal: controller.signal });
     clearTimeout(timeoutId);
     if (apiRes.ok) {
       const xml = await apiRes.text();
-      return res.type("application/xml").send(xml);
+      // Ensure XML is non-empty, contains opening and closing urlset tags
+      if (xml && xml.includes("<urlset") && xml.includes("</urlset>")) {
+        sitemapCache.xml = xml;
+        sitemapCache.timestamp = Date.now();
+        sitemapCache.lastFailureTime = 0;
+        // Persist to dist/sitemap.xml for future process restarts
+        try {
+          if (!fs.existsSync(distDir)) fs.mkdirSync(distDir, { recursive: true });
+          fs.writeFileSync(path.join(distDir, "sitemap.xml"), xml, "utf-8");
+        } catch (err) {}
+      } else {
+        sitemapCache.lastFailureTime = Date.now();
+      }
+    } else {
+      sitemapCache.lastFailureTime = Date.now();
     }
   } catch (err) {
-    // Backend sleeping or cold start: instantly fallback to static dist/sitemap.xml
+    sitemapCache.lastFailureTime = Date.now();
+    // Keep serving existing cache without disruption
+  } finally {
+    sitemapCache.isFetching = false;
+  }
+}
+
+// 1. Serve robots.txt directly from dist or public
+app.get(["/robots.txt", "//robots.txt"], (req, res) => {
+  const robotsPath = path.join(distDir, "robots.txt");
+  if (fs.existsSync(robotsPath)) return res.type("text/plain").sendFile(robotsPath);
+  res.type("text/plain").send("User-agent: *\nAllow: /\nDisallow: /admin\nDisallow: /cart\nDisallow: /checkout\nSitemap: https://www.myownfresh.com/sitemap.xml\n");
+});
+
+// Sitemap on-demand cache bust endpoint (can be triggered by Hermes or admin)
+app.all(["/api/sitemap/refresh", "/sitemap/refresh"], async (req, res) => {
+  await refreshSitemapInBackground();
+  res.json({ success: true, timestamp: sitemapCache.timestamp, cached: !!sitemapCache.xml });
+});
+
+// High-speed Stale-While-Revalidate XML sitemap router (Sub-5ms Googlebot response)
+app.get(["/sitemap.xml", "//sitemap.xml"], async (req, res) => {
+  // If cache is older than 5 minutes, trigger background refresh
+  const isStale = (Date.now() - sitemapCache.timestamp) > 5 * 60 * 1000;
+  if (isStale) {
+    refreshSitemapInBackground();
   }
 
-  if (fs.existsSync(sitemapPath)) {
-    return res.type("application/xml").sendFile(sitemapPath);
+  // If we have cached XML, deliver instantly (guarantees Googlebot never times out)
+  if (sitemapCache.xml) {
+    res.setHeader("Content-Type", "application/xml; charset=utf-8");
+    res.setHeader("Cache-Control", "public, max-age=1800, s-maxage=3600");
+    return res.status(200).send(sitemapCache.xml);
+  }
+
+  // Cold start first-request fallback: try fetching directly up to 8s
+  try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 8000);
+    const apiRes = await fetch(`${API_URL}/sitemap.xml`, { signal: controller.signal });
+    clearTimeout(timeoutId);
+    if (apiRes.ok) {
+      const xml = await apiRes.text();
+      sitemapCache.xml = xml;
+      sitemapCache.timestamp = Date.now();
+      res.setHeader("Content-Type", "application/xml; charset=utf-8");
+      return res.status(200).send(xml);
+    }
+  } catch (err) {}
+
+  const sitemapDistPath = path.join(distDir, "sitemap.xml");
+  const sitemapPublicPath = path.join(__dirname, "public", "sitemap.xml");
+  const pathToServe = fs.existsSync(sitemapDistPath) ? sitemapDistPath : (fs.existsSync(sitemapPublicPath) ? sitemapPublicPath : null);
+  if (pathToServe) {
+    res.setHeader("Content-Type", "application/xml; charset=utf-8");
+    res.setHeader("X-Content-Type-Options", "nosniff");
+    return res.status(200).sendFile(pathToServe);
   }
   res.status(404).send("Sitemap not found");
 });
@@ -147,7 +233,7 @@ app.use(async (req, res) => {
             let html = fs.readFileSync(defaultIndex, "utf-8");
             const blogTitle = `${blog.title} | OwnFresh Insights`;
             const cleanDesc = (blog.searchDescription || blog.excerpt || blog.description || "").replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim().slice(0, 160);
-            const canonicalUrl = `https://myownfresh.com/blog/${blog.slug || blog._id}`;
+            const canonicalUrl = `https://www.myownfresh.com/blog/${blog.slug || blog._id}`;
 
             html = html.replace(/<title>[\s\S]*?<\/title>/i, `<title>${blogTitle}</title>`);
             html = html.replace(/<meta\s+name=["']description["']\s+content=["'][\s\S]*?["']\s*\/?>/i, `<meta name="description" content="${cleanDesc}" />`);
@@ -202,7 +288,7 @@ app.use(async (req, res) => {
             let html = fs.readFileSync(defaultIndex, "utf-8");
             const prodTitle = `${product.name} | Granite Churned | OwnFresh`;
             const cleanDesc = (product.shortDesc || product.description || "").replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim().slice(0, 160);
-            const canonicalUrl = `https://myownfresh.com/product/${product.slug || product._id}`;
+            const canonicalUrl = `https://www.myownfresh.com/product/${product.slug || product._id}`;
 
             html = html.replace(/<title>[\s\S]*?<\/title>/i, `<title>${prodTitle}</title>`);
             html = html.replace(/<meta\s+name=["']description["']\s+content=["'][\s\S]*?["']\s*\/?>/i, `<meta name="description" content="${cleanDesc}" />`);

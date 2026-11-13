@@ -5,7 +5,7 @@ import { fileURLToPath } from "url";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const BASE_URL = "https://myownfresh.com";
+const BASE_URL = process.env.CANONICAL_DOMAIN || "https://www.myownfresh.com";
 // Always default to production API so build gets genuine live database content
 const API_URL = process.env.PRERENDER_API_URL || "https://api.myownfresh.com";
 const distDir = path.join(__dirname, "../dist");

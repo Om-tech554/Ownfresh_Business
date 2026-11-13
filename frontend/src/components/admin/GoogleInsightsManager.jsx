@@ -54,7 +54,7 @@ const GoogleInsightsManager = () => {
   }, []);
 
   const GA_ID = "G-BB6RGNVWCR";
-  const SITE_URL = "https://myownfresh.com";
+  const SITE_URL = "https://www.myownfresh.com";
   const GA_ACCOUNT_EMAILS = ["technewity@gmail.com", "my1ownfresh@gmail.com"];
 
   // Google Deep Links

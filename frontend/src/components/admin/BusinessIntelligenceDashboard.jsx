@@ -969,7 +969,7 @@ const BusinessIntelligenceDashboard = () => {
                             <div className="flex items-center justify-center gap-1.5 flex-wrap">
                               {email ? (
                                 <a
-                                  href={"mailto:" + email + "?subject=We%20Saved%20Your%20MyOwnFresh%20Cart!&body=Hi%20" + encodeURIComponent(name || 'there') + ",%0A%0AWe%20noticed%20you%20left%20fresh%20stone%20pressed%20oils%20in%20your%20cart.%20Complete%20your%20order%20now%20to%20enjoy%20pure,%20unadulterated%20wellness.%0A%0AReturn%20to%20Cart:%20https://myownfresh.com/cart%0A%0AWarm%20regards,%0AMyOwnFresh%20Team"}
+                                  href={"mailto:" + email + "?subject=We%20Saved%20Your%20MyOwnFresh%20Cart!&body=Hi%20" + encodeURIComponent(name || 'there') + ",%0A%0AWe%20noticed%20you%20left%20fresh%20stone%20pressed%20oils%20in%20your%20cart.%20Complete%20your%20order%20now%20to%20enjoy%20pure,%20unadulterated%20wellness.%0A%0AReturn%20to%20Cart:%20https://www.myownfresh.com/cart%0A%0AWarm%20regards,%0AMyOwnFresh%20Team"}
                                   className="inline-flex items-center gap-1 px-2.5 py-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 rounded-lg text-[10px] font-black transition-colors"
                                   title="Send recovery email"
                                 >
@@ -979,7 +979,7 @@ const BusinessIntelligenceDashboard = () => {
 
                               {phone ? (
                                 <a
-                                  href={"https://wa.me/" + phone.replace(/[^0-9]/g, '') + "?text=" + encodeURIComponent("Hi " + (name || 'there') + ", we noticed you visited MyOwnFresh and added fresh stone pressed oils to your cart. Can we assist you in completing your order? https://myownfresh.com/cart")}
+                                  href={"https://wa.me/" + phone.replace(/[^0-9]/g, '') + "?text=" + encodeURIComponent("Hi " + (name || 'there') + ", we noticed you visited MyOwnFresh and added fresh stone pressed oils to your cart. Can we assist you in completing your order? https://www.myownfresh.com/cart")}
                                   target="_blank"
                                   rel="noopener noreferrer"
                                   className="inline-flex items-center gap-1 px-2.5 py-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 rounded-lg text-[10px] font-black transition-colors"
