@@ -6,14 +6,15 @@ import {
   Plus, 
   Calendar, 
   Tag, 
-  AlertCircle,
-  CheckCircle2,
-  X,
-  Users,
-  UserCheck,
-  Search,
-  Percent,
-  Coins
+  AlertCircle, 
+  CheckCircle2, 
+  X, 
+  Users, 
+  UserCheck, 
+  Search, 
+  Percent, 
+  Coins,
+  Truck
 } from "lucide-react";
 import toast from "react-hot-toast";
 import { AnimatePresence, motion } from "framer-motion";
@@ -54,7 +55,8 @@ const CouponManager = () => {
     expiryDate: "",
     applicableUsers: "ALL_USERS",
     isSpecialCoupon: false,
-    selectedUsersListText: "" // user emails/IDs comma separated to parse
+    selectedUsersListText: "", // user emails/IDs comma separated to parse
+    eliminateDeliveryCharge: false // Waive delivery charges strictly for selected emails/users
   });
 
   const fetchCoupons = async () => {
@@ -89,7 +91,7 @@ const CouponManager = () => {
     setSelectedCustomerChips(updated);
     setFormData(prev => ({
       ...prev,
-      selectedUsersListText: updated.map(c => c._id).join(", ")
+      selectedUsersListText: updated.map(c => c.email || c._id).join(", ")
     }));
     setCustomerSearch("");
   };
@@ -99,8 +101,22 @@ const CouponManager = () => {
     setSelectedCustomerChips(updated);
     setFormData(prev => ({
       ...prev,
-      selectedUsersListText: updated.map(c => c._id).join(", ")
+      selectedUsersListText: updated.map(c => c.email || c._id).join(", ")
     }));
+  };
+
+  const handleToggleDeliveryCharge = async (coupon) => {
+    try {
+      const nextVal = !coupon.eliminateDeliveryCharge;
+      await axios.put(`${serverUrl}/api/coupon/${coupon._id}`, {
+        eliminateDeliveryCharge: nextVal,
+        requiresDeliveryCharge: !nextVal
+      }, { withCredentials: true });
+      toast.success(nextVal ? "100% Free delivery granted for this coupon!" : "Standard delivery charges restored");
+      fetchCoupons();
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Failed to update delivery policy");
+    }
   };
 
   const handleCreate = async (e) => {
@@ -112,7 +128,7 @@ const CouponManager = () => {
       // Parse and sanitize selected users (strips any brackets, quotes, whitespace)
       let selectedUsersList = [];
       if (!isSpecial && formData.selectedUsersListText) {
-        const cleanReg = new RegExp("[\[\]'\"`]", "g");
+        const cleanReg = new RegExp("[\\[\\]'\"`]", "g");
         const raw = formData.selectedUsersListText.replace(cleanReg, " ").trim();
         selectedUsersList = raw
           .split(/[\s,]+/)
@@ -133,7 +149,8 @@ const CouponManager = () => {
         applicableUsers: isSpecial ? "SPECIAL_MEMBER" : formData.applicableUsers,
         isSpecialCoupon: isSpecial,
         selectedUsersList: isSpecial ? [] : selectedUsersList,
-        requiresDeliveryCharge: isSpecial ? true : undefined
+        eliminateDeliveryCharge: Boolean(formData.eliminateDeliveryCharge),
+        requiresDeliveryCharge: formData.eliminateDeliveryCharge ? false : (isSpecial ? true : undefined)
       };
 
       await axios.post(`${serverUrl}/api/coupon/create`, body, { withCredentials: true });
@@ -153,7 +170,8 @@ const CouponManager = () => {
         expiryDate: "",
         applicableUsers: "ALL_USERS",
         isSpecialCoupon: false,
-        selectedUsersListText: ""
+        selectedUsersListText: "",
+        eliminateDeliveryCharge: false
       });
       setSelectedCustomerChips([]);
       setCustomerSearch("");
@@ -252,14 +270,20 @@ const CouponManager = () => {
                     🚚 Delivery Charges Apply
                   </span>
                 </div>
-              ) : (coupon.applicableUsers === "SELECTED_USERS" || coupon.requiresDeliveryCharge) ? (
+              ) : (coupon.applicableUsers === "SELECTED_USERS" || coupon.requiresDeliveryCharge || coupon.eliminateDeliveryCharge) ? (
                 <div className="flex flex-col items-end gap-1">
                   <span className="bg-amber-100 text-amber-800 px-2 py-0.5 rounded text-[8px] font-black uppercase">
-                    🎯 {coupon.selectedUsersList?.length || 0} Customers
+                    🎯 {(coupon.selectedUsersList?.length || 0) + (coupon.selectedEmailsList?.length || 0)} Recipients
                   </span>
-                  <span className="bg-orange-100 text-orange-900 border border-orange-200/60 px-1.5 py-0.5 rounded text-[7px] font-black uppercase">
-                    🚚 Delivery Charges Apply
-                  </span>
+                  {coupon.eliminateDeliveryCharge ? (
+                    <span className="bg-emerald-100 text-emerald-800 border border-emerald-300 px-1.5 py-0.5 rounded text-[7px] font-black uppercase flex items-center gap-1">
+                      🎉 Free Delivery
+                    </span>
+                  ) : (
+                    <span className="bg-orange-100 text-orange-900 border border-orange-200/60 px-1.5 py-0.5 rounded text-[7px] font-black uppercase">
+                      🚚 Delivery Charges Apply
+                    </span>
+                  )}
                 </div>
               ) : null}
             </div>
@@ -304,6 +328,31 @@ const CouponManager = () => {
                 Eligible: {coupon.applicableUsers === "SPECIAL_MEMBER" || coupon.isSpecialCoupon ? "⭐ Special Member (Single-Use)" : coupon.applicableUsers}
               </div>
             </div>
+
+            {coupon.applicableUsers === "SELECTED_USERS" && (
+              <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
+                <span className="text-[11px] font-bold text-slate-600 flex items-center gap-1">
+                  <span>🚚</span>
+                  {coupon.eliminateDeliveryCharge ? (
+                    <span className="text-emerald-700 font-extrabold">100% Free Delivery</span>
+                  ) : (
+                    <span className="text-amber-700 font-extrabold">Standard Shipping</span>
+                  )}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => handleToggleDeliveryCharge(coupon)}
+                  className={`text-[10px] font-black px-2.5 py-1 rounded-lg border transition-all cursor-pointer ${
+                    coupon.eliminateDeliveryCharge
+                      ? "bg-amber-50 hover:bg-amber-100 text-amber-900 border-amber-300"
+                      : "bg-emerald-50 hover:bg-emerald-100 text-emerald-900 border-emerald-300"
+                  }`}
+                  title="Toggle delivery charges for this coupon"
+                >
+                  {coupon.eliminateDeliveryCharge ? "Recharge Shipping" : "Grant Free Delivery"}
+                </button>
+              </div>
+            )}
 
             {!coupon.isActive && (
               <div className="mt-4 py-1 px-3 bg-red-50 text-red-600 rounded-lg text-xs font-bold inline-block">
@@ -447,13 +496,65 @@ const CouponManager = () => {
 
               {formData.applicableUsers === "SELECTED_USERS" && (
                 <div className="space-y-3 p-4 bg-emerald-50/50 dark:bg-[#111720] border border-emerald-200 dark:border-[#27313D] rounded-2xl">
-                  {/* Delivery Charges Notice */}
-                  <div className="p-2.5 bg-amber-50 dark:bg-[#1D2530] border border-amber-200 dark:border-[#384556] rounded-xl text-[11px] text-amber-900 dark:text-[#F1F5F9] font-bold flex items-center gap-2">
-                    <span className="text-sm">🚚</span>
-                    <span>
-                      Standard Delivery Charges Apply: Target customers using this personalized promo code will pay standard delivery charges regardless of cart value.
-                    </span>
+                  {/* Delivery Charges Option Selector */}
+                  <div className="bg-white dark:bg-[#151B23] border border-emerald-200 dark:border-[#27313D] rounded-xl p-3.5 space-y-2.5">
+                    <div className="flex items-center justify-between">
+                      <label className="text-xs font-black text-slate-800 dark:text-slate-100 uppercase tracking-wider flex items-center gap-1.5">
+                        <Truck className="w-4 h-4 text-emerald-600" />
+                        <span>Delivery Charges Policy</span>
+                      </label>
+                      {formData.eliminateDeliveryCharge ? (
+                        <span className="text-[10px] bg-emerald-100 text-emerald-800 font-black px-2 py-0.5 rounded-full uppercase border border-emerald-300">
+                          🎉 100% Free Delivery
+                        </span>
+                      ) : (
+                        <span className="text-[10px] bg-amber-100 text-amber-800 font-black px-2 py-0.5 rounded-full uppercase border border-amber-300">
+                          📦 Standard Shipping
+                        </span>
+                      )}
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
+                      {/* Option 1: Eliminate Delivery Charges */}
+                      <button
+                        type="button"
+                        onClick={() => setFormData({ ...formData, eliminateDeliveryCharge: true })}
+                        className={`p-3 rounded-xl border text-left transition-all cursor-pointer flex flex-col justify-between ${
+                          formData.eliminateDeliveryCharge
+                            ? "border-emerald-500 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-950 dark:text-emerald-200 shadow-sm ring-2 ring-emerald-500/20"
+                            : "border-slate-200 dark:border-[#27313D] hover:bg-slate-50 dark:hover:bg-[#1D2530] text-slate-700 dark:text-slate-300"
+                        }`}
+                      >
+                        <div className="flex items-center gap-1.5 font-black text-xs text-emerald-800 dark:text-emerald-300">
+                          <span>🎉</span>
+                          <span>Eliminate Delivery Charges</span>
+                        </div>
+                        <p className="text-[10px] mt-1 text-slate-500 dark:text-slate-400 font-medium leading-relaxed">
+                          Selected email IDs pay ₹0 delivery fees upon applying code.
+                        </p>
+                      </button>
+
+                      {/* Option 2: Standard Delivery Charges */}
+                      <button
+                        type="button"
+                        onClick={() => setFormData({ ...formData, eliminateDeliveryCharge: false })}
+                        className={`p-3 rounded-xl border text-left transition-all cursor-pointer flex flex-col justify-between ${
+                          !formData.eliminateDeliveryCharge
+                            ? "border-amber-500 bg-amber-50 dark:bg-amber-950/40 text-amber-950 dark:text-amber-200 shadow-sm ring-2 ring-amber-500/20"
+                            : "border-slate-200 dark:border-[#27313D] hover:bg-slate-50 dark:hover:bg-[#1D2530] text-slate-700 dark:text-slate-300"
+                        }`}
+                      >
+                        <div className="flex items-center gap-1.5 font-black text-xs text-amber-800 dark:text-amber-300">
+                          <span>📦</span>
+                          <span>Standard Delivery Charges</span>
+                        </div>
+                        <p className="text-[10px] mt-1 text-slate-500 dark:text-slate-400 font-medium leading-relaxed">
+                          Selected users pay standard delivery based on weight/pincode.
+                        </p>
+                      </button>
+                    </div>
                   </div>
+
                   <div className="flex items-center justify-between">
                     <label className="block text-xs font-black text-emerald-900 uppercase">
                       Select Target Customers
@@ -562,17 +663,17 @@ const CouponManager = () => {
                   {/* Advanced manual input / ID list */}
                   <div>
                     <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">
-                      Customer IDs / Emails (Comma separated or auto-populated)
+                      Customer Emails / IDs (Target email addresses for this coupon)
                     </label>
                     <textarea 
                       className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl outline-none focus:border-[#24672E] text-xs font-mono"
-                      placeholder="e.g. 6aa7f6f2a696a27557f4d292 or f4d292 or user@email.com"
+                      placeholder="e.g. vip@gmail.com, customer@yahoo.com, 6aa7f6f2a696a27557f4d292"
                       rows={2}
                       value={formData.selectedUsersListText}
                       onChange={(e) => setFormData({...formData, selectedUsersListText: e.target.value})}
                     />
                     <p className="text-[10px] text-slate-400 mt-1">
-                      Full IDs, 6-character short IDs (e.g. <code className="text-emerald-700 font-bold">f4d292</code>), and emails are automatically resolved.
+                      Provide customer email addresses (e.g. <code className="text-emerald-700 font-bold">vip@example.com</code>). When Free Delivery is selected above, delivery charges are eliminated <strong className="text-slate-600">only for these email IDs</strong>.
                     </p>
                   </div>
                 </div>

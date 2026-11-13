@@ -245,32 +245,61 @@ export const createOrder = async (req, res) => {
         if (calculatedSubtotal < coupon.minimumOrderAmount) {
           return res.status(400).json({ msg: `Minimum order amount to use this promo code is ₹${coupon.minimumOrderAmount}` });
         }
-        if (targetUserId) {
-          if (coupon.applicableUsers === "NEW_USERS") {
+        if (coupon.applicableUsers === "NEW_USERS") {
+          if (targetUserId) {
             const deliveredCount = await Order.countDocuments({ user: targetUserId, status: "delivered" });
             if (deliveredCount > 0) {
               return res.status(400).json({ msg: "This offer is only valid for your first order" });
             }
-          } else if (coupon.applicableUsers === "SELECTED_USERS") {
-            const isEligible = coupon.selectedUsersList.some(id => id.toString() === targetUserId.toString());
-            if (!isEligible) {
-              return res.status(400).json({ msg: "You are not eligible to apply this coupon" });
+          }
+        } else if (coupon.applicableUsers === "SELECTED_USERS") {
+          let isEligible = false;
+          const cleanEmail = (deliveryAddress?.email || user?.email || req.body?.email || "").toLowerCase().trim();
+
+          // 1. Check by targetUserId in selectedUsersList
+          if (targetUserId && Array.isArray(coupon.selectedUsersList)) {
+            if (coupon.selectedUsersList.some(id => id.toString() === targetUserId.toString())) {
+              isEligible = true;
             }
+          }
+
+          // 2. Check by user DB email
+          if (!isEligible && user?.email && Array.isArray(coupon.selectedEmailsList)) {
+            if (coupon.selectedEmailsList.includes(user.email.toLowerCase().trim())) {
+              isEligible = true;
+            }
+          }
+
+          // 3. Check by deliveryAddress.email
+          if (!isEligible && cleanEmail && Array.isArray(coupon.selectedEmailsList)) {
+            if (coupon.selectedEmailsList.includes(cleanEmail)) {
+              isEligible = true;
+            }
+          }
+
+          if (!isEligible) {
+            return res.status(400).json({ msg: "This exclusive promo code is only valid for selected accounts / email addresses." });
           }
         }
 
         couponRecord = coupon;
+        const eliminateDeliveryCharge = Boolean(coupon.eliminateDeliveryCharge === true);
+
         isSpecialDeliveryCoupon = Boolean(
-          coupon.applicableUsers === "SELECTED_USERS" ||
-          coupon.applicableUsers === "SPECIAL_MEMBER" ||
-          coupon.isSpecialCoupon === true ||
-          coupon.requiresDeliveryCharge === true ||
-          (Array.isArray(coupon.selectedUsersList) && coupon.selectedUsersList.length > 0)
+          !eliminateDeliveryCharge && (
+            coupon.applicableUsers === "SELECTED_USERS" ||
+            coupon.applicableUsers === "SPECIAL_MEMBER" ||
+            coupon.isSpecialCoupon === true ||
+            coupon.requiresDeliveryCharge === true ||
+            (Array.isArray(coupon.selectedUsersList) && coupon.selectedUsersList.length > 0)
+          )
         );
       } else {
         return res.status(404).json({ msg: "Promo code does not exist" });
       }
     }
+
+    const hasFreeDeliveryCoupon = Boolean(couponRecord?.eliminateDeliveryCharge === true);
 
     // Authoritative destination-based shipping calculation
     const shippingResult = calculateShipping({
@@ -278,9 +307,10 @@ export const createOrder = async (req, res) => {
       subtotal: calculatedSubtotal,
       destination,
       deliveryMethodId: deliveryMethodId || "standard",
-      disableFreeDelivery: isSpecialDeliveryCoupon
+      disableFreeDelivery: isSpecialDeliveryCoupon,
+      forceFreeDelivery: hasFreeDeliveryCoupon
     });
-    const shippingCost = shippingResult.deliveryCharge;
+    const shippingCost = hasFreeDeliveryCoupon ? 0 : shippingResult.deliveryCharge;
     const totalOrderWeight = shippingResult.totalWeightKg;
     const resolvedDeliveryMethod = shippingResult.deliveryMethodName;
 

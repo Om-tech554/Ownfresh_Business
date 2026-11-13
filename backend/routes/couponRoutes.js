@@ -2,6 +2,7 @@ import express from "express";
 import { 
   createCoupon, 
   getAllCoupons, 
+  updateCoupon,
   deleteCoupon, 
   validateCoupon,
   getPublicCoupons
@@ -12,6 +13,7 @@ const router = express.Router();
 // Admin routes
 router.post("/create", createCoupon);
 router.get("/all", getAllCoupons);
+router.put("/:id", updateCoupon);
 router.delete("/:id", deleteCoupon);
 
 // User routes

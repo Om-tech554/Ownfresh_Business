@@ -74,15 +74,28 @@ const couponSchema = new mongoose.Schema(
     requiresDeliveryCharge: {
       type: Boolean,
       default: false
-    }
+    },
+    eliminateDeliveryCharge: {
+      type: Boolean,
+      default: false
+    },
+    selectedEmailsList: [
+      {
+        type: String,
+        lowercase: true,
+        trim: true
+      }
+    ]
   },
   { timestamps: true }
 );
 
 // Pre-validate safeguard to sanitize any dirty/bracketed/stringified inputs in selectedUsersList
 couponSchema.pre("validate", function () {
-  // If special coupon or selected users, delivery charges are mandatory (transparent rate-card)
-  if (
+  // If eliminateDeliveryCharge is enabled, delivery charges are completely waived (Free Delivery)
+  if (this.eliminateDeliveryCharge === true) {
+    this.requiresDeliveryCharge = false;
+  } else if (
     this.applicableUsers === "SELECTED_USERS" || 
     this.applicableUsers === "SPECIAL_MEMBER" || 
     this.isSpecialCoupon === true ||
@@ -98,6 +111,13 @@ couponSchema.pre("validate", function () {
       this.usageLimit = 1;
     }
     this.perUserLimit = 1;
+  }
+
+  // Sanitize selectedEmailsList
+  if (this.selectedEmailsList && Array.isArray(this.selectedEmailsList)) {
+    this.selectedEmailsList = this.selectedEmailsList
+      .map(item => (typeof item === "string" ? item.toLowerCase().trim() : ""))
+      .filter(item => item && item.includes("@"));
   }
 
   if (this.selectedUsersList && Array.isArray(this.selectedUsersList)) {

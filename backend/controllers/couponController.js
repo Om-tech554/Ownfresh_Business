@@ -6,10 +6,11 @@ import User from "../models/usermodel.js";
 
 /**
  * Robust helper: Resolves any user inputs (full ObjectIds, 6-char short IDs,
- * emails, phones, usernames, or bracketed/quoted strings) into valid mongoose ObjectIds.
+ * emails, phones, usernames, or bracketed/quoted strings) into valid mongoose ObjectIds
+ * AND extracts normalized email addresses.
  */
-export const resolveSelectedUsers = async (rawInput) => {
-  if (!rawInput) return [];
+export const resolveSelectedUsersAndEmails = async (rawInput) => {
+  if (!rawInput) return { users: [], emails: [] };
 
   // 1. Normalize rawInput into array of string tokens
   let tokens = [];
@@ -38,40 +39,46 @@ export const resolveSelectedUsers = async (rawInput) => {
     } else if (t && typeof t === "object") {
       if (t._id) cleanTokens.push(String(t._id));
       else if (t.id) cleanTokens.push(String(t.id));
+      else if (t.email) cleanTokens.push(String(t.email));
     }
   });
 
-  if (cleanTokens.length === 0) return [];
+  if (cleanTokens.length === 0) return { users: [], emails: [] };
 
   // Load all users from DB once for quick, flexible matching
   const allUsers = await User.find().select("_id email fullName userName mobile").lean();
-  const resolvedMap = new Map();
+  const resolvedUsersMap = new Map();
+  const resolvedEmailsSet = new Set();
 
   for (const token of cleanTokens) {
     let matchedUser = null;
     const lower = token.toLowerCase();
 
-    // 1. Exact 24-char ObjectId match
-    if (mongoose.Types.ObjectId.isValid(token) && token.length === 24) {
-      matchedUser = allUsers.find(u => u._id.toString().toLowerCase() === lower);
+    // 1. Direct Email address detection
+    if (token.includes("@")) {
+      resolvedEmailsSet.add(lower);
+      matchedUser = allUsers.find(u => (u.email || "").toLowerCase() === lower);
       if (!matchedUser) {
-        // Even if not in loaded list, if valid 24 hex chars check directly in DB
-        const directUser = await User.findById(token).select("_id").lean();
+        const directUser = await User.findOne({ email: lower }).select("_id email").lean();
         if (directUser) matchedUser = directUser;
       }
     }
 
-    // 2. Short / Partial ID (e.g. 'f4d292')
+    // 2. Exact 24-char ObjectId match
+    if (!matchedUser && mongoose.Types.ObjectId.isValid(token) && token.length === 24) {
+      matchedUser = allUsers.find(u => u._id.toString().toLowerCase() === lower);
+      if (!matchedUser) {
+        const directUser = await User.findById(token).select("_id email").lean();
+        if (directUser) matchedUser = directUser;
+      }
+    }
+
+    // 3. Short / Partial ID (e.g. 'f4d292')
     if (!matchedUser && /^[0-9a-fA-F]{4,24}$/.test(token)) {
       matchedUser = allUsers.find(u => 
         u._id.toString().toLowerCase().endsWith(lower) || 
         u._id.toString().toLowerCase().includes(lower)
       );
-    }
-
-    // 3. Email address
-    if (!matchedUser && token.includes("@")) {
-      matchedUser = allUsers.find(u => (u.email || "").toLowerCase() === lower);
     }
 
     // 4. Mobile / Phone number
@@ -89,11 +96,22 @@ export const resolveSelectedUsers = async (rawInput) => {
     }
 
     if (matchedUser) {
-      resolvedMap.set(matchedUser._id.toString(), new mongoose.Types.ObjectId(matchedUser._id));
+      resolvedUsersMap.set(matchedUser._id.toString(), new mongoose.Types.ObjectId(matchedUser._id));
+      if (matchedUser.email) {
+        resolvedEmailsSet.add(matchedUser.email.toLowerCase().trim());
+      }
     }
   }
 
-  return Array.from(resolvedMap.values());
+  return {
+    users: Array.from(resolvedUsersMap.values()),
+    emails: Array.from(resolvedEmailsSet.values())
+  };
+};
+
+export const resolveSelectedUsers = async (rawInput) => {
+  const result = await resolveSelectedUsersAndEmails(rawInput);
+  return result.users;
 };
 
 // CREATE COUPON (Admin)
@@ -111,6 +129,7 @@ export const createCoupon = async (req, res) => {
       expiryDate, 
       applicableUsers, 
       selectedUsersList,
+      eliminateDeliveryCharge: rawEliminateDelivery,
       isSpecialCoupon: rawIsSpecial
     } = req.body;
 
@@ -124,20 +143,28 @@ export const createCoupon = async (req, res) => {
     }
 
     const isSpecial = Boolean(applicableUsers === "SPECIAL_MEMBER" || rawIsSpecial);
+    const eliminateDeliveryCharge = Boolean(rawEliminateDelivery);
 
     let resolvedUsers = [];
+    let resolvedEmails = [];
     if (applicableUsers === "SELECTED_USERS" && !isSpecial) {
-      resolvedUsers = await resolveSelectedUsers(selectedUsersList);
-      if (selectedUsersList && (Array.isArray(selectedUsersList) ? selectedUsersList.length > 0 : String(selectedUsersList).trim().length > 0) && resolvedUsers.length === 0) {
+      const resData = await resolveSelectedUsersAndEmails(selectedUsersList || req.body.selectedEmailsList);
+      resolvedUsers = resData.users;
+      resolvedEmails = resData.emails;
+
+      const hasRawUsers = selectedUsersList && (Array.isArray(selectedUsersList) ? selectedUsersList.length > 0 : String(selectedUsersList).trim().length > 0);
+      const hasRawEmails = req.body.selectedEmailsList && (Array.isArray(req.body.selectedEmailsList) ? req.body.selectedEmailsList.length > 0 : String(req.body.selectedEmailsList).trim().length > 0);
+
+      if ((hasRawUsers || hasRawEmails) && resolvedUsers.length === 0 && resolvedEmails.length === 0) {
         return res.status(400).json({
-          message: "No registered customers found matching the provided customer IDs or emails. Please verify and select valid customers."
+          message: "No registered customers or valid emails found matching your input. Please verify and provide valid emails or customer IDs."
         });
       }
     }
 
-    const requiresDeliveryCharge = isSpecial || (req.body.requiresDeliveryCharge !== undefined 
+    const requiresDeliveryCharge = !eliminateDeliveryCharge && (isSpecial || (req.body.requiresDeliveryCharge !== undefined 
       ? Boolean(req.body.requiresDeliveryCharge)
-      : (applicableUsers === "SELECTED_USERS"));
+      : (applicableUsers === "SELECTED_USERS")));
 
     const finalUsageLimit = isSpecial ? 1 : (usageLimit ? Number(usageLimit) : null);
     const finalPerUserLimit = isSpecial ? 1 : (Number(perUserLimit) || 1);
@@ -156,6 +183,8 @@ export const createCoupon = async (req, res) => {
       applicableUsers: finalApplicableUsers,
       isSpecialCoupon: isSpecial,
       selectedUsersList: isSpecial ? [] : resolvedUsers,
+      selectedEmailsList: isSpecial ? [] : resolvedEmails,
+      eliminateDeliveryCharge,
       requiresDeliveryCharge
     });
 
@@ -190,14 +219,23 @@ export const updateCoupon = async (req, res) => {
     if (updateData.discountType) {
       updateData.discountType = updateData.discountType === "percentage" ? "PERCENTAGE" : updateData.discountType === "fixed" ? "FIXED_AMOUNT" : updateData.discountType;
     }
-    if (updateData.applicableUsers === "SELECTED_USERS" && updateData.selectedUsersList !== undefined) {
-      updateData.selectedUsersList = await resolveSelectedUsers(updateData.selectedUsersList);
-      if (updateData.requiresDeliveryCharge === undefined) {
+    if (updateData.eliminateDeliveryCharge !== undefined) {
+      updateData.eliminateDeliveryCharge = Boolean(updateData.eliminateDeliveryCharge);
+      if (updateData.eliminateDeliveryCharge) {
+        updateData.requiresDeliveryCharge = false;
+      }
+    }
+    if (updateData.applicableUsers === "SELECTED_USERS" && (updateData.selectedUsersList !== undefined || updateData.selectedEmailsList !== undefined)) {
+      const resData = await resolveSelectedUsersAndEmails(updateData.selectedUsersList || updateData.selectedEmailsList);
+      updateData.selectedUsersList = resData.users;
+      updateData.selectedEmailsList = resData.emails;
+      if (!updateData.eliminateDeliveryCharge && updateData.requiresDeliveryCharge === undefined) {
         updateData.requiresDeliveryCharge = true;
       }
     }
 
-    const coupon = await Coupon.findByIdAndUpdate(id, updateData, { new: true });
+    const coupon = await Coupon.findByIdAndUpdate(id, updateData, { new: true })
+      .populate("selectedUsersList", "fullName userName email mobile");
     if (!coupon) {
       return res.status(404).json({ message: "Coupon not found" });
     }
@@ -221,7 +259,7 @@ export const deleteCoupon = async (req, res) => {
 // VALIDATE & APPLY COUPON (User)
 export const validateCoupon = async (req, res) => {
   try {
-    const { code, amount, shippingCost = 0, userId: bodyUserId } = req.body;
+    const { code, amount, shippingCost = 0, userId: bodyUserId, email: bodyEmail, customerDetails } = req.body;
     let userId = bodyUserId || req.userId;
 
     // If userId not explicitly provided, attempt to decode from auth cookie if present
@@ -232,7 +270,7 @@ export const validateCoupon = async (req, res) => {
       } catch (e) {}
     }
 
-    if (!code || !amount) {
+    if (!code || amount === undefined || amount === null) {
       return res.status(400).json({ message: "Code and amount are required" });
     }
 
@@ -297,25 +335,62 @@ export const validateCoupon = async (req, res) => {
       });
     }
 
-    // Check user eligibility
-    if (userId) {
-      if (coupon.applicableUsers === "NEW_USERS") {
+    // Check user / email eligibility
+    if (coupon.applicableUsers === "NEW_USERS") {
+      if (userId) {
         const deliveredCount = await Order.countDocuments({ user: userId, status: "delivered" });
         if (deliveredCount > 0) {
           return res.status(400).json({ message: "This offer is only valid for your first order" });
         }
-      } else if (coupon.applicableUsers === "SELECTED_USERS") {
-        const isEligible = coupon.selectedUsersList.some(id => id.toString() === userId.toString());
-        if (!isEligible) {
-          return res.status(400).json({ message: "You are not eligible to apply this coupon" });
+      }
+    } else if (coupon.applicableUsers === "SELECTED_USERS") {
+      let isEligible = false;
+      const cleanEmail = (bodyEmail || customerDetails?.email || "").toLowerCase().trim();
+
+      // 1. Check by authenticated userId
+      if (userId && Array.isArray(coupon.selectedUsersList)) {
+        if (coupon.selectedUsersList.some(id => id.toString() === userId.toString())) {
+          isEligible = true;
         }
       }
-      // If SPECIAL_MEMBER: Anyone holding the code can redeem it once!
+
+      // 2. Check by user's email from DB
+      if (!isEligible && userId) {
+        const dbUser = await User.findById(userId).select("email").lean();
+        if (dbUser?.email && Array.isArray(coupon.selectedEmailsList)) {
+          if (coupon.selectedEmailsList.includes(dbUser.email.toLowerCase().trim())) {
+            isEligible = true;
+          }
+        }
+      }
+
+      // 3. Check by email passed in request body
+      if (!isEligible && cleanEmail && Array.isArray(coupon.selectedEmailsList)) {
+        if (coupon.selectedEmailsList.includes(cleanEmail)) {
+          isEligible = true;
+        }
+      }
+
+      // 4. Also check if the body email matches any user in selectedUsersList
+      if (!isEligible && cleanEmail && Array.isArray(coupon.selectedUsersList) && coupon.selectedUsersList.length > 0) {
+        const userWithEmail = await User.findOne({ email: cleanEmail }).select("_id").lean();
+        if (userWithEmail && coupon.selectedUsersList.some(id => id.toString() === userWithEmail._id.toString())) {
+          isEligible = true;
+        }
+      }
+
+      if (!isEligible) {
+        return res.status(400).json({ 
+          message: "This exclusive coupon is only valid for selected accounts / email addresses." 
+        });
+      }
     }
 
-    // Calculate discount amount
-    // Calculate discount amount based on total including delivery
-    const baseTotal = Number(amount || 0) + Number(shippingCost || 0);
+    const eliminateDeliveryCharge = Boolean(coupon.eliminateDeliveryCharge === true);
+    const effectiveShippingCost = eliminateDeliveryCharge ? 0 : Number(shippingCost || 0);
+
+    // Calculate discount amount based on total
+    const baseTotal = Number(amount || 0) + effectiveShippingCost;
     let discountAmount = 0;
     if (coupon.discountType === "PERCENTAGE" || coupon.discountType === "percentage") {
       discountAmount = (baseTotal * coupon.discountValue) / 100;
@@ -326,17 +401,16 @@ export const validateCoupon = async (req, res) => {
       discountAmount = coupon.discountValue;
     }
 
-    // Ensure discount is not greater than the order amount itself
     discountAmount = Math.round(Math.min(discountAmount, baseTotal) * 100) / 100;
     const finalAmount = Math.round(Math.max(0, baseTotal - discountAmount) * 100) / 100;
 
     const isSpecialCoupon = Boolean(coupon.applicableUsers === "SPECIAL_MEMBER" || coupon.isSpecialCoupon);
-    const requiresDeliveryCharge = Boolean(
+    const requiresDeliveryCharge = Boolean(!eliminateDeliveryCharge && (
       isSpecialCoupon ||
       coupon.applicableUsers === "SELECTED_USERS" || 
       coupon.requiresDeliveryCharge === true || 
       (Array.isArray(coupon.selectedUsersList) && coupon.selectedUsersList.length > 0)
-    );
+    ));
 
     res.status(200).json({
       success: true,
@@ -348,12 +422,15 @@ export const validateCoupon = async (req, res) => {
       maximumDiscountAmount: coupon.maximumDiscountAmount,
       applicableUsers: coupon.applicableUsers,
       isSpecialCoupon,
+      eliminateDeliveryCharge,
       requiresDeliveryCharge,
-      message: isSpecialCoupon
-        ? `🌟 Special one-time promo ${coupon.code} applied! Saved ₹${discountAmount}. (Standard delivery charges apply)`
-        : requiresDeliveryCharge 
-        ? `Exclusive promo ${coupon.code} applied! Saved ₹${discountAmount}. (Standard delivery charges apply)` 
-        : `Coupon ${coupon.code} applied! Saved ₹${discountAmount}.`
+      message: eliminateDeliveryCharge
+        ? `🎉 Exclusive promo ${coupon.code} applied! 100% Free Delivery unlocked for your account${discountAmount > 0 ? ` + ₹${discountAmount} discount` : ''}!`
+        : (isSpecialCoupon
+          ? `🌟 Special one-time promo ${coupon.code} applied! Saved ₹${discountAmount}. (Standard delivery charges apply)`
+          : requiresDeliveryCharge 
+          ? `Exclusive promo ${coupon.code} applied! Saved ₹${discountAmount}. (Standard delivery charges apply)` 
+          : `Coupon ${coupon.code} applied! Saved ₹${discountAmount}.`)
     });
   } catch (error) {
     console.error(error);

@@ -88,7 +88,8 @@ const OrderReview = () => {
   // Cart calculations
   const subtotal = (cartItems || []).reduce((acc, item) => acc + (item.price * item.quantity), 0);
   const activeDestination = isEditingAddress ? editAddressForm : shippingDetails;
-  const isSpecialCoupon = Boolean(
+  const hasFreeDeliveryCoupon = Boolean(couponDetails?.isApplied && couponDetails?.eliminateDeliveryCharge);
+  const isSpecialCoupon = !hasFreeDeliveryCoupon && Boolean(
     couponDetails?.isApplied && (
       couponDetails.requiresDeliveryCharge || 
       couponDetails.isSpecialCoupon ||
@@ -102,9 +103,10 @@ const OrderReview = () => {
     subtotal,
     destination: activeDestination,
     deliveryMethodId: deliveryMethod?.id || 'standard',
-    disableFreeDelivery: isSpecialCoupon
+    disableFreeDelivery: isSpecialCoupon,
+    forceFreeDelivery: hasFreeDeliveryCoupon
   });
-  const shippingCost = shippingQuote.deliveryCost;
+  const shippingCost = hasFreeDeliveryCoupon ? 0 : shippingQuote.deliveryCost;
   const totalBeforeDiscount = subtotal + Number(shippingCost || 0);
 
   // Authoritative discount calculation on total including delivery

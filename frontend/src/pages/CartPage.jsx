@@ -180,7 +180,12 @@ const CartPage = () => {
     return Boolean(destination && (destination.city || destination.state || destination.address || destination.latitude));
   }, [destination]);
 
+  const hasFreeDeliveryCoupon = useMemo(() => {
+    return Boolean(couponDetails?.isApplied && couponDetails?.eliminateDeliveryCharge);
+  }, [couponDetails]);
+
   const isSpecialCoupon = useMemo(() => {
+    if (hasFreeDeliveryCoupon) return false;
     return Boolean(
       couponDetails?.isApplied && (
         couponDetails.requiresDeliveryCharge || 
@@ -189,19 +194,20 @@ const CartPage = () => {
         couponDetails.applicableUsers === 'SPECIAL_MEMBER'
       )
     );
-  }, [couponDetails]);
+  }, [couponDetails, hasFreeDeliveryCoupon]);
 
   const shippingInfo = useMemo(() => {
     return calculateClientShipping({
       cartItems,
       subtotal,
       destination: hasDestination ? destination : null,
-      disableFreeDelivery: isSpecialCoupon
+      disableFreeDelivery: isSpecialCoupon,
+      forceFreeDelivery: hasFreeDeliveryCoupon
     });
-  }, [cartItems, subtotal, hasDestination, destination, isSpecialCoupon]);
+  }, [cartItems, subtotal, hasDestination, destination, isSpecialCoupon, hasFreeDeliveryCoupon]);
 
-  const isFreeDelivery = shippingInfo.isFreeDelivery;
-  const deliveryCharge = hasDestination ? shippingInfo.deliveryCost : (isFreeDelivery ? 0 : null);
+  const isFreeDelivery = hasFreeDeliveryCoupon || shippingInfo.isFreeDelivery;
+  const deliveryCharge = hasFreeDeliveryCoupon ? 0 : (hasDestination ? shippingInfo.deliveryCost : (isFreeDelivery ? 0 : null));
   const effectiveDeliveryCharge = deliveryCharge !== null ? deliveryCharge : 0;
   const totalBeforeDiscount = subtotal + effectiveDeliveryCharge;
 
@@ -288,11 +294,13 @@ const CartPage = () => {
         code,
         amount: subtotal,
         shippingCost: effectiveDeliveryCharge,
-        userId: user?._id || undefined
+        userId: user?._id || undefined,
+        email: user?.email || undefined
       }, { withCredentials: true });
 
       if (data.success) {
-        const reqDeliv = Boolean(
+        const eliminateDeliv = Boolean(data.eliminateDeliveryCharge);
+        const reqDeliv = !eliminateDeliv && Boolean(
           data.requiresDeliveryCharge || 
           data.isSpecialCoupon || 
           data.applicableUsers === "SELECTED_USERS" ||
@@ -306,12 +314,15 @@ const CartPage = () => {
           maximumDiscountAmount: data.maximumDiscountAmount,
           minimumOrderAmount: data.minimumOrderAmount || 0,
           isApplied: true,
+          eliminateDeliveryCharge: eliminateDeliv,
           requiresDeliveryCharge: reqDeliv,
           isSpecialCoupon: Boolean(data.isSpecialCoupon || data.applicableUsers === "SPECIAL_MEMBER"),
           applicableUsers: data.applicableUsers
         };
         saveCouponDetails(details);
-        if (reqDeliv) {
+        if (eliminateDeliv) {
+          toast.success(data.message || `Exclusive promo ${details.code} applied! Free Delivery unlocked for your account!`);
+        } else if (reqDeliv) {
           toast.success(data.message || `Exclusive promo ${details.code} applied! Saved ₹${data.discountAmount}. (Standard delivery charges apply)`);
         } else {
           toast.success(`Coupon applied! Saved ₹${data.discountAmount}`);

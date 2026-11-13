@@ -10,7 +10,8 @@ const OrderSummary = () => {
   const cartItems = useSelector((state) => state.user.cartItems);
   
   const subtotal = cartItems.reduce((acc, item) => acc + (item.price * item.quantity), 0);
-  const isSpecialCoupon = Boolean(
+  const hasFreeDeliveryCoupon = Boolean(couponDetails?.isApplied && couponDetails?.eliminateDeliveryCharge);
+  const isSpecialCoupon = !hasFreeDeliveryCoupon && Boolean(
     couponDetails?.isApplied && (
       couponDetails.requiresDeliveryCharge || 
       couponDetails.isSpecialCoupon ||
@@ -24,9 +25,10 @@ const OrderSummary = () => {
     subtotal,
     destination: shippingDetails,
     deliveryMethodId: deliveryMethod?.id || 'standard',
-    disableFreeDelivery: isSpecialCoupon
+    disableFreeDelivery: isSpecialCoupon,
+    forceFreeDelivery: hasFreeDeliveryCoupon
   });
-  const shippingCost = shippingQuote.deliveryCost;
+  const shippingCost = hasFreeDeliveryCoupon ? 0 : shippingQuote.deliveryCost;
   const totalBeforeDiscount = subtotal + Number(shippingCost || 0);
 
   // Authoritative discount calculation on total including delivery
