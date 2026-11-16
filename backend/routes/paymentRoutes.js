@@ -2,11 +2,12 @@ import express from "express";
 import { 
   initiatePhonePePayment, 
   phonepeCallback, 
-  checkPhonePeStatus
+  checkPhonePeStatus,
+  syncOrderPhonePeStatus
   // createRazorpayOrder, 
   // verifyRazorpayPayment 
 } from "../controllers/paymentController.js";
-import isAuth from "../middleware/isAuth.js";
+import isAuth, { isAdmin } from "../middleware/isAuth.js";
 import rateLimit from "express-rate-limit";
 
 const router = express.Router();
@@ -22,6 +23,8 @@ const paymentLimiter = rateLimit({
 router.post("/phonepe-initiate", isAuth, paymentLimiter, initiatePhonePePayment);
 router.post("/phonepe-callback", phonepeCallback); // S2S webhook, must be open (no isAuth)
 router.get("/phonepe-status/:orderId", checkPhonePeStatus); // Status check fallback (open for mobile redirects)
+router.post("/phonepe-sync/:orderId", isAuth, isAdmin, syncOrderPhonePeStatus);
+router.post("/admin/sync-phonepe/:orderId", isAuth, isAdmin, syncOrderPhonePeStatus);
 
 // --- Razorpay Routes (Commented Out as requested) ---
 /*

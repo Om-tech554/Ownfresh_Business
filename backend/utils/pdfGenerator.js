@@ -164,7 +164,7 @@ export const generateInvoicePdf = async (order) => {
       doc.fillColor("#4B5563");
 
       if (order.discountAmount > 0) {
-        doc.fillColor("#DC2626").text("Discount Applied", 380, currentY, { width: 100, align: "right" });
+        doc.fillColor("#DC2626").text(order.couponCode ? `Coupon (${order.couponCode})` : "Discount Applied", 380, currentY, { width: 100, align: "right" });
         doc.text(`-₹${order.discountAmount.toFixed(2)}`, 490, currentY, { width: 70, align: "right" });
         currentY += 12;
       }

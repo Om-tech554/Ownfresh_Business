@@ -5,7 +5,7 @@ import {
     Search, Loader2, Package, User, Clock, CheckCircle2, Truck, X, XCircle,
     MapPin, ExternalLink, Calendar, CreditCard, ChevronDown, Printer,
     MoreHorizontal, Filter, ArrowUpRight, Copy, Save, AlertCircle, Trash2,
-    UploadCloud, Send, ShieldAlert, Plus, Mail
+    UploadCloud, Send, ShieldAlert, Plus, Mail, RefreshCw, Tag
 } from "lucide-react";
 import toast from "react-hot-toast";
 import { AnimatePresence, motion } from "framer-motion";
@@ -42,6 +42,7 @@ const AdminOrders = () => {
     const [selectedOrder, setSelectedOrder] = useState(null);
     const [updatingId, setUpdatingId] = useState(null);
     const [isManualOrderModalOpen, setIsManualOrderModalOpen] = useState(false);
+    const [syncingPhonePeId, setSyncingPhonePeId] = useState(null);
 
     // Fulfillment workflow states
     const [carriers, setCarriers] = useState([]);
@@ -175,6 +176,50 @@ const AdminOrders = () => {
 
         await handleUpdateField(orderId, { paymentStatus: "completed" });
         toast.success("Payment status updated: COD Cash Received 💵");
+    };
+
+    const handleSyncPhonePe = async (orderId) => {
+        setSyncingPhonePeId(orderId);
+        try {
+            const { data } = await axios.post(`${serverUrl}/api/order/admin/sync-phonepe/${orderId}`, {}, { withCredentials: true });
+            if (data.success) {
+                toast.success(data.msg || "Order payment synced with PhonePe & marked COMPLETED! 💳", {
+                    duration: 6000,
+                    style: { borderRadius: "14px", background: "#064e3b", color: "#ecfdf5", border: "1px solid #10b981" }
+                });
+                setOrders(prev => prev.map(o => o._id === orderId ? { ...o, ...data.order } : o));
+                if (selectedOrder?._id === orderId) {
+                    setSelectedOrder(prev => ({ ...prev, ...data.order }));
+                }
+            } else {
+                toast.error(data.msg || "PhonePe reports payment is still pending or incomplete", { duration: 5000 });
+                if (data.order) {
+                    setOrders(prev => prev.map(o => o._id === orderId ? { ...o, ...data.order } : o));
+                    if (selectedOrder?._id === orderId) {
+                        setSelectedOrder(prev => ({ ...prev, ...data.order }));
+                    }
+                }
+            }
+        } catch (error) {
+            console.error("PhonePe sync failed:", error);
+            toast.error(error.response?.data?.msg || "Failed to communicate with PhonePe gateway");
+        } finally {
+            setSyncingPhonePeId(null);
+        }
+    };
+
+    const handleMarkOnlinePaymentReceived = async (orderId, totalAmount) => {
+        const confirmed = await confirm({
+            title: "Confirm Online Payment Received",
+            message: `Confirm that ₹${totalAmount} has been verified and received in the PhonePe merchant dashboard? This will mark payment status as COMPLETED and send confirmation emails to the customer and contact@myownfresh.com.`,
+            type: "info",
+            confirmText: "Mark Paid 💳",
+            cancelText: "Cancel"
+        });
+        if (!confirmed) return;
+
+        await handleUpdateField(orderId, { paymentStatus: "completed" });
+        toast.success("Payment status updated: Online Payment Received 💳");
     };
 
     const handleUpdateField = async (orderId, updates) => {
@@ -1341,7 +1386,25 @@ const AdminOrders = () => {
                                     </td>
                                     <td className="px-8 py-6">
                                         <div className="flex flex-col gap-1.5">
-                                            <span className="text-xs font-black text-slate-900 font-mono">₹{order.totalAmount}</span>
+                                            <div className="flex items-baseline gap-2">
+                                                <span className="text-sm font-black text-slate-900 font-mono tracking-tight">
+                                                    ₹{Number(order.totalAmount || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                                </span>
+                                                {order.deliveryCharge > 0 ? (
+                                                    <span className="text-[9px] text-slate-500 font-medium">(incl. ₹{Number(order.deliveryCharge).toFixed(2)} delivery)</span>
+                                                ) : (
+                                                    <span className="text-[9px] text-emerald-600 font-bold">(FREE delivery)</span>
+                                                )}
+                                            </div>
+                                            {order.couponCode && (
+                                                <div className="flex items-center gap-1.5 text-[9px] font-black text-amber-900 bg-amber-100/90 border border-amber-300 px-2 py-0.5 rounded-md w-max shadow-2xs" title={"Promo Code: " + order.couponCode}>
+                                                    <Tag size={10} className="text-amber-700" />
+                                                    <span>COUPON: <span className="font-mono">{order.couponCode}</span> (-₹{Number(order.discountAmount || 0).toFixed(2)})</span>
+                                                </div>
+                                            )}
+                                            {order.walletDeductedAmount > 0 && (
+                                                <span className="text-[9px] text-emerald-700 font-bold">👛 Wallet Paid: -₹{Number(order.walletDeductedAmount).toFixed(2)}</span>
+                                            )}
                                             <div className="flex flex-col gap-1">
                                                 <div className="flex flex-wrap gap-1.5 items-center">
                                                     <span className="text-[9px] font-black text-[#24672E] uppercase bg-emerald-50 px-2 py-0.5 rounded border border-emerald-100">
@@ -1370,6 +1433,30 @@ const AdminOrders = () => {
                                                     )}
                                                 </div>
 
+                                                {(order.PaymentMethod === 'online' || order.paymentMethod === 'online') && order.paymentStatus !== 'completed' && (
+                                                    <div className="flex items-center gap-1.5 mt-1">
+                                                        <button
+                                                            onClick={() => handleSyncPhonePe(order._id)}
+                                                            disabled={syncingPhonePeId === order._id}
+                                                            className="text-[8px] font-black uppercase tracking-wider px-2.5 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded-lg shadow-sm transition-all flex items-center gap-1 cursor-pointer disabled:opacity-50 w-max"
+                                                            title="Live sync payment status directly with PhonePe Gateway"
+                                                        >
+                                                            {syncingPhonePeId === order._id ? (
+                                                                <Loader2 size={10} className="animate-spin" />
+                                                            ) : (
+                                                                <RefreshCw size={10} />
+                                                            )}
+                                                            <span>Sync PhonePe 🔄</span>
+                                                        </button>
+                                                        <button
+                                                            onClick={() => handleMarkOnlinePaymentReceived(order._id, order.totalAmount)}
+                                                            className="text-[8px] font-bold uppercase tracking-wider px-2 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg transition-colors cursor-pointer"
+                                                            title="Manually mark online payment as received"
+                                                        >
+                                                            Mark Paid
+                                                        </button>
+                                                    </div>
+                                                )}
                                                 {(order.PaymentMethod === 'cod' || order.paymentMethod === 'cod') && order.paymentStatus !== 'completed' && (
                                                     <button
                                                         onClick={() => handleMarkCodCashReceived(order._id, order.totalAmount)}
@@ -2051,6 +2138,97 @@ const AdminOrders = () => {
                                         ))}
                                     </div>
                                 </div>
+
+                                {/* Financial Settlement Breakdown Card */}
+                                <div className="bg-white p-6 rounded-xl border border-slate-300 shadow-sm mt-6">
+                                    <div className="flex items-center justify-between mb-4 pb-3 border-b border-slate-100">
+                                        <h4 className="text-[11px] font-black text-slate-900 uppercase tracking-widest flex items-center gap-2">
+                                            <span>Financial Settlement Breakdown</span>
+                                        </h4>
+                                        <span className="text-[10px] font-mono font-bold text-slate-500 uppercase">
+                                            Order #{selectedOrder.customOrderId || selectedOrder._id}
+                                        </span>
+                                    </div>
+
+                                    {(() => {
+                                        const subtotal = (selectedOrder.items || []).reduce((acc, it) => acc + (Number(it.price || 0) * Number(it.quantity || 1)), 0);
+                                        const deliveryFee = Number(selectedOrder.deliveryCharge || 0);
+                                        const discount = Number(selectedOrder.discountAmount || 0);
+                                        const wallet = Number(selectedOrder.walletDeductedAmount || 0);
+                                        const coins = Number(selectedOrder.commissionCoinsDeductedAmount || 0);
+                                        const tax = Number(selectedOrder.taxAmount || 0);
+                                        const total = Number(selectedOrder.totalAmount || 0);
+
+                                        return (
+                                            <div className="space-y-2.5 text-xs">
+                                                <div className="flex justify-between items-center text-slate-600">
+                                                    <span>Items Gross Subtotal</span>
+                                                    <span className="font-mono font-bold text-slate-900">₹{subtotal.toFixed(2)}</span>
+                                                </div>
+
+                                                <div className="flex justify-between items-center text-slate-600">
+                                                    <span>Delivery Charges</span>
+                                                    <span className={"font-mono font-bold " + (deliveryFee === 0 ? "text-emerald-600" : "text-slate-900")}>
+                                                        {deliveryFee === 0 ? "FREE (₹0.00)" : "₹" + deliveryFee.toFixed(2)}
+                                                    </span>
+                                                </div>
+
+                                                {selectedOrder.couponCode ? (
+                                                    <div className="flex justify-between items-center p-2.5 rounded-lg bg-amber-50 border border-amber-200">
+                                                        <div className="flex items-center gap-2">
+                                                            <Tag size={12} className="text-amber-700" />
+                                                            <span className="font-bold text-amber-900 text-[11px]">
+                                                                Coupon Applied: <span className="font-mono bg-amber-200/80 px-1.5 py-0.5 rounded text-amber-950 font-black">{selectedOrder.couponCode}</span>
+                                                            </span>
+                                                        </div>
+                                                        <span className="font-mono font-black text-red-600">-₹{discount.toFixed(2)}</span>
+                                                    </div>
+                                                ) : discount > 0 ? (
+                                                    <div className="flex justify-between items-center text-red-600">
+                                                        <span>Discount Applied</span>
+                                                        <span className="font-mono font-bold">-₹{discount.toFixed(2)}</span>
+                                                    </div>
+                                                ) : (
+                                                    <div className="flex justify-between items-center text-slate-400 text-[11px]">
+                                                        <span>Promo / Coupon Code</span>
+                                                        <span className="italic">None used</span>
+                                                    </div>
+                                                )}
+
+                                                {wallet > 0 && (
+                                                    <div className="flex justify-between items-center text-emerald-700">
+                                                        <span>Wallet Balance Redeemed</span>
+                                                        <span className="font-mono font-bold">-₹{wallet.toFixed(2)}</span>
+                                                    </div>
+                                                )}
+
+                                                {coins > 0 && (
+                                                    <div className="flex justify-between items-center text-emerald-700">
+                                                        <span>Commission Coins Redeemed</span>
+                                                        <span className="font-mono font-bold">-₹{coins.toFixed(2)}</span>
+                                                    </div>
+                                                )}
+
+                                                {tax > 0 && (
+                                                    <div className="flex justify-between items-center text-slate-500 text-[11px]">
+                                                        <span>Inclusive GST (5%): CGST ₹{(selectedOrder.cgst || tax / 2).toFixed(2)} + SGST ₹{(selectedOrder.sgst || tax / 2).toFixed(2)}</span>
+                                                        <span className="font-mono">₹{tax.toFixed(2)}</span>
+                                                    </div>
+                                                )}
+
+                                                <div className="pt-3 border-t border-slate-200 flex justify-between items-center">
+                                                    <div>
+                                                        <span className="text-sm font-black text-slate-900 uppercase">Net Verified Settlement</span>
+                                                        <p className="text-[10px] text-slate-400 font-medium">Final verified payment figure</p>
+                                                    </div>
+                                                    <span className="text-lg font-black text-slate-900 font-mono tracking-tight bg-slate-100 px-3 py-1 rounded-lg border border-slate-200">
+                                                        ₹{total.toFixed(2)}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        );
+                                    })()}
+                                </div>
                             </div>
 
                             {/* Right: Customer & Internal Notes */}
@@ -2085,28 +2263,90 @@ const AdminOrders = () => {
                                 </div>
 
                                 {/* PhonePe / Online Payment Details */}
-                                {(selectedOrder.phonePeTransactionId || selectedOrder.phonePeMerchantTransactionId || selectedOrder.razorpayPaymentId) && (
+                                {(selectedOrder.PaymentMethod === 'online' || selectedOrder.paymentMethod === 'online' || selectedOrder.phonePeTransactionId || selectedOrder.phonePeMerchantTransactionId) && (
                                     <div className="bg-white p-6 rounded-xl border border-slate-300 shadow-sm">
-                                        <div className="flex items-center gap-3 mb-4">
-                                            <div className="p-2 bg-emerald-100 rounded-lg"><CreditCard className="text-emerald-600 w-4 h-4" /></div>
-                                            <h4 className="text-[11px] font-black text-slate-900 uppercase tracking-widest">PhonePe Payment Details</h4>
+                                        <div className="flex items-center justify-between mb-4">
+                                            <div className="flex items-center gap-3">
+                                                <div className="p-2 bg-emerald-100 rounded-lg"><CreditCard className="text-emerald-600 w-4 h-4" /></div>
+                                                <div>
+                                                    <h4 className="text-[11px] font-black text-slate-900 uppercase tracking-widest leading-none">PhonePe Payment Details</h4>
+                                                    <p className="text-[9px] text-slate-400 font-bold uppercase mt-1">Gateway Settlement Status</p>
+                                                </div>
+                                            </div>
+                                            {selectedOrder.paymentStatus === 'completed' ? (
+                                                <span className="text-[9px] font-black text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded-full border border-emerald-300 flex items-center gap-1 uppercase">
+                                                    <CheckCircle2 size={10} /> Verified & Paid
+                                                </span>
+                                            ) : (
+                                                <span className="text-[9px] font-black text-amber-800 bg-amber-100 px-2 py-0.5 rounded-full border border-amber-300 flex items-center gap-1 uppercase">
+                                                    <Clock size={10} /> Pending Verification
+                                                </span>
+                                            )}
                                         </div>
+
+                                        {/* Action Buttons for Pending Online Orders */}
+                                        {selectedOrder.paymentStatus !== 'completed' && (
+                                            <div className="p-3 bg-blue-50/70 border border-blue-200 rounded-xl mb-4 space-y-2">
+                                                <p className="text-[10px] text-blue-900 font-bold leading-relaxed">
+                                                    Order shows pending in panel? Click below to query PhonePe Gateway directly and verify if the money was received.
+                                                </p>
+                                                <div className="flex flex-wrap gap-2">
+                                                    <button
+                                                        onClick={() => handleSyncPhonePe(selectedOrder._id)}
+                                                        disabled={syncingPhonePeId === selectedOrder._id}
+                                                        className="flex-1 py-2 px-3 bg-blue-600 hover:bg-blue-700 text-white text-[9px] font-black uppercase rounded-lg shadow-sm transition-all flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50"
+                                                    >
+                                                        {syncingPhonePeId === selectedOrder._id ? (
+                                                            <Loader2 size={12} className="animate-spin" />
+                                                        ) : (
+                                                            <RefreshCw size={12} />
+                                                        )}
+                                                        <span>Sync Status with PhonePe 🔄</span>
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleMarkOnlinePaymentReceived(selectedOrder._id, selectedOrder.totalAmount)}
+                                                        className="py-2 px-3 bg-white hover:bg-slate-100 border border-slate-300 text-slate-800 text-[9px] font-black uppercase rounded-lg transition-colors cursor-pointer"
+                                                    >
+                                                        Confirm Paid 💵
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        )}
+
                                         <div className="space-y-3">
                                             {selectedOrder.phonePeTransactionId && (
                                                 <div>
-                                                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">PhonePe Transaction ID</p>
+                                                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">PhonePe Gateway Transaction ID</p>
                                                     <p className="text-[11px] font-bold text-slate-900 font-mono flex items-center gap-2">
                                                         {selectedOrder.phonePeTransactionId}
-                                                        <button onClick={() => { navigator.clipboard.writeText(selectedOrder.phonePeTransactionId); toast.success("Transaction ID Copied!"); }} className="text-slate-400 hover:text-blue-500 transition-colors"><Copy size={12} /></button>
+                                                        <button onClick={() => { navigator.clipboard.writeText(selectedOrder.phonePeTransactionId); toast.success("Transaction ID Copied!"); }} className="text-slate-400 hover:text-blue-500 transition-colors cursor-pointer"><Copy size={12} /></button>
+                                                    </p>
+                                                </div>
+                                            )}
+                                            {selectedOrder.phonePeOrderId && (
+                                                <div>
+                                                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">PhonePe Order ID</p>
+                                                    <p className="text-[11px] font-bold text-slate-900 font-mono flex items-center gap-2">
+                                                        {selectedOrder.phonePeOrderId}
+                                                        <button onClick={() => { navigator.clipboard.writeText(selectedOrder.phonePeOrderId); toast.success("PhonePe Order ID Copied!"); }} className="text-slate-400 hover:text-blue-500 transition-colors cursor-pointer"><Copy size={12} /></button>
+                                                    </p>
+                                                </div>
+                                            )}
+                                            {selectedOrder.phonePeUtr && (
+                                                <div>
+                                                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">Bank UTR / UPI Reference</p>
+                                                    <p className="text-[11px] font-bold text-slate-900 font-mono flex items-center gap-2">
+                                                        {selectedOrder.phonePeUtr}
+                                                        <button onClick={() => { navigator.clipboard.writeText(selectedOrder.phonePeUtr); toast.success("UTR Copied!"); }} className="text-slate-400 hover:text-blue-500 transition-colors cursor-pointer"><Copy size={12} /></button>
                                                     </p>
                                                 </div>
                                             )}
                                             {(selectedOrder.phonePeMerchantTransactionId || selectedOrder._id) && (
                                                 <div>
-                                                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">Merchant Order Ref</p>
+                                                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">Merchant Reference ID</p>
                                                     <p className="text-[11px] font-bold text-slate-900 font-mono flex items-center gap-2">
                                                         {selectedOrder.phonePeMerchantTransactionId || selectedOrder._id}
-                                                        <button onClick={() => { navigator.clipboard.writeText(selectedOrder.phonePeMerchantTransactionId || selectedOrder._id); toast.success("Order Ref Copied!"); }} className="text-slate-400 hover:text-blue-500 transition-colors"><Copy size={12} /></button>
+                                                        <button onClick={() => { navigator.clipboard.writeText(selectedOrder.phonePeMerchantTransactionId || selectedOrder._id); toast.success("Order Ref Copied!"); }} className="text-slate-400 hover:text-blue-500 transition-colors cursor-pointer"><Copy size={12} /></button>
                                                     </p>
                                                 </div>
                                             )}

@@ -9,7 +9,7 @@ import ProductVariant from "../models/productVariantModel.js";
 import ReferralCode from "../models/referralCodeModel.js";
 import ReferralUsage from "../models/referralUsageModel.js";
 import crypto from "crypto";
-import { sendOrderConfirmationMail } from "../utils/mail.js";
+import { sendOrderConfirmationMail, sendAdminOrderNotificationMail } from "../utils/mail.js";
 import { sendOrderConfirmationSms } from "../utils/sms.js";
 import { sendOrderConfirmationWhatsApp } from "../utils/whatsapp.js";
 import { awardOrderCommissionCoins, processCoinExpirations, isUserActivePrimeMember } from "./membershipController.js";
@@ -504,6 +504,7 @@ export const createOrder = async (req, res) => {
           const populatedOrder = await Order.findById(order._id).populate("user", "fullName email mobile");
           if (populatedOrder) {
             sendOrderConfirmationMail(populatedOrder).catch(err => console.error("Error sending order confirmation email:", err.message));
+            sendAdminOrderNotificationMail(populatedOrder).catch(err => console.error("Error sending admin order notification email:", err.message));
             sendOrderConfirmationSms(populatedOrder).catch(err => console.error("Error sending order confirmation SMS:", err.message));
             sendOrderConfirmationWhatsApp(populatedOrder).catch(err => console.error("Error sending order confirmation WhatsApp:", err.message));
           }

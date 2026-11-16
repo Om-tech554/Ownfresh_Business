@@ -2,6 +2,8 @@ import mongoose from "mongoose";
 import Order from "../models/ordermodel.js";
 import User from "../models/usermodel.js";
 import ProductVariant from "../models/productVariantModel.js";
+import { sendOrderConfirmationMail, sendAdminOrderNotificationMail } from "../utils/mail.js";
+import { queryPhonePeOrderStatus, completeOrderPayment } from "./paymentController.js";
 
 // GET USER ORDERS
 export const getUserOrders = async (req, res) => {
@@ -23,8 +25,38 @@ export const getUserOrders = async (req, res) => {
 // GET ALL ORDERS (ADMIN)
 export const getAllOrders = async (req, res) => {
   try {
+    // 🔄 Auto-sync recent pending online orders (created in the last 48 hours, limit 5 to avoid latency)
+    try {
+      const fortyEightHoursAgo = new Date(Date.now() - 48 * 60 * 60 * 1000);
+      const pendingOnlineOrders = await Order.find({
+        PaymentMethod: "online",
+        paymentStatus: "pending",
+        createdAt: { $gte: fortyEightHoursAgo }
+      }).limit(5).populate("user", "fullName email mobile");
+
+      if (pendingOnlineOrders && pendingOnlineOrders.length > 0) {
+        for (const pOrder of pendingOnlineOrders) {
+          try {
+            const check = await queryPhonePeOrderStatus(pOrder._id.toString());
+            if (check && check.isCompleted) {
+              await completeOrderPayment(pOrder, {
+                txnId: check.txnId,
+                phonePeOrderId: check.phonePeOrderId,
+                utr: check.utr,
+                merchantOrderId: pOrder._id.toString()
+              });
+            }
+          } catch (pErr) {
+            console.error(`Auto-sync error for pending order ${pOrder._id}:`, pErr.message);
+          }
+        }
+      }
+    } catch (syncErr) {
+      console.warn("Background auto-sync during getAllOrders encountered error:", syncErr.message);
+    }
+
     const orders = await Order.find()
-      .populate("user", "fullName email")
+      .populate("user", "fullName email mobile")
       .populate("items.productId", "name image")
       .sort({ createdAt: -1 });
 
@@ -45,6 +77,16 @@ export const updateOrderStatus = async (req, res) => {
     const { id } = req.params;
     if (!mongoose.Types.ObjectId.isValid(id)) {
       return res.status(400).json({ msg: "Invalid Order ID" });
+    }
+
+    const existingOrder = await Order.findById(id).populate("user", "fullName email mobile");
+    if (!existingOrder) return res.status(404).json({ msg: "Order not found" });
+
+    // If admin is transitioning payment to 'completed' from pending/failed, trigger completeOrderPayment
+    if (paymentStatus === 'completed' && existingOrder.paymentStatus !== 'completed') {
+      await completeOrderPayment(existingOrder, {
+        adminManual: true
+      });
     }
 
     const updateFields = {};
@@ -73,9 +115,8 @@ export const updateOrderStatus = async (req, res) => {
       id,
       { $set: updateFields },
       { new: true }
-    );
-
-    if (!order) return res.status(404).json({ msg: "Order not found" });
+    ).populate("user", "fullName email mobile")
+     .populate("items.productId", "name image");
 
     res.status(200).json({
       success: true,
@@ -371,6 +412,18 @@ export const createManualOrder = async (req, res) => {
     const populatedOrder = await Order.findById(order._id)
       .populate("user", "fullName email mobile")
       .populate("items.productId", "name image");
+
+    // Asynchronously dispatch admin notification to contact@myownfresh.com & customer if email available
+    setImmediate(async () => {
+      try {
+        await sendAdminOrderNotificationMail(populatedOrder);
+        if (populatedOrder.user?.email && !populatedOrder.user.email.startsWith("offline_")) {
+          await sendOrderConfirmationMail(populatedOrder);
+        }
+      } catch (e) {
+        console.error("Error sending emails for manual order:", e.message);
+      }
+    });
 
     return res.status(201).json({
       success: true,

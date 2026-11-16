@@ -123,109 +123,630 @@ export const sendContactMail = async (name, email, message) => {
 };
 
 export const sendOrderConfirmationMail = async (order) => {
-  const itemsHtml = order.items.map(item => `
-    <tr>
-      <td style="padding: 10px; border-bottom: 1px solid #EEE;">
-        <img src="${item.image}" alt="${item.name}" style="width: 50px; height: 50px; object-fit: cover; border-radius: 6px; margin-right: 10px; vertical-align: middle;" />
-        <span style="font-weight: bold; vertical-align: middle;">${item.name}</span>
-        ${item.variantName ? `<span style="font-size: 12px; color: #777; display: block; margin-left: 60px;">Variant: ${item.variantName}</span>` : ''}
-      </td>
-      <td style="padding: 10px; border-bottom: 1px solid #EEE; text-align: center;">${item.quantity}</td>
-      <td style="padding: 10px; border-bottom: 1px solid #EEE; text-align: right;">₹${(item.price * item.quantity).toFixed(2)}</td>
-    </tr>
-  `).join('');
+  if (!order || !order.user) {
+    console.error("sendOrderConfirmationMail: Missing order or user information");
+    return;
+  }
 
   let attachments = [];
   try {
     const pdfBuffer = await generateInvoicePdf(order);
     attachments.push({
-      filename: `Invoice_${order.customOrderId || order._id}.pdf`,
+      filename: `Invoice_${(order.customOrderId || order._id).toString().replace(/[\/\\]/g, '_')}.pdf`,
       content: pdfBuffer
     });
   } catch (pdfErr) {
     console.error("Failed to generate PDF attachment for email:", pdfErr.message);
   }
 
-  await transporter.sendMail({
-    from: `"OwnFresh Orders" <${process.env.EMAIL}>`,
-    to: order.user.email,
-    subject: `Order Confirmed - #${order.customOrderId || order._id}`,
-    html: `
-      <div style="background-color:#F9F9F9;padding:24px;font-family:Arial,sans-serif;">
-        <div style="max-width:600px;margin:auto;background:#ffffff;border:1px solid #E5E5E5;border-radius:12px;overflow:hidden;box-shadow:0 4px 10px rgba(0,0,0,0.05);">
-          
-          <!-- Header -->
-          <div style="background:#FFD700;padding:20px;text-align:center;">
-            <h1 style="margin:0;color:#000;font-size:24px;text-transform:uppercase;letter-spacing:2px;">Order Confirmed!</h1>
-            <p style="margin:5px 0 0 0;color:#333;font-size:14px;">Thank you for shopping with OwnFresh</p>
-          </div>
+  const userEmail = order.user.email || order.deliveryAddress?.email;
+  const customId = order.customOrderId || (order._id ? order._id.toString() : "UNKNOWN");
+  const customerName = order.user?.fullName || order.deliveryAddress?.phone || "Valued Customer";
+  const customerPhone = order.deliveryAddress?.phone || order.user?.mobile || "";
+  const deliveryAddress = order.deliveryAddress?.text || [
+    order.deliveryAddress?.roomNumber,
+    order.deliveryAddress?.areaName,
+    order.deliveryAddress?.city,
+    order.deliveryAddress?.state,
+    order.deliveryAddress?.pincode
+  ].filter(Boolean).join(", ") || "Your delivery address";
 
-          <!-- Body -->
-          <div style="padding:32px;color:#333;">
-            <p style="font-size:16px;margin-top:0;">Hi <b>${order.user.fullName}</b>,</p>
-            <p style="font-size:14px;color:#555;line-height:1.5;">
-              We've received your order and payment. We have attached the official tax invoice to this email. Below are your order details:
-            </p>
+  const subtotal = (order.items || []).reduce((sum, item) => sum + (Number(item.price || 0) * Number(item.quantity || 1)), 0);
+  const deliveryCharge = Number(order.deliveryCharge || 0);
+  const discountAmount = Number(order.discountAmount || 0);
+  const couponCode = order.couponCode ? order.couponCode.trim().toUpperCase() : null;
+  const walletUsed = Number(order.walletDeductedAmount || 0);
+  const coinsUsed = Number(order.commissionCoinsDeductedAmount || 0);
+  const totalAmount = Number(order.totalAmount || 0);
+  const siteUrl = "https://myownfresh.com";
+  const logoUrl = "https://res.cloudinary.com/dkhq2wlwg/image/upload/v1774962822/ownfresh_media/ndxvmcpisomjzsghrfjs.png";
 
-            <div style="background:#F5F5F5;padding:15px;border-radius:8px;margin:20px 0;font-size:14px;">
-              <b>Order ID:</b> #${order.customOrderId || order._id}<br/>
-              <b>Payment Method:</b> ${order.PaymentMethod.toUpperCase()} (Online / UPI)<br/>
-              <b>Delivery Address:</b> ${order.deliveryAddress.text}
+  const orderTimeStr = new Date(order.createdAt || Date.now()).toLocaleString("en-IN", {
+    timeZone: "Asia/Kolkata",
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit"
+  });
+
+  const itemsCardsHtml = (order.items || []).map((item) => `
+    <div style="background: #ffffff; border: 1px solid #E2E8F0; border-radius: 12px; padding: 12px 14px; margin-bottom: 10px;">
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width: 100%; border-collapse: collapse;">
+        <tr>
+          ${item.image ? `
+          <td style="width: 54px; vertical-align: top; padding-right: 12px;">
+            <img src="${item.image}" alt="${item.name}" style="width: 50px; height: 50px; object-fit: contain; border-radius: 8px; border: 1px solid #E5E7EB; background: #fafafa; display: block;" />
+          </td>
+          ` : ''}
+          <td style="vertical-align: top;">
+            <div style="font-size: 14px; font-weight: 700; color: #111827; line-height: 1.35; margin-bottom: 4px;">
+              ${item.name}
             </div>
+            ${item.variantName ? `
+            <div style="margin-bottom: 4px;">
+              <span style="display: inline-block; background: #F1F5F9; color: #334155; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 4px; border: 1px solid #E2E8F0;">
+                Size: ${item.variantName}
+              </span>
+            </div>
+            ` : ''}
+            <div style="font-size: 12px; color: #64748B;">
+              Qty: <b style="color: #111827;">${item.quantity}</b> × ₹${Number(item.price || 0).toFixed(2)}
+            </div>
+          </td>
+          <td style="vertical-align: top; text-align: right; width: 85px; padding-left: 6px;">
+            <div style="font-size: 15px; font-weight: 900; color: #111827; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+              ₹${(Number(item.price || 0) * Number(item.quantity || 1)).toFixed(2)}
+            </div>
+          </td>
+        </tr>
+      </table>
+    </div>
+  `).join('');
 
-            <!-- Items Table -->
-            <table style="width:100%;border-collapse:collapse;margin:20px 0;font-size:14px;">
-              <thead>
-                <tr style="background:#EEE;">
-                  <th style="padding:10px;text-align:left;">Item</th>
-                  <th style="padding:10px;text-align:center;width:60px;">Qty</th>
-                  <th style="padding:10px;text-align:right;width:100px;">Price</th>
-                </tr>
-              </thead>
-              <tbody>
-                ${itemsHtml}
-              </tbody>
-            </table>
+  const customerHtml = `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light">
+  <title>Order Confirmed #${customId}</title>
+  <style>
+    body { margin: 0; padding: 0; background-color: #F8FAFC; -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%; }
+    table { border-collapse: collapse; }
+    img { border: 0; outline: none; text-decoration: none; }
+    @media only screen and (max-width: 600px) {
+      .email-wrapper { padding: 8px !important; }
+      .email-card { border-radius: 12px !important; }
+      .header-pad { padding: 20px 16px !important; }
+      .body-pad { padding: 18px 16px !important; }
+    }
+  </style>
+</head>
+<body style="margin: 0; padding: 0; background-color: #F8FAFC; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; -webkit-font-smoothing: antialiased; color: #1E293B;">
+  <div class="email-wrapper" style="background-color: #F8FAFC; padding: 24px 12px; width: 100%; box-sizing: border-box;">
+    <div class="email-card" style="max-width: 580px; margin: 0 auto; background: #ffffff; border: 1px solid #E2E8F0; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 16px rgba(0,0,0,0.06);">
+      
+      <!-- Brand Logo Header -->
+      <div style="background: #ffffff; border-bottom: 1px solid #F1F5F9; padding: 16px 20px; text-align: center;">
+        <a href="${siteUrl}" target="_blank" style="text-decoration: none; display: inline-block;">
+          <img src="${logoUrl}" alt="OwnFresh" style="height: 44px; border: none; display: inline-block; vertical-align: middle;" />
+        </a>
+      </div>
 
-            <!-- Totals -->
-            <table style="width:100%;font-size:14px;line-height:1.6;margin-top:10px;">
-              ${order.discountAmount > 0 ? `
-              <tr>
-                <td style="text-align:right;color:#777;">Discount:</td>
-                <td style="text-align:right;width:120px;color:red;">-₹${order.discountAmount.toFixed(2)}</td>
-              </tr>
-              ` : ''}
-              ${order.taxAmount > 0 ? `
-              <tr>
-                <td style="text-align:right;color:#777;">GST:</td>
-                <td style="text-align:right;width:120px;">₹${order.taxAmount.toFixed(2)}</td>
-              </tr>
-              ` : ''}
-              ${order.walletDeductedAmount > 0 ? `
-              <tr>
-                <td style="text-align:right;color:#777;">Wallet Used:</td>
-                <td style="text-align:right;width:120px;color:green;">-₹${order.walletDeductedAmount.toFixed(2)}</td>
-              </tr>
-              ` : ''}
-              <tr style="font-size:16px;font-weight:bold;">
-                <td style="text-align:right;padding-top:10px;">Total Amount Paid:</td>
-                <td style="text-align:right;width:120px;padding-top:10px;border-top:1px solid #333;">₹${order.totalAmount.toFixed(2)}</td>
-              </tr>
-            </table>
+      <!-- Hero Banner -->
+      <div class="header-pad" style="background: linear-gradient(135deg, #14532D 0%, #166534 100%); padding: 26px 22px; color: #ffffff; text-align: center;">
+        <div style="font-size: 34px; line-height: 1; margin-bottom: 8px;">🌿</div>
+        <h1 style="margin: 0 0 6px 0; font-size: 22px; font-weight: 800; letter-spacing: -0.3px; color: #ffffff;">
+          Order Confirmed!
+        </h1>
+        <p style="margin: 0 0 16px 0; font-size: 13px; color: #D1E7D5; line-height: 1.45;">
+          Thank you for choosing pure cold-pressed oils with OwnFresh.
+        </p>
 
-            <p style="font-size:14px;color:#555;margin-top:30px;line-height:1.5;">
-              If you have any questions or concerns regarding your order, feel free to reply directly to this email.
-            </p>
-          </div>
-
-          <!-- Footer -->
-          <div style="background:#F5F5F5;padding:15px;text-align:center;font-size:12px;color:#777;">
-            © ${new Date().getFullYear()} OwnFresh. All rights reserved.
-          </div>
-
+        <!-- Order ID & Amount Pill (100% Mobile Safe) -->
+        <div style="display: inline-block; background: rgba(0,0,0,0.26); border: 1px solid rgba(255,255,255,0.25); padding: 8px 18px; border-radius: 20px;">
+          <span style="font-size: 12px; font-weight: 700; color: #E2E8F0;">Order:</span>
+          <span style="font-size: 13px; font-weight: 900; color: #FFD700; margin-left: 4px;">#${customId}</span>
+          <span style="display: inline-block; margin: 0 8px; color: rgba(255,255,255,0.4);">•</span>
+          <span style="font-size: 12px; font-weight: 700; color: #E2E8F0;">Paid:</span>
+          <span style="font-size: 13px; font-weight: 900; color: #A7F3D0; margin-left: 4px;">₹${totalAmount.toFixed(2)}</span>
         </div>
       </div>
-    `,
+
+      <!-- Body Content -->
+      <div class="body-pad" style="padding: 24px 22px;">
+        <p style="font-size: 16px; font-weight: 800; color: #111827; margin: 0 0 8px 0;">
+          Hi ${customerName},
+        </p>
+        <p style="font-size: 13px; color: #475569; line-height: 1.6; margin: 0 0 18px 0;">
+          We have received your order and payment successfully. Our artisans are now preparing your fresh, pure stone-pressed oils for dispatch. Your official Tax Invoice is attached to this email.
+        </p>
+
+        <!-- Delivery Address Card -->
+        <div style="background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 12px; padding: 14px 16px; margin-bottom: 18px;">
+          <div style="font-size: 11px; font-weight: 800; color: #166534; text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 6px;">
+            📍 Shipping To
+          </div>
+          <div style="font-size: 13px; color: #1E293B; line-height: 1.55; font-weight: 500;">
+            ${deliveryAddress}
+          </div>
+          ${customerPhone ? `
+          <div style="margin-top: 6px; font-size: 12px; color: #64748B;">
+            Contact: <b style="color: #1E293B;">${customerPhone}</b>
+          </div>
+          ` : ''}
+        </div>
+
+        <!-- Purchased Products Header -->
+        <div style="font-size: 12px; font-weight: 800; color: #475569; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px;">
+          Your Items (${order.items?.length || 0})
+        </div>
+
+        <!-- Items List -->
+        ${itemsCardsHtml}
+
+        <!-- Receipt Card -->
+        <div style="background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 14px; padding: 16px 18px; margin-top: 16px;">
+          <div style="font-size: 11px; font-weight: 800; color: #475569; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px; border-bottom: 1px solid #E2E8F0; padding-bottom: 8px;">
+            Payment & Receipt
+          </div>
+
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width: 100%; font-size: 13px; line-height: 1.7; border-collapse: collapse;">
+            <tr>
+              <td style="color: #64748B;">Items Subtotal</td>
+              <td style="text-align: right; font-weight: 700; color: #1E293B;">₹${subtotal.toFixed(2)}</td>
+            </tr>
+            <tr>
+              <td style="color: #64748B;">Delivery Fee</td>
+              <td style="text-align: right; font-weight: 700; color: ${deliveryCharge === 0 ? '#16A34A' : '#1E293B'};">
+                ${deliveryCharge === 0 ? 'FREE' : `₹${deliveryCharge.toFixed(2)}`}
+              </td>
+            </tr>
+
+            ${couponCode ? `
+            <tr>
+              <td style="padding: 6px 0; color: #B45309; font-weight: 700;">
+                <span style="background: #FEF3C7; border: 1px solid #FCD34D; color: #92400E; padding: 3px 8px; border-radius: 6px; font-size: 11px;">
+                  🏷️ Promo Code: <b>${couponCode}</b>
+                </span>
+              </td>
+              <td style="padding: 6px 0; text-align: right; font-weight: 800; color: #DC2626; font-size: 14px;">
+                -₹${discountAmount.toFixed(2)}
+              </td>
+            </tr>
+            ` : ''}
+
+            ${walletUsed > 0 ? `
+            <tr>
+              <td style="color: #16A34A; font-weight: 600;">Wallet Redeemed</td>
+              <td style="text-align: right; font-weight: 800; color: #16A34A;">-₹${walletUsed.toFixed(2)}</td>
+            </tr>
+            ` : ''}
+
+            ${coinsUsed > 0 ? `
+            <tr>
+              <td style="color: #16A34A; font-weight: 600;">Coins Redeemed</td>
+              <td style="text-align: right; font-weight: 800; color: #16A34A;">-₹${coinsUsed.toFixed(2)}</td>
+            </tr>
+            ` : ''}
+
+            ${order.taxAmount > 0 ? `
+            <tr>
+              <td style="color: #64748B; font-size: 12px;">Inclusive GST (5%)</td>
+              <td style="text-align: right; color: #64748B; font-size: 12px;">₹${Number(order.taxAmount).toFixed(2)}</td>
+            </tr>
+            ` : ''}
+
+            <tr>
+              <td colspan="2" style="padding-top: 10px; border-top: 2px dashed #CBD5E1;"></td>
+            </tr>
+
+            <tr>
+              <td style="font-size: 15px; font-weight: 900; color: #0F172A;">
+                Total Amount Paid
+              </td>
+              <td style="text-align: right; font-size: 20px; font-weight: 900; color: #166534; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+                ₹${totalAmount.toFixed(2)}
+              </td>
+            </tr>
+          </table>
+        </div>
+
+        <!-- Pure Promise Note -->
+        <div style="margin-top: 20px; padding: 14px 16px; background: #FFFDF0; border: 1px solid #FDE68A; border-radius: 12px; font-size: 12px; color: #78350F; line-height: 1.55;">
+          <b>🌿 Pure Botanic Purity:</b> Your oil is 100% cold-pressed without heating, chemicals, or preservatives. You will receive an SMS and WhatsApp shipment tracking link as soon as your order is dispatched.
+        </div>
+
+        <!-- Tax Invoice Attached Notification -->
+        <div style="margin-top: 14px; padding: 12px 14px; background: #ECFDF5; border: 1px solid #A7F3D0; border-radius: 10px; font-size: 12px; color: #065F46; font-weight: 700; text-align: center;">
+          📎 Official Tax Invoice Attached to this email (PDF)
+        </div>
+
+        <!-- Support Info -->
+        <div style="margin-top: 22px; text-align: center; font-size: 12px; color: #64748B; line-height: 1.6;">
+          Questions about your order? Reach us anytime:<br/>
+          📧 <a href="mailto:contact@myownfresh.com" style="color: #166534; font-weight: 700; text-decoration: none;">contact@myownfresh.com</a> &nbsp;|&nbsp; 
+          💬 <a href="https://wa.me/918999773438" target="_blank" style="color: #166534; font-weight: 700; text-decoration: none;">WhatsApp +91 89997 73438</a>
+        </div>
+      </div>
+
+      <!-- Footer -->
+      <div style="background: #F8FAFC; padding: 16px; text-align: center; font-size: 11px; color: #64748B; border-top: 1px solid #E2E8F0;">
+        © ${new Date().getFullYear()} OwnFresh Agro Industries. All rights reserved.
+      </div>
+
+    </div>
+  </div>
+</body>
+</html>
+  `;
+
+  if (userEmail) {
+    await transporter.sendMail({
+      from: `"OwnFresh Orders" <${process.env.EMAIL}>`,
+      to: userEmail,
+      subject: `Order Confirmed - #${customId}`,
+      html: customerHtml,
+      attachments
+    });
+  }
+};
+
+/**
+ * Dedicated Admin Order Notification Email
+ * Always dispatched to contact@myownfresh.com for EVERY confirmed order (Online or COD)
+ * Mobile-optimistic, modern, laptop-friendly with complete ledger, coupon info, and PhonePe settlement.
+ */
+export const sendAdminOrderNotificationMail = async (order) => {
+  if (!order) return;
+
+  const adminEmail = "contact@myownfresh.com";
+  const customId = order.customOrderId || (order._id ? order._id.toString() : "UNKNOWN");
+  const customerName = order.user?.fullName || order.deliveryAddress?.phone || "Customer";
+  const customerEmail = order.user?.email || order.deliveryAddress?.email || "No email";
+  const customerPhone = order.deliveryAddress?.phone || order.user?.mobile || "No phone";
+  const deliveryAddress = order.deliveryAddress?.text || [
+    order.deliveryAddress?.roomNumber,
+    order.deliveryAddress?.areaName,
+    order.deliveryAddress?.city,
+    order.deliveryAddress?.state,
+    order.deliveryAddress?.pincode
+  ].filter(Boolean).join(", ") || "No address provided";
+
+  const subtotal = (order.items || []).reduce((sum, item) => sum + (Number(item.price || 0) * Number(item.quantity || 1)), 0);
+  const deliveryCharge = Number(order.deliveryCharge || 0);
+  const discountAmount = Number(order.discountAmount || 0);
+  const couponCode = order.couponCode ? order.couponCode.trim().toUpperCase() : null;
+  const walletUsed = Number(order.walletDeductedAmount || 0);
+  const coinsUsed = Number(order.commissionCoinsDeductedAmount || 0);
+  const totalAmount = Number(order.totalAmount || 0);
+  const paymentMethod = (order.PaymentMethod || "online").toUpperCase();
+  const paymentStatus = (order.paymentStatus || "completed").toUpperCase();
+
+  let attachments = [];
+  try {
+    const pdfBuffer = await generateInvoicePdf(order);
+    attachments.push({
+      filename: `Invoice_${customId.replace(/[\/\\]/g, '_')}.pdf`,
+      content: pdfBuffer
+    });
+  } catch (pdfErr) {
+    console.error("Failed to generate PDF attachment for admin order notification email:", pdfErr.message);
+  }
+
+  const orderTimeStr = new Date(order.createdAt || Date.now()).toLocaleString("en-IN", {
+    timeZone: "Asia/Kolkata",
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit"
+  });
+
+  const siteUrl = "https://myownfresh.com";
+  const adminUrl = "https://myownfresh.com/admin";
+  const logoUrl = "https://res.cloudinary.com/dkhq2wlwg/image/upload/v1774962822/ownfresh_media/ndxvmcpisomjzsghrfjs.png";
+
+  const itemsCardsHtml = (order.items || []).map((item) => `
+    <div style="background: #ffffff; border: 1px solid #E2E8F0; border-radius: 12px; padding: 12px 14px; margin-bottom: 10px;">
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width: 100%; border-collapse: collapse;">
+        <tr>
+          ${item.image ? `
+          <td style="width: 54px; vertical-align: top; padding-right: 12px;">
+            <img src="${item.image}" alt="${item.name}" style="width: 50px; height: 50px; object-fit: contain; border-radius: 8px; border: 1px solid #E5E7EB; background: #fafafa; display: block;" />
+          </td>
+          ` : ''}
+          <td style="vertical-align: top;">
+            <div style="font-size: 14px; font-weight: 700; color: #111827; line-height: 1.35; margin-bottom: 4px;">
+              ${item.name}
+            </div>
+            ${item.variantName ? `
+            <div style="margin-bottom: 4px;">
+              <span style="display: inline-block; background: #F1F5F9; color: #334155; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 4px; border: 1px solid #E2E8F0;">
+                Size: ${item.variantName}
+              </span>
+            </div>
+            ` : ''}
+            <div style="font-size: 12px; color: #64748B;">
+              Qty: <b style="color: #111827;">${item.quantity}</b> × ₹${Number(item.price || 0).toFixed(2)}
+            </div>
+          </td>
+          <td style="vertical-align: top; text-align: right; width: 85px; padding-left: 6px;">
+            <div style="font-size: 15px; font-weight: 900; color: #111827; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+              ₹${(Number(item.price || 0) * Number(item.quantity || 1)).toFixed(2)}
+            </div>
+          </td>
+        </tr>
+      </table>
+    </div>
+  `).join('');
+
+  const adminHtml = `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light">
+  <title>New Order #${customId}</title>
+  <style>
+    body { margin: 0; padding: 0; background-color: #F1F5F9; -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%; }
+    table { border-collapse: collapse; }
+    img { border: 0; outline: none; text-decoration: none; }
+    @media only screen and (max-width: 600px) {
+      .email-wrapper { padding: 8px !important; }
+      .email-card { border-radius: 12px !important; }
+      .header-pad { padding: 18px 16px !important; }
+      .body-pad { padding: 16px 14px !important; }
+    }
+  </style>
+</head>
+<body style="margin: 0; padding: 0; background-color: #F1F5F9; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; -webkit-font-smoothing: antialiased; color: #0F172A;">
+  <div class="email-wrapper" style="background-color: #F1F5F9; padding: 24px 12px; width: 100%; box-sizing: border-box;">
+    <div class="email-card" style="max-width: 580px; margin: 0 auto; background: #ffffff; border: 1px solid #E2E8F0; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 16px rgba(0,0,0,0.06);">
+      
+      <!-- Top Brand Header -->
+      <div style="background: #ffffff; border-bottom: 1px solid #F1F5F9; padding: 16px 20px; text-align: center;">
+        <a href="${siteUrl}" target="_blank" style="text-decoration: none; display: inline-block;">
+          <img src="${logoUrl}" alt="OwnFresh" style="height: 42px; border: none; display: inline-block; vertical-align: middle;" />
+        </a>
+      </div>
+
+      <!-- Hero Header Banner (Full-Width, Zero Horizontal Squeeze) -->
+      <div class="header-pad" style="background: linear-gradient(135deg, #14532D 0%, #15803D 100%); padding: 24px 22px; color: #ffffff;">
+        <div style="margin-bottom: 10px;">
+          <span style="display: inline-block; background: #FEF3C7; color: #92400E; font-size: 11px; font-weight: 900; padding: 4px 12px; border-radius: 20px; text-transform: uppercase; letter-spacing: 0.5px;">
+            ✨ NEW CUSTOMER ORDER
+          </span>
+        </div>
+        <div style="font-size: 22px; font-weight: 800; color: #ffffff; letter-spacing: -0.3px; line-height: 1.25; margin-bottom: 4px;">
+          Order #${customId}
+        </div>
+        <div style="font-size: 12px; color: #D1E7D5; margin-bottom: 16px;">
+          Placed on ${orderTimeStr} IST
+        </div>
+
+        <!-- Distinct Amount Card (100% Mobile & Laptop Safe - Never Squeezed) -->
+        <div style="background: rgba(0, 0, 0, 0.28); border: 1px solid rgba(255, 255, 255, 0.22); border-radius: 12px; padding: 16px;">
+          <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.6px; color: #A7F3D0; font-weight: 800; margin-bottom: 4px;">
+            Total Amount Received
+          </div>
+          <div style="font-size: 32px; font-weight: 900; color: #FFD700; line-height: 1.15; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; letter-spacing: -0.5px;">
+            ₹${totalAmount.toFixed(2)}
+          </div>
+          <div style="margin-top: 10px;">
+            <span style="display: inline-block; background: #059669; color: #ffffff; padding: 4px 12px; border-radius: 14px; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; border: 1px solid #34D399; vertical-align: middle;">
+              ✓ ${paymentStatus}
+            </span>
+            <span style="display: inline-block; background: rgba(255, 255, 255, 0.18); color: #ffffff; padding: 4px 12px; border-radius: 14px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; margin-left: 6px; vertical-align: middle;">
+              ${paymentMethod}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Customer & Shipping Section (Stacked Full-Width Cards) -->
+      <div style="padding: 16px 20px; background: #F8FAFC; border-bottom: 1px solid #E2E8F0;">
+        
+        <!-- Customer Profile Card -->
+        <div style="background: #ffffff; border: 1px solid #E2E8F0; border-radius: 12px; padding: 14px 16px; margin-bottom: 12px;">
+          <div style="font-size: 11px; font-weight: 800; color: #166534; text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 6px;">
+            👤 Customer Information
+          </div>
+          <div style="font-size: 16px; font-weight: 800; color: #0F172A; margin-bottom: 8px;">
+            ${customerName}
+          </div>
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width: 100%; font-size: 13px; line-height: 1.6; color: #334155; border-collapse: collapse;">
+            <tr>
+              <td style="padding: 3px 0; width: 65px; font-weight: 700; color: #64748B;">Email:</td>
+              <td style="padding: 3px 0;">
+                <a href="mailto:${customerEmail}" style="color: #2563EB; text-decoration: none; font-weight: 600; word-break: break-all;">${customerEmail}</a>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding: 3px 0; font-weight: 700; color: #64748B;">Phone:</td>
+              <td style="padding: 3px 0;">
+                <a href="tel:${customerPhone}" style="color: #0F172A; text-decoration: none; font-weight: 700;">${customerPhone}</a>
+              </td>
+            </tr>
+          </table>
+        </div>
+
+        <!-- Shipping Destination Card (Never cramped) -->
+        <div style="background: #ffffff; border: 1px solid #E2E8F0; border-radius: 12px; padding: 14px 16px;">
+          <div style="font-size: 11px; font-weight: 800; color: #166534; text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 6px;">
+            📍 Delivery Address
+          </div>
+          <div style="font-size: 13px; color: #1E293B; line-height: 1.6; font-weight: 500;">
+            ${deliveryAddress}
+          </div>
+          ${order.deliveryMethod ? `<div style="margin-top: 8px; font-size: 11px; color: #059669; font-weight: 700;">🚚 Shipping Speed: ${order.deliveryMethod}</div>` : ''}
+        </div>
+      </div>
+
+      <!-- Main Body: Items & Financial Breakdown -->
+      <div class="body-pad" style="padding: 22px 20px;">
+        
+        <!-- Items Header -->
+        <div style="font-size: 12px; font-weight: 800; color: #475569; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px;">
+          Purchased Products (${order.items?.length || 0})
+        </div>
+
+        <!-- Items List -->
+        ${itemsCardsHtml}
+
+        <!-- Financial Ledger Breakdown Card -->
+        <div style="background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 14px; padding: 16px 18px; margin-top: 16px;">
+          <div style="font-size: 11px; font-weight: 800; color: #475569; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px; border-bottom: 1px solid #E2E8F0; padding-bottom: 8px;">
+            Financial Summary
+          </div>
+
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width: 100%; font-size: 13px; line-height: 1.7; border-collapse: collapse;">
+            <tr>
+              <td style="color: #64748B;">Items Subtotal</td>
+              <td style="text-align: right; font-weight: 700; color: #1E293B;">₹${subtotal.toFixed(2)}</td>
+            </tr>
+            <tr>
+              <td style="color: #64748B;">Delivery Fee</td>
+              <td style="text-align: right; font-weight: 700; color: ${deliveryCharge === 0 ? '#16A34A' : '#1E293B'};">
+                ${deliveryCharge === 0 ? 'FREE' : `₹${deliveryCharge.toFixed(2)}`}
+              </td>
+            </tr>
+
+            ${couponCode ? `
+            <tr>
+              <td style="padding: 6px 0; color: #B45309; font-weight: 700;">
+                <span style="background: #FEF3C7; border: 1px solid #FCD34D; color: #92400E; padding: 3px 8px; border-radius: 6px; font-size: 11px;">
+                  🏷️ Coupon: <b>${couponCode}</b>
+                </span>
+              </td>
+              <td style="padding: 6px 0; text-align: right; font-weight: 800; color: #DC2626; font-size: 14px;">
+                -₹${discountAmount.toFixed(2)}
+              </td>
+            </tr>
+            ` : `
+            <tr>
+              <td style="color: #94A3B8; font-size: 12px;">Coupon / Promo Code</td>
+              <td style="text-align: right; color: #94A3B8; font-size: 12px; font-style: italic;">None used</td>
+            </tr>
+            `}
+
+            ${walletUsed > 0 ? `
+            <tr>
+              <td style="color: #16A34A; font-weight: 600;">Wallet Redeemed</td>
+              <td style="text-align: right; font-weight: 800; color: #16A34A;">-₹${walletUsed.toFixed(2)}</td>
+            </tr>
+            ` : ''}
+
+            ${coinsUsed > 0 ? `
+            <tr>
+              <td style="color: #16A34A; font-weight: 600;">Coins Redeemed</td>
+              <td style="text-align: right; font-weight: 800; color: #16A34A;">-₹${coinsUsed.toFixed(2)}</td>
+            </tr>
+            ` : ''}
+
+            ${order.taxAmount > 0 ? `
+            <tr>
+              <td style="color: #64748B; font-size: 12px;">Inclusive GST (5%)</td>
+              <td style="text-align: right; color: #64748B; font-size: 12px;">₹${Number(order.taxAmount).toFixed(2)}</td>
+            </tr>
+            ` : ''}
+
+            <tr>
+              <td colspan="2" style="padding-top: 10px; border-top: 2px dashed #CBD5E1;"></td>
+            </tr>
+
+            <tr>
+              <td style="font-size: 15px; font-weight: 900; color: #0F172A;">
+                Net Amount Received
+              </td>
+              <td style="text-align: right; font-size: 20px; font-weight: 900; color: #166534; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+                ₹${totalAmount.toFixed(2)}
+              </td>
+            </tr>
+          </table>
+        </div>
+
+        <!-- Payment Gateway Settlement Details Card -->
+        <div style="background: #EFF6FF; border: 1px solid #BFDBFE; border-radius: 12px; padding: 14px 16px; margin-top: 16px;">
+          <div style="font-weight: 800; color: #1E3A8A; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px;">
+            💳 PhonePe Settlement Information
+          </div>
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width: 100%; font-size: 12px; color: #1E40AF; border-collapse: collapse; line-height: 1.6;">
+            <tr>
+              <td style="padding: 2px 0; width: 110px; color: #60A5FA; font-weight: 600;">Gateway:</td>
+              <td style="padding: 2px 0; font-weight: 700; color: #1E3A8A;">PhonePe Business (PG Checkout)</td>
+            </tr>
+            <tr>
+              <td style="padding: 2px 0; color: #60A5FA; font-weight: 600;">Payment Status:</td>
+              <td style="padding: 2px 0; font-weight: 800; color: #059669;">✓ ${paymentStatus}</td>
+            </tr>
+            ${order.phonePeTransactionId ? `
+            <tr>
+              <td style="padding: 2px 0; color: #60A5FA; font-weight: 600;">Transaction ID:</td>
+              <td style="padding: 2px 0;">
+                <code style="background: #DBEAFE; color: #1E3A8A; padding: 2px 6px; border-radius: 4px; font-weight: 700; font-size: 11px; word-break: break-all;">${order.phonePeTransactionId}</code>
+              </td>
+            </tr>
+            ` : ''}
+            ${order.phonePeOrderId ? `
+            <tr>
+              <td style="padding: 2px 0; color: #60A5FA; font-weight: 600;">PhonePe Order ID:</td>
+              <td style="padding: 2px 0;">
+                <code style="background: #DBEAFE; color: #1E3A8A; padding: 2px 6px; border-radius: 4px; font-size: 11px; word-break: break-all;">${order.phonePeOrderId}</code>
+              </td>
+            </tr>
+            ` : ''}
+            ${order.phonePeUtr ? `
+            <tr>
+              <td style="padding: 2px 0; color: #60A5FA; font-weight: 600;">Bank UTR / UPI:</td>
+              <td style="padding: 2px 0;">
+                <code style="background: #DBEAFE; color: #1E3A8A; padding: 2px 6px; border-radius: 4px; font-weight: 700; font-size: 11px; word-break: break-all;">${order.phonePeUtr}</code>
+              </td>
+            </tr>
+            ` : ''}
+            <tr>
+              <td style="padding: 2px 0; color: #60A5FA; font-weight: 600;">Merchant Order Ref:</td>
+              <td style="padding: 2px 0;">
+                <code style="background: #DBEAFE; color: #1E3A8A; padding: 2px 6px; border-radius: 4px; font-size: 11px; word-break: break-all;">${order.phonePeMerchantTransactionId || order._id}</code>
+              </td>
+            </tr>
+          </table>
+        </div>
+
+        <!-- PDF Invoice Attached Notification Badge -->
+        <div style="margin-top: 16px; padding: 12px 14px; background: #ECFDF5; border: 1px solid #A7F3D0; border-radius: 10px; font-size: 12px; color: #065F46; font-weight: 700; text-align: center;">
+          📎 Official Tax Invoice Attached to this email (PDF)
+        </div>
+
+        <!-- CTA Button -->
+        <div style="margin-top: 22px; text-align: center;">
+          <a href="${adminUrl}" target="_blank" style="display: block; width: 100%; box-sizing: border-box; padding: 14px 20px; background: #166534; color: #ffffff; text-decoration: none; border-radius: 10px; font-weight: 800; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; text-align: center; box-shadow: 0 4px 10px rgba(22, 101, 52, 0.25);">
+            Open Admin Orders Panel →
+          </a>
+        </div>
+      </div>
+
+      <!-- Footer -->
+      <div style="background: #F8FAFC; padding: 16px; text-align: center; font-size: 11px; color: #64748B; border-top: 1px solid #E2E8F0;">
+        OwnFresh Agro Industries • Automated Operational Dispatch to contact@myownfresh.com
+      </div>
+
+    </div>
+  </div>
+</body>
+</html>
+  `;
+
+  const subject = `🛒 [NEW ORDER] #${customId} - ₹${totalAmount.toFixed(2)} | ${customerName} ${couponCode ? `(Coupon: ${couponCode})` : ''}`;
+
+  await transporter.sendMail({
+    from: `"OwnFresh Orders" <${process.env.EMAIL}>`,
+    to: adminEmail,
+    subject,
+    html: adminHtml,
     attachments
   });
 };

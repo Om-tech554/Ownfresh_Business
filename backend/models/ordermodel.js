@@ -25,6 +25,12 @@ const orderSchema = new mongoose.Schema({
   phonePeTransactionId: {
     type: String
   },
+  phonePeOrderId: {
+    type: String
+  },
+  phonePeUtr: {
+    type: String
+  },
   phonePeMerchantTransactionId: {
     type: String
   },

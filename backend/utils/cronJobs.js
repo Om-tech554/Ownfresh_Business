@@ -24,6 +24,43 @@ export const initCronJobs = () => {
         }
     });
 
+    // Job: Auto-Sync Pending Online PhonePe Orders
+    // Schedule: Runs every 10 minutes to verify if pending orders were paid on PhonePe
+    cron.schedule('*/10 * * * *', async () => {
+        try {
+            const Order = (await import('../models/ordermodel.js')).default;
+            const { queryPhonePeOrderStatus, completeOrderPayment } = await import('../controllers/paymentController.js');
+            const fortyEightHoursAgo = new Date(Date.now() - 48 * 60 * 60 * 1000);
+            const pendingOrders = await Order.find({
+                PaymentMethod: "online",
+                paymentStatus: "pending",
+                createdAt: { $gte: fortyEightHoursAgo }
+            }).limit(10).populate("user", "fullName email mobile");
+
+            if (pendingOrders && pendingOrders.length > 0) {
+                console.log(`🔍 [PhonePe Auto-Sync Cron] Checking ${pendingOrders.length} pending online order(s)...`);
+                for (const pOrder of pendingOrders) {
+                    try {
+                        const check = await queryPhonePeOrderStatus(pOrder._id.toString());
+                        if (check && check.isCompleted) {
+                            await completeOrderPayment(pOrder, {
+                                txnId: check.txnId,
+                                phonePeOrderId: check.phonePeOrderId,
+                                utr: check.utr,
+                                merchantOrderId: pOrder._id.toString()
+                            });
+                            console.log(`✅ [PhonePe Auto-Sync] Order ${pOrder.customOrderId || pOrder._id} verified & marked COMPLETED!`);
+                        }
+                    } catch (pErr) {
+                        console.error(`[PhonePe Auto-Sync] Error checking order ${pOrder._id}:`, pErr.message);
+                    }
+                }
+            }
+        } catch (cronErr) {
+            console.error("❌ Background Job (PhonePe Order Sync) Error:", cronErr.message);
+        }
+    });
+
     // Optional: One-time sync on server start (with a delay to ensure DB connection is ready)
     setTimeout(async () => {
         console.log("🚀 Server Start Sync: Checking for pending blogs...");

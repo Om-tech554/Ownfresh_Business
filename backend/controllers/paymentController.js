@@ -7,7 +7,7 @@ import Transaction from "../models/transactionModel.js";
 import Coupon from "../models/couponModel.js";
 import MembershipPlan from "../models/membershipPlanModel.js";
 import CommissionLog from "../models/commissionLogModel.js";
-import { sendOrderConfirmationMail } from "../utils/mail.js";
+import { sendOrderConfirmationMail, sendAdminOrderNotificationMail } from "../utils/mail.js";
 import { sendOrderConfirmationSms } from "../utils/sms.js";
 import { sendOrderConfirmationWhatsApp } from "../utils/whatsapp.js";
 import { awardOrderCommissionCoins } from "./membershipController.js";
@@ -159,13 +159,15 @@ export const initiatePhonePePayment = async (req, res) => {
       paymentFlow: {
         type: "PG_CHECKOUT",
         merchantUrls: {
-          redirectUrl
+          redirectUrl,
+          callbackUrl
         }
       }
     };
 
     let redirectUrlFromPhonePe = null;
     let v2Success = false;
+    let v2OrderId = null;
 
     try {
       console.log(`🚀 Initiating PhonePe V2 Payment on ${v2PayUrl}...`);
@@ -180,6 +182,7 @@ export const initiatePhonePePayment = async (req, res) => {
 
       console.log("PhonePe V2 Response Data:", v2Res.data);
 
+      v2OrderId = v2Res.data?.orderId || v2Res.data?.data?.orderId;
       redirectUrlFromPhonePe = v2Res.data?.redirectUrl || 
                                v2Res.data?.data?.redirectUrl || 
                                v2Res.data?.data?.instrumentResponse?.redirectInfo?.url ||
@@ -221,7 +224,7 @@ export const initiatePhonePePayment = async (req, res) => {
         );
 
         if (v1Res.data && v1Res.data.success) {
-          redirectUrlFromPhonePe = v1Res.data.data.instrumentResponse.redirectInfo.url;
+          redirectUrlFromPhonePe = v1Res.data.data?.instrumentResponse?.redirectInfo?.url;
           v2Success = true;
         }
       } catch (v1Err) {
@@ -232,6 +235,9 @@ export const initiatePhonePePayment = async (req, res) => {
 
     if (v2Success && redirectUrlFromPhonePe) {
       order.phonePeMerchantTransactionId = merchantTransactionId;
+      if (v2OrderId) {
+        order.phonePeOrderId = v2OrderId;
+      }
       await order.save();
       return res.status(200).json({
         success: true,
@@ -262,9 +268,290 @@ export const initiatePhonePePayment = async (req, res) => {
 };
 
 /**
- * PHONEPE WEBHOOK CALLBACK (S2S FOR ORDERS) - V2 Format
- * PhonePe V2 sends JSON: { event, payload: { merchantOrderId, state, ... } }
- * Event types: checkout.order.completed | checkout.order.failed
+ * CENTRALIZED POST-PAYMENT COMPLETION HANDLER
+ * Guarantees that wallet, coins, coupons, commission, database status,
+ * customer invoice email (with BCC) and ADMIN ALERT to contact@myownfresh.com
+ * are executed reliably across webhooks, polling status checks, and admin syncs.
+ */
+export const completeOrderPayment = async (orderIdOrDoc, paymentDetails = {}) => {
+  try {
+    let order = orderIdOrDoc;
+    if (typeof orderIdOrDoc === "string" || (orderIdOrDoc && orderIdOrDoc._bsontype === "ObjectID") || (orderIdOrDoc && !orderIdOrDoc.items)) {
+      order = await Order.findById(orderIdOrDoc).populate("user", "fullName email mobile");
+    } else if (order && typeof order.populate === "function" && !order.populated("user")) {
+      await order.populate("user", "fullName email mobile");
+    }
+
+    if (!order) {
+      console.error("completeOrderPayment: Order not found:", orderIdOrDoc);
+      return null;
+    }
+
+    // If already completed, update any missing transaction fields and return
+    if (order.paymentStatus === "completed") {
+      let modified = false;
+      if (paymentDetails.txnId && !order.phonePeTransactionId) {
+        order.phonePeTransactionId = paymentDetails.txnId;
+        modified = true;
+      }
+      if (paymentDetails.phonePeOrderId && !order.phonePeOrderId) {
+        order.phonePeOrderId = paymentDetails.phonePeOrderId;
+        modified = true;
+      }
+      if (paymentDetails.utr && !order.phonePeUtr) {
+        order.phonePeUtr = paymentDetails.utr;
+        modified = true;
+      }
+      if (modified) await order.save();
+      return order;
+    }
+
+    order.paymentStatus = "completed";
+    if (paymentDetails.txnId) {
+      order.phonePeTransactionId = paymentDetails.txnId;
+    }
+    if (paymentDetails.phonePeOrderId) {
+      order.phonePeOrderId = paymentDetails.phonePeOrderId;
+    }
+    if (paymentDetails.utr) {
+      order.phonePeUtr = paymentDetails.utr;
+    }
+    if (paymentDetails.merchantOrderId) {
+      order.phonePeMerchantTransactionId = paymentDetails.merchantOrderId;
+    }
+
+    // 1. Deduct wallet balance if applicable
+    if (order.walletDeductedAmount > 0 && order.user?._id) {
+      try {
+        let wallet = await Wallet.findOne({ userId: order.user._id });
+        if (wallet && wallet.balance >= order.walletDeductedAmount) {
+          wallet.balance -= order.walletDeductedAmount;
+          wallet.totalRedeemed += order.walletDeductedAmount;
+          await wallet.save();
+          await Transaction.create({
+            userId: order.user._id,
+            type: "REDEEM",
+            amount: order.walletDeductedAmount,
+            description: `Paid for order #${order.customOrderId || order._id} using wallet balance`,
+            status: "SUCCESS"
+          });
+        }
+      } catch (wErr) {
+        console.error("Failed to deduct wallet on payment completion:", wErr.message);
+      }
+    }
+
+    // 2. Deduct commission coins if applicable
+    if (order.commissionCoinsDeductedAmount > 0 && order.user?._id) {
+      try {
+        const userId = order.user._id;
+        const coinsDeducted = order.commissionCoinsDeductedAmount;
+        const now = new Date();
+        let remainingToDeduct = coinsDeducted;
+        const activeBatches = await CommissionLog.find({
+          userId,
+          status: "ACTIVE",
+          expiresAt: { $gt: now }
+        }).sort({ expiresAt: 1 });
+
+        for (const batch of activeBatches) {
+          if (remainingToDeduct <= 0) break;
+          const deductFromBatch = Math.min(batch.coinsRemaining, remainingToDeduct);
+          batch.coinsRemaining -= deductFromBatch;
+          if (batch.coinsRemaining === 0) {
+            batch.status = "REDEEMED";
+          }
+          await batch.save();
+          remainingToDeduct -= deductFromBatch;
+        }
+
+        await CommissionLog.create({
+          userId,
+          orderId: order._id,
+          coinsEarned: 0,
+          coinsRemaining: 0,
+          expiresAt: new Date(Date.now() + 45 * 24 * 60 * 60 * 1000),
+          status: "REDEEMED",
+          type: "REDEEMED_CHECKOUT",
+          note: `Redeemed ${coinsDeducted} commission coins at checkout for order ${order.customOrderId || order._id}`
+        });
+
+        const user = await User.findById(userId);
+        if (user) {
+          user.commissionCoins = Math.max(0, user.commissionCoins - coinsDeducted);
+          await user.save();
+        }
+      } catch (commErr) {
+        console.error("Failed to deduct commission coins on online payment completion:", commErr.message);
+      }
+    }
+
+    // 3. Increment Coupon usedCount if applicable
+    if (order.couponCode) {
+      try {
+        const coupon = await Coupon.findOne({ code: order.couponCode.toUpperCase() });
+        if (coupon) {
+          coupon.usedCount += 1;
+          if (coupon.usageLimit && coupon.usedCount >= coupon.usageLimit) {
+            coupon.isActive = false;
+          }
+          await coupon.save();
+        }
+      } catch (couponErr) {
+        console.error("Failed to increment coupon used count:", couponErr.message);
+      }
+    }
+
+    // 4. Award Membership Commission Coins
+    if (order.user?._id) {
+      try {
+        await awardOrderCommissionCoins(order.user._id, order._id, order.totalAmount);
+      } catch (err) {
+        console.error("Error awarding commission coins:", err.message);
+      }
+    }
+
+    await order.save();
+
+    // 5. Send confirmation notifications asynchronously
+    setImmediate(async () => {
+      try {
+        const populated = await Order.findById(order._id).populate("user", "fullName email mobile");
+        if (populated) {
+          sendOrderConfirmationMail(populated).catch(err => console.error("Error sending customer confirmation email:", err.message));
+          sendAdminOrderNotificationMail(populated).catch(err => console.error("Error sending admin order notification email:", err.message));
+          sendOrderConfirmationSms(populated).catch(err => console.error("Error sending order confirmation SMS:", err.message));
+          sendOrderConfirmationWhatsApp(populated).catch(err => console.error("Error sending order confirmation WhatsApp:", err.message));
+        }
+      } catch (notifErr) {
+        console.error("Error sending post-payment notifications:", notifErr.message);
+      }
+    });
+
+    return order;
+  } catch (error) {
+    console.error("completeOrderPayment fatal error:", error);
+    throw error;
+  }
+};
+
+/**
+ * QUERY PHONEPE ORDER STATUS DIRECTLY (V2 WITH V1 FALLBACK)
+ * Checks PhonePe API and normalizes response across V2 and legacy V1 protocols.
+ */
+export const queryPhonePeOrderStatus = async (orderId) => {
+  const isProd = (process.env.PHONEPE_ENV || "").toLowerCase() === "production";
+  
+  // 1) Try PhonePe V2 Order Status API
+  try {
+    const token = await getPhonePeV2AuthToken(PHONEPE_CLIENT_ID, PHONEPE_CLIENT_SECRET, isProd);
+    const v2StatusUrl = isProd
+      ? `https://api.phonepe.com/apis/pg/checkout/v2/order/${orderId}/status?details=true`
+      : `https://api-preprod.phonepe.com/apis/pg-sandbox/checkout/v2/order/${orderId}/status?details=true`;
+
+    console.log(`🔍 Checking PhonePe V2 Status for ${orderId}...`);
+    const v2Res = await axios.get(v2StatusUrl, {
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `O-Bearer ${token}`
+      },
+      timeout: 10000
+    });
+
+    const raw = v2Res.data;
+    const state = raw?.state || raw?.data?.state || raw?.paymentState;
+    const paymentDetail = raw?.paymentDetails?.[0] || raw?.data?.paymentDetails?.[0];
+    const txnId = paymentDetail?.transactionId || raw?.transactionId || raw?.data?.transactionId;
+    const utr = paymentDetail?.rail?.utr;
+    const phonePeOrderId = raw?.orderId || raw?.data?.orderId;
+
+    if (state === "COMPLETED" || state === "SUCCESS" || raw?.code === "PAYMENT_SUCCESS" || paymentDetail?.state === "COMPLETED") {
+      return {
+        success: true,
+        isCompleted: true,
+        isFailed: false,
+        isPending: false,
+        state: "COMPLETED",
+        txnId,
+        phonePeOrderId,
+        utr,
+        raw
+      };
+    } else if (state === "FAILED" || paymentDetail?.state === "FAILED") {
+      return {
+        success: true,
+        isCompleted: false,
+        isFailed: true,
+        isPending: false,
+        state: "FAILED",
+        raw
+      };
+    } else {
+      return {
+        success: true,
+        isCompleted: false,
+        isFailed: false,
+        isPending: true,
+        state: state || "PENDING",
+        raw
+      };
+    }
+  } catch (v2StatusErr) {
+    console.error("⚠️ V2 Status API Error:", v2StatusErr.message, v2StatusErr.response?.data);
+
+    // Fallback: Try V1 Status Check
+    try {
+      const urlPath = `/pg/v1/status/${PHONEPE_MERCHANT_ID}/${orderId}`;
+      const stringToHash = urlPath + PHONEPE_SALT_KEY;
+      const sha256 = crypto.createHash("sha256").update(stringToHash).digest("hex");
+      const checksum = `${sha256}###${PHONEPE_SALT_INDEX}`;
+
+      const legacyBaseUrl = isProd ? "https://api.phonepe.com/apis/hermes" : "https://api-preprod.phonepe.com/apis/pg-sandbox";
+      const v1Res = await axios.get(`${legacyBaseUrl}${urlPath}`, {
+        headers: {
+          "Content-Type": "application/json",
+          "X-VERIFY": checksum,
+          "X-MERCHANT-ID": PHONEPE_MERCHANT_ID
+        },
+        timeout: 10000
+      });
+
+      const raw = v1Res.data;
+      if (raw && raw.success && raw.code === "PAYMENT_SUCCESS") {
+        return {
+          success: true,
+          isCompleted: true,
+          isFailed: false,
+          isPending: false,
+          state: "COMPLETED",
+          txnId: raw.data?.transactionId,
+          phonePeOrderId: raw.data?.merchantTransactionId,
+          raw
+        };
+      } else if (raw && (raw.code === "PAYMENT_ERROR" || raw.code === "PAYMENT_DECLINED")) {
+        return {
+          success: true,
+          isCompleted: false,
+          isFailed: true,
+          isPending: false,
+          state: "FAILED",
+          raw
+        };
+      }
+    } catch (v1StatusErr) {
+      console.error("⚠️ V1 Status Fallback error:", v1StatusErr.message);
+    }
+
+    return {
+      success: false,
+      error: v2StatusErr.response?.data || v2StatusErr.message
+    };
+  }
+};
+
+/**
+ * PHONEPE WEBHOOK CALLBACK (S2S FOR ORDERS)
+ * Handles both PhonePe V2 and V1 S2S callbacks.
  */
 export const phonepeCallback = async (req, res) => {
   try {
@@ -274,32 +561,27 @@ export const phonepeCallback = async (req, res) => {
       return res.status(400).json({ success: false, msg: "Missing webhook payload" });
     }
 
-    console.log("PhonePe V2 Webhook received:", JSON.stringify(body));
+    console.log("PhonePe Webhook received:", JSON.stringify(body));
 
     // --- PhonePe V2 JSON Webhook Format ---
     if (body.event && body.payload) {
-      // --- HMAC Signature Verification (per official docs) ---
-      // PhonePe sends: x-phonepe-checksum-key-id and x-phonepe-checksum-signature headers
       const webhookSecret = process.env.PHONEPE_WEBHOOK_SECRET;
       const checksumKeyId = req.headers["x-phonepe-checksum-key-id"];
       const checksumSignature = req.headers["x-phonepe-checksum-signature"];
 
       if (webhookSecret && checksumSignature) {
-        // Verify: HMAC-SHA256(rawBody, secret) must match x-phonepe-checksum-signature
         const rawBody = JSON.stringify(body);
         const expectedSig = crypto.createHmac("sha256", webhookSecret).update(rawBody).digest("base64");
         if (expectedSig !== checksumSignature) {
           console.error("⚠️ PhonePe V2 Webhook HMAC Verification Failed!");
           return res.status(401).json({ success: false, msg: "Invalid webhook signature" });
         }
-      } else {
-        console.log("⚠️ Webhook HMAC not verified - PHONEPE_WEBHOOK_SECRET not set or no signature header");
       }
 
       const { event, payload } = body;
       const merchantOrderId = payload?.merchantOrderId || payload?.orderId;
-      // Per docs: transactionId is inside payload.paymentDetails[0].transactionId
       const transactionId = payload?.paymentDetails?.[0]?.transactionId;
+      const utr = payload?.paymentDetails?.[0]?.rail?.utr;
       const state = payload?.state;
 
       if (!merchantOrderId) {
@@ -312,102 +594,13 @@ export const phonepeCallback = async (req, res) => {
         return res.status(404).json({ success: false, msg: "Order not found" });
       }
 
-      if (order.paymentStatus === "completed") {
-        return res.status(200).json({ success: true, msg: "Order already completed" });
-      }
-
       if (event === "checkout.order.completed" && state === "COMPLETED") {
-        order.paymentStatus = "completed";
-        // Per docs: transactionId is in paymentDetails[0].transactionId
-        order.phonePeTransactionId = transactionId;
-        order.phonePeMerchantTransactionId = merchantOrderId;
-        await order.save();
-
-        // Deduct wallet balance if applicable
-        if (order.walletDeductedAmount > 0) {
-          let wallet = await Wallet.findOne({ userId: order.user._id });
-          if (wallet && wallet.balance >= order.walletDeductedAmount) {
-            wallet.balance -= order.walletDeductedAmount;
-            wallet.totalRedeemed += order.walletDeductedAmount;
-            await wallet.save();
-            await Transaction.create({
-              userId: order.user._id,
-              type: "REDEEM",
-              amount: order.walletDeductedAmount,
-              description: `Paid for order #${order._id} using wallet balance`,
-              status: "SUCCESS"
-            });
-          }
-        }
-
-        // Deduct commission coins if applicable
-        if (order.commissionCoinsDeductedAmount > 0) {
-          try {
-            const userId = order.user._id;
-            const coinsDeducted = order.commissionCoinsDeductedAmount;
-            const now = new Date();
-            let remainingToDeduct = coinsDeducted;
-            const activeBatches = await CommissionLog.find({
-              userId,
-              status: "ACTIVE",
-              expiresAt: { $gt: now }
-            }).sort({ expiresAt: 1 });
-
-            for (const batch of activeBatches) {
-              if (remainingToDeduct <= 0) break;
-              const deductFromBatch = Math.min(batch.coinsRemaining, remainingToDeduct);
-              batch.coinsRemaining -= deductFromBatch;
-              if (batch.coinsRemaining === 0) {
-                batch.status = "REDEEMED";
-              }
-              await batch.save();
-              remainingToDeduct -= deductFromBatch;
-            }
-
-            // Create redemption log entry
-            await CommissionLog.create({
-              userId,
-              orderId: order._id,
-              coinsEarned: 0,
-              coinsRemaining: 0,
-              expiresAt: new Date(Date.now() + 45 * 24 * 60 * 60 * 1000),
-              status: "REDEEMED",
-              type: "REDEEMED_CHECKOUT",
-              note: `Redeemed ${coinsDeducted} commission coins at checkout for order ${order.customOrderId || order._id}`
-            });
-
-            // Sync user's total coins count
-            const user = await User.findById(userId);
-            if (user) {
-              user.commissionCoins = Math.max(0, user.commissionCoins - coinsDeducted);
-              await user.save();
-            }
-          } catch (commErr) {
-            console.error("Failed to deduct commission coins on online payment completion:", commErr);
-          }
-        }
-
-        // Increment Coupon usedCount if applicable
-        if (order.couponCode) {
-          const coupon = await Coupon.findOne({ code: order.couponCode.toUpperCase() });
-          if (coupon) { 
-            coupon.usedCount += 1; 
-            if (coupon.usageLimit && coupon.usedCount >= coupon.usageLimit) {
-              coupon.isActive = false;
-            }
-            await coupon.save(); 
-          }
-        }
-
-        // Award Commission Coins
-        try { await awardOrderCommissionCoins(order.user._id, order._id, order.totalAmount); }
-        catch (err) { console.error("Error awarding commission coins:", err.message); }
-
-        // Send notifications
-        try { await sendOrderConfirmationMail(order); } catch (err) { console.error("Email error:", err.message); }
-        try { await sendOrderConfirmationSms(order); } catch (err) { console.error("SMS error:", err.message); }
-        try { await sendOrderConfirmationWhatsApp(order); } catch (err) { console.error("WhatsApp error:", err.message); }
-
+        await completeOrderPayment(order, {
+          txnId: transactionId,
+          phonePeOrderId: payload?.orderId,
+          utr,
+          merchantOrderId
+        });
         return res.status(200).json({ success: true, msg: "Payment completed successfully" });
       } else {
         order.paymentStatus = "failed";
@@ -440,15 +633,12 @@ export const phonepeCallback = async (req, res) => {
 
       const order = await Order.findById(merchantTransactionId).populate("user", "fullName email mobile");
       if (!order) return res.status(404).json({ success: false, msg: "Order not found" });
-      if (order.paymentStatus === "completed") return res.status(200).json({ success: true, msg: "Already completed" });
 
       if (v1Success && code === "PAYMENT_SUCCESS") {
-        order.paymentStatus = "completed";
-        order.phonePeTransactionId = transactionId;
-        await order.save();
-        try { await sendOrderConfirmationMail(order); } catch (e) {}
-        try { await sendOrderConfirmationSms(order); } catch (e) {}
-        try { await sendOrderConfirmationWhatsApp(order); } catch (e) {}
+        await completeOrderPayment(order, {
+          txnId: transactionId,
+          merchantOrderId: merchantTransactionId
+        });
         return res.status(200).json({ success: true, msg: "Payment completed" });
       } else {
         order.paymentStatus = "failed";
@@ -465,8 +655,7 @@ export const phonepeCallback = async (req, res) => {
 };
 
 /**
- * CHECK PHONEPE STATUS (FOR ORDERS)
- * Uses PhonePe V2 Order Status API (checkout/v2/order/{merchantOrderId}/status) with OAuth Bearer Token.
+ * CHECK PHONEPE STATUS (FOR ORDERS - CALLED BY ORDER SUCCESS & CLIENT)
  */
 export const checkPhonePeStatus = async (req, res) => {
   try {
@@ -499,96 +688,116 @@ export const checkPhonePeStatus = async (req, res) => {
       });
     }
 
-    const isProd = (process.env.PHONEPE_ENV || "").toLowerCase() === "production";
-    let isPaymentSuccess = false;
-    let rawStatusData = null;
+    const queryResult = await queryPhonePeOrderStatus(orderId);
 
-    // 1) Try V2 Order Status API
-    try {
-      const token = await getPhonePeV2AuthToken(PHONEPE_CLIENT_ID, PHONEPE_CLIENT_SECRET, isProd);
-      const v2StatusUrl = isProd
-        ? `https://api.phonepe.com/apis/pg/checkout/v2/order/${orderId}/status?details=true`
-        : `https://api-preprod.phonepe.com/apis/pg-sandbox/checkout/v2/order/${orderId}/status?details=true`;
-
-      console.log(`🔍 Checking PhonePe V2 Status on ${v2StatusUrl}...`);
-      const v2Res = await axios.get(v2StatusUrl, {
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `O-Bearer ${token}`
-        }
+    if (queryResult.isCompleted) {
+      const completedOrder = await completeOrderPayment(order, {
+        txnId: queryResult.txnId,
+        phonePeOrderId: queryResult.phonePeOrderId,
+        utr: queryResult.utr,
+        merchantOrderId: orderId
       });
-
-      rawStatusData = v2Res.data;
-      console.log("PhonePe V2 Status Response:", rawStatusData);
-
-      // V2 status response (per official docs): state is at ROOT level
-      // { orderId, state, amount, expireAt, paymentDetails: [...] }
-      const state = rawStatusData?.state;
-      const txnId = rawStatusData?.paymentDetails?.[0]?.transactionId;
-
-      if (state === "COMPLETED") {
-        isPaymentSuccess = true;
-        // Save the PhonePe transaction ID from paymentDetails
-        if (txnId) {
-          order.phonePeTransactionId = txnId;
-        }
-      } else if (state === "FAILED") {
-        order.paymentStatus = "failed";
-        await order.save();
-        return res.status(200).json({
-          success: false,
-          paymentStatus: "failed",
-          msg: rawStatusData?.errorCode || "Payment failed",
-          statusDetails: rawStatusData
-        });
-      }
-    } catch (v2StatusErr) {
-      console.error("⚠️ V2 Status API Error:", v2StatusErr.message, v2StatusErr.response?.data);
-
-      // Fallback: Try V1 Status Check
-      try {
-        const urlPath = `/pg/v1/status/${PHONEPE_MERCHANT_ID}/${orderId}`;
-        const stringToHash = urlPath + PHONEPE_SALT_KEY;
-        const sha256 = crypto.createHash("sha256").update(stringToHash).digest("hex");
-        const checksum = `${sha256}###${PHONEPE_SALT_INDEX}`;
-
-        const legacyBaseUrl = isProd ? "https://api.phonepe.com/apis/hermes" : "https://api-preprod.phonepe.com/apis/pg-sandbox";
-        const v1Res = await axios.get(`${legacyBaseUrl}${urlPath}`, {
-          headers: {
-            "Content-Type": "application/json",
-            "X-VERIFY": checksum,
-            "X-MERCHANT-ID": PHONEPE_MERCHANT_ID
-          }
-        });
-
-        rawStatusData = v1Res.data;
-        if (v1Res.data && v1Res.data.success && v1Res.data.code === "PAYMENT_SUCCESS") {
-          isPaymentSuccess = true;
-        }
-      } catch (v1StatusErr) {
-        console.error("⚠️ V1 Status Fallback also failed:", v1StatusErr.message);
-      }
-    }
-
-    if (isPaymentSuccess) {
-      order.paymentStatus = "completed";
-      await order.save();
 
       return res.status(200).json({
         success: true,
         paymentStatus: "completed",
-        order
+        order: completedOrder
+      });
+    } else if (queryResult.isFailed) {
+      order.paymentStatus = "failed";
+      await order.save();
+      return res.status(200).json({
+        success: false,
+        paymentStatus: "failed",
+        msg: "Payment failed or was declined by bank",
+        statusDetails: queryResult.raw
       });
     } else {
       return res.status(200).json({
         success: false,
         paymentStatus: order.paymentStatus,
-        msg: rawStatusData?.message || rawStatusData?.msg || "Payment is pending or failed",
-        statusDetails: rawStatusData
+        msg: "Payment is pending or being processed by bank",
+        statusDetails: queryResult.raw
       });
     }
   } catch (error) {
     console.error("Error in checkPhonePeStatus:", error.message);
     res.status(500).json({ success: false, msg: "Failed to check PhonePe status", error: error.message });
+  }
+};
+
+/**
+ * ADMIN SYNC PHONEPE ORDER STATUS
+ * Allows admin to click "Sync PhonePe" to query the gateway directly and update order instantly.
+ */
+export const syncOrderPhonePeStatus = async (req, res) => {
+  try {
+    const { orderId } = req.params;
+
+    if (!orderId) {
+      return res.status(400).json({ success: false, msg: "Order ID is required" });
+    }
+
+    const order = await Order.findById(orderId).populate("user", "fullName email mobile");
+    if (!order) {
+      return res.status(404).json({ success: false, msg: "Order not found" });
+    }
+
+    if (order.PaymentMethod !== "online") {
+      return res.status(400).json({ success: false, msg: "Only online PhonePe orders can be synced with payment gateway" });
+    }
+
+    if (order.paymentStatus === "completed") {
+      return res.status(200).json({
+        success: true,
+        alreadyCompleted: true,
+        msg: "Order payment is already marked COMPLETED",
+        order
+      });
+    }
+
+    const queryResult = await queryPhonePeOrderStatus(orderId);
+
+    if (!queryResult.success) {
+      return res.status(400).json({
+        success: false,
+        msg: "Could not retrieve status from PhonePe: " + (queryResult.error || "Gateway connection error"),
+        details: queryResult
+      });
+    }
+
+    if (queryResult.isCompleted) {
+      const completedOrder = await completeOrderPayment(order, {
+        txnId: queryResult.txnId,
+        phonePeOrderId: queryResult.phonePeOrderId,
+        utr: queryResult.utr,
+        merchantOrderId: orderId
+      });
+
+      return res.status(200).json({
+        success: true,
+        updated: true,
+        msg: "Payment verified with PhonePe & completed! Confirmation email sent to contact@myownfresh.com and customer.",
+        order: completedOrder
+      });
+    } else if (queryResult.isFailed) {
+      order.paymentStatus = "failed";
+      await order.save();
+      return res.status(200).json({
+        success: false,
+        msg: "PhonePe reports payment FAILED",
+        order
+      });
+    } else {
+      return res.status(200).json({
+        success: false,
+        msg: `PhonePe reports payment is currently ${queryResult.state || "PENDING"} at bank.`,
+        phonePeState: queryResult.state,
+        order
+      });
+    }
+  } catch (error) {
+    console.error("Error in syncOrderPhonePeStatus:", error);
+    res.status(500).json({ success: false, msg: "Failed to sync order PhonePe status: " + error.message });
   }
 };
