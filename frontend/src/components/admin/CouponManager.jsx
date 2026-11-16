@@ -30,6 +30,55 @@ const CouponManager = () => {
   const [allCustomers, setAllCustomers] = useState([]);
   const [customerSearch, setCustomerSearch] = useState("");
   const [selectedCustomerChips, setSelectedCustomerChips] = useState([]);
+  const [expandedRecipients, setExpandedRecipients] = useState({});
+
+  const toggleExpandRecipients = (couponId) => {
+    setExpandedRecipients(prev => ({ ...prev, [couponId]: !prev[couponId] }));
+  };
+
+  const getCouponRecipients = (coupon) => {
+    const list = [];
+    const seenEmails = new Set();
+    const seenIds = new Set();
+
+    if (Array.isArray(coupon?.selectedUsersList)) {
+      coupon.selectedUsersList.forEach((u) => {
+        if (!u) return;
+        const id = u._id ? String(u._id) : String(u);
+        const email = u.email ? u.email.toLowerCase().trim() : null;
+        if (!seenIds.has(id)) {
+          seenIds.add(id);
+          if (email) seenEmails.add(email);
+          list.push({
+            id,
+            fullName: u.fullName || u.userName || "Customer",
+            userName: u.userName || "",
+            email: u.email || "",
+            mobile: u.mobile || ""
+          });
+        }
+      });
+    }
+
+    if (Array.isArray(coupon?.selectedEmailsList)) {
+      coupon.selectedEmailsList.forEach((em) => {
+        if (!em) return;
+        const lower = String(em).toLowerCase().trim();
+        if (!seenEmails.has(lower)) {
+          seenEmails.add(lower);
+          list.push({
+            id: lower,
+            fullName: lower.split("@")[0],
+            userName: "",
+            email: lower,
+            mobile: ""
+          });
+        }
+      });
+    }
+
+    return list;
+  };
 
   const fetchCustomers = async () => {
     try {
@@ -240,7 +289,9 @@ const CouponManager = () => {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {coupons.map((coupon) => (
+        {coupons.map((coupon) => {
+          const recipients = getCouponRecipients(coupon);
+          return (
           <div key={coupon._id} className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm hover:shadow-md transition-all relative overflow-hidden group">
             <div className={`absolute top-0 right-0 w-2 h-full ${coupon.isActive ? 'bg-[#24672E]' : 'bg-red-400'}`} />
             
@@ -270,10 +321,10 @@ const CouponManager = () => {
                     🚚 Delivery Charges Apply
                   </span>
                 </div>
-              ) : (coupon.applicableUsers === "SELECTED_USERS" || coupon.requiresDeliveryCharge || coupon.eliminateDeliveryCharge) ? (
+              ) : (coupon.applicableUsers === "SELECTED_USERS" || coupon.requiresDeliveryCharge || coupon.eliminateDeliveryCharge || recipients.length > 0) ? (
                 <div className="flex flex-col items-end gap-1">
-                  <span className="bg-amber-100 text-amber-800 px-2 py-0.5 rounded text-[8px] font-black uppercase">
-                    🎯 {(coupon.selectedUsersList?.length || 0) + (coupon.selectedEmailsList?.length || 0)} Recipients
+                  <span className="bg-amber-100 text-amber-800 px-2 py-0.5 rounded text-[8px] font-black uppercase font-bold">
+                    🎯 {recipients.length} Recipient{recipients.length !== 1 ? 's' : ''}
                   </span>
                   {coupon.eliminateDeliveryCharge ? (
                     <span className="bg-emerald-100 text-emerald-800 border border-emerald-300 px-1.5 py-0.5 rounded text-[7px] font-black uppercase flex items-center gap-1">
@@ -327,6 +378,50 @@ const CouponManager = () => {
               }`}>
                 Eligible: {coupon.applicableUsers === "SPECIAL_MEMBER" || coupon.isSpecialCoupon ? "⭐ Special Member (Single-Use)" : coupon.applicableUsers}
               </div>
+
+              {/* Recipient Details (Username & Email list for admin visibility) */}
+              {recipients.length > 0 && (
+                <div className="mt-3 p-2.5 bg-slate-50 rounded-xl border border-slate-200">
+                  <div className="flex items-center justify-between mb-1.5">
+                    <span className="text-[10px] font-black uppercase tracking-wider text-slate-500 flex items-center gap-1">
+                      <span>👥</span> Authorized Users ({recipients.length})
+                    </span>
+                    {recipients.length > 2 && (
+                      <button
+                        type="button"
+                        onClick={() => toggleExpandRecipients(coupon._id)}
+                        className="text-[9px] font-bold text-blue-600 hover:underline cursor-pointer"
+                      >
+                        {expandedRecipients[coupon._id] ? "Show Less" : `View All (${recipients.length})`}
+                      </button>
+                    )}
+                  </div>
+
+                  <div className="space-y-1.5">
+                    {(expandedRecipients[coupon._id] ? recipients : recipients.slice(0, 2)).map((rec, rIdx) => (
+                      <div
+                        key={rIdx}
+                        className="bg-white p-2 rounded-lg border border-slate-200/80 flex items-center justify-between gap-2 text-xs shadow-xs"
+                      >
+                        <div className="min-w-0 flex-1">
+                          <div className="font-bold text-slate-900 truncate text-[11px] flex items-center gap-1">
+                            <span>👤</span>
+                            <span>{rec.fullName}</span>
+                            {rec.userName && (
+                              <span className="text-[9px] text-slate-400 font-mono">(@{rec.userName})</span>
+                            )}
+                          </div>
+                          {rec.email && (
+                            <div className="text-[10px] text-slate-500 truncate font-mono mt-0.5">
+                              ✉️ {rec.email}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
 
             {coupon.applicableUsers === "SELECTED_USERS" && (
@@ -360,7 +455,8 @@ const CouponManager = () => {
               </div>
             )}
           </div>
-        ))}
+          );
+        })}
         {coupons.length === 0 && (
           <div className="col-span-full py-20 text-center bg-white rounded-2xl border-2 border-dashed border-slate-200">
             <Ticket className="mx-auto text-slate-300 mb-4" size={48} />

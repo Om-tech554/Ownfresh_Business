@@ -1,10 +1,23 @@
 import express from "express"
-import { getCurrentUser, getAllUsers, updateUser, deleteUser, createCustomer, bulkCreateCustomers } from "../controllers/usercontroller.js"
+import {
+  getCurrentUser,
+  getAllUsers,
+  updateUser,
+  deleteUser,
+  createCustomer,
+  bulkCreateCustomers,
+  syncUserCart,
+  syncUserAddress,
+  recordCookieConsent
+} from "../controllers/usercontroller.js"
 import isAuth, { isAdmin } from "../middleware/isAuth.js"
 
 const userRouter=express.Router()
 
-userRouter.get("/current",isAuth, getCurrentUser)
+userRouter.get("/current", isAuth, getCurrentUser)
+userRouter.post("/sync-cart", isAuth, syncUserCart)
+userRouter.post("/sync-address", isAuth, syncUserAddress)
+userRouter.post("/cookie-consent", recordCookieConsent)
 
 // Admin routes
 userRouter.get("/admin/all", isAuth, isAdmin, getAllUsers)

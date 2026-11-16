@@ -262,10 +262,14 @@ export const validateCoupon = async (req, res) => {
     const { code, amount, shippingCost = 0, userId: bodyUserId, email: bodyEmail, customerDetails } = req.body;
     let userId = bodyUserId || req.userId;
 
-    // If userId not explicitly provided, attempt to decode from auth cookie if present
-    if (!userId && req.cookies?.token) {
+    // If userId not explicitly provided, decode from auth cookie or Authorization Bearer header
+    let token = req.cookies?.token;
+    if (!token && req.headers.authorization && req.headers.authorization.startsWith("Bearer ")) {
+      token = req.headers.authorization.split(" ")[1];
+    }
+    if (!userId && token) {
       try {
-        const decoded = jwt.verify(req.cookies.token, process.env.JWT_SECRET);
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
         if (decoded?.userId) userId = decoded.userId;
       } catch (e) {}
     }
@@ -303,11 +307,25 @@ export const validateCoupon = async (req, res) => {
       });
     }
 
+    // Resolve authenticated database user
+    let dbUser = null;
+    if (userId && mongoose.Types.ObjectId.isValid(userId)) {
+      dbUser = await User.findById(userId).lean();
+    }
+    if (!dbUser && (bodyEmail || customerDetails?.email)) {
+      const emailToLookup = (bodyEmail || customerDetails?.email).toLowerCase().trim();
+      dbUser = await User.findOne({ email: emailToLookup }).lean();
+      if (dbUser) userId = dbUser._id;
+    }
+
+    const dbEmail = (dbUser?.email || "").toLowerCase().trim();
+    const shoppingEmail = (bodyEmail || customerDetails?.email || dbEmail || "").toLowerCase().trim();
+
     // MANDATORY SIGN-IN ENFORCEMENT: Customer MUST be logged in to redeem special family member promo codes
-    if (coupon.applicableUsers === "SPECIAL_MEMBER" || coupon.isSpecialCoupon) {
-      if (!userId) {
+    if (coupon.applicableUsers === "SPECIAL_MEMBER" || coupon.isSpecialCoupon || coupon.applicableUsers === "SELECTED_USERS") {
+      if (!userId && !dbUser) {
         return res.status(401).json({ 
-          message: "Please sign in or create an account to apply this special promo code." 
+          message: "Please sign in to your registered OwnFresh account to apply this special offer." 
         });
       }
     }
@@ -343,45 +361,49 @@ export const validateCoupon = async (req, res) => {
           return res.status(400).json({ message: "This offer is only valid for your first order" });
         }
       }
-    } else if (coupon.applicableUsers === "SELECTED_USERS") {
-      let isEligible = false;
-      const cleanEmail = (bodyEmail || customerDetails?.email || "").toLowerCase().trim();
+    } else if (coupon.applicableUsers === "SELECTED_USERS" || coupon.isSpecialCoupon || coupon.applicableUsers === "SPECIAL_MEMBER") {
+      // Must be shopping from registered email
+      if (shoppingEmail && dbEmail && shoppingEmail !== dbEmail) {
+        return res.status(400).json({ 
+          message: `This special promo code is exclusively reserved for purchases made with your registered email (${dbEmail}). Please shop using your registered email to claim this offer.` 
+        });
+      }
 
-      // 1. Check by authenticated userId
+      let isEligible = false;
+
+      // 1. Check by authenticated userId in selectedUsersList
       if (userId && Array.isArray(coupon.selectedUsersList)) {
         if (coupon.selectedUsersList.some(id => id.toString() === userId.toString())) {
           isEligible = true;
         }
       }
 
-      // 2. Check by user's email from DB
-      if (!isEligible && userId) {
-        const dbUser = await User.findById(userId).select("email").lean();
-        if (dbUser?.email && Array.isArray(coupon.selectedEmailsList)) {
-          if (coupon.selectedEmailsList.includes(dbUser.email.toLowerCase().trim())) {
-            isEligible = true;
-          }
-        }
-      }
-
-      // 3. Check by email passed in request body
-      if (!isEligible && cleanEmail && Array.isArray(coupon.selectedEmailsList)) {
-        if (coupon.selectedEmailsList.includes(cleanEmail)) {
+      // 2. Check by registered user's email from DB
+      if (!isEligible && dbEmail && Array.isArray(coupon.selectedEmailsList)) {
+        if (coupon.selectedEmailsList.includes(dbEmail)) {
           isEligible = true;
         }
       }
 
-      // 4. Also check if the body email matches any user in selectedUsersList
-      if (!isEligible && cleanEmail && Array.isArray(coupon.selectedUsersList) && coupon.selectedUsersList.length > 0) {
-        const userWithEmail = await User.findOne({ email: cleanEmail }).select("_id").lean();
+      // 3. Check if any selected user in DB shares this email
+      if (!isEligible && dbEmail && Array.isArray(coupon.selectedUsersList) && coupon.selectedUsersList.length > 0) {
+        const userWithEmail = await User.findOne({ email: dbEmail }).select("_id").lean();
         if (userWithEmail && coupon.selectedUsersList.some(id => id.toString() === userWithEmail._id.toString())) {
+          isEligible = true;
+        }
+      }
+
+      // 4. For SPECIAL_MEMBER coupons without explicit user list, any logged-in verified member is eligible
+      if (!isEligible && (coupon.applicableUsers === "SPECIAL_MEMBER" || coupon.isSpecialCoupon)) {
+        if ((!coupon.selectedUsersList || coupon.selectedUsersList.length === 0) &&
+            (!coupon.selectedEmailsList || coupon.selectedEmailsList.length === 0)) {
           isEligible = true;
         }
       }
 
       if (!isEligible) {
         return res.status(400).json({ 
-          message: "This exclusive coupon is only valid for selected accounts / email addresses." 
+          message: `This exclusive promo code is only valid for selected accounts. Your account (${dbEmail || "current"}) is not eligible.` 
         });
       }
     }

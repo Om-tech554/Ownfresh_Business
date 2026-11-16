@@ -255,7 +255,10 @@ const OrderReview = () => {
         userId: user?._id,
         items: cartItems,
         paymentMethod,
+        email: shippingDetails?.email || user?.email || "",
         deliveryAddress: {
+          fullName: shippingDetails?.fullName || user?.fullName || "",
+          email: shippingDetails?.email || user?.email || "",
           roomNumber: `${shippingDetails?.flatNo || ""} (Landmark: ${shippingDetails?.landmark || ""})`,
           areaName: shippingDetails?.city,
           city: shippingDetails?.city,

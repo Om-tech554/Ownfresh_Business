@@ -64,6 +64,41 @@ export const CheckoutProvider = ({ children }) => {
     };
   });
 
+  // Dynamically update shipping details when user logs in or profile transfers data
+  React.useEffect(() => {
+    const handleSync = () => {
+      try {
+        const savedDest = localStorage.getItem("oil_delivery_destination");
+        const savedShip = localStorage.getItem("oil_shipping_details");
+        const destParsed = savedDest ? JSON.parse(savedDest) : null;
+        const shipParsed = savedShip ? JSON.parse(savedShip) : null;
+
+        if (shipParsed || destParsed) {
+          setShippingDetailsState((prev) => ({
+            ...prev,
+            ...(shipParsed || {}),
+            city: destParsed?.city || shipParsed?.city || prev.city,
+            state: destParsed?.state || shipParsed?.state || prev.state,
+            zipCode: destParsed?.pincode || shipParsed?.zipCode || prev.zipCode,
+            address: destParsed?.address || shipParsed?.address || prev.address,
+            phone: shipParsed?.phone || prev.phone,
+            fullName: shipParsed?.fullName || shipParsed?.name || prev.fullName,
+            email: shipParsed?.email || prev.email,
+            latitude: destParsed?.latitude ?? prev.latitude,
+            longitude: destParsed?.longitude ?? prev.longitude,
+          }));
+        }
+      } catch (e) {}
+    };
+
+    window.addEventListener("shippingDetailsChanged", handleSync);
+    window.addEventListener("deliveryDestinationChanged", handleSync);
+    return () => {
+      window.removeEventListener("shippingDetailsChanged", handleSync);
+      window.removeEventListener("deliveryDestinationChanged", handleSync);
+    };
+  }, []);
+
   const setShippingDetails = (newDetails) => {
     setShippingDetailsState((prev) => {
       const updated = typeof newDetails === 'function' ? newDetails(prev) : { ...prev, ...newDetails };
@@ -86,6 +121,31 @@ export const CheckoutProvider = ({ children }) => {
 
         if (updated.email || updated.phone || updated.fullName) {
           identifyCustomer(updated);
+        }
+
+        // Sync address to backend for cross-device OwnFresh persistence
+        const rawUser = localStorage.getItem("oil_user");
+        const token = localStorage.getItem("oil_token");
+        if (rawUser && (dest.address || dest.city)) {
+          const API_BASE_URL = (import.meta.env.VITE_API_URL || "http://localhost:10000").replace(/\/+$/, "");
+          const headers = { "Content-Type": "application/json" };
+          if (token) headers["Authorization"] = `Bearer ${token}`;
+          fetch(`${API_BASE_URL}/api/user/sync-address`, {
+            method: "POST",
+            credentials: "include",
+            headers,
+            body: JSON.stringify({
+              deliveryAddress: {
+                text: [updated.address, updated.landmark, updated.city, updated.state, updated.zipCode].filter(Boolean).join(", "),
+                street: updated.address || "",
+                city: updated.city || "",
+                state: updated.state || "",
+                pincode: updated.zipCode || "",
+                phone: updated.phone || "",
+                landmark: updated.landmark || ""
+              }
+            })
+          }).catch(() => {});
         }
       } catch (e) {}
       return updated;

@@ -1,12 +1,14 @@
 import User from "../models/usermodel.js";
 import bcrypt from "bcryptjs";
 import { sendOtpMail } from "../utils/mail.js";
+import genToken from "../utils/token.js";
 import {
   handlePhoneAuth,
   handleGoogleAuth,
   handleSignUp,
   handleSignIn
 } from "../services/authService.js";
+import { populateUserTransferableData } from "./usercontroller.js";
 
 // Helper to set cookie
 const setAuthCookie = (res, token) => {
@@ -32,7 +34,9 @@ export const signUp = async (req, res) => {
     }
 
     setAuthCookie(res, result.token);
-    return res.status(201).json(result.user);
+    const enrichedUser = await populateUserTransferableData(result.user);
+    if (!enrichedUser.token) enrichedUser.token = result.token;
+    return res.status(201).json(enrichedUser);
   } catch (error) {
     console.error("Signup error:", error);
     return res.status(error.statusCode || 500).json({ message: error.message || "Signup failed" });
@@ -48,7 +52,9 @@ export const signIn = async (req, res) => {
     const result = await handleSignIn({ email, password, deviceFingerprint, ip });
 
     setAuthCookie(res, result.token);
-    return res.status(200).json(result.user);
+    const enrichedUser = await populateUserTransferableData(result.user);
+    if (!enrichedUser.token) enrichedUser.token = result.token;
+    return res.status(200).json(enrichedUser);
   } catch (error) {
     console.error("SIGN_IN_ERROR:", error.message);
     return res.status(error.statusCode || 500).json({ message: error.message || "Internal Server Error" });
@@ -81,7 +87,7 @@ export const sendOtp = async (req, res) => {
     const normalizedEmail = email.toLowerCase().trim();
     const user = await User.findOne({ email: normalizedEmail });
     if (!user) {
-      return res.status(400).json({ message: "User with this email does not exist." });
+      return res.status(404).json({ message: "No account found with this email address. Please check and try again." });
     }
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
     user.resetOtp = otp;
@@ -112,7 +118,18 @@ export const verifyOtp = async (req, res) => {
     user.resetOtp = undefined;
     user.otpExpires = undefined;
     await user.save();
-    return res.status(200).json({ message: "OTP verified successfully" });
+
+    // Authenticate and issue JWT so device can log in directly via OTP
+    const token = await genToken(user._id);
+    setAuthCookie(res, token);
+    const enrichedUser = await populateUserTransferableData(user);
+
+    return res.status(200).json({
+      success: true,
+      message: "OTP verified successfully",
+      user: enrichedUser,
+      token
+    });
   } catch (error) {
     console.error("VERIFY_OTP_ERROR:", error.message);
     return res.status(500).json({ message: "Internal Server Error" });
@@ -135,7 +152,18 @@ export const resetPassword = async (req, res) => {
     user.password = hashedPassword;
     user.isOtpVerified = false;
     await user.save();
-    return res.status(200).json({ message: "Password reset successfully" });
+
+    // Authenticate and issue JWT so device gets immediately logged in
+    const token = await genToken(user._id);
+    setAuthCookie(res, token);
+    const enrichedUser = await populateUserTransferableData(user);
+
+    return res.status(200).json({
+      success: true,
+      message: "Password set successfully! Logged in.",
+      user: enrichedUser,
+      token
+    });
   } catch (error) {
     console.error("RESET_PASSWORD_ERROR:", error.message);
     return res.status(500).json({ message: "Internal Server Error" });
@@ -151,7 +179,9 @@ export const googleAuth = async (req, res) => {
     const result = await handleGoogleAuth({ idToken, mobile, deviceFingerprint, ip });
 
     setAuthCookie(res, result.token);
-    return res.status(200).json(result.user);
+    const enrichedUser = await populateUserTransferableData(result.user);
+    if (!enrichedUser.token) enrichedUser.token = result.token;
+    return res.status(200).json(enrichedUser);
   } catch (error) {
     console.error("GOOGLE_AUTH_ERROR:", error.message);
     return res.status(error.statusCode || 500).json({ message: error.message || "Google Authentication failed" });
@@ -177,7 +207,9 @@ export const phoneAuth = async (req, res) => {
     });
 
     setAuthCookie(res, result.token);
-    return res.status(200).json(result.user);
+    const enrichedUser = await populateUserTransferableData(result.user);
+    if (!enrichedUser.token) enrichedUser.token = result.token;
+    return res.status(200).json(enrichedUser);
   } catch (error) {
     console.error("PHONE_AUTH_ERROR:", error.message);
     return res.status(error.statusCode || 500).json({ message: error.message || "Phone Authentication failed" });

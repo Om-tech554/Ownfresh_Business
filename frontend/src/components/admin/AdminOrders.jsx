@@ -1036,7 +1036,11 @@ const AdminOrders = () => {
                 <div class="info-grid">
                     <div class="info-box">
                         <div class="info-box-label">Order Status</div>
-                        <div class="info-box-value">${(order.status || 'pending').charAt(0).toUpperCase() + (order.status || 'pending').slice(1)}</div>
+                        <div class="info-box-value">${
+                            (order.paymentStatus === 'completed' && ['pending', 'processing'].includes(order.status))
+                                ? 'Confirmed (Paid Online)'
+                                : (order.status || 'pending').charAt(0).toUpperCase() + (order.status || 'pending').slice(1)
+                        }</div>
                     </div>
                     <div class="info-box">
                         <div class="info-box-label">Items in Order</div>
@@ -1085,17 +1089,28 @@ const AdminOrders = () => {
                         </tr>
                     </thead>
                     <tbody>
-                        ${order.items?.map((item, idx) => `
+                        ${order.items?.map((item, idx) => {
+                            const rawName = item.name || 'Product';
+                            const variantVal = item.variantName || item.selectedVariant || item.variant || '';
+                            const cleanTitle = variantVal 
+                                ? rawName.replace(/\b(\d+(?:\.\d+)?)\s*(ml|millilitre|milliliter|l|litre|liter|ltr|kg|gm|g)\b/gi, '').replace(/\s{2,}/g, ' ').replace(/\s+-\s+$/, '').trim() || rawName
+                                : rawName;
+                            return `
                             <tr>
                                 <td>
-                                    <div class="item-name">${item.name || 'Product'}</div>
+                                    <div class="item-name">${cleanTitle}</div>
                                 </td>
-                                <td><div class="item-variant">${item.variantName || item.selectedVariant || item.variant || '—'}</div></td>
+                                <td>
+                                    <div class="item-variant" style="font-weight:700;color:#15803d;background:#dcfce7;display:inline-block;padding:2px 8px;border-radius:4px;font-size:10px;">
+                                        ${variantVal || 'Standard'}
+                                    </div>
+                                </td>
                                 <td>₹${(item.price || 0).toLocaleString('en-IN')}</td>
                                 <td><strong>${item.quantity}</strong></td>
                                 <td>₹${((item.price || 0) * item.quantity).toLocaleString('en-IN')}</td>
                             </tr>
-                        `).join('')}
+                            `;
+                        }).join('')}
                     </tbody>
                 </table>
 

@@ -94,6 +94,44 @@ const userSchema = new mongoose.Schema({
         type: String,
         enum: ["GST", "Non-GST"],
         default: "Non-GST"
+    },
+    // Multi-device synchronized cart (OwnFresh cross-device cart transfer)
+    cart: [
+        {
+            _id: String,
+            productId: { type: mongoose.Schema.Types.Mixed },
+            variantId: { type: mongoose.Schema.Types.Mixed },
+            name: String,
+            variantName: String,
+            price: Number,
+            quantity: { type: Number, default: 1 },
+            image: String,
+            size: String
+        }
+    ],
+    // Saved primary shipping & delivery destination
+    deliveryAddress: {
+        fullName: String,
+        phone: String,
+        roomNumber: String,
+        areaName: String,
+        city: String,
+        state: String,
+        pincode: String,
+        country: { type: String, default: "India" },
+        text: String,
+        landmark: String,
+        latitude: Number,
+        longitude: Number
+    },
+    // Standard authenticated cookie consent audit
+    cookieConsent: {
+        accepted: { type: Boolean, default: false },
+        essential: { type: Boolean, default: true },
+        functional: { type: Boolean, default: true },
+        analytics: { type: Boolean, default: false },
+        consentDate: { type: Date, default: null },
+        ip: { type: String, default: "" }
     }
 }, { timestamps: true });
 

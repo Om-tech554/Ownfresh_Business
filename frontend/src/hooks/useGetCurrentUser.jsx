@@ -32,6 +32,9 @@ function useGetCurrentUser() {
         );
 
         if (result.data) {
+          if (result.data.token) {
+            localStorage.setItem("oil_token", result.data.token);
+          }
           dispatch(setUserData(result.data));
         }
       } catch (error) {

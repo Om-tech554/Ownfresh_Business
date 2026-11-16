@@ -12,6 +12,7 @@ import AdminRoute from "./components/AdminRoute";
 import Footer from './components/Footer';
 import FloatingContact from './components/FloatingContact';
 import MobileBottomNav from './components/MobileBottomNav';
+import CookieConsentBanner from './components/CookieConsentBanner';
 import AOS from 'aos';
 import 'aos/dist/aos.css';
 
@@ -272,6 +273,9 @@ const App = () => {
         !location.pathname.startsWith("/blogs") &&
         !(location.pathname === "/" && (userData?.role === "admin" || userData?.role === "blogger")) &&
         <FloatingContact />}
+
+      {/* ✅ Standard DPDPA 2023 / GDPR Cookie Privacy System */}
+      <CookieConsentBanner />
 
       {/* ✅ Native Mobile Bottom Navigation Bar (iOS / Android) */}
       <MobileBottomNav />

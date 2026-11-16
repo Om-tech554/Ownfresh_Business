@@ -1,6 +1,6 @@
 import nodemailer from "nodemailer";
 import dotenv from "dotenv";
-import { generateInvoicePdf } from "./pdfGenerator.js";
+import { generateInvoicePdf, cleanProductTitle } from "./pdfGenerator.js";
 
 dotenv.config();
 
@@ -181,7 +181,7 @@ export const sendOrderConfirmationMail = async (order) => {
           ` : ''}
           <td style="vertical-align: top;">
             <div style="font-size: 14px; font-weight: 700; color: #111827; line-height: 1.35; margin-bottom: 4px;">
-              ${item.name}
+              ${cleanProductTitle(item.name, item.variantName)}
             </div>
             ${item.variantName ? `
             <div style="margin-bottom: 4px;">
@@ -460,7 +460,7 @@ export const sendAdminOrderNotificationMail = async (order) => {
           ` : ''}
           <td style="vertical-align: top;">
             <div style="font-size: 14px; font-weight: 700; color: #111827; line-height: 1.35; margin-bottom: 4px;">
-              ${item.name}
+              ${cleanProductTitle(item.name, item.variantName)}
             </div>
             ${item.variantName ? `
             <div style="margin-bottom: 4px;">

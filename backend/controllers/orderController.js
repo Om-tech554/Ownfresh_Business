@@ -1,3 +1,16 @@
+const cleanProductDisplayName = (name, variantName) => {
+  if (!name) return "";
+  let clean = name.replace(/\s+/g, " ").trim();
+  if (variantName) {
+    clean = clean
+      .replace(/\b(\d+(?:\.\d+)?)\s*(ml|millilitre|milliliter|l|litre|liter|ltr|kg|gm|g)\b/gi, "")
+      .replace(/\s{2,}/g, " ")
+      .replace(/\s+-\s+$/, "")
+      .trim();
+  }
+  return clean || name;
+};
+
 import mongoose from "mongoose";
 import Order from "../models/ordermodel.js";
 import User from "../models/usermodel.js";

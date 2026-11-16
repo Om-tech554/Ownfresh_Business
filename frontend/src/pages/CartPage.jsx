@@ -290,13 +290,27 @@ const CartPage = () => {
 
   const handleApplyCoupon = useCallback(async (code) => {
     try {
+      const token = localStorage.getItem("oil_token");
+      const rawUser = localStorage.getItem("oil_user");
+      let activeUser = user;
+      if (!activeUser && rawUser) {
+        try { activeUser = JSON.parse(rawUser); } catch (e) {}
+      }
+
+      const headers = {
+        ...(token ? { Authorization: `Bearer ${token}` } : {})
+      };
+
       const { data } = await axios.post(`${serverUrl}/api/coupon/validate`, {
         code,
         amount: subtotal,
         shippingCost: effectiveDeliveryCharge,
-        userId: user?._id || undefined,
-        email: user?.email || undefined
-      }, { withCredentials: true });
+        userId: activeUser?._id || undefined,
+        email: activeUser?.email || undefined
+      }, { 
+        headers,
+        withCredentials: true 
+      });
 
       if (data.success) {
         const eliminateDeliv = Boolean(data.eliminateDeliveryCharge);

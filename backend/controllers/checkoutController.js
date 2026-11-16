@@ -1,3 +1,16 @@
+const cleanProductDisplayName = (name, variantName) => {
+  if (!name) return "";
+  let clean = name.replace(/\s+/g, " ").trim();
+  if (variantName) {
+    clean = clean
+      .replace(/\b(\d+(?:\.\d+)?)\s*(ml|millilitre|milliliter|l|litre|liter|ltr|kg|gm|g)\b/gi, "")
+      .replace(/\s{2,}/g, " ")
+      .replace(/\s+-\s+$/, "")
+      .trim();
+  }
+  return clean || name;
+};
+
 import mongoose from "mongoose";
 import Order from "../models/ordermodel.js";
 import User from "../models/usermodel.js";
@@ -183,7 +196,7 @@ export const createOrder = async (req, res) => {
       validatedItems.push({
         productId: pId && mongoose.Types.ObjectId.isValid(pId) ? pId : null,
         variantId: vId && mongoose.Types.ObjectId.isValid(vId) ? vId : null,
-        name,
+        name: cleanProductDisplayName(name, variantName),
         variantName,
         price,
         quantity: qty,
@@ -252,9 +265,18 @@ export const createOrder = async (req, res) => {
               return res.status(400).json({ msg: "This offer is only valid for your first order" });
             }
           }
-        } else if (coupon.applicableUsers === "SELECTED_USERS") {
+        } else if (coupon.applicableUsers === "SELECTED_USERS" || coupon.isSpecialCoupon || coupon.applicableUsers === "SPECIAL_MEMBER") {
+          const dbEmail = (user?.email || "").toLowerCase().trim();
+          const cleanEmail = (deliveryAddress?.email || req.body?.email || dbEmail || "").toLowerCase().trim();
+
+          // Ensure customer is shopping from the registered account email
+          if (cleanEmail && dbEmail && cleanEmail !== dbEmail) {
+            return res.status(400).json({ 
+              msg: `This special promo code is exclusively reserved for purchases made with your registered email (${dbEmail}).` 
+            });
+          }
+
           let isEligible = false;
-          const cleanEmail = (deliveryAddress?.email || user?.email || req.body?.email || "").toLowerCase().trim();
 
           // 1. Check by targetUserId in selectedUsersList
           if (targetUserId && Array.isArray(coupon.selectedUsersList)) {
@@ -263,22 +285,31 @@ export const createOrder = async (req, res) => {
             }
           }
 
-          // 2. Check by user DB email
-          if (!isEligible && user?.email && Array.isArray(coupon.selectedEmailsList)) {
-            if (coupon.selectedEmailsList.includes(user.email.toLowerCase().trim())) {
+          // 2. Check by registered user's DB email
+          if (!isEligible && dbEmail && Array.isArray(coupon.selectedEmailsList)) {
+            if (coupon.selectedEmailsList.includes(dbEmail)) {
               isEligible = true;
             }
           }
 
-          // 3. Check by deliveryAddress.email
-          if (!isEligible && cleanEmail && Array.isArray(coupon.selectedEmailsList)) {
-            if (coupon.selectedEmailsList.includes(cleanEmail)) {
+          // 3. Check if any selected user in DB shares this email
+          if (!isEligible && dbEmail && Array.isArray(coupon.selectedUsersList) && coupon.selectedUsersList.length > 0) {
+            const userWithEmail = await User.findOne({ email: dbEmail }).select("_id").lean();
+            if (userWithEmail && coupon.selectedUsersList.some(id => id.toString() === userWithEmail._id.toString())) {
+              isEligible = true;
+            }
+          }
+
+          // 4. For SPECIAL_MEMBER coupons without explicit user list, any logged-in verified member is eligible
+          if (!isEligible && (coupon.applicableUsers === "SPECIAL_MEMBER" || coupon.isSpecialCoupon)) {
+            if ((!coupon.selectedUsersList || coupon.selectedUsersList.length === 0) &&
+                (!coupon.selectedEmailsList || coupon.selectedEmailsList.length === 0)) {
               isEligible = true;
             }
           }
 
           if (!isEligible) {
-            return res.status(400).json({ msg: "This exclusive promo code is only valid for selected accounts / email addresses." });
+            return res.status(400).json({ msg: `This exclusive promo code is only valid for selected accounts. Your account (${dbEmail}) is not eligible.` });
           }
         }
 

@@ -196,6 +196,17 @@ const Footer = () => {
                 <span className="absolute left-0 -bottom-1 h-[2px] w-0 bg-black dark:bg-[#FFD600] transition-all duration-300 group-hover:w-full"></span>
               </SLink>
             </li>
+            <li>
+              <button
+                type="button"
+                onClick={() => window.dispatchEvent(new CustomEvent("open-cookie-settings"))}
+                className="group relative inline-flex items-center gap-1.5 transition-all duration-300 hover:text-black dark:text-[#AEB8C5] dark:hover:text-[#FFD600] text-left text-sm"
+              >
+                <span>Cookie Preferences</span>
+                <span className="text-[10px] px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-mono">DPDPA</span>
+                <span className="absolute left-0 -bottom-1 h-[2px] w-0 bg-black dark:bg-[#FFD600] transition-all duration-300 group-hover:w-full"></span>
+              </button>
+            </li>
           </ul>
         </div>
 

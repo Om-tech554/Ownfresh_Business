@@ -26,6 +26,7 @@ const isAuth = async (req, res, next) => {
 
     req.user = user;
     req.userId = user._id;
+    req.token = token;
     next();
   } catch (error) {
     console.error("isAuth verification error:", error?.message || error);

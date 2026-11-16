@@ -69,13 +69,36 @@ const ShippingForm = () => {
   const initialCode = getInitialCountryCode(shippingDetails.phone);
   const [countryCode, setCountryCode] = useState(initialCode);
 
-  const { register, handleSubmit, formState: { errors }, setValue, watch } = useForm({
+  const { register, handleSubmit, formState: { errors }, setValue, watch, reset } = useForm({
     resolver: zodResolver(schema),
     defaultValues: {
       ...shippingDetails,
       phone: shippingDetails.phone ? shippingDetails.phone.replace(initialCode, "") : ""
     },
   });
+
+  // Automatically populate & pre-fill all form inputs when transferable data is loaded
+  useEffect(() => {
+    if (shippingDetails && (shippingDetails.phone || shippingDetails.address || shippingDetails.city || shippingDetails.fullName || shippingDetails.email)) {
+      const code = getInitialCountryCode(shippingDetails.phone);
+      setCountryCode(code);
+      reset({
+        fullName: shippingDetails.fullName || "",
+        companyName: shippingDetails.companyName || "",
+        email: shippingDetails.email || "",
+        phone: shippingDetails.phone ? shippingDetails.phone.replace(code, "") : "",
+        country: shippingDetails.country || "India",
+        state: shippingDetails.state || "",
+        city: shippingDetails.city || "",
+        zipCode: shippingDetails.zipCode || "",
+        flatNo: shippingDetails.flatNo || "",
+        address: shippingDetails.address || "",
+        landmark: shippingDetails.landmark || "",
+      });
+      if (shippingDetails.latitude) setLat(shippingDetails.latitude);
+      if (shippingDetails.longitude) setLon(shippingDetails.longitude);
+    }
+  }, [shippingDetails, reset]);
 
   const watchAddress = watch('address');
   const watchState = watch('state');
