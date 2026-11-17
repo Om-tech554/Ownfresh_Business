@@ -56,6 +56,40 @@ function stripHtml(html = "") {
     .trim();
 }
 
+export function getMatchingVariantForProduct(product, variants = []) {
+  if (!variants || variants.length === 0) return null;
+  const nameLower = (product?.name || "").toLowerCase();
+
+  let matched = null;
+  if (nameLower.includes("15 l") || nameLower.includes("15l") || nameLower.includes("15-l") || nameLower.includes("15 liter") || nameLower.includes("15 litre")) {
+    matched = variants.find(v => {
+      const n = (v.name || "").toLowerCase();
+      return n.includes("15 l") || n.includes("15l") || n.includes("15 liter") || n.includes("15 litre");
+    });
+  } else if (nameLower.includes("5 l") || nameLower.includes("5l") || nameLower.includes("5-l") || nameLower.includes("5 liter") || nameLower.includes("5 litre")) {
+    matched = variants.find(v => {
+      const n = (v.name || "").toLowerCase();
+      return (n.includes("5 l") || n.includes("5l") || n.includes("5 liter") || n.includes("5 litre")) && !n.includes("15");
+    });
+  } else if (nameLower.includes("2 l") || nameLower.includes("2l") || nameLower.includes("2-l") || nameLower.includes("2 liter") || nameLower.includes("2 litre")) {
+    matched = variants.find(v => {
+      const n = (v.name || "").toLowerCase();
+      return n.includes("2 l") || n.includes("2l") || n.includes("2 liter") || n.includes("2 litre");
+    });
+  } else if (nameLower.includes("1 l") || nameLower.includes("1l") || nameLower.includes("1-l") || nameLower.includes("1 liter") || nameLower.includes("1 litre")) {
+    matched = variants.find(v => {
+      const n = (v.name || "").toLowerCase();
+      return (n.includes("1 l") || n.includes("1l") || n.includes("1 liter") || n.includes("1 litre")) && !n.includes("15");
+    });
+  } else if (nameLower.includes("500")) {
+    matched = variants.find(v => (v.name || "").toLowerCase().includes("500"));
+  } else if (nameLower.includes("250")) {
+    matched = variants.find(v => (v.name || "").toLowerCase().includes("250"));
+  }
+
+  return matched || variants[0];
+}
+
 // -------------------------------------------------------------
 // STATIC PAGES & CATEGORIES SEO KNOWLEDGE BASE
 // -------------------------------------------------------------
@@ -379,7 +413,7 @@ export async function resolvePageSEO(reqPath) {
       const isGlobalOOS = globalOOSSetting?.value === "true";
 
       const variants = await ProductVariant.find({ product: product._id, status: "Active" }).sort({ price: 1 }).lean();
-      const defaultVariant = variants[0] || null;
+      const defaultVariant = getMatchingVariantForProduct(product, variants);
       const finalPrice = defaultVariant ? (defaultVariant.sellingPrice || defaultVariant.salePrice || defaultVariant.price) : 565;
       const inStock = !isGlobalOOS && (defaultVariant ? (defaultVariant.stockQuantity > 0) : true);
       const canonicalSlug = product.slug || String(product._id);
@@ -404,7 +438,7 @@ export async function resolvePageSEO(reqPath) {
         "name": product.name,
         "image": [product.image],
         "description": cleanDesc,
-        "sku": product.sku || `OF-${canonicalSlug.slice(0, 8).toUpperCase()}`,
+        "sku": defaultVariant?.sku || product.sku || `OF-${canonicalSlug.slice(0, 8).toUpperCase()}`,
         "brand": {
           "@type": "Brand",
           "name": "OwnFresh"
@@ -419,11 +453,20 @@ export async function resolvePageSEO(reqPath) {
           "url": canonicalUrl,
           "priceCurrency": "INR",
           "price": finalPrice,
+          "priceValidUntil": "2027-12-31",
           "itemCondition": "https://schema.org/NewCondition",
           "availability": inStock ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
           "seller": {
             "@type": "Organization",
             "name": "OwnFresh"
+          },
+          "hasMerchantReturnPolicy": {
+            "@type": "MerchantReturnPolicy",
+            "applicableCountry": "IN",
+            "returnPolicyCategory": "https://schema.org/MerchantReturnFiniteReturnWindow",
+            "merchantReturnDays": 7,
+            "returnMethod": "https://schema.org/ReturnByMail",
+            "returnFees": "https://schema.org/FreeReturn"
           },
           "shippingDetails": {
             "@type": "OfferShippingDetails",
@@ -435,6 +478,21 @@ export async function resolvePageSEO(reqPath) {
             "shippingDestination": {
               "@type": "DefinedRegion",
               "addressCountry": "IN"
+            },
+            "deliveryTime": {
+              "@type": "ShippingDeliveryTime",
+              "handlingTime": {
+                "@type": "QuantitativeValue",
+                "minValue": 0,
+                "maxValue": 1,
+                "unitCode": "DAY"
+              },
+              "transitTime": {
+                "@type": "QuantitativeValue",
+                "minValue": 2,
+                "maxValue": 5,
+                "unitCode": "DAY"
+              }
             }
           }
         }

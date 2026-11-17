@@ -7,6 +7,7 @@ import Category from "../models/categoryModel.js";
 import Tag from "../models/tagModel.js";
 import Settings from "../models/settingsModel.js";
 import { generateProductContent } from "../services/ai/articleAiService.js";
+import { getMatchingVariantForProduct } from "../utils/seoPrerender.js";
 
 const router = express.Router();
 
@@ -243,8 +244,9 @@ router.get("/all", async (req, res) => {
           v.isOutOfStock = true;
         }
       });
-      // Assign default price
-      p.price = p.variants.length > 0 ? (p.variants[0].salePrice || p.variants[0].price) : (p.price || 0);
+      // Assign default price matching the specific product bottle size
+      const matchedVar = getMatchingVariantForProduct(p, p.variants);
+      p.price = matchedVar ? (matchedVar.sellingPrice || matchedVar.salePrice || matchedVar.price) : (p.price || 0);
       if (isGlobalOOS) {
         p.isOutOfStock = true;
         p.globalOutOfStock = true;
@@ -328,7 +330,8 @@ router.get("/:id", async (req, res) => {
       }
     });
     product.variants = variants;
-    product.price = variants.length > 0 ? (variants[0].salePrice || variants[0].price) : (product.price || 0);
+    const matchedVar = getMatchingVariantForProduct(product, variants);
+    product.price = matchedVar ? (matchedVar.sellingPrice || matchedVar.salePrice || matchedVar.price) : (product.price || 0);
     if (isGlobalOOS) {
       product.isOutOfStock = true;
       product.globalOutOfStock = true;

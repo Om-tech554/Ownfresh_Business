@@ -569,7 +569,7 @@ const ProductDetails = () => {
   const productSchema = useMemo(() => {
     if (!product) return null;
     const isGlobalOOS = product.isOutOfStock || product.globalOutOfStock;
-    const finalPrice = selectedVariant ? (selectedVariant.salePrice || selectedVariant.price) : (product.price || 0);
+    const finalPrice = currentPrice;
     const inStock = !isGlobalOOS && (selectedVariant ? (selectedVariant.stockQuantity > 0) : ((product.stock || 1) > 0));
 
     return {
@@ -586,36 +586,58 @@ const ProductDetails = () => {
             "@type": "Brand",
             "name": "OwnFresh"
           },
-          "category": "Food & Beverage > Cooking Oils > Stone Pressed Oils",
-          "aggregateRating": {
-            "@type": "AggregateRating",
-            "ratingValue": "4.9",
-            "reviewCount": "184",
-            "bestRating": "5",
-            "worstRating": "1"
+          "manufacturer": {
+            "@type": "Organization",
+            "name": "OWNFRESH AGRO INDUSTRIES"
           },
-          "review": [
-            {
-              "@type": "Review",
-              "reviewRating": {
-                "@type": "Rating",
-                "ratingValue": "5",
-                "bestRating": "5"
-              },
-              "author": {
-                "@type": "Person",
-                "name": "Verified OwnFresh Customer"
-              },
-              "reviewBody": "Authentic stone-pressed aroma and purity. Natural, unheated oil with superb quality."
-            }
-          ],
+          "category": "Food & Beverage > Cooking Oils > Stone Pressed Oils",
           "offers": {
             "@type": "Offer",
             "priceCurrency": "INR",
             "price": finalPrice,
+            "priceValidUntil": "2027-12-31",
             "availability": inStock ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
             "url": `https://www.myownfresh.com/product/${product.slug || product._id}`,
-            "itemCondition": "https://schema.org/NewCondition"
+            "itemCondition": "https://schema.org/NewCondition",
+            "seller": {
+              "@type": "Organization",
+              "name": "OwnFresh"
+            },
+            "hasMerchantReturnPolicy": {
+              "@type": "MerchantReturnPolicy",
+              "applicableCountry": "IN",
+              "returnPolicyCategory": "https://schema.org/MerchantReturnFiniteReturnWindow",
+              "merchantReturnDays": 7,
+              "returnMethod": "https://schema.org/ReturnByMail",
+              "returnFees": "https://schema.org/FreeReturn"
+            },
+            "shippingDetails": {
+              "@type": "OfferShippingDetails",
+              "shippingRate": {
+                "@type": "MonetaryAmount",
+                "value": "0",
+                "currency": "INR"
+              },
+              "shippingDestination": {
+                "@type": "DefinedRegion",
+                "addressCountry": "IN"
+              },
+              "deliveryTime": {
+                "@type": "ShippingDeliveryTime",
+                "handlingTime": {
+                  "@type": "QuantitativeValue",
+                  "minValue": 0,
+                  "maxValue": 1,
+                  "unitCode": "DAY"
+                },
+                "transitTime": {
+                  "@type": "QuantitativeValue",
+                  "minValue": 2,
+                  "maxValue": 5,
+                  "unitCode": "DAY"
+                }
+              }
+            }
           }
         },
         {

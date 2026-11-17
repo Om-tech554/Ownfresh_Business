@@ -29,6 +29,40 @@ function stripHtml(html = "") {
     .trim();
 }
 
+function getMatchingVariantForProduct(product, variants = []) {
+  if (!variants || variants.length === 0) return null;
+  const nameLower = (product?.name || "").toLowerCase();
+
+  let matched = null;
+  if (nameLower.includes("15 l") || nameLower.includes("15l") || nameLower.includes("15-l") || nameLower.includes("15 liter") || nameLower.includes("15 litre")) {
+    matched = variants.find(v => {
+      const n = (v.name || "").toLowerCase();
+      return n.includes("15 l") || n.includes("15l") || n.includes("15 liter") || n.includes("15 litre");
+    });
+  } else if (nameLower.includes("5 l") || nameLower.includes("5l") || nameLower.includes("5-l") || nameLower.includes("5 liter") || nameLower.includes("5 litre")) {
+    matched = variants.find(v => {
+      const n = (v.name || "").toLowerCase();
+      return (n.includes("5 l") || n.includes("5l") || n.includes("5 liter") || n.includes("5 litre")) && !n.includes("15");
+    });
+  } else if (nameLower.includes("2 l") || nameLower.includes("2l") || nameLower.includes("2-l") || nameLower.includes("2 liter") || nameLower.includes("2 litre")) {
+    matched = variants.find(v => {
+      const n = (v.name || "").toLowerCase();
+      return n.includes("2 l") || n.includes("2l") || n.includes("2 liter") || n.includes("2 litre");
+    });
+  } else if (nameLower.includes("1 l") || nameLower.includes("1l") || nameLower.includes("1-l") || nameLower.includes("1 liter") || nameLower.includes("1 litre")) {
+    matched = variants.find(v => {
+      const n = (v.name || "").toLowerCase();
+      return (n.includes("1 l") || n.includes("1l") || n.includes("1 liter") || n.includes("1 litre")) && !n.includes("15");
+    });
+  } else if (nameLower.includes("500")) {
+    matched = variants.find(v => (v.name || "").toLowerCase().includes("500"));
+  } else if (nameLower.includes("250")) {
+    matched = variants.find(v => (v.name || "").toLowerCase().includes("250"));
+  }
+
+  return matched || variants[0];
+}
+
 // Global Knowledge Graph Entities
 const ORGANIZATION_ENTITY = {
   "@type": "Organization",
@@ -837,7 +871,9 @@ async function runPrerender() {
       const cleanDesc = stripHtml(p.shortDesc || p.description || p.name).slice(0, 160);
       const cleanTitle = `${p.name} | Granite Churned | OwnFresh`;
       const canonicalUrl = `${BASE_URL}/product/${slug}`;
-      const price = p.price || (p.variants && p.variants[0] && p.variants[0].price) || 565;
+      const matchedVariant = getMatchingVariantForProduct(p, p.variants);
+      const price = matchedVariant ? (matchedVariant.sellingPrice || matchedVariant.salePrice || matchedVariant.price) : (p.price || 565);
+      const sku = matchedVariant?.sku || p.sku || `OF-${String(slug).slice(0, 8).toUpperCase()}`;
 
       const productSchema = {
         "@context": "https://schema.org",
@@ -856,39 +892,54 @@ async function runPrerender() {
             "name": p.name,
             "image": [p.image],
             "description": cleanDesc,
-            "sku": p.sku || `OF-${String(slug).slice(0, 8).toUpperCase()}`,
+            "sku": sku,
             "brand": { "@type": "Brand", "name": "OwnFresh" },
+            "manufacturer": { "@type": "Organization", "name": "OWNFRESH AGRO INDUSTRIES" },
             "category": "Food & Beverage > Cooking Oils > Stone Pressed Oils",
-            "aggregateRating": {
-              "@type": "AggregateRating",
-              "ratingValue": "4.9",
-              "reviewCount": "184",
-              "bestRating": "5",
-              "worstRating": "1"
-            },
-            "review": [
-              {
-                "@type": "Review",
-                "reviewRating": {
-                  "@type": "Rating",
-                  "ratingValue": "5",
-                  "bestRating": "5"
-                },
-                "author": {
-                  "@type": "Person",
-                  "name": "Verified OwnFresh Customer"
-                },
-                "reviewBody": "Authentic stone-pressed aroma and purity. Natural, unheated oil with superb quality."
-              }
-            ],
             "offers": {
               "@type": "Offer",
               "url": canonicalUrl,
               "priceCurrency": "INR",
               "price": price,
+              "priceValidUntil": "2027-12-31",
               "itemCondition": "https://schema.org/NewCondition",
               "availability": "https://schema.org/InStock",
-              "seller": { "@type": "Organization", "name": "OwnFresh" }
+              "seller": { "@type": "Organization", "name": "OwnFresh" },
+              "hasMerchantReturnPolicy": {
+                "@type": "MerchantReturnPolicy",
+                "applicableCountry": "IN",
+                "returnPolicyCategory": "https://schema.org/MerchantReturnFiniteReturnWindow",
+                "merchantReturnDays": 7,
+                "returnMethod": "https://schema.org/ReturnByMail",
+                "returnFees": "https://schema.org/FreeReturn"
+              },
+              "shippingDetails": {
+                "@type": "OfferShippingDetails",
+                "shippingRate": {
+                  "@type": "MonetaryAmount",
+                  "value": "0",
+                  "currency": "INR"
+                },
+                "shippingDestination": {
+                  "@type": "DefinedRegion",
+                  "addressCountry": "IN"
+                },
+                "deliveryTime": {
+                  "@type": "ShippingDeliveryTime",
+                  "handlingTime": {
+                    "@type": "QuantitativeValue",
+                    "minValue": 0,
+                    "maxValue": 1,
+                    "unitCode": "DAY"
+                  },
+                  "transitTime": {
+                    "@type": "QuantitativeValue",
+                    "minValue": 2,
+                    "maxValue": 5,
+                    "unitCode": "DAY"
+                  }
+                }
+              }
             }
           }
         ]
