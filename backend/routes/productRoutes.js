@@ -5,6 +5,7 @@ import Product from "../models/productModel.js";
 import ProductVariant from "../models/productVariantModel.js";
 import Category from "../models/categoryModel.js";
 import Tag from "../models/tagModel.js";
+import Settings from "../models/settingsModel.js";
 import { generateProductContent } from "../services/ai/articleAiService.js";
 
 const router = express.Router();
@@ -227,20 +228,33 @@ router.get("/all", async (req, res) => {
     const productIds = products.map(p => p._id);
     const variants = await ProductVariant.find({ product: { $in: productIds } }).sort({ price: 1 }).lean();
     
+    // Check if global out of stock is active (SEO-safe toggle)
+    const globalOOSSetting = await Settings.findOne({ key: "global_out_of_stock" });
+    const isGlobalOOS = globalOOSSetting?.value === "true";
+
     products.forEach(p => {
       p.variants = variants.filter(v => v.product.toString() === p._id.toString());
       p.variants.forEach(v => {
         if (!v.image) {
           v.image = (v.images && v.images.length > 0 ? v.images[0] : p.image);
         }
+        if (isGlobalOOS) {
+          v.stockQuantity = 0;
+          v.isOutOfStock = true;
+        }
       });
       // Assign default price
       p.price = p.variants.length > 0 ? (p.variants[0].salePrice || p.variants[0].price) : (p.price || 0);
+      if (isGlobalOOS) {
+        p.isOutOfStock = true;
+        p.globalOutOfStock = true;
+      }
     });
 
     res.json({
       success: true,
       products,
+      isGlobalOOS,
       totalPages: Math.ceil(count / limitNum) || 1,
       currentPage: pageNum,
       totalProducts: count
@@ -299,16 +313,28 @@ router.get("/:id", async (req, res) => {
       });
     }
 
+    // Check if global out of stock is active (SEO-safe toggle)
+    const globalOOSSetting = await Settings.findOne({ key: "global_out_of_stock" });
+    const isGlobalOOS = globalOOSSetting?.value === "true";
+
     const variants = await ProductVariant.find({ product: product._id }).sort({ price: 1 }).lean();
     variants.forEach(v => {
       if (!v.image) {
         v.image = (v.images && v.images.length > 0 ? v.images[0] : product.image);
       }
+      if (isGlobalOOS) {
+        v.stockQuantity = 0;
+        v.isOutOfStock = true;
+      }
     });
     product.variants = variants;
     product.price = variants.length > 0 ? (variants[0].salePrice || variants[0].price) : (product.price || 0);
+    if (isGlobalOOS) {
+      product.isOutOfStock = true;
+      product.globalOutOfStock = true;
+    }
 
-    res.json({ success: true, product });
+    res.json({ success: true, product, isGlobalOOS });
 
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });

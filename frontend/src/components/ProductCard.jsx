@@ -17,6 +17,13 @@ const ProductCard = ({ product, user, onAddToCart }) => {
     return product.variants?.filter((v) => v.status === "Active" && !v.name?.toLowerCase().includes("gift") && !v.name?.toLowerCase().includes("eco packaging")) || [];
   }, [product.variants]);
 
+  // Out of Stock detection (supports individual stock and SEO-Safe Global OOS)
+  const isOutOfStock = useMemo(() => {
+    if (product.isOutOfStock || product.globalOutOfStock) return true;
+    if (!activeVariants || activeVariants.length === 0) return true;
+    return activeVariants.every(v => v.stockQuantity !== undefined && v.stockQuantity <= 0);
+  }, [product.isOutOfStock, product.globalOutOfStock, activeVariants]);
+
   // Set initial selected variant
   const [selectedVariant, setSelectedVariant] = useState(null);
 
@@ -196,9 +203,9 @@ const ProductCard = ({ product, user, onAddToCart }) => {
         />
 
         {/* Out of Stock Overlay */}
-        {activeVariants.length === 0 && (
+        {isOutOfStock && (
           <div className="absolute inset-0 bg-white/80 dark:bg-[#0B0F14]/80 backdrop-blur-[2px] flex items-center justify-center z-10">
-            <span className="bg-red-50 dark:bg-rose-950/70 text-red-600 dark:text-[#FF5C6C] border border-red-200 dark:border-[#FF5C6C]/40 font-black uppercase text-[10px] sm:text-xs tracking-widest px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl">
+            <span className="bg-red-50 dark:bg-rose-950/70 text-red-600 dark:text-[#FF5C6C] border border-red-200 dark:border-[#FF5C6C]/40 font-black uppercase text-[10px] sm:text-xs tracking-widest px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl shadow-xs">
               Out Of Stock
             </span>
           </div>
@@ -281,14 +288,14 @@ const ProductCard = ({ product, user, onAddToCart }) => {
           {activeVariants.length > 0 && (
             <button
               onClick={handleCartClick}
-              disabled={isAdded || selectedVariant?.stockQuantity <= 0}
+              disabled={isAdded || isOutOfStock || selectedVariant?.stockQuantity <= 0}
               className={`p-1.5 xs:p-2 sm:p-3 rounded-lg xs:rounded-xl sm:rounded-2xl flex items-center justify-center transition-all duration-300 cursor-pointer shrink-0 ${isAdded
                 ? "bg-green-600 dark:bg-[#19C37D] text-white"
-                : selectedVariant?.stockQuantity <= 0
+                : (isOutOfStock || selectedVariant?.stockQuantity <= 0)
                   ? "bg-slate-100 dark:bg-[#1D2530] text-slate-400 dark:text-[#5E6875] cursor-not-allowed"
                   : "bg-slate-900 dark:bg-[#FFD600] text-white dark:text-[#111318] hover:bg-[#1E971D] dark:hover:bg-[#FFE45C] hover:text-white active:scale-95 shadow-sm hover:shadow-md"
                 }`}
-              title={selectedVariant?.stockQuantity <= 0 ? "Out of Stock" : "Add to Cart"}
+              title={isOutOfStock || selectedVariant?.stockQuantity <= 0 ? "Out of Stock" : "Add to Cart"}
             >
               <ShoppingCart className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             </button>

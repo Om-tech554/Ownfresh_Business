@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import toast from "react-hot-toast";
 import { useConfirm } from "../../hooks/ConfirmContext.jsx";
+import GlobalOOSControl from "./GlobalOOSControl";
 
 const ProductList = () => {
   const confirm = useConfirm();
@@ -101,7 +102,8 @@ const ProductList = () => {
             Manage oil products, bottle variations, and images
           </p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3">
+          <GlobalOOSControl compact onToggle={fetchProducts} />
           <div className="flex items-center gap-2 bg-white px-4 py-2.5 rounded-xl shadow-xs border border-slate-200 h-fit">
             <TrendingUp className="w-4 h-4 text-green-500" />
             <span className="text-xs font-bold text-slate-700">{totalProducts} Products</span>
@@ -115,6 +117,9 @@ const ProductList = () => {
           </button>
         </div>
       </div>
+
+      {/* Global Out-of-Stock Master Control (SEO Safe) */}
+      <GlobalOOSControl onToggle={fetchProducts} />
 
       {/* FILTER / SEARCH BAR */}
       <div className="max-w-7xl mb-8 p-4 bg-white rounded-2xl shadow-xs border border-slate-200 flex flex-col md:flex-row gap-4 items-center">

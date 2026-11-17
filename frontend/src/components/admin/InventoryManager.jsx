@@ -6,6 +6,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { useConfirm } from "../../hooks/ConfirmContext.jsx";
 import ImagePickerModal from "./ImagePickerModal";
 import MasterRateCard from "./MasterRateCard";
+import GlobalOOSControl from "./GlobalOOSControl";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:10000";
 
@@ -228,7 +229,8 @@ const InventoryManager = () => {
           </h2>
           <p className="text-slate-500 text-sm mt-1">Manage individual bottle size stock, prices, and photos.</p>
         </div>
-        <div className="flex gap-3">
+        <div className="flex flex-wrap items-center gap-3">
+          <GlobalOOSControl compact onToggle={fetchData} />
           <button
             onClick={() => setShowBulkModal(true)}
             className="px-4 py-2 bg-blue-50 text-blue-600 rounded-xl font-bold text-xs uppercase tracking-wider flex items-center gap-2 hover:bg-blue-100 transition-colors"
@@ -243,6 +245,9 @@ const InventoryManager = () => {
           </button>
         </div>
       </div>
+
+      {/* Global Out-of-Stock Master Control (SEO Safe) */}
+      <GlobalOOSControl onToggle={fetchData} />
 
       {/* Master Intelligent Rate Card Section */}
       <MasterRateCard onUpdated={fetchData} />

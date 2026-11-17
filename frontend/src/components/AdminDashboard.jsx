@@ -19,6 +19,7 @@ import ReviewManager from './admin/ReviewManager';
 import SupportTicketManager from './admin/SupportTicketManager';
 import TagManager from './admin/TagManager';
 import GoogleInsightsManager from './admin/GoogleInsightsManager';
+import GlobalOOSControl from './admin/GlobalOOSControl';
 
 
 function AdminDashboard() {
@@ -33,9 +34,10 @@ function AdminDashboard() {
     <div className="min-h-screen bg-slate-50 admin-panel">
       <Navbar />
 
-      {/* DASHBOARD TABS */}
+      {/* DASHBOARD TABS & MASTER CONTROLS */}
       <div className="max-w-7xl mx-auto pt-32 px-6">
-        <div className="bg-white p-1.5 rounded-2xl shadow-sm border border-slate-200 inline-flex items-center gap-1 overflow-x-auto max-w-full">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+          <div className="bg-white p-1.5 rounded-2xl shadow-sm border border-slate-200 inline-flex items-center gap-1 overflow-x-auto max-w-full">
           {userData?.role === "admin" && (
             <>
               <button
@@ -242,7 +244,14 @@ function AdminDashboard() {
             </>
           )}
         </div>
+
+        {userData?.role === "admin" && (
+          <div className="shrink-0">
+            <GlobalOOSControl compact />
+          </div>
+        )}
       </div>
+    </div>
 
       <div className="mt-6">
         {activeTab === "dashboard" && userData?.role === "admin" && <BusinessIntelligenceDashboard />}

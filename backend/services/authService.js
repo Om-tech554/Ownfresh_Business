@@ -264,8 +264,13 @@ export const handleSignIn = async ({ email, password, deviceFingerprint, ip }) =
     throw new Error("Email and password are required");
   }
 
-  const normalizedEmail = email.toLowerCase().trim();
-  const user = await User.findOne({ email: normalizedEmail });
+  const identifier = email.toLowerCase().trim();
+  const user = await User.findOne({
+    $or: [
+      { email: identifier },
+      { userName: identifier }
+    ]
+  });
 
   if (!user) {
     const err = new Error("User does not exist. Please sign up.");
@@ -273,7 +278,7 @@ export const handleSignIn = async ({ email, password, deviceFingerprint, ip }) =
     throw err;
   }
 
-  if (user.email.endsWith("@myownfresh.com") && !user.isOtpVerified) {
+  if (user.role !== "admin" && user.email.endsWith("@myownfresh.com") && !user.isOtpVerified) {
     const err = new Error("Email verification is pending. Please verify your email.");
     err.statusCode = 400;
     throw err;

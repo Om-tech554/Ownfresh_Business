@@ -7,6 +7,7 @@ import "../models/productVariantModel.js";
 import "../models/categoryModel.js";
 import "../models/reviewModel.js";
 import "../models/blogModel.js";
+import "../models/settingsModel.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -373,10 +374,14 @@ export async function resolvePageSEO(reqPath) {
         };
       }
 
+      const Settings = mongoose.models.Settings || mongoose.model("Settings");
+      const globalOOSSetting = await Settings.findOne({ key: "global_out_of_stock" }).lean();
+      const isGlobalOOS = globalOOSSetting?.value === "true";
+
       const variants = await ProductVariant.find({ product: product._id, status: "Active" }).sort({ price: 1 }).lean();
       const defaultVariant = variants[0] || null;
       const finalPrice = defaultVariant ? (defaultVariant.sellingPrice || defaultVariant.salePrice || defaultVariant.price) : 565;
-      const inStock = defaultVariant ? (defaultVariant.stockQuantity > 0) : true;
+      const inStock = !isGlobalOOS && (defaultVariant ? (defaultVariant.stockQuantity > 0) : true);
       const canonicalSlug = product.slug || String(product._id);
       const canonicalUrl = `${BASE_URL}/product/${canonicalSlug}`;
 

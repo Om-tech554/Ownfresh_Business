@@ -13,6 +13,10 @@ router.get(["/google-merchant.xml", "/google-shopping.xml"], async (req, res) =>
     const merchantFeedBaseUrl = process.env.CANONICAL_DOMAIN || "https://www.myownfresh.com";
     const Product = mongoose.models.Product || mongoose.model("Product");
     const ProductVariant = mongoose.models.ProductVariant || mongoose.model("ProductVariant");
+    const Settings = mongoose.models.Settings || mongoose.model("Settings");
+
+    const globalOOSSetting = await Settings.findOne({ key: "global_out_of_stock" }).lean();
+    const isGlobalOOS = globalOOSSetting?.value === "true";
 
     // Fetch all active products populated with category
     const products = await Product.find({ status: { $ne: "Inactive" } })
@@ -63,7 +67,7 @@ router.get(["/google-merchant.xml", "/google-shopping.xml"], async (req, res) =>
         for (const variant of activeVariants) {
           const varPrice = Number(variant.salePrice || variant.price || prod.price || 0).toFixed(2);
           const varImage = escapeXml(variant.image || (variant.images && variant.images[0]) || prod.image || "https://res.cloudinary.com/dkhq2wlwg/image/upload/v1774962822/ownfresh_media/ndxvmcpisomjzsghrfjs.png");
-          const inStock = (variant.stockQuantity === undefined || variant.stockQuantity > 0);
+          const inStock = !isGlobalOOS && (variant.stockQuantity === undefined || variant.stockQuantity > 0);
           const availability = inStock ? "in_stock" : "out_of_stock";
           const shippingWeight = variant.shippingWeight ? `${variant.shippingWeight} kg` : "1 kg";
           const rawTitle = `${prod.name} - ${variant.name || 'Standard'}`;
@@ -95,7 +99,7 @@ router.get(["/google-merchant.xml", "/google-shopping.xml"], async (req, res) =>
       } else {
         const prodPrice = Number(prod.price || 0).toFixed(2);
         const prodImage = escapeXml(prod.image || "https://res.cloudinary.com/dkhq2wlwg/image/upload/v1774962822/ownfresh_media/ndxvmcpisomjzsghrfjs.png");
-        const inStock = (prod.stock === undefined || prod.stock > 0);
+        const inStock = !isGlobalOOS && (prod.stock === undefined || prod.stock > 0);
         const availability = inStock ? "in_stock" : "out_of_stock";
         const rawTitle = prod.name || "Stone Pressed Oil";
         const title = escapeXml(cleanBranding(rawTitle));

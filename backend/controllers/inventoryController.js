@@ -2,6 +2,8 @@ import ProductVariant from "../models/productVariantModel.js";
 import PriceHistory from "../models/priceHistoryModel.js";
 import Product from "../models/productModel.js";
 import Category from "../models/categoryModel.js";
+import Settings from "../models/settingsModel.js";
+import AuditLog from "../models/auditLogModel.js";
 
 // Add a variant
 export const addVariant = async (req, res) => {
@@ -386,6 +388,56 @@ export const updateMasterRates = async (req, res) => {
     });
   } catch (error) {
     console.error("updateMasterRates error:", error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// Get Global Out Of Stock status
+export const getGlobalOOSStatus = async (req, res) => {
+  try {
+    const setting = await Settings.findOne({ key: "global_out_of_stock" });
+    const isGlobalOOS = setting?.value === "true";
+    res.status(200).json({ success: true, isGlobalOOS });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// Toggle Global Out Of Stock (Admin Only)
+export const toggleGlobalOOS = async (req, res) => {
+  try {
+    const { enabled } = req.body;
+    const isOOS = Boolean(enabled);
+    const value = isOOS ? "true" : "false";
+
+    let setting = await Settings.findOne({ key: "global_out_of_stock" });
+    if (setting) {
+      setting.value = value;
+      await setting.save();
+    } else {
+      setting = new Settings({ key: "global_out_of_stock", value });
+      await setting.save();
+    }
+
+    try {
+      await AuditLog.create({
+        eventType: "GLOBAL_OOS_TOGGLED",
+        adminId: req.userId || req.user?._id,
+        requestId: `oos-${Date.now()}`,
+        details: { isGlobalOOS: isOOS, changedAt: new Date() }
+      });
+    } catch (e) {
+      // Non-blocking audit log
+    }
+
+    res.status(200).json({
+      success: true,
+      isGlobalOOS: isOOS,
+      message: isOOS
+        ? "Global Out-of-Stock mode activated! All products now display Out of Stock with schema.org/OutOfStock. Google indexing and sitemaps remain 100% active."
+        : "Global Out-of-Stock mode deactivated! Normal inventory counts and checkout are now restored."
+    });
+  } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
 };

@@ -565,11 +565,12 @@ const ProductDetails = () => {
     ? Math.round(((regularPrice - currentPrice) / regularPrice) * 100)
     : 0);
 
-  /* Product Schema for Google Rich Snippets */
+  /* Product Schema for Google Rich Snippets (SEO Safe OOS) */
   const productSchema = useMemo(() => {
     if (!product) return null;
+    const isGlobalOOS = product.isOutOfStock || product.globalOutOfStock;
     const finalPrice = selectedVariant ? (selectedVariant.salePrice || selectedVariant.price) : (product.price || 0);
-    const inStock = selectedVariant ? (selectedVariant.stockQuantity > 0) : ((product.stock || 1) > 0);
+    const inStock = !isGlobalOOS && (selectedVariant ? (selectedVariant.stockQuantity > 0) : ((product.stock || 1) > 0));
 
     return {
       "@context": "https://schema.org",
@@ -629,14 +630,22 @@ const ProductDetails = () => {
     };
   }, [product, selectedVariant, displayName, activeImage, oilInfo]);
 
+  // Out Of Stock check (preserves SEO indexing while preventing checkout)
+  const isProductOOS = useMemo(() => {
+    if (!product) return false;
+    if (product.isOutOfStock || product.globalOutOfStock) return true;
+    if (selectedVariant && selectedVariant.stockQuantity <= 0) return true;
+    return false;
+  }, [product, selectedVariant]);
+
   /* --- Add To Cart --- */
   const handleAddToCart = () => {
     if (!selectedVariant) {
       toast.error("Please select a bottle size");
       return;
     }
-    if (selectedVariant.stockQuantity <= 0) {
-      toast.error("This size is currently out of stock");
+    if (isProductOOS || selectedVariant.stockQuantity <= 0) {
+      toast.error("This item is currently out of stock");
       return;
     }
 
@@ -665,8 +674,8 @@ const ProductDetails = () => {
       toast.error("Please select a bottle size");
       return;
     }
-    if (selectedVariant.stockQuantity <= 0) {
-      toast.error("This size is currently out of stock");
+    if (isProductOOS || selectedVariant.stockQuantity <= 0) {
+      toast.error("This item is currently out of stock");
       return;
     }
 
@@ -899,11 +908,11 @@ const ProductDetails = () => {
               <div className="flex items-center gap-4 mt-2 text-xs font-bold text-slate-400 dark:text-[#818C9B]">
                 <span>SKU: <strong className="text-slate-700 dark:text-[#B7C1CE]">{selectedVariant?.sku || product.sku || "OF-OIL"}</strong></span>
                 <span>•</span>
-                {selectedVariant && selectedVariant.stockQuantity > 10 ? (
+                {!isProductOOS && selectedVariant && selectedVariant.stockQuantity > 10 ? (
                   <span className="text-emerald-600 dark:text-[#19C37D] flex items-center gap-1">
                     <CheckCircle2 size={13} /> In Stock ({selectedVariant.stockQuantity} available)
                   </span>
-                ) : selectedVariant && selectedVariant.stockQuantity > 0 ? (
+                ) : !isProductOOS && selectedVariant && selectedVariant.stockQuantity > 0 ? (
                   <span className="text-orange-600 dark:text-orange-400 font-bold animate-pulse">
                     Low Stock: Only {selectedVariant.stockQuantity} left!
                   </span>
@@ -1020,22 +1029,45 @@ const ProductDetails = () => {
                 </div>
               </div>
 
+              {/* ── SEO SAFE OOS NOTIFICATION ── */}
+              {(product.globalOutOfStock || product.isOutOfStock) && (
+                <div className="mt-6 p-4 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-700/50 rounded-2xl flex items-start gap-3">
+                  <Package className="w-5 h-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+                  <div>
+                    <h4 className="text-xs font-black uppercase tracking-wider text-amber-900 dark:text-amber-200">
+                      Fresh Batch in Production • Temporarily Out of Stock
+                    </h4>
+                    <p className="text-xs text-amber-700 dark:text-amber-300 mt-1 leading-relaxed">
+                      We crush oils freshly upon batch order in natural granite mills. Online ordering is momentarily paused for batch replenishment and will resume shortly.
+                    </p>
+                  </div>
+                </div>
+              )}
+
               {/* ── ACTION BUTTONS ── */}
               <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <button
                   onClick={handleAddToCart}
-                  disabled={selectedVariant?.stockQuantity <= 0}
-                  className="bg-slate-900 dark:bg-[#1D2530] dark:border dark:border-[#303B48] hover:bg-slate-800 dark:hover:bg-[#242E3A] text-white dark:text-[#F5F7FA] py-4 rounded-2xl font-black text-xs uppercase tracking-widest flex items-center justify-center gap-2 transition-all shadow-md active:scale-95 disabled:opacity-50 cursor-pointer"
+                  disabled={isProductOOS}
+                  className={`py-4 rounded-2xl font-black text-xs uppercase tracking-widest flex items-center justify-center gap-2 transition-all shadow-md active:scale-95 cursor-pointer ${
+                    isProductOOS
+                      ? "bg-slate-200 dark:bg-[#1D2530] text-slate-400 dark:text-[#5E6875] cursor-not-allowed opacity-75"
+                      : "bg-slate-900 dark:bg-[#1D2530] dark:border dark:border-[#303B48] hover:bg-slate-800 dark:hover:bg-[#242E3A] text-white dark:text-[#F5F7FA]"
+                  }`}
                 >
-                  <ShoppingCart size={18} /> Add to Cart
+                  <ShoppingCart size={18} /> {isProductOOS ? "Out of Stock" : "Add to Cart"}
                 </button>
 
                 <button
                   onClick={handleBuyNow}
-                  disabled={selectedVariant?.stockQuantity <= 0}
-                  className="bg-[#1E971D] hover:bg-[#167a17] dark:bg-[#FFD600] dark:hover:bg-[#FFE45C] text-white dark:text-[#111318] py-4 rounded-2xl font-black text-xs uppercase tracking-widest flex items-center justify-center gap-2 transition-all shadow-md shadow-[#1E971D]/20 dark:shadow-none active:scale-95 disabled:opacity-50 cursor-pointer"
+                  disabled={isProductOOS}
+                  className={`py-4 rounded-2xl font-black text-xs uppercase tracking-widest flex items-center justify-center gap-2 transition-all shadow-md active:scale-95 cursor-pointer ${
+                    isProductOOS
+                      ? "bg-slate-100 dark:bg-[#161B22] text-slate-400 dark:text-[#5E6875] border border-slate-200 dark:border-[#27313D] cursor-not-allowed opacity-75"
+                      : "bg-[#1E971D] hover:bg-[#167a17] dark:bg-[#FFD600] dark:hover:bg-[#FFE45C] text-white dark:text-[#111318] shadow-[#1E971D]/20 dark:shadow-none"
+                  }`}
                 >
-                  <Zap size={18} /> Buy Now
+                  <Zap size={18} /> {isProductOOS ? "Temporarily Unavailable" : "Buy Now"}
                 </button>
               </div>
 
@@ -1650,17 +1682,25 @@ const ProductDetails = () => {
         <div className="flex items-center gap-2 shrink-0">
           <button
             onClick={handleAddToCart}
-            disabled={selectedVariant?.stockQuantity <= 0}
-            className="px-3.5 py-2.5 bg-slate-900 dark:bg-[#1D2530] dark:border dark:border-[#303B48] hover:bg-black dark:hover:bg-[#242E3A] text-white dark:text-[#F5F7FA] rounded-xl font-black text-xs uppercase tracking-wider flex items-center gap-1.5 shadow-sm active:scale-95 disabled:opacity-50 cursor-pointer"
+            disabled={isProductOOS}
+            className={`px-3.5 py-2.5 rounded-xl font-black text-xs uppercase tracking-wider flex items-center gap-1.5 shadow-sm active:scale-95 cursor-pointer ${
+              isProductOOS
+                ? "bg-slate-200 dark:bg-[#1D2530] text-slate-400 dark:text-[#5E6875] cursor-not-allowed opacity-75"
+                : "bg-slate-900 dark:bg-[#1D2530] dark:border dark:border-[#303B48] hover:bg-black dark:hover:bg-[#242E3A] text-white dark:text-[#F5F7FA]"
+            }`}
           >
-            <ShoppingCart size={14} /> Add
+            <ShoppingCart size={14} /> {isProductOOS ? "OOS" : "Add"}
           </button>
           <button
             onClick={handleBuyNow}
-            disabled={selectedVariant?.stockQuantity <= 0}
-            className="px-4 py-2.5 bg-[#1E971D] hover:bg-[#167a17] dark:bg-[#FFD600] dark:hover:bg-[#FFE45C] text-white dark:text-[#111318] rounded-xl font-black text-xs uppercase tracking-wider flex items-center gap-1.5 shadow-md shadow-[#1E971D]/25 dark:shadow-none active:scale-95 disabled:opacity-50 cursor-pointer"
+            disabled={isProductOOS}
+            className={`px-4 py-2.5 rounded-xl font-black text-xs uppercase tracking-wider flex items-center gap-1.5 shadow-md active:scale-95 cursor-pointer ${
+              isProductOOS
+                ? "bg-slate-100 dark:bg-[#161B22] text-slate-400 dark:text-[#5E6875] border border-slate-200 dark:border-[#27313D] cursor-not-allowed opacity-75"
+                : "bg-[#1E971D] hover:bg-[#167a17] dark:bg-[#FFD600] dark:hover:bg-[#FFE45C] text-white dark:text-[#111318] shadow-[#1E971D]/25 dark:shadow-none"
+            }`}
           >
-            <Zap size={14} /> Buy Now
+            <Zap size={14} /> {isProductOOS ? "Out of Stock" : "Buy Now"}
           </button>
         </div>
       </div>

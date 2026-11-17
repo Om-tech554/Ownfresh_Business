@@ -11,7 +11,8 @@ const DEFAULTS = {
   announcement2: "🌿 AUTHENTIC TRADITIONAL STONE PRESSED BOTANIC OILS",
   announcement3: "👑 JOIN PRIME 1% TO EARN REDEEMABLE COIN COMMISSIONS",
   announcement4: "📦 EXPRESS 2-DAY DELIVERY ACROSS INDIA",
-  announcement_weight: "black"
+  announcement_weight: "black",
+  global_out_of_stock: "false"
 };
 
 // GET setting by key

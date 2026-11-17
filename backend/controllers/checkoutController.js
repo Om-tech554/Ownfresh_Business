@@ -19,6 +19,7 @@ import Transaction from "../models/transactionModel.js";
 import Coupon from "../models/couponModel.js";
 import Product from "../models/productModel.js";
 import ProductVariant from "../models/productVariantModel.js";
+import Settings from "../models/settingsModel.js";
 import ReferralCode from "../models/referralCodeModel.js";
 import ReferralUsage from "../models/referralUsageModel.js";
 import crypto from "crypto";
@@ -82,6 +83,14 @@ export const createOrder = async (req, res) => {
     }
     if (!items || !Array.isArray(items) || items.length === 0) {
       return res.status(400).json({ msg: "Cart items are required to place an order" });
+    }
+
+    // Check if Global Out Of Stock is active
+    const globalOOSSetting = await Settings.findOne({ key: "global_out_of_stock" });
+    if (globalOOSSetting && globalOOSSetting.value === "true") {
+      return res.status(400).json({ 
+        msg: "Online ordering is temporarily paused due to fresh batch stone pressing. All products are currently marked Out of Stock. Direct ordering will resume shortly!" 
+      });
     }
     if (!paymentMethod || !['cod', 'online'].includes(paymentMethod)) {
       return res.status(400).json({ msg: "Valid payment method (cod/online) is required" });

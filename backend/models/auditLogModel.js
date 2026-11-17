@@ -26,7 +26,8 @@ const auditLogSchema = new mongoose.Schema(
                 "DELIVERY_EMAIL_SENT",
                 "CANCELLATION_EMAIL_PREVIEW",
                 "TEST_CANCELLATION_EMAIL_SENT",
-                "CANCELLATION_EMAIL_SENT"
+                "CANCELLATION_EMAIL_SENT",
+                "GLOBAL_OOS_TOGGLED"
             ],
             required: true,
             index: true
