@@ -4,7 +4,7 @@ import Order from "../models/ordermodel.js";
 import AuditLog from "../models/auditLogModel.js";
 import { runImageOcr, runPdfTextExtraction, extractCourierDetails } from "../utils/ocrService.js";
 import { logEvent } from "../utils/auditLogger.js";
-import { sendCustomMail, generateShipmentEmailHtml, generateDeliverySuccessEmailHtml, sendOrderDeliveredMail } from "../utils/mail.js";
+import { sendCustomMail, generateShipmentEmailHtml, generateDeliverySuccessEmailHtml, sendOrderDeliveredMail, generateCancellationEmailHtml, sendOrderCancelledMail } from "../utils/mail.js";
 import { determineDeliveryRegion } from "../services/shippingService.js";
 
 // GET ALL ACTIVE CARRIERS
@@ -473,5 +473,151 @@ export const getOrderAuditLogs = async (req, res) => {
   } catch (error) {
     console.error("Failed to load audit logs:", error.message);
     res.status(500).json({ success: false, msg: "Failed to load audit logs" });
+  }
+};
+
+
+// GENERATE CANCELLATION EMAIL PREVIEW
+export const previewCancellationEmail = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { cancellationReason, refundInfo } = req.body || {};
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ success: false, msg: "Invalid Order ID" });
+    }
+
+    const order = await Order.findById(id).populate("user", "fullName email");
+    if (!order) {
+      return res.status(404).json({ success: false, msg: "Order not found" });
+    }
+
+    if (!order.user) {
+      return res.status(400).json({ success: false, msg: "The user account associated with this order has been deleted. Cannot preview cancellation email." });
+    }
+
+    const effectiveReason = cancellationReason || order.cancellationReason || "Customer requested order cancellation";
+    const html = generateCancellationEmailHtml(order, effectiveReason, refundInfo);
+    const orderIdCode = order.customOrderId || order._id.toString().toUpperCase();
+    const isOnlinePayment = order.PaymentMethod === "online" || order.paymentStatus === "completed";
+
+    const subject = `Order Cancellation Confirmation - #${orderIdCode} - OwnFresh`;
+    const text = `Hi ${order.user.fullName || "Customer"},\n\nYour OwnFresh order #${orderIdCode} has been cancelled.\n\nReason: ${effectiveReason}\n\n${isOnlinePayment ? `Refund of ₹${(order.totalAmount || 0).toFixed(2)} has been initiated to your original payment method and will reflect within 5-7 business days.` : 'Since this was Cash on Delivery, no payment was collected.'}\n\nIf you have any questions, reply to this email, write to contact@myownfresh.com or call/WhatsApp +91 89997 73438.\n\nWarm regards,\nOwnFresh Agro Industries`;
+
+    await logEvent({
+      eventType: "CANCELLATION_EMAIL_PREVIEW",
+      req,
+      details: { orderId: id }
+    });
+
+    res.status(200).json({
+      success: true,
+      subject,
+      html,
+      text,
+      customerEmail: order.user.email,
+      cancellationReason: effectiveReason
+    });
+  } catch (error) {
+    console.error("Cancellation email preview failed:", error.message);
+    res.status(500).json({ success: false, msg: "Server error generating cancellation email preview" });
+  }
+};
+
+// SEND TEST CANCELLATION EMAIL
+export const sendTestCancellationEmail = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { subject, html, text, testEmail } = req.body;
+
+    if (!testEmail) {
+      return res.status(400).json({ success: false, msg: "Test email address is required" });
+    }
+
+    await sendOrderCancelledMail({
+      to: testEmail,
+      subject: `[TEST] ${subject}`,
+      html,
+      text
+    });
+
+    await logEvent({
+      eventType: "TEST_CANCELLATION_EMAIL_SENT",
+      req,
+      details: { orderId: id, recipient: testEmail }
+    });
+
+    res.status(200).json({ success: true, msg: `Test cancellation email successfully sent to ${testEmail}` });
+  } catch (error) {
+    console.error("Test cancellation email send failed:", error.message);
+    res.status(500).json({ success: false, msg: "Email delivery failed: " + error.message });
+  }
+};
+
+// SEND CANCELLATION EMAIL TO CUSTOMER
+export const sendCancellationEmail = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { subject, html, text, cancellationReason, refundStatus } = req.body;
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ success: false, msg: "Invalid Order ID" });
+    }
+
+    const order = await Order.findById(id).populate("user", "fullName email");
+    if (!order) {
+      return res.status(404).json({ success: false, msg: "Order not found" });
+    }
+
+    if (!order.user) {
+      return res.status(400).json({ success: false, msg: "The user account associated with this order has been deleted. Cannot send cancellation email." });
+    }
+
+    // Send customer cancellation email
+    await sendOrderCancelledMail({
+      to: order.user.email,
+      subject,
+      html,
+      text
+    });
+
+    // Also send an administrative notification copy to contact@myownfresh.com
+    try {
+      await sendOrderCancelledMail({
+        to: "contact@myownfresh.com",
+        subject: `[ADMIN COPY - ORDER CANCELLED] ${subject}`,
+        html,
+        text
+      });
+    } catch (adminErr) {
+      console.warn("Non-blocking admin copy email failed:", adminErr.message);
+    }
+
+    // Update order status to cancelled
+    order.status = "cancelled";
+    order.cancellationEmailSent = true;
+    order.cancellationEmailSentAt = new Date();
+    if (cancellationReason) {
+      order.cancellationReason = cancellationReason;
+    }
+    const isOnline = order.PaymentMethod === "online" || order.paymentStatus === "completed";
+    order.refundStatus = refundStatus || (isOnline ? "initiated" : "not_applicable");
+    order.refundAmount = order.totalAmount || 0;
+    await order.save();
+
+    await logEvent({
+      eventType: "CANCELLATION_EMAIL_SENT",
+      req,
+      details: { orderId: id, recipient: order.user.email, reason: order.cancellationReason }
+    });
+
+    res.status(200).json({
+      success: true,
+      msg: "Cancellation confirmation email sent to customer!",
+      order
+    });
+  } catch (error) {
+    console.error("Cancellation email sending failed:", error.message);
+    res.status(500).json({ success: false, msg: "Email delivery failed: " + error.message });
   }
 };

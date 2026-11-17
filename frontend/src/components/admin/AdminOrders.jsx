@@ -62,6 +62,14 @@ const AdminOrders = () => {
     const [deliveryTestEmailAddress, setDeliveryTestEmailAddress] = useState("");
     const [emailSectionTab, setEmailSectionTab] = useState("delivery");
 
+    // Cancellation confirmation email states
+    const [cancellationEmailPreview, setCancellationEmailPreview] = useState(null);
+    const [isPreparingCancellationEmail, setIsPreparingCancellationEmail] = useState(false);
+    const [isSendingCancellationEmail, setIsSendingCancellationEmail] = useState(false);
+    const [cancellationTestEmailAddress, setCancellationTestEmailAddress] = useState("");
+    const [cancellationReasonInput, setCancellationReasonInput] = useState("Customer requested cancellation");
+    const [customCancellationReason, setCustomCancellationReason] = useState("");
+
     // Audit logs states
     const [showAuditModal, setShowAuditModal] = useState(false);
     const [auditLogs, setAuditLogs] = useState([]);
@@ -90,8 +98,13 @@ const AdminOrders = () => {
             setReceiptRawText(selectedOrder.courierReceiptRawText || "");
             setDeliveryEmailPreview(null);
             setEmailPreview(null);
-            // If already delivered, or if Pune local order, default to delivery email tab!
-            if (selectedOrder.status === 'delivered' || selectedOrder.deliveryEmailSent || isLocal) {
+            setCancellationEmailPreview(null);
+            setCancellationReasonInput(selectedOrder.cancellationReason || "Customer requested cancellation");
+            setCustomCancellationReason("");
+            // Default tab based on current order status
+            if (selectedOrder.status === 'cancelled' || selectedOrder.cancellationEmailSent) {
+                setEmailSectionTab("cancellation");
+            } else if (selectedOrder.status === 'delivered' || selectedOrder.deliveryEmailSent || isLocal) {
                 setEmailSectionTab("delivery");
             } else {
                 setEmailSectionTab("shipment");
@@ -570,6 +583,271 @@ const AdminOrders = () => {
             text,
             customerEmail: order.user?.email || ""
         };
+    };
+
+    const generateCancellationEmailData = (order, reason = "") => {
+        const customerName = order.user?.fullName || "Valued Customer";
+        const siteUrl = "https://www.myownfresh.com";
+        const orderId = order.customOrderId || (order._id ? order._id.toString().toUpperCase() : "ORDER");
+        const deliveryAddress = order.deliveryAddress?.text || [
+            order.deliveryAddress?.roomNumber,
+            order.deliveryAddress?.areaName,
+            order.deliveryAddress?.city,
+            order.deliveryAddress?.pincode
+        ].filter(Boolean).join(", ") || "India";
+
+        const isOnlinePayment = order.PaymentMethod === "online" || order.paymentStatus === "completed";
+        const refundAmount = Number(order.totalAmount || 0);
+        const reasonText = reason || order.cancellationReason || "Customer requested order cancellation";
+
+        const cancelledDate = new Date().toLocaleDateString("en-IN", {
+            day: "numeric",
+            month: "long",
+            year: "numeric"
+        });
+
+        const itemsHtml = (order.items || []).map(item => `
+            <tr>
+                <td style="padding: 10px 12px; border-bottom: 1px solid #EEEEEE; vertical-align: middle;">
+                    ${item.image ? `<img src="${item.image}" alt="${item.name}" style="width: 44px; height: 44px; object-fit: cover; border-radius: 8px; margin-right: 12px; vertical-align: middle; display: inline-block; border: 1px solid #E5E5E5;" />` : ''}
+                    <div style="display: inline-block; vertical-align: middle;">
+                        <span style="font-weight: 700; font-size: 13px; color: #222222;">${item.name}</span>
+                        ${item.variantName ? `<span style="font-size: 11px; color: #666666; display: block; margin-top: 2px;">Variant: ${item.variantName}</span>` : ''}
+                    </div>
+                </td>
+                <td style="padding: 10px 12px; border-bottom: 1px solid #EEEEEE; text-align: center; font-size: 13px; color: #555555; font-weight: 600;">${item.quantity}</td>
+                <td style="padding: 10px 12px; border-bottom: 1px solid #EEEEEE; text-align: right; font-size: 13px; font-weight: 800; color: #222222;">₹${((item.price || 0) * (item.quantity || 1)).toFixed(2)}</td>
+            </tr>
+        `).join('');
+
+        const subject = `Order Cancellation Notice - #${orderId} - OwnFresh`;
+        const html = `
+            <div style="background-color:#FFF8F8;padding:24px 12px;font-family:Arial,Helvetica,sans-serif;">
+              <div style="max-width:540px;margin:auto;background:#ffffff;border:1px solid #F0D0D0;border-radius:16px;overflow:hidden;box-shadow:0 6px 20px rgba(0,0,0,0.06);">
+                <div style="background:#ffffff;border-bottom:1px solid #F0EAEA;padding:18px 24px;text-align:center;">
+                  <a href="${siteUrl}" target="_blank" style="text-decoration:none;display:inline-block;">
+                    <img src="https://res.cloudinary.com/dkhq2wlwg/image/upload/v1774962822/ownfresh_media/ndxvmcpisomjzsghrfjs.png" alt="OwnFresh Logo" style="height:48px;border:none;display:inline-block;vertical-align:middle;" />
+                  </a>
+                  <div style="margin-top:10px;">
+                    <span style="display:inline-block;background:#FFEBEE;border:1px solid #FFCDD2;color:#C62828;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:700;letter-spacing:0.5px;">
+                      Order ID: #${orderId}
+                    </span>
+                  </div>
+                </div>
+
+                <div style="background: linear-gradient(135deg, #C62828 0%, #8E0000 100%); padding: 26px 20px; text-align: center; color: #ffffff;">
+                  <div style="font-size: 34px; line-height: 1; margin-bottom: 8px;">🛑</div>
+                  <h1 style="margin: 0; font-size: 21px; font-weight: 800; letter-spacing: 0.5px; text-transform: uppercase;">Order Cancellation Notice</h1>
+                  <p style="margin: 6px 0 0; font-size: 13px; opacity: 0.92;">Your order has been cancelled and updated in our system</p>
+                </div>
+
+                <div style="padding:28px 24px;color:#333333;">
+                  <p style="font-size:17px;font-weight:700;color:#111111;margin-top:0;margin-bottom:14px;">
+                    Hi ${customerName},
+                  </p>
+
+                  <p style="font-size:14px;color:#444444;line-height:1.6;margin:0 0 16px 0;">
+                    This email is to confirm that your OwnFresh order <b style="color:#C62828;">#${orderId}</b> has been <b>cancelled</b>.
+                  </p>
+
+                  <div style="background:#FFF5F5;border-left:4px solid #C62828;border-radius:8px;padding:14px 18px;margin:18px 0;font-size:13px;color:#8E0000;line-height:1.5;">
+                    <b>Reason for Cancellation:</b> ${reasonText}
+                  </div>
+
+                  <div style="background:${isOnlinePayment ? '#E8F5E9' : '#FFF9E6'};border:1px solid ${isOnlinePayment ? '#C8E6C9' : '#FFE082'};border-radius:12px;padding:16px 18px;margin:20px 0;font-size:13px;line-height:1.6;">
+                    ${isOnlinePayment ? `
+                      <div style="color:#1B5E20;font-weight:800;font-size:14px;margin-bottom:4px;">
+                        💳 100% Refund of ₹${refundAmount.toFixed(2)} Initiated
+                      </div>
+                      <div style="color:#2E7D32;font-size:12px;">
+                        Since you paid online via PhonePe / UPI, the refund of <b>₹${refundAmount.toFixed(2)}</b> has been initiated to your original payment method. It will reflect in your account within <b>5-7 business days</b>.
+                      </div>
+                    ` : `
+                      <div style="color:#7A5E00;font-weight:800;font-size:14px;margin-bottom:4px;">
+                        💵 Cash on Delivery (COD) Order
+                      </div>
+                      <div style="color:#6D4C00;font-size:12px;">
+                        As this order was placed with Cash on Delivery, no payment was collected and no refund is required.
+                      </div>
+                    `}
+                  </div>
+
+                  <div style="background:#FAFAFA;border:1px solid #EAEAEA;border-radius:12px;padding:16px;margin:20px 0;font-size:13px;line-height:1.7;">
+                    <div style="margin-bottom:6px;"><b>📦 Order ID:</b> <span style="font-family:monospace;font-weight:700;color:#C62828;">#${orderId}</span></div>
+                    <div style="margin-bottom:6px;"><b>📅 Cancellation Date:</b> ${cancelledDate}</div>
+                    <div style="margin-bottom:6px;"><b>📍 Delivery Address:</b> ${deliveryAddress}</div>
+                    <div><b>💰 Order Total:</b> ₹${(order.totalAmount || 0).toFixed(2)}</div>
+                  </div>
+
+                  <h3 style="font-size:13px;color:#C62828;text-transform:uppercase;letter-spacing:1px;font-weight:800;margin:24px 0 10px;">Cancelled Items</h3>
+                  <table style="width:100%;border-collapse:collapse;margin-bottom:22px;border:1px solid #EEEEEE;border-radius:8px;overflow:hidden;">
+                    <thead>
+                      <tr style="background:#F5F5F5;font-size:11px;text-transform:uppercase;color:#666666;font-weight:700;">
+                        <th style="padding:10px 12px;text-align:left;">Item</th>
+                        <th style="padding:10px 12px;text-align:center;width:50px;">Qty</th>
+                        <th style="padding:10px 12px;text-align:right;width:85px;">Price</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      ${itemsHtml}
+                    </tbody>
+                  </table>
+
+                  <div style="text-align:center;margin:28px 0 20px;">
+                    <a href="${siteUrl}/shop" target="_blank" style="
+                      display:inline-block;
+                      padding:14px 30px;
+                      font-size:13px;
+                      font-weight:800;
+                      background:#24672E;
+                      color:#ffffff;
+                      border-radius:10px;
+                      text-decoration:none;
+                      text-transform:uppercase;
+                      letter-spacing:0.5px;
+                      box-shadow:0 3px 10px rgba(0,0,0,0.08);
+                    ">
+                      Explore Our Store & Browse Fresh Oils →
+                    </a>
+                  </div>
+
+                  <div style="margin-top:24px;padding-top:18px;border-top:1px solid #EEEEEE;font-size:12px;color:#666666;line-height:1.6;">
+                    <p style="margin:0 0 6px 0;"><b>Need help or have questions about this cancellation?</b></p>
+                    <p style="margin:0;">
+                      Reply directly to this email or reach our support team at <a href="mailto:contact@myownfresh.com" style="color:#C62828;text-decoration:none;font-weight:700;">contact@myownfresh.com</a> or WhatsApp/Call us at <a href="tel:+918999773438" style="color:#24672E;text-decoration:none;font-weight:700;">+91 89997 73438</a>.
+                    </p>
+                  </div>
+                </div>
+
+                <div style="background:#F5F5F5;padding:16px;text-align:center;font-size:12px;color:#777777;border-top:1px solid #EEEEEE;line-height:1.6;">
+                  <p style="margin:0 0 4px 0;"><b>OwnFresh Agro Industries</b> — Pune, Maharashtra</p>
+                  <p style="margin:0;">© ${new Date().getFullYear()} OwnFresh. All rights reserved.</p>
+                </div>
+              </div>
+            </div>
+        `;
+
+        const text = `Hi ${customerName},\n\nThis email is to confirm that your OwnFresh order #${orderId} has been cancelled.\n\nReason for Cancellation: ${reasonText}\n\n${isOnlinePayment ? `Refund of ₹${refundAmount.toFixed(2)} has been initiated to your original payment method and will reflect in your account within 5-7 business days.` : 'As this was Cash on Delivery, no payment was collected and no refund is required.'}\n\nView our products: ${siteUrl}/shop\n\nQuestions? Reply directly to this email, write to contact@myownfresh.com or call/WhatsApp +91 89997 73438.\n\nWarm regards,\nOwnFresh Agro Industries`;
+
+        return {
+            subject,
+            html,
+            text,
+            customerEmail: order.user?.email || ""
+        };
+    };
+
+    const handlePrepareCancellationEmail = async (orderId, reason = "") => {
+        setIsPreparingCancellationEmail(true);
+        setCancellationEmailPreview(null);
+        const effectiveReason = (cancellationReasonInput === "Other" && customCancellationReason.trim()) 
+            ? customCancellationReason.trim() 
+            : (reason || cancellationReasonInput);
+
+        try {
+            const { data } = await axios.post(
+                `${serverUrl}/api/fulfillment/preview-cancellation-email/${orderId}`,
+                { cancellationReason: effectiveReason },
+                { withCredentials: true }
+            );
+            if (data?.success) {
+                setCancellationEmailPreview({
+                    subject: data.subject,
+                    html: data.html,
+                    text: data.text,
+                    customerEmail: data.customerEmail
+                });
+                return;
+            }
+        } catch (error) {
+            console.warn("Backend cancellation preview endpoint fallback triggered:", error.message);
+        } finally {
+            setIsPreparingCancellationEmail(false);
+        }
+
+        const targetOrder = (orders || []).find(o => o._id === orderId) || selectedOrder;
+        if (targetOrder) {
+            const preview = generateCancellationEmailData(targetOrder, effectiveReason);
+            setCancellationEmailPreview(preview);
+            toast.success("Cancellation email preview prepared!");
+        } else {
+            toast.error("Order details not found");
+        }
+    };
+
+    const handleSendTestCancellationEmail = async (orderId) => {
+        if (!cancellationTestEmailAddress.trim()) {
+            return toast.error("Please enter a test email address");
+        }
+        try {
+            const { data } = await axios.post(
+                `${serverUrl}/api/fulfillment/test-cancellation-email/${orderId}`,
+                {
+                    subject: cancellationEmailPreview.subject,
+                    html: cancellationEmailPreview.html,
+                    text: cancellationEmailPreview.text,
+                    testEmail: cancellationTestEmailAddress.trim()
+                },
+                { withCredentials: true }
+            );
+            if (data?.success) {
+                toast.success(data.msg || "Test cancellation email sent!");
+            }
+        } catch (error) {
+            console.error("Test cancellation email failed:", error);
+            const errText = error.response?.data?.msg || error.response?.data?.message || "Failed to send test cancellation email";
+            toast.error(errText);
+        }
+    };
+
+    const handleSendCancellationEmail = async (orderId) => {
+        const confirmed = await confirm({
+            title: "Send Order Cancellation Notice?",
+            message: `Are you sure you want to send the cancellation email to ${selectedOrder?.user?.email || 'the customer'}? This will officially mark Order #${selectedOrder?.customOrderId || orderId} as CANCELLED.`,
+            confirmText: "Yes, Cancel & Send Email",
+            cancelText: "No, Go Back",
+            variant: "danger"
+        });
+
+        if (!confirmed) return;
+
+        setIsSendingCancellationEmail(true);
+        const effectiveReason = (cancellationReasonInput === "Other" && customCancellationReason.trim()) 
+            ? customCancellationReason.trim() 
+            : cancellationReasonInput;
+
+        try {
+            const { data } = await axios.post(
+                `${serverUrl}/api/fulfillment/send-cancellation-email/${orderId}`,
+                {
+                    subject: cancellationEmailPreview.subject,
+                    html: cancellationEmailPreview.html,
+                    text: cancellationEmailPreview.text,
+                    cancellationReason: effectiveReason
+                },
+                { withCredentials: true }
+            );
+
+            if (data?.success) {
+                toast.success("✓ Cancellation email sent & order status updated to Cancelled!");
+                const finalOrder = data.order || { 
+                    ...selectedOrder, 
+                    status: "cancelled", 
+                    cancellationEmailSent: true, 
+                    cancellationEmailSentAt: new Date(),
+                    cancellationReason: effectiveReason
+                };
+                setOrders(orders.map(o => o._id === orderId ? { ...o, ...finalOrder } : o));
+                setSelectedOrder({ ...selectedOrder, ...finalOrder });
+                setCancellationEmailPreview(null);
+            }
+        } catch (error) {
+            console.error("Cancellation email sending failed:", error);
+            const errText = error.response?.data?.msg || error.response?.data?.message || "Failed to send cancellation email";
+            toast.error(errText);
+        } finally {
+            setIsSendingCancellationEmail(false);
+        }
     };
 
     const handlePrepareDeliveryEmail = async (orderId) => {
@@ -1366,10 +1644,11 @@ const AdminOrders = () => {
                                 </tr>
                             ) : getTabFilteredOrders().map((order) => (
                                 <tr key={order._id} className="hover:bg-slate-50/20 transition-all group">
-                                    <td className="px-8 py-6">
+                                    <td className="px-8 py-6 cursor-pointer" onClick={() => setSelectedOrder(order)} title="Click to open order details and cancellation email">
                                         <div className="flex flex-col">
-                                            <span className="text-[11px] font-black text-slate-900 group-hover:text-blue-600 transition-colors font-mono uppercase tracking-tighter">
+                                            <span className="text-[11px] font-black text-slate-900 group-hover:text-blue-600 transition-colors font-mono uppercase tracking-tighter flex items-center gap-1">
                                                 #{order._id.substring(order._id.length - 12).toUpperCase()}
+                                                <ExternalLink size={10} className="text-slate-400 opacity-60 group-hover:opacity-100" />
                                             </span>
                                             <span className="text-[10px] font-bold text-slate-400 mt-1 uppercase flex items-center gap-1.5">
                                                 <Calendar size={10} /> {new Date(order.createdAt).toLocaleDateString(undefined, { day: '2-digit', month: 'short', year: '2-digit', hour: '2-digit', minute: '2-digit' })}
@@ -1520,6 +1799,9 @@ const AdminOrders = () => {
                                                     <button onClick={() => { navigator.clipboard.writeText(order._id); toast.success("Order ID Copied"); }} className="w-full text-left px-5 py-2.5 text-[10px] font-black uppercase text-slate-600 hover:bg-slate-50 hover:text-slate-900 flex items-center gap-2">
                                                         <Copy size={12} /> Copy Order ID
                                                     </button>
+                                                    <button onClick={() => { setSelectedOrder(order); setEmailSectionTab("cancellation"); }} className="w-full text-left px-5 py-2.5 text-[10px] font-black uppercase text-rose-600 hover:bg-rose-50 flex items-center gap-2">
+                                                        <XCircle size={12} /> Cancel Order & Email
+                                                    </button>
                                                     <div className="border-t border-slate-100 my-1"></div>
                                                     <button onClick={() => handleDeleteOrder(order._id)} className="w-full text-left px-5 py-2.5 text-[10px] font-black uppercase text-red-500 hover:bg-red-50 hover:text-red-600 flex items-center gap-2">
                                                         <Trash2 size={12} /> Delete Order
@@ -1561,13 +1843,32 @@ const AdminOrders = () => {
                                 <div className="w-[1px] h-6 bg-slate-200 dark:bg-slate-700"></div>
                                 <p className="text-xs font-black text-slate-500 dark:text-slate-400 font-mono">ID: {selectedOrder._id.toUpperCase()}</p>
                             </div>
-                            <button
-                                onClick={() => setSelectedOrder(null)}
-                                className="w-10 h-10 flex items-center justify-center rounded-full border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-red-500 hover:text-white hover:rotate-90 hover:scale-105 transition-all duration-300 shadow-sm cursor-pointer"
-                                title="Close Panel"
-                            >
-                                <X size={18} />
-                            </button>
+                            <div className="flex items-center gap-3">
+                                {selectedOrder.status !== "cancelled" ? (
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            setEmailSectionTab("cancellation");
+                                            const el = document.getElementById("customer-notification-hub");
+                                            if (el) el.scrollIntoView({ behavior: "smooth" });
+                                        }}
+                                        className="px-3.5 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all flex items-center gap-1.5 cursor-pointer shadow-xs"
+                                    >
+                                        <XCircle size={13} /> Cancel Order & Email
+                                    </button>
+                                ) : (
+                                    <span className="px-3 py-1 bg-rose-100 text-rose-800 rounded-xl text-[10px] font-black uppercase tracking-wider flex items-center gap-1">
+                                        <XCircle size={12} /> Status: Cancelled
+                                    </span>
+                                )}
+                                <button
+                                    onClick={() => setSelectedOrder(null)}
+                                    className="w-10 h-10 flex items-center justify-center rounded-full border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-red-500 hover:text-white hover:rotate-90 hover:scale-105 transition-all duration-300 shadow-sm cursor-pointer"
+                                    title="Close Panel"
+                                >
+                                    <X size={18} />
+                                </button>
+                            </div>
                         </div>
 
                         <div className="overflow-y-auto flex-1 p-8 grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -1769,8 +2070,8 @@ const AdminOrders = () => {
                                     {/* ========================================================================= */}
                                     {/* CUSTOMER NOTIFICATION HUB (Dispatch Email & Successful Delivery Email) */}
                                     {/* ========================================================================= */}
-                                    {(selectedOrder.trackingId || selectedOrder.labelPrinted || isPuneOrder(selectedOrder)) && (
-                                        <div className="mt-8 pt-8 border-t border-slate-100 dark:border-slate-800">
+                                    {Boolean(selectedOrder) && (
+                                        <div id="customer-notification-hub" className="mt-8 pt-8 border-t border-slate-100 dark:border-slate-800">
                                             {/* Top Segmented Tab Switcher */}
                                             <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
                                                 <div className="flex items-center gap-2">
@@ -1814,6 +2115,24 @@ const AdminOrders = () => {
                                                         2. Successful Delivery Email {isPuneOrder(selectedOrder) ? "(Local Pune)" : ""}
                                                         {selectedOrder.deliveryEmailSent && (
                                                             <span className="ml-1 px-1.5 py-0.5 bg-emerald-700 text-white rounded text-[8px]">Sent ✓</span>
+                                                        )}
+                                                    </button>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => {
+                                                            setEmailSectionTab("cancellation");
+                                                            if (!cancellationEmailPreview) handlePrepareCancellationEmail(selectedOrder._id, cancellationReasonInput);
+                                                        }}
+                                                        className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all flex items-center gap-1.5 ${
+                                                            emailSectionTab === "cancellation"
+                                                                ? "bg-rose-600 text-white shadow-xs"
+                                                                : "text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white"
+                                                        }`}
+                                                    >
+                                                        <XCircle size={11} />
+                                                        3. Cancellation Email
+                                                        {selectedOrder.cancellationEmailSent && (
+                                                            <span className="ml-1 px-1.5 py-0.5 bg-rose-700 text-white rounded text-[8px]">Sent ✓</span>
                                                         )}
                                                     </button>
                                                 </div>
@@ -2120,6 +2439,226 @@ const AdminOrders = () => {
                                                                 </button>
                                                                 <button
                                                                     onClick={() => setDeliveryEmailPreview(null)}
+                                                                    className="px-6 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 text-slate-600 dark:text-slate-300 py-3.5 rounded-xl text-[10px] font-black uppercase tracking-wider hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors cursor-pointer"
+                                                                >
+                                                                    Hide Preview
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            )}
+
+                                            {/* TAB 3: CANCELLATION EMAIL */}
+                                            {emailSectionTab === "cancellation" && (
+                                                <div>
+                                                    <div className="bg-rose-50/80 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/60 p-5 rounded-2xl mb-6 flex flex-wrap items-center justify-between gap-4">
+                                                        <div className="flex items-center gap-3">
+                                                            <div className="w-10 h-10 rounded-xl bg-rose-600 text-white flex items-center justify-center flex-shrink-0 shadow-sm">
+                                                                <XCircle size={20} />
+                                                            </div>
+                                                            <div>
+                                                                <h5 className="text-xs font-black text-rose-950 dark:text-rose-100 uppercase tracking-widest">
+                                                                    Order Cancellation Notice Mailer
+                                                                </h5>
+                                                                <p className="text-[10px] font-bold text-rose-700 dark:text-rose-300 mt-0.5">
+                                                                    Notify customer of order cancellation with official reason, refund timeline, and support contacts.
+                                                                </p>
+                                                            </div>
+                                                        </div>
+                                                        {selectedOrder.cancellationEmailSent ? (
+                                                            <span className="px-3.5 py-1.5 bg-rose-100 dark:bg-rose-950/80 text-rose-800 dark:text-rose-300 border border-rose-300 dark:border-rose-700/80 rounded-full text-[10px] font-black uppercase tracking-wider flex items-center gap-1.5 shadow-xs">
+                                                                <CheckCircle2 size={12} className="text-rose-700 dark:text-rose-300" />
+                                                                Cancelled & Notified {selectedOrder.cancellationEmailSentAt ? `(${new Date(selectedOrder.cancellationEmailSentAt).toLocaleDateString()})` : ''}
+                                                            </span>
+                                                        ) : (
+                                                            <span className="px-3 py-1 bg-amber-100 dark:bg-amber-950/80 text-amber-900 dark:text-amber-300 border border-amber-300 dark:border-amber-700/80 rounded-full text-[9px] font-black uppercase tracking-wider">
+                                                                Pending Cancellation Email
+                                                            </span>
+                                                        )}
+                                                    </div>
+
+                                                    {/* Cancellation Reason Selection Card */}
+                                                    <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 mb-5 shadow-xs">
+                                                        <h6 className="text-[10px] font-black text-slate-800 dark:text-slate-200 uppercase tracking-widest mb-3 flex items-center gap-1.5">
+                                                            <span>Reason for Cancellation</span>
+                                                            <span className="text-[9px] text-slate-400 font-bold lowercase">(included in email)</span>
+                                                        </h6>
+                                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
+                                                            <select
+                                                                value={cancellationReasonInput}
+                                                                onChange={(e) => {
+                                                                    setCancellationReasonInput(e.target.value);
+                                                                    if (e.target.value !== "Other") {
+                                                                        handlePrepareCancellationEmail(selectedOrder._id, e.target.value);
+                                                                    }
+                                                                }}
+                                                                className="w-full p-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl outline-none font-bold text-xs text-slate-900 dark:text-slate-100 cursor-pointer focus:border-rose-500"
+                                                            >
+                                                                <option value="Customer requested cancellation">Customer requested cancellation</option>
+                                                                <option value="Product out of stock / processing delay">Product out of stock / processing delay</option>
+                                                                <option value="Incorrect delivery address or unserviceable pincode">Incorrect delivery address or unserviceable pincode</option>
+                                                                <option value="Duplicate order placed by customer">Duplicate order placed by customer</option>
+                                                                <option value="Payment verification failed or unconfirmed">Payment verification failed or unconfirmed</option>
+                                                                <option value="Other">Other (Custom reason...)</option>
+                                                            </select>
+                                                            
+                                                            {/* Refund Policy Callout */}
+                                                            <div className="p-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl flex items-center justify-between text-xs">
+                                                                <span className="font-bold text-slate-600 dark:text-slate-300">Payment & Refund:</span>
+                                                                <span className="font-black text-slate-900 dark:text-slate-100">
+                                                                    {selectedOrder.PaymentMethod === 'online' || selectedOrder.paymentStatus === 'completed' 
+                                                                        ? `💳 ₹${Number(selectedOrder.totalAmount || 0).toFixed(2)} (Online Refund)` 
+                                                                        : '💵 COD (No refund needed)'}
+                                                                </span>
+                                                            </div>
+                                                        </div>
+
+                                                        {cancellationReasonInput === "Other" && (
+                                                            <div className="flex gap-2 mt-2">
+                                                                <input
+                                                                    type="text"
+                                                                    placeholder="Type custom cancellation reason..."
+                                                                    value={customCancellationReason}
+                                                                    onChange={(e) => setCustomCancellationReason(e.target.value)}
+                                                                    className="flex-1 p-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl outline-none font-bold text-xs text-slate-900 dark:text-slate-100"
+                                                                />
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => handlePrepareCancellationEmail(selectedOrder._id, customCancellationReason)}
+                                                                    className="px-4 py-3 bg-rose-600 text-white rounded-xl text-[10px] font-black uppercase tracking-wider hover:bg-rose-700 transition-colors"
+                                                                >
+                                                                    Apply Reason
+                                                                </button>
+                                                            </div>
+                                                        )}
+                                                    </div>
+
+                                                    {/* Notice when order is not cancelled yet */}
+                                                    {selectedOrder.status !== 'cancelled' && (
+                                                        <div className="bg-rose-50 dark:bg-rose-950/50 border border-rose-200 dark:border-rose-800 p-3.5 rounded-xl mb-4 flex items-center gap-2.5 text-[10px] font-bold text-rose-950 dark:text-rose-200">
+                                                            <span className="w-2 h-2 rounded-full bg-rose-500 dark:bg-rose-400 animate-pulse flex-shrink-0"></span>
+                                                            <span>
+                                                                Order status is currently <b className="uppercase font-black text-rose-900 dark:text-rose-100">"${selectedOrder.status}"</b>. 
+                                                                Sending this cancellation email will automatically update the order status to <b className="text-rose-800 dark:text-rose-300 font-black">"CANCELLED"</b> in MongoDB Atlas and record refund initiation.
+                                                            </span>
+                                                        </div>
+                                                    )}
+
+                                                    {selectedOrder.cancellationEmailSent && !cancellationEmailPreview && (
+                                                        <div className="bg-white dark:bg-slate-900 p-4 rounded-xl border border-rose-200 dark:border-rose-800 mb-4 flex items-center justify-between">
+                                                            <div>
+                                                                <p className="text-[11px] font-bold text-slate-700 dark:text-slate-200">
+                                                                    ✓ Cancellation notice email was sent to <span className="font-mono text-rose-800 dark:text-rose-300 font-black">{selectedOrder.user?.email}</span>
+                                                                </p>
+                                                                <p className="text-[9px] font-bold text-slate-400 dark:text-slate-400 mt-1 uppercase">
+                                                                    Sent at: {new Date(selectedOrder.cancellationEmailSentAt).toLocaleString()}
+                                                                    {selectedOrder.cancellationReason && ` • Reason: ${selectedOrder.cancellationReason}`}
+                                                                </p>
+                                                            </div>
+                                                            <button
+                                                                onClick={() => handlePrepareCancellationEmail(selectedOrder._id, cancellationReasonInput)}
+                                                                className="px-4 py-2 bg-rose-100 dark:bg-rose-950/70 text-rose-800 dark:text-rose-300 border border-rose-300 dark:border-rose-700 hover:bg-rose-200 dark:hover:bg-rose-900/60 rounded-lg text-[9px] font-black uppercase tracking-wider transition-colors cursor-pointer"
+                                                            >
+                                                                Resend / Preview
+                                                            </button>
+                                                        </div>
+                                                    )}
+
+                                                    {!cancellationEmailPreview ? (
+                                                        !selectedOrder.cancellationEmailSent && (
+                                                            <div className="text-center py-6 bg-white dark:bg-slate-900 rounded-xl border border-dashed border-rose-300 dark:border-rose-700 p-6">
+                                                                <XCircle className="w-8 h-8 text-rose-600 dark:text-rose-400 mx-auto mb-2" />
+                                                                <p className="text-xs font-bold text-slate-800 dark:text-slate-100 mb-1">
+                                                                    Ready to send cancellation notice to <b>{selectedOrder.user?.fullName || 'Customer'}</b>
+                                                                </p>
+                                                                <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 max-w-md mx-auto mb-4">
+                                                                    Includes OwnFresh logo, Order ID, cancellation reason, 100% refund details (for online orders), cancelled items summary, and support links.
+                                                                </p>
+                                                                {isPreparingCancellationEmail ? (
+                                                                    <div className="flex flex-col items-center">
+                                                                        <Loader2 className="w-6 h-6 text-rose-600 dark:text-rose-400 animate-spin mb-2" />
+                                                                        <p className="text-[9px] font-black text-slate-400 dark:text-slate-400 uppercase">Generating Cancellation Email Preview...</p>
+                                                                    </div>
+                                                                ) : (
+                                                                    <button
+                                                                        onClick={() => handlePrepareCancellationEmail(selectedOrder._id, cancellationReasonInput)}
+                                                                        className="px-6 py-3 bg-rose-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-rose-700 transition-colors shadow-md inline-flex items-center gap-2 cursor-pointer"
+                                                                    >
+                                                                        <Mail size={12} /> Prepare Cancellation Email Preview
+                                                                    </button>
+                                                                )}
+                                                            </div>
+                                                        )
+                                                    ) : (
+                                                        <div className="bg-white dark:bg-slate-900 border border-rose-300 dark:border-rose-700 rounded-2xl p-6 shadow-sm">
+                                                            <div className="flex items-center justify-between pb-4 mb-4 border-b border-slate-100 dark:border-slate-800">
+                                                                <h6 className="text-[10px] font-black text-rose-800 dark:text-rose-300 uppercase tracking-widest flex items-center gap-2">
+                                                                    <Mail size={14} /> Order Cancellation Email Dispatcher
+                                                                </h6>
+                                                                <span className="text-[10px] font-mono text-slate-600 dark:text-slate-300 font-bold">
+                                                                    Recipient: {cancellationEmailPreview.customerEmail}
+                                                                </span>
+                                                            </div>
+
+                                                            <div className="space-y-4 mb-4">
+                                                                <div>
+                                                                    <label className="block text-[9px] font-black text-slate-400 dark:text-slate-400 uppercase mb-1">Subject</label>
+                                                                    <input
+                                                                        type="text"
+                                                                        value={cancellationEmailPreview.subject}
+                                                                        onChange={(e) => setCancellationEmailPreview({ ...cancellationEmailPreview, subject: e.target.value })}
+                                                                        className="w-full p-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl outline-none font-bold text-xs text-slate-900 dark:text-slate-100 focus:border-rose-500"
+                                                                    />
+                                                                </div>
+
+                                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                                    <div>
+                                                                        <label className="block text-[9px] font-black text-slate-400 dark:text-slate-400 uppercase mb-1 font-bold">HTML Preview</label>
+                                                                        <iframe
+                                                                            srcDoc={cancellationEmailPreview.html}
+                                                                            className="w-full h-72 border border-slate-200 dark:border-slate-700 rounded-xl bg-white"
+                                                                            title="Cancellation Email HTML Preview"
+                                                                        />
+                                                                    </div>
+                                                                    <div>
+                                                                        <label className="block text-[9px] font-black text-slate-400 dark:text-slate-400 uppercase mb-1 font-bold">Plain Text Preview</label>
+                                                                        <textarea
+                                                                            value={cancellationEmailPreview.text}
+                                                                            onChange={(e) => setCancellationEmailPreview({ ...cancellationEmailPreview, text: e.target.value })}
+                                                                            className="w-full h-72 p-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl outline-none font-mono text-[10px] text-slate-900 dark:text-slate-100 resize-none focus:border-rose-500"
+                                                                        />
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+
+                                                            <div className="flex gap-2 mb-4 bg-slate-50 dark:bg-slate-800/80 p-4 rounded-xl border border-slate-200 dark:border-slate-700">
+                                                                <input
+                                                                    type="email"
+                                                                    placeholder="Enter test email address for cancellation preview..."
+                                                                    value={cancellationTestEmailAddress}
+                                                                    onChange={(e) => setCancellationTestEmailAddress(e.target.value)}
+                                                                    className="flex-1 p-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl outline-none font-bold text-xs text-slate-900 dark:text-slate-100"
+                                                                />
+                                                                <button
+                                                                    onClick={() => handleSendTestCancellationEmail(selectedOrder._id)}
+                                                                    className="px-6 bg-slate-900 dark:bg-slate-700 text-white rounded-xl text-[10px] font-black uppercase tracking-wider hover:bg-slate-800 dark:hover:bg-slate-600 transition-colors cursor-pointer"
+                                                                >
+                                                                    Test Send
+                                                                </button>
+                                                            </div>
+
+                                                            <div className="flex gap-3">
+                                                                <button
+                                                                    onClick={() => handleSendCancellationEmail(selectedOrder._id)}
+                                                                    disabled={isSendingCancellationEmail}
+                                                                    className="flex-1 bg-rose-600 text-white py-3.5 rounded-xl text-[10px] font-black uppercase tracking-wider hover:bg-rose-700 transition-colors flex items-center justify-center gap-2 shadow-md disabled:opacity-50 cursor-pointer"
+                                                                >
+                                                                    {isSendingCancellationEmail ? <Loader2 size={14} className="animate-spin" /> : <XCircle size={14} />}
+                                                                    Confirm Cancellation & Send Email to Customer
+                                                                </button>
+                                                                <button
+                                                                    onClick={() => setCancellationEmailPreview(null)}
                                                                     className="px-6 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 text-slate-600 dark:text-slate-300 py-3.5 rounded-xl text-[10px] font-black uppercase tracking-wider hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors cursor-pointer"
                                                                 >
                                                                     Hide Preview

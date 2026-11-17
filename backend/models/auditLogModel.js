@@ -23,7 +23,10 @@ const auditLogSchema = new mongoose.Schema(
                 "SHIPMENT_EMAIL_SENT",
                 "DELIVERY_EMAIL_PREVIEW",
                 "TEST_DELIVERY_EMAIL_SENT",
-                "DELIVERY_EMAIL_SENT"
+                "DELIVERY_EMAIL_SENT",
+                "CANCELLATION_EMAIL_PREVIEW",
+                "TEST_CANCELLATION_EMAIL_SENT",
+                "CANCELLATION_EMAIL_SENT"
             ],
             required: true,
             index: true

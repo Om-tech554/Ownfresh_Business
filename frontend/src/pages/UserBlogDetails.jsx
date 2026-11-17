@@ -58,6 +58,25 @@ const getPreloadedBlog = (id) => {
   return null;
 };
 
+// Helper to wrap any raw <table> in a responsive, horizontally-scrollable card container
+const processBlogHtml = (html = "") => {
+  if (!html) return "";
+  return html.replace(
+    /(?:<div[^>]*class="[^"]*blog-table-(?:container|wrapper|responsive)[^"]*"[^>]*>[\s\S]*?<\/div>)|(<table[\s\S]*?<\/table>)/gi,
+    (match, rawTable) => {
+      if (!rawTable) return match;
+      return `<div class="blog-table-container">
+        <div class="blog-table-hint">
+          <span class="hint-icon">⟷</span> Swipe table horizontally to view all columns
+        </div>
+        <div class="blog-table-scroll">
+          ${rawTable}
+        </div>
+      </div>`;
+    }
+  );
+};
+
 const UserBlogDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -241,7 +260,7 @@ const UserBlogDetails = () => {
   const cleanDescription = blog.searchDescription || stripHtml(blog.description).substring(0, 160);
   const cleanTitle = blog.title;
   const mins = readingTime(blog.description);
-  const renderedHTML = blog.description || "";
+  const renderedHTML = processBlogHtml(blog.description || "");
   const images = [blog.image1, blog.image2, blog.image3, blog.image4].filter(Boolean);
 
   const articleUrl = `https://www.myownfresh.com/blog/${blog.slug || id}`;
@@ -327,23 +346,29 @@ const UserBlogDetails = () => {
         {/* Title and metadata banner */}
         <div className="bg-gradient-to-b from-[#111827] to-[#0b0f17] px-4 md:px-8 lg:px-12 pt-8 pb-12 border-b border-white/10">
           <div className="max-w-7xl mx-auto">
-            <div className="flex flex-wrap items-center gap-3 mb-4">
-              <span className="inline-flex items-center gap-1.5 bg-[#1E971D] text-white text-xs font-black uppercase tracking-widest px-3.5 py-1 rounded-full shadow-sm">
-                <Calendar size={12} />
-                {new Date(blog.publishedAt || blog.createdAt).toLocaleDateString("en-IN", {
-                  dateStyle: "long"
-                })}
+            <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-4">
+              <span className="inline-flex items-center gap-1.5 bg-[#1E971D] text-white text-[11px] sm:text-xs font-black uppercase tracking-wider sm:tracking-widest px-3 py-1 rounded-full shadow-xs">
+                <Calendar size={12} className="shrink-0" />
+                <span>
+                  {new Date(blog.publishedAt || blog.createdAt).toLocaleDateString("en-IN", {
+                    day: "numeric",
+                    month: "short",
+                    year: "numeric"
+                  })}
+                </span>
               </span>
-              <span className="inline-flex items-center gap-1.5 bg-white/15 text-white text-xs font-bold uppercase tracking-widest px-3.5 py-1 rounded-full">
-                <Clock size={12} />
-                {mins} min read
+              <span className="inline-flex items-center gap-1.5 bg-white/20 text-white text-[11px] sm:text-xs font-bold uppercase tracking-wider sm:tracking-widest px-3 py-1 rounded-full backdrop-blur-xs">
+                <Clock size={12} className="shrink-0 text-[#FFD600]" />
+                <span>{mins} min read</span>
               </span>
-              <span className="inline-flex items-center gap-1.5 bg-[#EFDB27] text-slate-900 text-xs font-black uppercase tracking-widest px-3.5 py-1 rounded-full">
-                <Leaf size={12} />
-                {(() => {
-                  let cat = blog.category ? blog.category.trim() : "General";
-                  return cat.charAt(0).toUpperCase() + cat.slice(1).toLowerCase();
-                })()}
+              <span className="inline-flex items-center gap-1.5 bg-[#EFDB27] text-slate-900 text-[11px] sm:text-xs font-black uppercase tracking-wider sm:tracking-widest px-3 py-1 rounded-full">
+                <Leaf size={12} className="shrink-0" />
+                <span>
+                  {(() => {
+                    let cat = blog.category ? blog.category.trim() : "General";
+                    return cat.charAt(0).toUpperCase() + cat.slice(1).toLowerCase();
+                  })()}
+                </span>
               </span>
             </div>
             <h1
@@ -423,49 +448,161 @@ const UserBlogDetails = () => {
               html.dark .wp-blog-content h3 {
                 color: #F7F9FC !important;
               }
-              .wp-blog-content table {
-                width: 100%;
-                border-collapse: collapse;
-                margin: 2rem 0;
-                background-color: #ffffff;
-                border-radius: 16px;
-                overflow: hidden;
-                box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05);
+              /* Table Card Container & Scroll Wrapper */
+              .blog-table-container {
+                margin: 2rem 0 !important;
                 border: 1px solid #e2e8f0;
+                border-radius: 14px;
+                overflow: hidden;
+                background-color: #ffffff;
+                box-shadow: 0 4px 14px -2px rgba(0, 0, 0, 0.05);
+                width: 100% !important;
+                max-width: 100% !important;
+                box-sizing: border-box;
               }
-              html.dark .wp-blog-content table {
+              html.dark .blog-table-container {
                 background-color: #171D26 !important;
                 border-color: #27313D !important;
+                box-shadow: 0 4px 14px -2px rgba(0, 0, 0, 0.35);
               }
+              .blog-table-hint {
+                display: flex;
+                align-items: center;
+                justify-content: flex-end;
+                gap: 6px;
+                padding: 8px 14px;
+                font-size: 11px;
+                font-weight: 800;
+                text-transform: uppercase;
+                letter-spacing: 0.06em;
+                color: #15803D;
+                background: #F0FDF4;
+                border-bottom: 1px solid #e2e8f0;
+                user-select: none;
+              }
+              html.dark .blog-table-hint {
+                background: #141B24 !important;
+                color: #FFD600 !important;
+                border-bottom-color: #27313D !important;
+              }
+              .blog-table-scroll {
+                width: 100%;
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+                scrollbar-width: thin;
+                scrollbar-color: #CBD5E1 #F8FAFC;
+              }
+              html.dark .blog-table-scroll {
+                scrollbar-color: #334155 #111720;
+              }
+              .blog-table-scroll::-webkit-scrollbar {
+                height: 6px;
+              }
+              .blog-table-scroll::-webkit-scrollbar-track {
+                background: #F8FAFC;
+              }
+              html.dark .blog-table-scroll::-webkit-scrollbar-track {
+                background: #111720;
+              }
+              .blog-table-scroll::-webkit-scrollbar-thumb {
+                background: #CBD5E1;
+                border-radius: 4px;
+              }
+              html.dark .blog-table-scroll::-webkit-scrollbar-thumb {
+                background: #334155;
+              }
+
+              /* Table element */
+              .wp-blog-content table {
+                width: 100% !important;
+                min-width: 580px !important;
+                border-collapse: collapse !important;
+                margin: 0 !important;
+                background-color: transparent !important;
+                border: none !important;
+                border-radius: 0 !important;
+                box-shadow: none !important;
+              }
+              html.dark .wp-blog-content table {
+                background-color: transparent !important;
+                border: none !important;
+              }
+
+              /* Table Headers */
               .wp-blog-content th {
                 background-color: #f8fafc;
                 color: #0f172a;
                 font-weight: 800;
                 text-align: left;
-                padding: 14px 18px;
+                padding: 13px 16px;
                 border-bottom: 2px solid #cbd5e1;
-                font-size: 0.85rem;
+                font-size: 0.82rem;
                 text-transform: uppercase;
                 letter-spacing: 0.05em;
+                white-space: nowrap;
+                vertical-align: middle;
               }
               html.dark .wp-blog-content th {
-                background-color: #151B23 !important;
+                background-color: #141B24 !important;
                 color: #F5F7FA !important;
                 border-bottom-color: #27313D !important;
               }
+
+              /* Table Cells */
               .wp-blog-content td {
-                padding: 14px 18px;
+                padding: 13px 16px;
                 border-bottom: 1px solid #f1f5f9;
                 color: #334155;
-                font-size: 0.95rem;
-                line-height: 1.5;
+                font-size: 0.92rem;
+                line-height: 1.55;
+                vertical-align: middle;
+                min-width: 110px;
               }
               html.dark .wp-blog-content td {
                 border-bottom-color: #202832 !important;
                 color: #B7C1CE !important;
               }
+
+              /* Subtle Zebra striping */
+              .wp-blog-content tbody tr:nth-child(even) td,
+              .wp-blog-content tr:nth-child(even) td {
+                background-color: #fbfcfd;
+              }
+              html.dark .wp-blog-content tbody tr:nth-child(even) td,
+              html.dark .wp-blog-content tr:nth-child(even) td {
+                background-color: rgba(255, 255, 255, 0.02) !important;
+              }
+
+              /* Row Hover */
+              .wp-blog-content tbody tr:hover td,
+              .wp-blog-content tr:hover td {
+                background-color: #f1f5f9;
+              }
+              html.dark .wp-blog-content tbody tr:hover td,
+              html.dark .wp-blog-content tr:hover td {
+                background-color: rgba(255, 255, 255, 0.04) !important;
+              }
+
               .wp-blog-content tr:last-child td {
-                border-bottom: none;
+                border-bottom: none !important;
+              }
+
+              @media (max-width: 640px) {
+                .blog-table-container {
+                  margin: 1.5rem 0 !important;
+                  border-radius: 12px;
+                }
+                .wp-blog-content table {
+                  min-width: 520px !important;
+                }
+                .wp-blog-content th {
+                  padding: 11px 12px !important;
+                  font-size: 0.75rem !important;
+                }
+                .wp-blog-content td {
+                  padding: 11px 12px !important;
+                  font-size: 0.82rem !important;
+                }
               }
               .wp-blog-content ul {
                 list-style-type: disc !important;

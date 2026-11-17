@@ -1015,3 +1015,167 @@ export const sendOrderDeliveredMail = async ({ to, subject, html, text }) => {
   });
 };
 
+
+
+export const generateCancellationEmailHtml = (order, cancellationReason = "", refundInfo = null) => {
+  const customerName = order.user?.fullName || "Valued Customer";
+  const siteUrl = process.env.FRONTEND_URL || "https://myownfresh.com";
+  const orderId = order.customOrderId || (order._id ? order._id.toString().toUpperCase() : "ORDER");
+  const deliveryAddress = order.deliveryAddress?.text || [
+    order.deliveryAddress?.roomNumber,
+    order.deliveryAddress?.areaName,
+    order.deliveryAddress?.city,
+    order.deliveryAddress?.pincode
+  ].filter(Boolean).join(", ") || "India";
+
+  const isOnlinePayment = order.PaymentMethod === "online" || order.paymentStatus === "completed";
+  const refundAmount = refundInfo?.amount !== undefined ? Number(refundInfo.amount) : Number(order.totalAmount || 0);
+  const reasonText = cancellationReason || order.cancellationReason || "Customer requested order cancellation";
+
+  const cancelledDate = new Date().toLocaleDateString("en-IN", {
+    day: "numeric",
+    month: "long",
+    year: "numeric"
+  });
+
+  const itemsHtml = (order.items || []).map(item => `
+    <tr>
+      <td style="padding: 10px 12px; border-bottom: 1px solid #EEEEEE; vertical-align: middle;">
+        ${item.image ? `<img src="${item.image}" alt="${item.name}" style="width: 44px; height: 44px; object-fit: cover; border-radius: 8px; margin-right: 12px; vertical-align: middle; display: inline-block; border: 1px solid #E5E5E5;" />` : ''}
+        <div style="display: inline-block; vertical-align: middle;">
+          <span style="font-weight: 700; font-size: 13px; color: #222222;">${item.name}</span>
+          ${item.variantName ? `<span style="font-size: 11px; color: #666666; display: block; margin-top: 2px;">Variant: ${item.variantName}</span>` : ''}
+        </div>
+      </td>
+      <td style="padding: 10px 12px; border-bottom: 1px solid #EEEEEE; text-align: center; font-size: 13px; color: #555555; font-weight: 600;">${item.quantity}</td>
+      <td style="padding: 10px 12px; border-bottom: 1px solid #EEEEEE; text-align: right; font-size: 13px; font-weight: 800; color: #222222;">₹${((item.price || 0) * (item.quantity || 1)).toFixed(2)}</td>
+    </tr>
+  `).join('');
+
+  return `
+    <div style="background-color:#FFF8F8;padding:24px 12px;font-family:Arial,Helvetica,sans-serif;">
+      <div style="max-width:540px;margin:auto;background:#ffffff;border:1px solid #F0D0D0;border-radius:16px;overflow:hidden;box-shadow:0 6px 20px rgba(0,0,0,0.06);">
+        
+        <!-- Header with Logo & Order ID -->
+        <div style="background:#ffffff;border-bottom:1px solid #F0EAEA;padding:18px 24px;text-align:center;">
+          <a href="${siteUrl}" target="_blank" style="text-decoration:none;display:inline-block;">
+            <img src="https://res.cloudinary.com/dkhq2wlwg/image/upload/v1774962822/ownfresh_media/ndxvmcpisomjzsghrfjs.png" alt="OwnFresh Logo" style="height:48px;border:none;display:inline-block;vertical-align:middle;" />
+          </a>
+          <div style="margin-top:10px;">
+            <span style="display:inline-block;background:#FFEBEE;border:1px solid #FFCDD2;color:#C62828;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:700;letter-spacing:0.5px;">
+              Order ID: #${orderId}
+            </span>
+          </div>
+        </div>
+
+        <!-- Hero Banner -->
+        <div style="background: linear-gradient(135deg, #C62828 0%, #8E0000 100%); padding: 26px 20px; text-align: center; color: #ffffff;">
+          <div style="font-size: 34px; line-height: 1; margin-bottom: 8px;">🛑</div>
+          <h1 style="margin: 0; font-size: 21px; font-weight: 800; letter-spacing: 0.5px; text-transform: uppercase;">Order Cancellation Notice</h1>
+          <p style="margin: 6px 0 0; font-size: 13px; opacity: 0.92;">Your order has been cancelled and updated in our system</p>
+        </div>
+
+        <!-- Body Message -->
+        <div style="padding:28px 24px;color:#333333;">
+          <p style="font-size:17px;font-weight:700;color:#111111;margin-top:0;margin-bottom:14px;">
+            Hi ${customerName},
+          </p>
+
+          <p style="font-size:14px;color:#444444;line-height:1.6;margin:0 0 16px 0;">
+            This email is to confirm that your OwnFresh order <b style="color:#C62828;">#${orderId}</b> has been <b>cancelled</b>.
+          </p>
+
+          <!-- Cancellation Reason Callout -->
+          <div style="background:#FFF5F5;border-left:4px solid #C62828;border-radius:8px;padding:14px 18px;margin:18px 0;font-size:13px;color:#8E0000;line-height:1.5;">
+            <b>Reason for Cancellation:</b> ${reasonText}
+          </div>
+
+          <!-- Refund / Payment Information Box -->
+          <div style="background:${isOnlinePayment ? '#E8F5E9' : '#FFF9E6'};border:1px solid ${isOnlinePayment ? '#C8E6C9' : '#FFE082'};border-radius:12px;padding:16px 18px;margin:20px 0;font-size:13px;line-height:1.6;">
+            ${isOnlinePayment ? `
+              <div style="color:#1B5E20;font-weight:800;font-size:14px;margin-bottom:4px;">
+                💳 100% Refund of ₹${refundAmount.toFixed(2)} Initiated
+              </div>
+              <div style="color:#2E7D32;font-size:12px;">
+                Since you paid online via PhonePe / UPI, the refund of <b>₹${refundAmount.toFixed(2)}</b> has been initiated to your original payment method. It will reflect in your account within <b>5-7 business days</b>.
+              </div>
+            ` : `
+              <div style="color:#7A5E00;font-weight:800;font-size:14px;margin-bottom:4px;">
+                💵 Cash on Delivery (COD) Order
+              </div>
+              <div style="color:#6D4C00;font-size:12px;">
+                As this order was placed with Cash on Delivery, no payment was collected and no refund is required.
+              </div>
+            `}
+          </div>
+
+          <!-- Order Summary Card -->
+          <div style="background:#FAFAFA;border:1px solid #EAEAEA;border-radius:12px;padding:16px;margin:20px 0;font-size:13px;line-height:1.7;">
+            <div style="margin-bottom:6px;"><b>📦 Order ID:</b> <span style="font-family:monospace;font-weight:700;color:#C62828;">#${orderId}</span></div>
+            <div style="margin-bottom:6px;"><b>📅 Cancellation Date:</b> ${cancelledDate}</div>
+            <div style="margin-bottom:6px;"><b>📍 Delivery Address:</b> ${deliveryAddress}</div>
+            <div><b>💰 Order Total:</b> ₹${(order.totalAmount || 0).toFixed(2)}</div>
+          </div>
+
+          <!-- Cancelled Items Table -->
+          <h3 style="font-size:13px;color:#C62828;text-transform:uppercase;letter-spacing:1px;font-weight:800;margin:24px 0 10px;">Cancelled Items</h3>
+          <table style="width:100%;border-collapse:collapse;margin-bottom:22px;border:1px solid #EEEEEE;border-radius:8px;overflow:hidden;">
+            <thead>
+              <tr style="background:#F5F5F5;font-size:11px;text-transform:uppercase;color:#666666;font-weight:700;">
+                <th style="padding:10px 12px;text-align:left;">Item</th>
+                <th style="padding:10px 12px;text-align:center;width:50px;">Qty</th>
+                <th style="padding:10px 12px;text-align:right;width:85px;">Price</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${itemsHtml}
+            </tbody>
+          </table>
+
+          <!-- Explore Store / Reorder Button -->
+          <div style="text-align:center;margin:28px 0 20px;">
+            <a href="${siteUrl}/shop" target="_blank" style="
+              display:inline-block;
+              padding:14px 30px;
+              font-size:13px;
+              font-weight:800;
+              background:#24672E;
+              color:#ffffff;
+              border-radius:10px;
+              text-decoration:none;
+              text-transform:uppercase;
+              letter-spacing:0.5px;
+              box-shadow:0 3px 10px rgba(0,0,0,0.08);
+            ">
+              Explore Our Store & Browse Fresh Oils →
+            </a>
+          </div>
+
+          <!-- Support & Help -->
+          <div style="margin-top:24px;padding-top:18px;border-top:1px solid #EEEEEE;font-size:12px;color:#666666;line-height:1.6;">
+            <p style="margin:0 0 6px 0;"><b>Need help or have questions about this cancellation?</b></p>
+            <p style="margin:0;">
+              Reply directly to this email or reach our support team at <a href="mailto:contact@myownfresh.com" style="color:#C62828;text-decoration:none;font-weight:700;">contact@myownfresh.com</a> or WhatsApp/Call us at <a href="tel:+918999773438" style="color:#24672E;text-decoration:none;font-weight:700;">+91 89997 73438</a>.
+            </p>
+          </div>
+        </div>
+
+        <!-- Footer -->
+        <div style="background:#F5F5F5;padding:16px;text-align:center;font-size:12px;color:#777777;border-top:1px solid #EEEEEE;line-height:1.6;">
+          <p style="margin:0 0 4px 0;"><b>OwnFresh Agro Industries</b> — Pune, Maharashtra</p>
+          <p style="margin:0;">© ${new Date().getFullYear()} OwnFresh. All rights reserved.</p>
+        </div>
+      </div>
+    </div>
+  `;
+};
+
+export const sendOrderCancelledMail = async ({ to, subject, html, text }) => {
+  return await transporter.sendMail({
+    from: `"OwnFresh Support" <${process.env.EMAIL}>`,
+    to,
+    subject,
+    html,
+    text
+  });
+};

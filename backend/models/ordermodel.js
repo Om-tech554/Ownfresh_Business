@@ -99,6 +99,22 @@ const orderSchema = new mongoose.Schema({
   deliveryEmailSentAt: {
     type: Date
   },
+  cancellationEmailSent: {
+    type: Boolean,
+    default: false
+  },
+  cancellationEmailSentAt: {
+    type: Date
+  },
+  refundStatus: {
+    type: String,
+    enum: ['not_applicable', 'pending', 'initiated', 'refunded'],
+    default: 'not_applicable'
+  },
+  refundAmount: {
+    type: Number,
+    default: 0
+  },
   isLocalDelivery: {
     type: Boolean,
     default: false

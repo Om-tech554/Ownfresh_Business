@@ -1,3 +1,21 @@
+// Helper to wrap tables in responsive scroll wrapper
+const processBlogHtml = (html) => {
+  if (!html) return "";
+  return html.replace(
+    /(?:<div[^>]*class="[^"]*blog-table-(?:container|wrapper|responsive)[^"]*"[^>]*>[\s\S]*?<\/div>)|(<table[\s\S]*?<\/table>)/gi,
+    (match, rawTable) => {
+      if (!rawTable) return match;
+      return `<div class="blog-table-container">
+        <div class="blog-table-hint">
+          <span class="hint-icon">⟷</span> Swipe table horizontally to view all columns
+        </div>
+        <div class="blog-table-scroll">
+          ${rawTable}
+        </div>
+      </div>`;
+    }
+  );
+};
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
@@ -148,7 +166,7 @@ const AdminBlogDetails = () => {
 
           <div
             className="prose prose-lg max-w-none mb-10 text-gray-700 dark:text-[#B7C1CE] leading-relaxed dark:prose-headings:text-[#F7F9FC] dark:prose-strong:text-[#F5F7FA]"
-            dangerouslySetInnerHTML={{ __html: blog.description }}
+            dangerouslySetInnerHTML={{ __html: processBlogHtml(blog.description) }}
           />
 
           {/* GALLERY SLIDER (SLOTS 1-4) */}

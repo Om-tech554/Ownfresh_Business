@@ -11,6 +11,9 @@ import {
   previewDeliveryEmail,
   sendTestDeliveryEmail,
   sendDeliveryEmail,
+  previewCancellationEmail,
+  sendTestCancellationEmail,
+  sendCancellationEmail,
   toggleLabelPrinted,
   getOrderAuditLogs
 } from "../controllers/fulfillmentController.js";
@@ -26,6 +29,10 @@ router.post("/send-email/:id", isAuth, isAdmin, sendShipmentEmail);
 router.post("/preview-delivery-email/:id", isAuth, isAdmin, previewDeliveryEmail);
 router.post("/test-delivery-email/:id", isAuth, isAdmin, sendTestDeliveryEmail);
 router.post("/send-delivery-email/:id", isAuth, isAdmin, sendDeliveryEmail);
+
+router.post("/preview-cancellation-email/:id", isAuth, isAdmin, previewCancellationEmail);
+router.post("/test-cancellation-email/:id", isAuth, isAdmin, sendTestCancellationEmail);
+router.post("/send-cancellation-email/:id", isAuth, isAdmin, sendCancellationEmail);
 router.put("/label-printed/:id", isAuth, isAdmin, toggleLabelPrinted);
 router.get("/audit-logs/:orderId", isAuth, isAdmin, getOrderAuditLogs);
 
